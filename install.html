@@ -252,13 +252,13 @@
     </div>
 
     <section class="guide only-ios" id="iosGuide">
-      <h2>iPhone / iPad</h2>
+      <h2>iPhone / iPad (복붙 없이)</h2>
       <ol>
-        <li><b>Safari</b>로 이 페이지를 엽니다.</li>
-        <li>하단 <b>공유</b> 버튼을 누릅니다.</li>
+        <li>카톡/네이버면 먼저 <b>Safari에서 열기</b> (위 버튼 또는 앱 메뉴의 Safari로 열기)</li>
+        <li>Safari로 열리면 하단 <b>공유</b> 버튼</li>
         <li><b>홈 화면에 추가</b> → 추가</li>
       </ol>
-      <p class="note">아이폰은 Safari에서만 설치됩니다. 카톡 안에서는 위 “Safari에서 열기”를 먼저 누르세요.</p>
+      <p class="note">Safari 안에서는 주소 복사 없이 공유 버튼만으로 바로 홈 화면 추가가 됩니다. 복붙은 Safari 연결이 실패할 때만 쓰세요.</p>
     </section>
 
     <section class="guide only-android" id="androidGuide">
@@ -302,10 +302,18 @@
       (mode === "ios" ? "iOS" : mode === "android" ? "Android" : "PC/기타")
       + (isInApp ? " · 인앱 브라우저" : "");
     document.getElementById("installHint").textContent =
-      mode === "ios" ? "Safari 공유 → 홈 화면에 추가" :
-      mode === "android" ? "설치 창 또는 홈 화면에 추가" :
+      mode === "ios"
+        ? (isInApp ? "먼저 Safari로 연 뒤 홈 화면에 추가" : "공유 → 홈 화면에 추가")
+        : mode === "android" ? "설치 창 또는 홈 화면에 추가" :
       "휴대폰에서 열어 주세요";
     document.getElementById("otherGuide").hidden = mode !== "other";
+
+    // iOS Safari already: copy is secondary
+    if (mode === "ios" && !isInApp) {
+      document.getElementById("openExternalBtn").style.display = "none";
+      document.getElementById("copyBtn").querySelector("em").textContent = "필요할 때만 사용";
+      document.getElementById("lead").textContent = "Safari에서 공유 버튼으로 바로 홈 화면에 추가할 수 있습니다. 주소 복붙은 필요 없습니다.";
+    }
 
     if (isInApp) {
       var banner = document.getElementById("openBanner");
