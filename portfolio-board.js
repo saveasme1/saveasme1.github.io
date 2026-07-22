@@ -656,7 +656,21 @@
     state.opened = !els.panel || !els.panel.hidden;
     loadData();
   }
-  if (new URLSearchParams(location.search).get("open") === "portfolio" && els.panel) {
+  async function openFromQuery() {
+    const params = new URLSearchParams(location.search);
+    if (params.get("open") !== "portfolio" || !els.panel) return;
     openPortfolioPanel();
+    const itemId = params.get("id");
+    if (!itemId) return;
+    const waitReady = async () => {
+      const started = Date.now();
+      while (!state.loaded && Date.now() - started < 15000) {
+        await new Promise((r) => setTimeout(r, 80));
+      }
+    };
+    await waitReady();
+    const item = state.items.find((row) => String(row.id) === String(itemId));
+    if (item) await openDetail(item);
   }
+  openFromQuery();
 })();

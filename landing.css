@@ -146,6 +146,11 @@ body.has-gb-top-brand .landing {
   line-height: 1.55;
   word-break: keep-all;
 }
+.action-search {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 130, 54, .14), transparent 42%),
+    var(--panel);
+}
 .action-shipping {
   background:
     radial-gradient(circle at 92% 10%, rgba(255, 130, 54, .09), transparent 38%),
