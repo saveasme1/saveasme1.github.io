@@ -136,13 +136,14 @@ body {
   background: #000;
   object-fit: cover;
 }
-#cameraPreview {
-  margin-top: 0;
-}
+#cameraPreview { margin-top: 0; }
 .js-drop[hidden],
-.js-preview[hidden] {
+.js-preview[hidden],
+video[hidden],
+.js-loading[hidden] {
   display: none !important;
 }
+
 .js-row {
   display: flex;
   flex-wrap: wrap;
@@ -167,43 +168,46 @@ body {
 }
 .js-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.js-textform {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+.js-loading {
+  margin: 18px 0 8px;
+  padding: 16px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 130, 54, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 130, 54, 0.12), rgba(255, 250, 244, 0.03) 55%, rgba(255, 130, 54, 0.08));
+  animation: rise 0.4s var(--ease) both;
 }
-.js-textform input {
-  height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--ink);
-  font: inherit;
+.js-loading p {
+  margin: 10px 0 0;
+  text-align: center;
+  color: rgba(245, 242, 238, 0.78);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
-
-.js-filters {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-top: 14px;
+.js-loading-track {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
 }
-.js-filters label {
-  display: grid;
-  gap: 4px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-.js-filters select {
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--ink);
-  font: inherit;
-  padding: 0 8px;
+.js-loading-track i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 130, 54, 0.15),
+    #ff8236,
+    #ffc08a,
+    #ff8236,
+    rgba(255, 130, 54, 0.15)
+  );
+  background-size: 200% 100%;
+  animation: loadSlide 1.15s var(--ease) infinite, loadShine 1.4s linear infinite;
+  box-shadow: 0 0 18px rgba(255, 130, 54, 0.35);
 }
 
 .js-status {
@@ -220,6 +224,7 @@ body {
   gap: 12px;
 }
 .js-card {
+  position: relative;
   display: grid;
   gap: 6px;
   color: inherit;
@@ -243,13 +248,26 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.js-card span,
 .js-card em {
-  color: var(--muted);
+  color: var(--brand);
   font-size: 11px;
   font-style: normal;
+  font-weight: 700;
 }
-.js-card em { color: var(--brand); font-weight: 700; }
+.js-fav {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+.js-fav.is-fav { color: var(--brand); }
 
 .js-related {
   margin-top: 28px;
@@ -262,9 +280,22 @@ body {
   letter-spacing: -0.02em;
 }
 
+body.is-searching .js-panel {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
+}
+@keyframes loadSlide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(280%); }
+}
+@keyframes loadShine {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 @media (min-width: 720px) {
@@ -273,21 +304,3 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-
-@media (max-width: 520px) {
-  .js-filters { grid-template-columns: 1fr; }
-  .js-textform { grid-template-columns: 1fr; }
-}
-
-
-.js-recent { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
-.js-recent button {
-  border: 1px solid var(--line); background: transparent; color: var(--muted);
-  border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer;
-}
-.js-card { position: relative; }
-.js-fav {
-  position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 999px;
-  border: 0; background: rgba(0,0,0,.45); color: #fff; cursor: pointer; font-size: 14px;
-}
-.js-fav.is-fav { color: var(--brand); }

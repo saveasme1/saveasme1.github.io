@@ -5,6 +5,8 @@
 
   const els = {
     status: document.getElementById("status"),
+    loading: document.getElementById("loading"),
+    loadingText: document.getElementById("loadingText"),
     results: document.getElementById("results"),
     related: document.getElementById("related"),
     relatedGrid: document.getElementById("relatedGrid"),
@@ -13,9 +15,6 @@
     photoPreview: document.getElementById("photoPreview"),
     photoClear: document.getElementById("photoClear"),
     photoSearch: document.getElementById("photoSearch"),
-    filterBrand: document.getElementById("filterBrand"),
-    filterCategory: document.getElementById("filterCategory"),
-    filterMaterial: document.getElementById("filterMaterial"),
     cameraVideo: document.getElementById("cameraVideo"),
     cameraPreview: document.getElementById("cameraPreview"),
     cameraCanvas: document.getElementById("cameraCanvas"),
@@ -58,12 +57,10 @@
     els.status.style.color = isError ? "#ff8f8f" : "";
   }
 
-  function filters() {
-    return {
-      brand: els.filterBrand?.value || "ALL",
-      category: els.filterCategory?.value || "ALL",
-      material: els.filterMaterial?.value || "ALL",
-    };
+  function setLoading(on, text = "이미지 검색 중…") {
+    els.loading.hidden = !on;
+    if (els.loadingText) els.loadingText.textContent = text;
+    document.body.classList.toggle("is-searching", on);
   }
 
   async function loadHealth() {
@@ -86,6 +83,14 @@
     return `유사도 ${pct}%`;
   }
 
+  function displayTitle(title) {
+    // hide parsed English brand labels if they leak into UI strings
+    return String(title || "")
+      .replace(/\b(Cartier|Bulgari|Bvlgari|Tiffany|Chanel|Hermes|Hermès|Piaget|Graff|Dior|Chopard|Boucheron|Chaumet)\b/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
   function renderCards(container, rows) {
     container.replaceChildren();
     rows.forEach((row, index) => {
@@ -97,12 +102,10 @@
       a.style.animationDelay = `${Math.min(index, 12) * 0.03}s`;
       const img = document.createElement("img");
       img.src = row.coverUrl || "";
-      img.alt = row.title || "";
+      img.alt = displayTitle(row.title) || "";
       img.loading = index < 6 ? "eager" : "lazy";
       const title = document.createElement("strong");
-      title.textContent = row.title || row.id;
-      const meta = document.createElement("span");
-      meta.textContent = [row.brand, row.category].filter(Boolean).join(" · ");
+      title.textContent = displayTitle(row.title) || row.id;
       const score = document.createElement("em");
       score.textContent = scoreLabel(row.score);
       const fav = document.createElement("button");
@@ -115,7 +118,7 @@
         ev.stopPropagation();
         toggleFav(row.id, fav);
       });
-      a.append(img, title, meta, score, fav);
+      a.append(img, title, score, fav);
       container.append(a);
     });
   }
@@ -145,7 +148,7 @@
       els.related.hidden = true;
       return;
     }
-    setStatus(`${rows.length}건 · ${payload.backend || "clip"}`);
+    setStatus(`${rows.length}건 찾았습니다.`);
     await showRelated(rows[0].id);
   }
 
@@ -154,28 +157,26 @@
       setStatus("검색할 사진이 없습니다.", true);
       return;
     }
-    setStatus("이미지 검색 중…");
+    setLoading(true, "이미지 검색 중…");
+    setStatus("");
     els.results.replaceChildren();
     els.related.hidden = true;
-    const f = filters();
-    const body = new FormData();
-    body.append("file", file, file.name || "query.jpg");
-    const qs = new URLSearchParams({
-      limit: "24",
-      brand: f.brand,
-      category: f.category,
-      material: f.material,
-    });
-    const res = await fetch(`${API_BASE}/search/image?${qs}`, {
-      method: "POST",
-      body,
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) {
-      const detail = data.detail || data.message || "이미지 검색 실패";
-      throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+    try {
+      const body = new FormData();
+      body.append("file", file, file.name || "query.jpg");
+      const res = await fetch(`${API_BASE}/search/image?limit=24`, {
+        method: "POST",
+        body,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        const detail = data.detail || data.message || "이미지 검색 실패";
+        throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+      }
+      await handleResults(data);
+    } finally {
+      setLoading(false);
     }
-    await handleResults(data);
   }
 
   function setPhotoSelected(file) {

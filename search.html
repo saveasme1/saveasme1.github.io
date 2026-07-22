@@ -9,7 +9,7 @@
   <title>헤리티지 · 사진으로 찾기</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="search.css?v=20260723-ai2">
+  <link rel="stylesheet" href="search.css?v=20260723-ai3">
 </head>
 <body>
   <header class="js-top">
@@ -53,19 +53,12 @@
         </div>
         <canvas id="cameraCanvas" hidden></canvas>
       </div>
-
-      <div class="js-filters" id="filters" hidden>
-        <label>브랜드
-          <select id="filterBrand"><option value="ALL">ALL</option></select>
-        </label>
-        <label>카테고리
-          <select id="filterCategory"><option value="ALL">ALL</option></select>
-        </label>
-        <label>재질
-          <select id="filterMaterial"><option value="ALL">ALL</option></select>
-        </label>
-      </div>
     </section>
+
+    <div class="js-loading" id="loading" hidden aria-live="polite">
+      <div class="js-loading-track" aria-hidden="true"><i></i></div>
+      <p id="loadingText">이미지 검색 중…</p>
+    </div>
 
     <p class="js-status" id="status" aria-live="polite">준비됨</p>
     <section class="js-results" id="results" aria-label="검색 결과"></section>
@@ -75,7 +68,7 @@
     </section>
   </main>
 
-  <script src="search.js?v=20260723-ai2"></script>
+  <script src="search.js?v=20260723-ai3"></script>
   <script src="pwa-register.js"></script>
 </body>
 </html>
