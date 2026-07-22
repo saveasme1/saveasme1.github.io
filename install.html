@@ -73,6 +73,7 @@
     .stack { display: grid; gap: 10px; }
     .btn {
       appearance: none;
+      -webkit-appearance: none;
       border: 0;
       border-radius: 14px;
       min-height: 56px;
@@ -80,6 +81,9 @@
       text-align: left;
       cursor: pointer;
       font: inherit;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .btn strong { display: block; font-size: 16px; letter-spacing: -.03em; }
     .btn em {
@@ -111,7 +115,7 @@
       margin-top: 16px;
       padding: 16px;
       border-radius: 16px;
-      background: rgba(255, 255, 255, 0.88);
+      background: rgba(255, 255, 255, 0.92);
       border: 1px solid var(--line);
     }
     .panel.is-open { display: block; }
@@ -151,6 +155,8 @@
       pointer-events: none;
       transition: opacity .2s ease;
       z-index: 20;
+      max-width: 90vw;
+      text-align: center;
     }
     .toast.is-on { opacity: 1; }
   </style>
@@ -171,47 +177,158 @@
     <div class="stack">
       <button type="button" class="btn btn-ios" id="iosInstall">
         <strong>iOS 설치</strong>
-        <em>Safari로 연결 후 홈 화면에 추가</em>
+        <em>Safari에서 홈 화면에 추가</em>
       </button>
       <button type="button" class="btn btn-android" id="androidInstall">
         <strong>Android 설치</strong>
         <em>삼성 인터넷 / Chrome 홈 화면 추가</em>
       </button>
-      <button type="button" class="btn btn-open" id="openApp">설치 없이 바로 열기</button>
+      <a class="btn btn-open" id="openApp" href="./landing.html">설치 없이 바로 열기</a>
     </div>
 
-    <section class="panel" id="iosPanel" aria-live="polite">
+    <section class="panel" id="iosPanel">
       <h2>iPhone / iPad 설치</h2>
       <ol>
-        <li><b>Safari</b>로 이 페이지가 열려야 합니다. (아래 버튼으로 Safari 연결 시도)</li>
+        <li><b>Safari</b>로 이 주소를 엽니다.</li>
         <li>하단 <b>공유</b> 버튼을 누릅니다.</li>
         <li><b>홈 화면에 추가</b> → 추가</li>
       </ol>
-      <p class="note">아이폰은 Apple 정책상 Chrome·네이버·카톡 브라우저로는 설치가 안 되고, Safari만 됩니다. 다른 방법은 없습니다.</p>
+      <p class="note">아이폰은 Safari만 설치 가능합니다. Chrome·네이버·카톡 안에서는 설치가 안 됩니다.</p>
       <div class="stack" style="margin-top:12px">
-        <button type="button" class="btn btn-ios" id="openSafari">Safari로 열기</button>
+        <button type="button" class="btn btn-ios" id="openSafari">
+          <strong>Safari로 열기 시도</strong>
+          <em>안 되면 아래 링크 복사</em>
+        </button>
+        <button type="button" class="btn btn-android" id="copyIosLink">
+          <strong>설치 링크 복사</strong>
+          <em>Safari 주소창에 붙여넣기</em>
+        </button>
       </div>
     </section>
 
-    <section class="panel" id="androidPanel" aria-live="polite">
+    <section class="panel" id="androidPanel">
       <h2>Android 설치</h2>
       <ol>
         <li>삼성 인터넷 또는 Chrome에서 이 페이지를 엽니다.</li>
-        <li>아래 <b>앱 설치하기</b>가 보이면 바로 누르세요.</li>
-        <li>안 보이면 브라우저 메뉴(≡) → <b>페이지 추가 / 홈 화면에 추가</b></li>
+        <li>아래 <b>앱 설치하기</b>가 있으면 누르세요.</li>
+        <li>없으면 브라우저 메뉴(≡) → <b>페이지 추가 / 홈 화면에 추가</b></li>
       </ol>
       <div class="stack" style="margin-top:12px">
-        <button type="button" class="btn btn-android" id="androidPrompt" hidden>
+        <button type="button" class="btn btn-android" id="androidPrompt">
           <strong>앱 설치하기</strong>
-          <em>브라우저 설치 창 열기</em>
+          <em>설치 창이 없으면 메뉴에서 추가</em>
+        </button>
+        <button type="button" class="btn btn-android" id="copyAndroidLink">
+          <strong>링크 복사</strong>
+          <em>삼성 인터넷 주소창에 붙여넣기</em>
         </button>
       </div>
-      <p class="note">카톡 안에서 열렸다면 주소창 URL을 복사해 삼성 인터넷에 붙여넣는 것이 가장 확실합니다.</p>
+      <p class="note">카톡 안 브라우저면 메뉴에 설치가 없을 수 있습니다. 링크 복사 후 삼성 인터넷에서 여세요.</p>
     </section>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
+
+  <script>
+  (function () {
+    var installUrl = location.origin + "/install.html";
+    var iosPanel = document.getElementById("iosPanel");
+    var androidPanel = document.getElementById("androidPanel");
+    var toast = document.getElementById("toast");
+    var deferredPrompt = null;
+    var toastTimer = 0;
+
+    function showToast(msg) {
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.className = "toast is-on";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        toast.className = "toast";
+      }, 2400);
+    }
+
+    function openPanel(which) {
+      if (iosPanel) iosPanel.className = which === "ios" ? "panel is-open" : "panel";
+      if (androidPanel) androidPanel.className = which === "android" ? "panel is-open" : "panel";
+      var el = which === "ios" ? iosPanel : androidPanel;
+      if (el && el.scrollIntoView) {
+        setTimeout(function () {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 50);
+      }
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          showToast("링크를 복사했습니다");
+        }).catch(function () {
+          window.prompt("이 링크를 복사하세요", text);
+        });
+        return;
+      }
+      window.prompt("이 링크를 복사하세요", text);
+    }
+
+    function openSafari() {
+      // best-effort; many in-app browsers ignore this
+      var scheme = "x-safari-https://" + location.host + location.pathname + location.search;
+      var iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = scheme;
+      document.body.appendChild(iframe);
+      setTimeout(function () {
+        try { document.body.removeChild(iframe); } catch (e) {}
+        showToast("안 열리면 링크 복사 후 Safari에 붙여넣기");
+      }, 800);
+    }
+
+    document.getElementById("iosInstall").onclick = function () {
+      openPanel("ios");
+      showToast("아래 iOS 설치 안내를 확인하세요");
+    };
+
+    document.getElementById("androidInstall").onclick = function () {
+      openPanel("android");
+      showToast("아래 Android 설치 안내를 확인하세요");
+    };
+
+    document.getElementById("openSafari").onclick = function () {
+      openSafari();
+      copyText(installUrl);
+    };
+
+    document.getElementById("copyIosLink").onclick = function () {
+      copyText(installUrl);
+    };
+
+    document.getElementById("copyAndroidLink").onclick = function () {
+      copyText(installUrl);
+    };
+
+    document.getElementById("androidPrompt").onclick = function () {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function () {
+          deferredPrompt = null;
+        });
+        return;
+      }
+      showToast("브라우저 메뉴에서 홈 화면에 추가를 누르세요");
+      openPanel("android");
+    };
+
+    window.addEventListener("beforeinstallprompt", function (event) {
+      event.preventDefault();
+      deferredPrompt = event;
+    });
+
+    var ua = navigator.userAgent || "";
+    if (/iPhone|iPad|iPod/i.test(ua)) openPanel("ios");
+    else if (/Android/i.test(ua)) openPanel("android");
+  })();
+  </script>
   <script src="pwa-register.js"></script>
-  <script src="pwa-install.js"></script>
 </body>
 </html>
