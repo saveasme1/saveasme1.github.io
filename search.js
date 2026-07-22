@@ -3,6 +3,12 @@
     window.JEWELRY_SEARCH_API ||
     "https://app.0-1.co.kr/api/jewelry/v1";
 
+  const BAND_LABEL = {
+    very_similar: "매우 유사",
+    similar: "유사",
+    reference: "참고 결과",
+  };
+
   const els = {
     status: document.getElementById("status"),
     loading: document.getElementById("loading"),
@@ -28,7 +34,6 @@
   let cameraFile = null;
   let photoObjectUrl = null;
   let cameraObjectUrl = null;
-
   const FAV_KEY = "heritage_ai_favs";
 
   function loadList(key) {
@@ -38,11 +43,9 @@
       return [];
     }
   }
-
   function saveList(key, list) {
     localStorage.setItem(key, JSON.stringify(list.slice(0, 24)));
   }
-
   function toggleFav(id, btn) {
     const list = loadList(FAV_KEY);
     const i = list.indexOf(id);
@@ -72,19 +75,18 @@
         setStatus("검색 인덱스를 준비 중입니다.", true);
         return;
       }
-      setStatus("사진을 선택한 뒤 검색을 눌러 주세요.");
+      const ver = data.modelVersion || "";
+      setStatus(
+        ver.includes("siglip")
+          ? "사진을 선택한 뒤 검색을 눌러 주세요."
+          : "사진을 선택한 뒤 검색을 눌러 주세요. (레거시 인덱스)"
+      );
     } catch (error) {
       setStatus(error.message || "API에 연결하지 못했습니다.", true);
     }
   }
 
-  function scoreLabel(score) {
-    const pct = Math.max(0, Math.min(100, Math.round(Number(score) * 100)));
-    return `유사도 ${pct}%`;
-  }
-
   function displayTitle(title) {
-    // hide parsed English brand labels if they leak into UI strings
     return String(title || "")
       .replace(/\b(Cartier|Bulgari|Bvlgari|Tiffany|Chanel|Hermes|Hermès|Piaget|Graff|Dior|Chopard|Boucheron|Chaumet)\b/gi, "")
       .replace(/\s{2,}/g, " ")
@@ -96,29 +98,31 @@
     rows.forEach((row, index) => {
       const a = document.createElement("a");
       a.className = "js-card";
+      const id = row.product_id || row.id;
       a.href =
         row.detailUrl ||
-        `./landing.html?open=portfolio&id=${encodeURIComponent(row.id)}`;
+        `./landing.html?open=portfolio&id=${encodeURIComponent(id)}`;
       a.style.animationDelay = `${Math.min(index, 12) * 0.03}s`;
       const img = document.createElement("img");
       img.src = row.coverUrl || "";
       img.alt = displayTitle(row.title) || "";
       img.loading = index < 6 ? "eager" : "lazy";
       const title = document.createElement("strong");
-      title.textContent = displayTitle(row.title) || row.id;
-      const score = document.createElement("em");
-      score.textContent = scoreLabel(row.score);
+      title.textContent = displayTitle(row.title) || id;
+      const band = document.createElement("em");
+      const key = row.confidence_band || "reference";
+      band.textContent = BAND_LABEL[key] || "참고 결과";
+      band.dataset.band = key;
       const fav = document.createElement("button");
       fav.type = "button";
-      fav.className =
-        "js-fav" + (loadList(FAV_KEY).includes(row.id) ? " is-fav" : "");
+      fav.className = "js-fav" + (loadList(FAV_KEY).includes(String(id)) ? " is-fav" : "");
       fav.textContent = "♥";
       fav.addEventListener("click", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
-        toggleFav(row.id, fav);
+        toggleFav(String(id), fav);
       });
-      a.append(img, title, score, fav);
+      a.append(img, title, band, fav);
       container.append(a);
     });
   }
@@ -141,15 +145,30 @@
   }
 
   async function handleResults(payload) {
+    if (payload.recognized_as_jewelry === false) {
+      els.results.replaceChildren();
+      els.related.hidden = true;
+      setStatus(
+        "사진에서 주얼리를 찾지 못했습니다.\n주얼리가 화면 중앙에 크게 나오도록 다시 촬영해 주세요."
+      );
+      els.status.style.whiteSpace = "pre-line";
+      return;
+    }
     const rows = payload.results || [];
     renderCards(els.results, rows);
     if (!rows.length) {
-      setStatus("비슷한 작품을 찾지 못했습니다. 다른 사진을 시도해 보세요.");
+      setStatus(
+        "사진에서 주얼리를 찾지 못했습니다.\n주얼리가 화면 중앙에 크게 나오도록 다시 촬영해 주세요."
+      );
+      els.status.style.whiteSpace = "pre-line";
       els.related.hidden = true;
       return;
     }
-    setStatus(`${rows.length}건 찾았습니다.`);
-    await showRelated(rows[0].id);
+    els.status.style.whiteSpace = "";
+    const ms = payload.processing_ms ? ` · ${payload.processing_ms}ms` : "";
+    setStatus(`${rows.length}건 찾았습니다${ms}`);
+    const firstId = rows[0].product_id || rows[0].id;
+    if (firstId) await showRelated(firstId);
   }
 
   async function searchImage(file) {
@@ -169,7 +188,7 @@
         body,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
+      if (!res.ok || data.ok === false) {
         const detail = data.detail || data.message || "이미지 검색 실패";
         throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
       }
@@ -319,8 +338,7 @@
           0.92
         );
       });
-      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" });
-      setCameraCaptured(file);
+      setCameraCaptured(new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" }));
     } catch (error) {
       setStatus(error.message || "촬영에 실패했습니다.", true);
     }

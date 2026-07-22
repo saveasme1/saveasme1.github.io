@@ -304,3 +304,7 @@ body.is-searching .js-panel {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.js-card em[data-band="very_similar"] { color: #ff8236; }
+.js-card em[data-band="similar"] { color: #ffb07a; }
+.js-card em[data-band="reference"] { color: rgba(245,242,238,.55); }
