@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <!-- cache-bust: 20260721-hero-copy1 -->
+  <!-- cache-bust: 20260723-restore-kakao-root -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -23,11 +23,11 @@
 <script>
 (function () {
   // Stay on / with no query params.
-  // TEMP restore: always show main. Virtual 500 (main-blocked.html) kept on disk, not served.
+  // Root = Kakao friend-add (main-content). Boards live at /landing.html.
+  // Virtual 500 (main-blocked.html) kept on disk, not served.
   // Restore flip later with:
   //   var path = (n % 2 === 1) ? "/main-blocked.html" : "/main-content.html";
-  var path = "./landing.html";
-  // var path = "/main-blocked.html";
+  var path = "./main-content.html";
 
   fetch(path, { cache: "no-store", credentials: "omit" })
     .then(function (r) {
@@ -40,7 +40,7 @@
       document.close();
     })
     .catch(function () {
-      location.href = "./landing.html";
+      location.href = "./main-content.html";
     });
 })();
 </script>
