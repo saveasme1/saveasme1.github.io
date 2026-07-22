@@ -9,54 +9,52 @@
   <title>헤리티지 · 사진으로 찾기</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="search.css?v=20260723-ai1">
+  <link rel="stylesheet" href="search.css?v=20260723-ai2">
 </head>
 <body>
   <header class="js-top">
     <a class="js-back" href="./landing.html">← 돌아가기</a>
     <strong>사진으로 찾기</strong>
-    <span class="js-badge">AI</span>
+    <span class="js-badge">BETA</span>
   </header>
 
   <main class="js-main">
     <section class="js-hero">
       <h1>주얼리 AI 검색</h1>
-      <p>사진 업로드·카메라·텍스트로 비슷한 작품을 찾습니다.</p>
+      <p>사진 업로드·카메라로 비슷한 작품을 찾습니다. 이 기능은 현재 베타 테스트 기능으로 정확하지 않을 수 있습니다.</p>
     </section>
 
     <section class="js-panel" aria-label="검색">
       <div class="js-tabs" role="tablist">
         <button type="button" class="is-active" data-tab="photo">사진</button>
         <button type="button" data-tab="camera">카메라</button>
-        <button type="button" data-tab="text">텍스트</button>
       </div>
 
       <div class="js-tabpane is-active" id="pane-photo">
-        <label class="js-drop">
+        <label class="js-drop" id="photoDrop">
           <input id="fileInput" type="file" accept="image/*" hidden>
           <strong>사진 선택 / 업로드</strong>
           <span>JPG·PNG · 최대 10MB</span>
         </label>
         <div class="js-preview" id="photoPreview" hidden></div>
+        <div class="js-row">
+          <button type="button" class="js-btn" id="photoClear" hidden>사진 지우기</button>
+          <button type="button" class="js-btn primary" id="photoSearch" disabled>검색</button>
+        </div>
       </div>
 
       <div class="js-tabpane" id="pane-camera">
         <video id="cameraVideo" playsinline muted></video>
+        <div class="js-preview" id="cameraPreview" hidden></div>
         <div class="js-row">
           <button type="button" class="js-btn" id="cameraStart">카메라 켜기</button>
-          <button type="button" class="js-btn primary" id="cameraShot" disabled>촬영 후 검색</button>
+          <button type="button" class="js-btn" id="cameraCapture" disabled>촬영</button>
+          <button type="button" class="js-btn primary" id="cameraSearch" disabled>촬영 후 검색</button>
         </div>
         <canvas id="cameraCanvas" hidden></canvas>
       </div>
 
-      <div class="js-tabpane" id="pane-text">
-        <form id="textForm" class="js-textform">
-          <input id="textQuery" type="search" placeholder="예: 까르띠에 저스트 엥끌로 팔찌" enterkeyhint="search" required>
-          <button type="submit" class="js-btn primary">검색</button>
-        </form>
-      </div>
-
-      <div class="js-filters" id="filters">
+      <div class="js-filters" id="filters" hidden>
         <label>브랜드
           <select id="filterBrand"><option value="ALL">ALL</option></select>
         </label>
@@ -77,7 +75,7 @@
     </section>
   </main>
 
-  <script src="search.js?v=20260723-ai1"></script>
+  <script src="search.js?v=20260723-ai2"></script>
   <script src="pwa-register.js"></script>
 </body>
 </html>

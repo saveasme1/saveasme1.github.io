@@ -146,6 +146,26 @@ body.has-gb-top-brand .landing {
   line-height: 1.55;
   word-break: keep-all;
 }
+
+.action-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.action-beta {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 130, 54, 0.45);
+  color: #ff8236;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
 .action-search {
   background:
     radial-gradient(circle at 12% 0%, rgba(255, 130, 54, .14), transparent 42%),

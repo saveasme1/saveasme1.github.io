@@ -81,7 +81,7 @@ body {
 }
 .js-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -136,6 +136,13 @@ body {
   background: #000;
   object-fit: cover;
 }
+#cameraPreview {
+  margin-top: 0;
+}
+.js-drop[hidden],
+.js-preview[hidden] {
+  display: none !important;
+}
 .js-row {
   display: flex;
   flex-wrap: wrap;
@@ -177,7 +184,7 @@ body {
 
 .js-filters {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-top: 14px;
 }
