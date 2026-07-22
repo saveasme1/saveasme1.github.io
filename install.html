@@ -33,6 +33,56 @@
         max(28px, env(safe-area-inset-bottom))
         max(20px, env(safe-area-inset-left));
     }
+    body.has-banner {
+      padding-top: calc(64px + max(28px, env(safe-area-inset-top)));
+    }
+    .open-banner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding:
+        max(10px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        10px
+        max(12px, env(safe-area-inset-left));
+      background: rgba(22, 21, 19, 0.96);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .open-banner.is-on { display: block; }
+    .open-banner__row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: min(440px, 100%);
+      margin: 0 auto;
+    }
+    .open-banner__copy {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .open-banner__copy strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .open-banner__btn {
+      flex: none;
+      border: 0;
+      border-radius: 999px;
+      min-height: 36px;
+      padding: 0 14px;
+      background: #ff8236;
+      color: #fff;
+      font: 700 12px/1 SUIT, Pretendard, sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+    }
     .wrap { width: min(440px, 100%); margin: 0 auto; }
     .brand {
       display: flex;
@@ -159,11 +209,19 @@
     .toast.is-on { opacity: 1; }
     .is-ios .only-android { display: none !important; }
     .is-android .only-ios { display: none !important; }
-    .is-other .only-ios,
-    .is-other .only-android { display: none !important; }
   </style>
 </head>
 <body>
+  <div class="open-banner" id="openBanner">
+    <div class="open-banner__row">
+      <div class="open-banner__copy">
+        <strong id="bannerTitle">브라우저에서 열기</strong>
+        <span id="bannerDesc">카톡 안에서는 설치가 안 됩니다</span>
+      </div>
+      <button type="button" class="open-banner__btn" id="bannerOpen">열기</button>
+    </div>
+  </div>
+
   <div class="wrap">
     <div class="brand">
       <img src="icons/icon-192.png" alt="" width="56" height="56">
@@ -182,9 +240,13 @@
         <strong>앱 설치하기</strong>
         <em id="installHint">설치 안내 보기</em>
       </button>
+      <button type="button" class="btn btn-secondary" id="openExternalBtn">
+        <strong id="openExternalLabel">브라우저에서 열기</strong>
+        <em id="openExternalHint">새 창/외부 브라우저로 이동</em>
+      </button>
       <button type="button" class="btn btn-secondary" id="copyBtn">
         <strong>설치 링크 복사</strong>
-        <em>다른 브라우저 주소창에 붙여넣기</em>
+        <em>주소창에 붙여넣기</em>
       </button>
       <a class="btn btn-open" href="./landing.html">설치 없이 바로 열기</a>
     </div>
@@ -196,24 +258,24 @@
         <li>하단 <b>공유</b> 버튼을 누릅니다.</li>
         <li><b>홈 화면에 추가</b> → 추가</li>
       </ol>
-      <p class="note">아이폰은 Safari에서만 설치됩니다. 카톡·Chrome·네이버 안에서는 설치가 안 됩니다.</p>
+      <p class="note">아이폰은 Safari에서만 설치됩니다. 카톡 안에서는 위 “Safari에서 열기”를 먼저 누르세요.</p>
     </section>
 
     <section class="guide only-android" id="androidGuide">
       <h2>Android</h2>
       <ol>
-        <li>삼성 인터넷 또는 Chrome에서 이 페이지를 엽니다.</li>
+        <li>Chrome 또는 삼성 인터넷으로 이 페이지를 엽니다.</li>
         <li>위 <b>앱 설치하기</b>를 누르거나</li>
-        <li>브라우저 메뉴(≡) → <b>페이지 추가 / 홈 화면에 추가</b></li>
+        <li>브라우저 메뉴(≡) → <b>홈 화면에 추가</b></li>
       </ol>
-      <p class="note">카톡 안 브라우저면 설치가 안 보일 수 있습니다. 링크 복사 후 삼성 인터넷에서 여세요.</p>
+      <p class="note">카톡 안이면 위 “브라우저에서 열기”로 Chrome/인터넷 앱을 먼저 여세요.</p>
     </section>
 
     <section class="guide" id="otherGuide" hidden>
       <h2>PC / 기타</h2>
       <ol>
         <li>휴대폰에서 이 링크를 여세요.</li>
-        <li>휴대폰 브라우저의 <b>앱 설치하기</b> 또는 홈 화면 추가를 사용하세요.</li>
+        <li>휴대폰 브라우저에서 앱 설치하기를 사용하세요.</li>
       </ol>
     </section>
   </div>
@@ -222,23 +284,46 @@
 
   <script>
   (function () {
-    var installUrl = location.origin + "/install.html";
+    var pageUrl = location.href.split("#")[0];
+    var hostPath = location.host + location.pathname + location.search;
     var toast = document.getElementById("toast");
     var toastTimer = 0;
     var deferredPrompt = null;
     var ua = navigator.userAgent || "";
     var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     var isAndroid = /Android/i.test(ua);
+    var isInApp = /KAKAOTALK|Kakao|NAVER|FBAN|FBAV|Instagram|Line\//i.test(ua)
+      || (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua))
+      || (/Android/i.test(ua) && /; wv\)/i.test(ua));
     var mode = isIOS ? "ios" : isAndroid ? "android" : "other";
 
-    document.body.className = "is-" + mode;
+    document.body.className = "is-" + mode + (isInApp ? " has-banner" : "");
     document.getElementById("deviceLabel").textContent =
-      mode === "ios" ? "iOS로 감지됨" : mode === "android" ? "Android로 감지됨" : "PC / 기타 기기";
+      (mode === "ios" ? "iOS" : mode === "android" ? "Android" : "PC/기타")
+      + (isInApp ? " · 인앱 브라우저" : "");
     document.getElementById("installHint").textContent =
       mode === "ios" ? "Safari 공유 → 홈 화면에 추가" :
       mode === "android" ? "설치 창 또는 홈 화면에 추가" :
       "휴대폰에서 열어 주세요";
     document.getElementById("otherGuide").hidden = mode !== "other";
+
+    if (isInApp) {
+      var banner = document.getElementById("openBanner");
+      banner.className = "open-banner is-on";
+      if (isIOS) {
+        document.getElementById("bannerTitle").textContent = "Safari에서 열기";
+        document.getElementById("bannerDesc").textContent = "설치하려면 Safari로 이동해야 합니다";
+        document.getElementById("bannerOpen").textContent = "Safari 열기";
+        document.getElementById("openExternalLabel").textContent = "Safari에서 열기";
+        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Safari 새 창 이동";
+      } else {
+        document.getElementById("bannerTitle").textContent = "브라우저에서 열기";
+        document.getElementById("bannerDesc").textContent = "Chrome/삼성 인터넷으로 열어 설치하세요";
+        document.getElementById("bannerOpen").textContent = "열기";
+        document.getElementById("openExternalLabel").textContent = "브라우저에서 열기";
+        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Chrome 등 외부 브라우저 이동";
+      }
+    }
 
     function showToast(msg) {
       toast.textContent = msg;
@@ -249,14 +334,44 @@
 
     function copyLink() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(installUrl).then(function () {
+        navigator.clipboard.writeText(pageUrl).then(function () {
           showToast("링크를 복사했습니다");
         }).catch(function () {
-          window.prompt("이 링크를 복사하세요", installUrl);
+          window.prompt("이 링크를 복사하세요", pageUrl);
         });
         return;
       }
-      window.prompt("이 링크를 복사하세요", installUrl);
+      window.prompt("이 링크를 복사하세요", pageUrl);
+    }
+
+    function openExternalBrowser() {
+      if (isAndroid) {
+        // Chrome first, then Samsung Internet fallback via same page intent without package
+        var chromeIntent =
+          "intent://" + hostPath +
+          "#Intent;scheme=https;package=com.android.chrome;" +
+          "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
+        var samsungIntent =
+          "intent://" + hostPath +
+          "#Intent;scheme=https;package=com.sec.android.app.sbrowser;" +
+          "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
+        location.href = chromeIntent;
+        setTimeout(function () {
+          // if still here, try Samsung Internet
+          location.href = samsungIntent;
+        }, 900);
+        showToast("브라우저로 이동 중…");
+        return;
+      }
+      if (isIOS) {
+        location.href = "x-safari-https://" + hostPath;
+        setTimeout(function () {
+          copyLink();
+          showToast("안 열리면 링크 복사 후 Safari에 붙여넣기");
+        }, 800);
+        return;
+      }
+      window.open(pageUrl, "_blank");
     }
 
     function scrollGuide() {
@@ -269,25 +384,21 @@
     }
 
     document.getElementById("copyBtn").onclick = copyLink;
+    document.getElementById("openExternalBtn").onclick = openExternalBrowser;
+    document.getElementById("bannerOpen").onclick = openExternalBrowser;
 
     document.getElementById("installBtn").onclick = function () {
+      if (isInApp) {
+        openExternalBrowser();
+        return;
+      }
       if (mode === "android" && deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.finally(function () { deferredPrompt = null; });
         return;
       }
       if (mode === "ios") {
-        // best-effort Safari handoff from in-app browsers
-        var scheme = "x-safari-https://" + location.host + "/install.html";
-        var iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = scheme;
-        document.body.appendChild(iframe);
-        setTimeout(function () {
-          try { document.body.removeChild(iframe); } catch (e) {}
-        }, 600);
-        copyLink();
-        showToast("Safari에서 공유 → 홈 화면에 추가");
+        showToast("공유 → 홈 화면에 추가");
         scrollGuide();
         return;
       }
@@ -299,6 +410,13 @@
       event.preventDefault();
       deferredPrompt = event;
     });
+
+    // KREAM-like: in-app이면 들어오자마자 외부 브라우저 열기 시도
+    if (isInApp && !/opened=1/.test(location.search)) {
+      setTimeout(function () {
+        openExternalBrowser();
+      }, 350);
+    }
   })();
   </script>
   <script src="pwa-register.js"></script>
