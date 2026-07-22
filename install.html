@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="헤리티지">
+  <meta name="robots" content="noindex,nofollow">
+  <title>헤리티지 앱 설치</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <style>
+    :root {
+      --ink: #161513;
+      --paper: #f7f5f2;
+      --accent: #ff8236;
+      --line: rgba(22, 21, 19, 0.12);
+      --muted: #7a7670;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background:
+        radial-gradient(120% 80% at 50% -10%, rgba(255, 130, 54, 0.16), transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      font-family: SUIT, Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      padding:
+        max(28px, env(safe-area-inset-top))
+        max(20px, env(safe-area-inset-right))
+        max(28px, env(safe-area-inset-bottom))
+        max(20px, env(safe-area-inset-left));
+    }
+    .wrap { width: min(440px, 100%); margin: 0 auto; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #161513;
+    }
+    .brand strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -.04em;
+    }
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      letter-spacing: -.05em;
+      line-height: 1.2;
+    }
+    .lead {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .stack { display: grid; gap: 10px; }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      min-height: 56px;
+      padding: 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+    }
+    .btn strong { display: block; font-size: 16px; letter-spacing: -.03em; }
+    .btn em {
+      display: block;
+      margin-top: 4px;
+      font-style: normal;
+      font-size: 12px;
+      opacity: .82;
+    }
+    .btn-ios {
+      background: linear-gradient(180deg, #2a2724, #161513);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(22, 21, 19, 0.18);
+    }
+    .btn-android {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .btn-open {
+      background: transparent;
+      border: 1px dashed rgba(22, 21, 19, 0.22);
+      color: var(--muted);
+      min-height: 48px;
+      text-align: center;
+    }
+    .panel {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+    }
+    .panel.is-open { display: block; }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: -.03em;
+    }
+    .panel ol {
+      margin: 0;
+      padding-left: 18px;
+      color: #3b3834;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .panel li + li { margin-top: 6px; }
+    .note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 130, 54, 0.1);
+      color: #8a4a1c;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      background: rgba(22, 21, 19, 0.92);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 20;
+    }
+    .toast.is-on { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" width="56" height="56">
+      <div>
+        <strong>헤리티지</strong>
+        <span>홈 화면에 앱처럼 설치</span>
+      </div>
+    </div>
+
+    <h1>기기에 맞게 설치하세요</h1>
+    <p class="lead">카톡 안에서는 설치 메뉴가 안 보일 수 있어요. 아래에서 기기를 고르면 안내가 나옵니다.</p>
+
+    <div class="stack">
+      <button type="button" class="btn btn-ios" id="iosInstall">
+        <strong>iOS 설치</strong>
+        <em>Safari로 연결 후 홈 화면에 추가</em>
+      </button>
+      <button type="button" class="btn btn-android" id="androidInstall">
+        <strong>Android 설치</strong>
+        <em>삼성 인터넷 / Chrome 홈 화면 추가</em>
+      </button>
+      <button type="button" class="btn btn-open" id="openApp">설치 없이 바로 열기</button>
+    </div>
+
+    <section class="panel" id="iosPanel" aria-live="polite">
+      <h2>iPhone / iPad 설치</h2>
+      <ol>
+        <li><b>Safari</b>로 이 페이지가 열려야 합니다. (아래 버튼으로 Safari 연결 시도)</li>
+        <li>하단 <b>공유</b> 버튼을 누릅니다.</li>
+        <li><b>홈 화면에 추가</b> → 추가</li>
+      </ol>
+      <p class="note">아이폰은 Apple 정책상 Chrome·네이버·카톡 브라우저로는 설치가 안 되고, Safari만 됩니다. 다른 방법은 없습니다.</p>
+      <div class="stack" style="margin-top:12px">
+        <button type="button" class="btn btn-ios" id="openSafari">Safari로 열기</button>
+      </div>
+    </section>
+
+    <section class="panel" id="androidPanel" aria-live="polite">
+      <h2>Android 설치</h2>
+      <ol>
+        <li>삼성 인터넷 또는 Chrome에서 이 페이지를 엽니다.</li>
+        <li>아래 <b>앱 설치하기</b>가 보이면 바로 누르세요.</li>
+        <li>안 보이면 브라우저 메뉴(≡) → <b>페이지 추가 / 홈 화면에 추가</b></li>
+      </ol>
+      <div class="stack" style="margin-top:12px">
+        <button type="button" class="btn btn-android" id="androidPrompt" hidden>
+          <strong>앱 설치하기</strong>
+          <em>브라우저 설치 창 열기</em>
+        </button>
+      </div>
+      <p class="note">카톡 안에서 열렸다면 주소창 URL을 복사해 삼성 인터넷에 붙여넣는 것이 가장 확실합니다.</p>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="pwa-register.js"></script>
+  <script src="pwa-install.js"></script>
+</body>
+</html>
