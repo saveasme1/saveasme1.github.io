@@ -23,6 +23,51 @@
 
   let cameraStream = null;
 
+  const RECENT_KEY = "heritage_ai_recent";
+  const FAV_KEY = "heritage_ai_favs";
+
+  function loadList(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+  }
+  function saveList(key, list) {
+    localStorage.setItem(key, JSON.stringify(list.slice(0, 24)));
+  }
+  function pushRecent(q) {
+    const list = loadList(RECENT_KEY).filter((x) => x !== q);
+    list.unshift(q);
+    saveList(RECENT_KEY, list);
+    renderRecent();
+  }
+  function toggleFav(id, btn) {
+    const list = loadList(FAV_KEY);
+    const i = list.indexOf(id);
+    if (i >= 0) list.splice(i, 1); else list.unshift(id);
+    saveList(FAV_KEY, list);
+    if (btn) btn.classList.toggle("is-fav", list.includes(id));
+  }
+  function renderRecent() {
+    let box = document.getElementById("recentBox");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "recentBox";
+      box.className = "js-recent";
+      els.status.before(box);
+    }
+    box.replaceChildren();
+    loadList(RECENT_KEY).slice(0, 8).forEach((q) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = q;
+      b.addEventListener("click", () => {
+        els.textQuery.value = q;
+        document.querySelector('[data-tab="text"]')?.click();
+        els.textForm.requestSubmit();
+      });
+      box.append(b);
+    });
+  }
+
+
   function setStatus(message, isError = false) {
     els.status.textContent = message;
     els.status.style.color = isError ? "#ff8f8f" : "";
@@ -85,7 +130,16 @@
       meta.textContent = [row.brand, row.category].filter(Boolean).join(" · ");
       const score = document.createElement("em");
       score.textContent = scoreLabel(row.score);
-      a.append(img, title, meta, score);
+      const fav = document.createElement("button");
+      fav.type = "button";
+      fav.className = "js-fav" + (loadList(FAV_KEY).includes(row.id) ? " is-fav" : "");
+      fav.textContent = "♥";
+      fav.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleFav(row.id, fav);
+      });
+      a.append(img, title, meta, score, fav);
       container.append(a);
     });
   }
@@ -118,6 +172,7 @@
   }
 
   async function searchText(q) {
+    pushRecent(q);
     setStatus("텍스트 검색 중…");
     els.results.replaceChildren();
     const f = filters();
@@ -255,4 +310,5 @@
   });
 
   loadFilters();
+  renderRecent();
 })();

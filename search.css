@@ -271,3 +271,16 @@ body {
   .js-filters { grid-template-columns: 1fr; }
   .js-textform { grid-template-columns: 1fr; }
 }
+
+
+.js-recent { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.js-recent button {
+  border: 1px solid var(--line); background: transparent; color: var(--muted);
+  border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer;
+}
+.js-card { position: relative; }
+.js-fav {
+  position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 999px;
+  border: 0; background: rgba(0,0,0,.45); color: #fff; cursor: pointer; font-size: 14px;
+}
+.js-fav.is-fav { color: var(--brand); }
