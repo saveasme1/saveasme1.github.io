@@ -1,0 +1,66 @@
+﻿# Main may be indexed. Portfolio archive, posts, images, and private boards must not.
+
+User-agent: *
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /portfolio.html
+Disallow: /portfolio-board.css
+Disallow: /portfolio-board.js
+Disallow: /portfolio-data.json
+Disallow: /portfolio-draft.json
+Disallow: /portfolio/
+Disallow: /portfolio
+Disallow: /landing.html
+Disallow: /admin
+Disallow: /admin/
+Disallow: /gb171-admin.html
+Disallow: /shipping.html
+Disallow: /notices.html
+Disallow: /shipping-data.json
+Disallow: /shipping-draft.json
+Disallow: /notices-data.json
+Disallow: /notices-draft.json
+Disallow: /reviews-data.json
+Disallow: /reviews/
+Disallow: /_offline_backup
+Disallow: /_hidden_anonymous
+
+User-agent: Googlebot
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /
+
+User-agent: Googlebot-Image
+Disallow: /
+
+User-agent: Bingbot
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /
+
+User-agent: Yeti
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /
+
+User-agent: NaverBot
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /
+
+User-agent: DuckDuckBot
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /
+
+User-agent: Yandex
+Allow: /$
+Allow: /index.html
+Allow: /main-content.html
+Disallow: /

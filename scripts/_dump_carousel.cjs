@@ -1,0 +1,12 @@
+const fs = require("fs");
+const bm = fs.readFileSync("board-meta.js", "utf8");
+const i = bm.indexOf("syncCarouselHeight");
+console.log(bm.slice(i, i + 900));
+const css = fs.readFileSync("landing.css", "utf8");
+const j = css.indexOf(".board-carousel");
+console.log("\n--- carousel css ---");
+console.log(css.slice(j, j + 900));
+const hr = fs.readFileSync("handmade-reviews.css", "utf8");
+const k = hr.indexOf(".review-carousel");
+console.log("\n--- review carousel ---");
+console.log(hr.slice(k, k + 700));

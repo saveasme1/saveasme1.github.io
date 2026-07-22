@@ -1,0 +1,55 @@
+{
+  "category": "P",
+  "count": 7,
+  "items": [
+    {
+      "id": "imweb-168658196",
+      "title": "P 트라이앵글 시그넷 링 파베DIA",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:28.251Z",
+      "cover": "portfolio/seed/420-imweb-168658196.png"
+    },
+    {
+      "id": "imweb-168658195",
+      "title": "P 트라이앵글 시그넷 링",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:29.031Z",
+      "cover": "portfolio/seed/421-imweb-168658195.png"
+    },
+    {
+      "id": "imweb-168658194",
+      "title": "P 이터널 하트 펜던트 네크리스 DIA",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:29.667Z",
+      "cover": "portfolio/seed/422-imweb-168658194.png"
+    },
+    {
+      "id": "imweb-168658193",
+      "title": "P 이터널 하트 링",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:30.196Z",
+      "cover": "portfolio/seed/423-imweb-168658193.png"
+    },
+    {
+      "id": "imweb-168658192",
+      "title": "P 이터널 드롭 이어링 스몰사이즈",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:30.697Z",
+      "cover": "portfolio/seed/424-imweb-168658192.png"
+    },
+    {
+      "id": "imweb-168658191",
+      "title": "P 이터널 골드 펜던트 네크리스 DIA",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:31.253Z",
+      "cover": "portfolio/seed/425-imweb-168658191.png"
+    },
+    {
+      "id": "imweb-168658190",
+      "title": "P 심볼 펜던트 네크리스 DIA",
+      "category": "P",
+      "publishedAt": "2026-07-19T08:36:31.945Z",
+      "cover": "portfolio/seed/426-imweb-168658190.png"
+    }
+  ]
+}

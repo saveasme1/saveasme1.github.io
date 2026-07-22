@@ -1,0 +1,31 @@
+{
+  "name": "gongbang171-portfolio",
+  "version": "1.0.0",
+  "description": "GONGBANG 171 static portfolio and admin tools",
+  "main": "portfolio.js",
+  "scripts": {
+    "crawl": "node scripts/crawl-portfolio.mjs",
+    "hydrate-details": "node scripts/hydrate-portfolio-details.mjs",
+    "migrate": "node scripts/migrate-portfolio-v3.mjs",
+    "crawl-reviews": "node scripts/crawl-reviews.mjs",
+    "crawl-shipping": "node scripts/crawl-community-board.mjs --board=shipping",
+    "crawl-notices": "node scripts/crawl-community-board.mjs --board=notices"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saveasme1/gongbang171_temp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/saveasme1/gongbang171_temp/issues"
+  },
+  "homepage": "https://github.com/saveasme1/gongbang171_temp#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "jimp": "^1.6.1",
+    "mysql2": "^3.23.1"
+  }
+}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>헤리티지 PDF 배포 미리보기</title>
+  <link rel="stylesheet" href="/admin/preview.css?v=20260719-preview1">
+</head>
+<body>
+  <header class="preview-toolbar">
+    <div>
+      <p>HERITAGE</p>
+      <h1>PDF 배포 미리보기</h1>
+    </div>
+    <div class="preview-state">
+      <span class="draft-badge">저장된 변경사항 기준</span>
+      <strong id="previewStatus">미리보기 구성 중…</strong>
+    </div>
+    <div class="preview-actions">
+      <button type="button" id="closeButton">창 닫기</button>
+      <button type="button" class="primary" id="printButton">인쇄 미리보기</button>
+    </div>
+  </header>
+
+  <main class="preview-document" id="previewDocument" aria-live="polite"></main>
+
+  <template id="errorTemplate">
+    <section class="preview-error">
+      <h2>미리보기 데이터를 불러오지 못했습니다.</h2>
+      <p>관리자 페이지에서 게시글을 저장한 뒤 미리보기 버튼을 다시 눌러 주세요.</p>
+      <a href="/admin/">관리자 페이지로 돌아가기</a>
+    </section>
+  </template>
+
+  <script src="/time-kr.js?v=20260720-kst1"></script>
+  <script src="/admin/preview.js?v=20260720-preview2"></script>
+</body>
+</html>

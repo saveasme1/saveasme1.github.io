@@ -1,0 +1,14 @@
+const fs = require("fs");
+const css = fs.readFileSync("landing.css", "utf8");
+const i = css.indexOf(".board-dialog");
+console.log(css.slice(i, i + 1400));
+console.log("\n--- more ---");
+const j = css.indexOf(".content-more-btn");
+console.log(css.slice(j - 200, j + 500));
+const hr = fs.readFileSync("handmade-reviews.css", "utf8");
+const k = hr.indexOf(".review-view-panel");
+console.log("\n--- review panel ---");
+console.log(hr.slice(k, k + 700));
+const m = hr.indexOf(".content-more-btn");
+console.log("\n--- hr more ---");
+console.log(hr.slice(m, m + 450));

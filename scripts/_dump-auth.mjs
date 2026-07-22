@@ -1,0 +1,13 @@
+﻿import fs from "fs";
+const t = fs.readFileSync("landing.html", "utf8");
+const ids = [...t.matchAll(/id="([^"]*Auth[^"]*)"/g)].map(m=>m[1]);
+console.log("auth ids", ids);
+const i = t.search(/id="[^"]*[Aa]uth[^"]*"/);
+const start = t.lastIndexOf("<dialog", i);
+const end = t.indexOf("</dialog>", i);
+fs.writeFileSync("scripts/_auth-dialog-snip.html", t.slice(start, end + 9));
+console.log("wrote snip", end-start);
+const js = fs.readFileSync("handmade-reviews.js", "utf8");
+const openIdx = js.indexOf("function openAuth");
+fs.writeFileSync("scripts/_open-auth-snip.js", js.slice(openIdx, openIdx + 1800));
+console.log("openAuth lines ok");

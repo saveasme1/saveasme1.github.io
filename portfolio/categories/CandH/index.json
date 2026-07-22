@@ -1,0 +1,34 @@
+{
+  "category": "C&H",
+  "count": 4,
+  "items": [
+    {
+      "id": "imweb-172158847",
+      "title": "C&H 크롬하츠 골드 타이니 초크체인 목걸이",
+      "category": "C&H",
+      "publishedAt": "2026-07-19T08:35:25.456Z",
+      "cover": "portfolio/seed/345-imweb-172158847.jpg"
+    },
+    {
+      "id": "imweb-168658035",
+      "title": "C&H 22K 네크리스 DIA",
+      "category": "C&H",
+      "publishedAt": "2026-07-19T08:35:26.118Z",
+      "cover": "portfolio/seed/346-imweb-168658035.jpg"
+    },
+    {
+      "id": "imweb-168658034",
+      "title": "C&H 22K 페이퍼 브레이슬릿",
+      "category": "C&H",
+      "publishedAt": "2026-07-19T08:35:26.689Z",
+      "cover": "portfolio/seed/347-imweb-168658034.png"
+    },
+    {
+      "id": "imweb-168658033",
+      "title": "C&H 포에버 링",
+      "category": "C&H",
+      "publishedAt": "2026-07-19T08:35:27.428Z",
+      "cover": "portfolio/seed/348-imweb-168658033.png"
+    }
+  ]
+}

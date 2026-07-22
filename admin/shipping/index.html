@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>헤리티지 실시간 출고관리</title>
+  <link rel="stylesheet" href="/admin/admin.css?v=20260722-eye1">
+</head>
+<body data-board-type="shipping" data-board-label="실시간 출고">
+  <section class="login-shell" id="loginShell" hidden>
+    <form class="login-card" id="loginForm">
+      <a class="admin-home-link" href="/admin/">← 관리자 대시보드로</a><p class="eyebrow">HERITAGE</p><h1>실시간 출고관리</h1>
+      <p class="login-copy">출고 게시글과 대표·추가 이미지를 관리합니다.</p>
+      <label>관리자 아이디<input id="usernameInput" autocomplete="username" required value="hyunah6810"></label>
+      <label>비밀번호<input id="passwordInput" type="password" autocomplete="current-password" minlength="11" required></label>
+      <button type="submit" class="button primary">관리 시작</button><p class="form-status" id="loginStatus"></p>
+    </form>
+  </section>
+  <div class="admin-app" id="adminApp" hidden>
+    <header class="topbar">
+      <div><a class="admin-home-link" href="/admin/">← 관리자 대시보드로</a><p class="eyebrow">HERITAGE</p><h1>실시간 출고 게시판</h1></div>
+      <div class="top-actions">
+        <span class="sync-state" id="syncState">초안 불러오는 중</span>
+        <button class="button" id="logoutButton">로그아웃</button>
+        <a class="button preview" id="previewButton" href="/landing.html?open=shipping">미리보기</a>
+        <button class="button publish" id="publishButton">출고 게시판 배포하기</button>
+      </div>
+    </header>
+    <main class="workspace">
+      <aside class="board-panel">
+        <div class="board-toolbar"><button class="button primary" id="newButton">+ 새 게시글</button><div class="filters single"><input id="searchInput" type="search" placeholder="제목·내용 검색"></div></div>
+        <div class="board-summary" id="boardSummary"></div>
+        <div class="bulk-toolbar" id="bulkToolbar">
+          <label class="select-all"><input id="selectAllInput" type="checkbox"><span>전체 선택</span></label>
+          <div class="bulk-actions" id="bulkActions" hidden>
+            <strong id="selectionCount">0개 선택</strong>
+            <button type="button" class="button compact danger" id="bulkDeleteButton">선택 삭제</button>
+          </div>
+        </div>
+        <div class="post-list" id="postList"></div>
+      </aside>
+      <section class="editor-panel">
+        <div class="empty-editor" id="emptyEditor"><strong>게시글을 선택하거나 새로 작성하세요.</strong><span>저장 후 배포해야 공개 게시판에 반영됩니다.</span></div>
+        <form class="editor-form" id="editorForm" hidden>
+          <input id="itemId" type="hidden">
+          <div class="editor-heading"><div><p class="edit-mode" id="editMode">NEW POST</p><h2 id="editorTitle">실시간 출고 작성</h2></div></div>
+          <label>게시일<input id="publishedAtInput" type="datetime-local" required></label>
+          <label>제목<input id="titleInput" maxlength="160" required placeholder="출고 게시글 제목"></label>
+          <label>내용<textarea id="contentInput" rows="9" placeholder="출고 제품 설명"></textarea></label>
+          <section class="image-section"><div class="section-heading"><div><h3>대표 이미지</h3><p>게시글 목록에 표시됩니다.</p></div></div><div class="cover-editor"><div class="cover-preview empty" id="coverPreview">대표 이미지 없음</div><label class="file-button">대표 이미지 선택<input id="coverInput" type="file" accept="image/jpeg,image/png,image/webp"></label></div></section>
+          <section class="image-section"><div class="section-heading"><div><h3>추가 이미지</h3><p>상세 게시글에서 순서대로 표시됩니다. 기존 이미지는 드래그해 순서를 변경하세요.</p></div></div><div class="image-add-row"><label class="file-button compact">+ 이미지 추가<input id="detailInput" type="file" accept="image/jpeg,image/png,image/webp" multiple></label></div><div class="detail-grid" id="detailGrid"></div></section>
+          <p class="form-status" id="editorStatus"></p>
+          <div class="editor-actions"><button type="button" class="button danger" id="deleteButton">게시글 삭제</button><div><button type="button" class="button" id="cancelButton">작성 취소</button><button class="button primary" type="submit" id="saveButton">저장하기</button></div></div>
+        </form>
+      </section>
+    </main>
+  </div>
+  <dialog id="publishDialog"><form method="dialog" class="confirm-card"><p class="eyebrow">PUBLISH</p><h2>실시간 출고 게시판을 배포할까요?</h2><div class="change-summary" id="changeSummary"></div><div class="dialog-actions"><button value="cancel" class="button">취소</button><button value="confirm" class="button publish">배포하기</button></div></form></dialog>
+  <script src="/admin/board-panel-resize.js?v=20260720-resize2"></script>
+  <script src="/time-kr.js?v=20260720-kst1"></script>
+  <script src="/html-editor.js?v=20260720-editor3"></script>
+  <script src="/admin/admin-nav.js?v=20260722-eye1"></script>
+  <script src="/admin/board-admin.js?v=20260720-b8"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "id": "/",
+  "name": "헤리티지",
+  "short_name": "헤리티지",
+  "description": "주문제작 주얼리 포트폴리오와 실시간 소식",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./landing.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#161513",
+  "theme_color": "#161513",
+  "categories": ["lifestyle", "shopping"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="guide-build" content="20260722-mp28">
+  <!-- cache-bust: 20260722-mp28 -->
+  <title>헤리티지</title>
+  <meta name="theme-color" content="#161513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="헤리티지">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
+  <link rel="stylesheet" href="handmade-reviews.css?v=20260722-mp28">
+  <link rel="stylesheet" href="landing.css?v=20260722-mp28">
+  <link rel="stylesheet" href="portfolio-board.css?v=20260722-mp28">
+  <link rel="stylesheet" href="site-nav.css?v=20260722-mp28">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
+  <main class="landing">
+    <header class="hero">
+      <h1 class="hero-title">주문제작 주얼리<br>포트폴리오와 실시간 소식</h1>
+      <p class="hero-copy">포트폴리오와 고객 후기부터 출고 현황, 공지사항까지 한곳에서 확인하세요.</p>
+    </header>
+
+    <section class="actions" aria-label="주요 기능">
+      <button type="button" class="action action-download" id="portfolioOpen">
+        <span class="action-kicker">Portfolio</span>
+        <strong>포트폴리오</strong>
+        <span class="action-hint">헤리티지에서 만든 제품 포트폴리오</span>
+      </button>
+      <button type="button" class="action action-reviews" id="reviewsOpen">
+        <span class="action-kicker">BOARD</span>
+        <strong>실시간 리얼후기</strong>
+        <span class="action-hint">고객이 남긴 실제 후기</span>
+      </button>
+      <button type="button" class="action action-shipping" id="shippingOpen">
+        <span class="action-kicker">SHIPPING</span>
+        <strong>실시간 출고확인</strong>
+        <span class="action-hint">제작 완료된 주얼리의 출고 현황</span>
+      </button>
+      <button type="button" class="action action-notices" id="noticesOpen">
+        <span class="action-kicker">NOTICE</span>
+        <strong>공지사항</strong>
+        <span class="action-hint">헤리티지의 새로운 소식과 중요 안내</span>
+      </button>
+    </section>
+
+    <section class="progress-panel" id="portfolioProgress" hidden aria-live="polite">
+      <div class="progress-meta">
+        <span id="portfolioStatus">준비 중…</span>
+        <strong id="portfolioPercent">0%</strong>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <i id="portfolioBar"></i>
+      </div>
+    </section>
+
+    <section class="board-inline-panel portfolio-inline" id="portfolioPanel" hidden aria-label="Portfolio">
+      <div class="reviews-heading">
+        <div>
+          <h2>Portfolio</h2>
+          <p class="reviews-sub">헤리티지에서 만든 제품 포트폴리오</p>
+        </div>
+        <button type="button" class="reviews-close" id="portfolioClose">메뉴닫기</button>
+      </div>
+      <div class="pf-deck pf-deck--inline">
+        <aside class="pf-rail" aria-label="컬렉션 필터">
+          <div class="pf-rail-head">
+            <div class="pf-rail-head-copy">
+              <span class="pf-rail-kicker">Collection</span>
+              <strong class="pf-rail-count" id="pfCount">—</strong>
+            </div>
+            <label class="pf-search">
+              <span class="pf-search-ico" aria-hidden="true"></span>
+              <input id="pfSearch" type="search" placeholder="제품 브랜드 검색" aria-label="제품 브랜드 검색" enterkeyhint="search" autocomplete="off">
+            </label>
+            <div class="pf-tools-actions" hidden>
+              <button type="button" class="primary pf-write" id="pfWrite" hidden>글 작성하기</button>
+              <span class="review-session" id="pfSession"></span>
+            </div>
+          </div>
+          <nav class="pf-cats" id="pfCats" role="tablist" aria-label="카테고리"></nav>
+        </aside>
+        <div class="pf-stage">
+          <section class="pf-toolbar" aria-label="포트폴리오 도구"></section>
+          <p class="pf-status" id="pfStatus" aria-live="polite">불러오는 중…</p>
+          <section class="pf-grid" id="pfGrid" aria-label="포트폴리오 목록"></section>
+          <nav class="reviews-pager pf-pager" id="pfPager" aria-label="포트폴리오 페이지"></nav>
+        </div>
+      </div>
+    </section>
+
+    <section class="reviews reviews-panel" id="reviews" hidden aria-label="실시간 리얼후기">
+      <div class="reviews-heading">
+        <div>
+          <h2>실시간 리얼후기</h2>
+          <p class="reviews-sub">실제 고객님이 남겨 주신 리얼후기입니다.</p>
+        </div>
+        <button type="button" class="reviews-close" id="reviewsClose">메뉴닫기</button>
+      </div>
+      <div class="reviews-toolbar">
+        <div class="board-tools-copy">
+          <span class="board-tools-kicker">Reviews</span>
+          <strong class="board-tools-count" id="reviewsCount">—</strong>
+        </div>
+        <input id="reviewsSearch" type="search" placeholder="후기 제목·내용 검색" aria-label="후기 검색">
+        <div class="reviews-toolbar-actions" hidden>
+          <button type="button" class="primary" id="reviewWrite" hidden>글 작성하기</button>
+          <span class="review-session" id="reviewSession"></span>
+        </div>
+      </div>
+      <p class="reviews-status" id="reviewsStatus" aria-live="polite"></p>
+      <div class="reviews-grid" id="reviewsGrid"></div>
+      <nav class="reviews-pager" id="reviewsPager" aria-label="후기 페이지"></nav>
+    </section>
+
+    <section class="board-inline-panel portfolio-inline shipping-inline" id="shippingPanel" hidden aria-label="실시간 출고확인">
+      <div class="reviews-heading">
+        <div>
+          <h2>실시간 출고확인</h2>
+          <p class="reviews-sub">헤리티지에서 제작 완료 후 출고한 주얼리 기록입니다.</p>
+        </div>
+        <button type="button" class="reviews-close" id="shippingClose">메뉴닫기</button>
+      </div>
+      <div class="pf-deck pf-deck--inline">
+        <aside class="pf-rail" aria-label="출고 컬렉션 필터">
+          <div class="pf-rail-head">
+            <div class="pf-rail-head-copy">
+              <span class="pf-rail-kicker">Shipping</span>
+              <strong class="pf-rail-count" id="shippingCount">—</strong>
+            </div>
+            <label class="pf-search">
+              <span class="pf-search-ico" aria-hidden="true"></span>
+              <input id="shippingSearch" type="search" placeholder="출고 게시글 검색" aria-label="출고 게시글 검색" enterkeyhint="search" autocomplete="off">
+            </label>
+            <div class="pf-tools-actions" hidden>
+              <button type="button" class="primary pf-write" id="shippingWrite" hidden>글 작성하기</button>
+              <span class="review-session" id="shippingSession"></span>
+            </div>
+          </div>
+          <nav class="pf-cats" id="shipCats" role="tablist" aria-label="브랜드 카테고리"></nav>
+          <div class="ship-date-strip" id="shipDateStrip" aria-label="날짜 빠른 선택"></div>
+          <section class="ship-cal" id="shipCal" aria-label="출고 미니 캘린더"></section>
+        </aside>
+        <div class="pf-stage">
+          <section class="pf-toolbar" aria-label="출고 도구"></section>
+          <p class="pf-status" id="shippingStatus" aria-live="polite">불러오는 중…</p>
+          <section class="pf-grid" id="shippingList" aria-label="출고 목록"></section>
+          <nav class="reviews-pager pf-pager" id="shippingPager" aria-label="출고 페이지"></nav>
+        </div>
+      </div>
+    </section>
+
+    <section class="board-inline-panel" id="noticesPanel" hidden aria-label="공지사항">
+      <div class="reviews-heading">
+        <div>
+          <h2>공지사항</h2>
+          <p class="reviews-sub">헤리티지의 중요 안내와 새로운 소식을 확인하세요.</p>
+        </div>
+        <button type="button" class="reviews-close" id="noticesClose">메뉴닫기</button>
+      </div>
+      <div class="reviews-toolbar">
+        <div class="board-tools-copy">
+          <span class="board-tools-kicker">Notice</span>
+          <strong class="board-tools-count" id="noticesCount">—</strong>
+        </div>
+        <input id="noticesSearch" type="search" placeholder="공지사항 검색" aria-label="공지사항 검색">
+        <div class="reviews-toolbar-actions" hidden>
+          <button type="button" class="primary" id="noticesWrite" hidden>글 작성하기</button>
+          <span class="review-session" id="noticesSession"></span>
+        </div>
+      </div>
+      <p class="reviews-status" id="noticesStatus" aria-live="polite"></p>
+      <section class="notice-list" id="noticesList"></section>
+    </section>
+  </main>
+
+  <div class="review-view" id="reviewView" role="dialog" aria-modal="true" aria-hidden="true" hidden>
+    <div class="review-view-panel">
+      <button type="button" class="review-view-close" id="reviewViewClose" aria-label="닫기">×</button>
+      <div class="review-view-scroll">
+        <div class="review-view-images" id="reviewViewImages"></div>
+        <div class="review-view-body">
+          <div class="review-view-meta post-meta-row" id="reviewViewMeta"></div>
+          <h3 class="review-view-title" id="reviewViewTitle"></h3>
+          <div class="review-view-text html-content" id="reviewViewText"></div>
+          <div class="review-detail-actions" id="reviewViewActions" hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-dialog" id="boardDialog" role="dialog" aria-modal="true" aria-hidden="true">
+    <article class="board-detail">
+      <button class="board-close" id="boardClose" aria-label="닫기">×</button>
+      <div class="board-detail-body">
+      <div class="detail-images" id="detailImages"></div>
+      <div class="detail-copy">
+        <div class="detail-meta-row post-meta-row" id="detailMeta"></div>
+        <h2 id="detailTitle"></h2>
+        <div id="detailContent" class="html-content"></div>
+        <div class="detail-actions" id="detailActions" hidden></div>
+      </div>
+      </div>
+    </article>
+  </div>
+
+  <dialog class="review-dialog write-dialog" id="boardWriteDialog">
+    <form id="boardWriteForm">
+      <input type="hidden" name="boardType">
+      <h2 id="boardWriteTitle">게시글 작성</h2>
+      <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="제목을 입력해 주세요"></label>
+      <label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="내용을 입력해 주세요"></textarea></label>
+      <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+      <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+      <p class="review-image-help">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
+      <p class="review-dialog-status" id="boardWriteStatus" aria-live="polite"></p>
+      <div class="review-dialog-actions">
+        <button type="button" id="boardWriteCancel">취소</button>
+        <button class="primary" type="submit" id="boardWriteSubmit">등록하기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="time-kr.js?v=20260722-mp28"></script>
+  <script src="board-meta.js?v=20260722-mp28"></script>
+  <script src="html-editor.js?v=20260722-mp28"></script>
+  <script src="portfolio-board.js?v=20260722-mp28"></script>
+  <script src="handmade-reviews.js?v=20260722-mp28"></script>
+  <script src="landing-boards.js?v=20260722-mp28"></script>
+  <script src="shipping-board.js?v=20260722-mp28"></script>
+  <script src="site-nav.js?v=20260722-mp28"></script>
+  <script src="pwa-register.js"></script>
+</body>
+</html>

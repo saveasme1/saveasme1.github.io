@@ -1,0 +1,8 @@
+# 로컬 다운로드용 — Pages는 CDN URL만 사용합니다
+reviews/
+node_modules/
+
+# secrets
+.env
+.env.*
+!.env.example

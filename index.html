@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <!-- cache-bust: 20260721-hero-copy1 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>헤리티지</title>
+  <meta name="theme-color" content="#161513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="헤리티지">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+  <style>html,body{margin:0;background:#fff;min-height:100%}</style>
+</head>
+<body>
+<script>
+(function () {
+  // Stay on / with no query params.
+  // TEMP restore: always show main. Virtual 500 (main-blocked.html) kept on disk, not served.
+  // Restore flip later with:
+  //   var path = (n % 2 === 1) ? "/main-blocked.html" : "/main-content.html";
+  var path = "./landing.html";
+  // var path = "/main-blocked.html";
+
+  fetch(path, { cache: "no-store", credentials: "omit" })
+    .then(function (r) {
+      if (!r.ok) throw new Error("load failed");
+      return r.text();
+    })
+    .then(function (html) {
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function () {
+      location.href = "./landing.html";
+    });
+})();
+</script>
+  <script src="pwa-register.js"></script>
+</body>
+</html>
