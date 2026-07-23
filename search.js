@@ -98,21 +98,41 @@
     rows.forEach((row, index) => {
       const a = document.createElement("a");
       a.className = "js-card";
+      const isWeb = row.source_type === "web";
+      if (isWeb) a.classList.add("is-web");
       const id = row.product_id || row.id;
-      a.href =
+      const href =
+        row.product_url ||
         row.detailUrl ||
-        `./landing.html?open=portfolio&id=${encodeURIComponent(id)}`;
+        (isWeb ? "" : `./landing.html?open=portfolio&id=${encodeURIComponent(id)}`);
+      a.href = href || "#";
+      if (isWeb && href) {
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      }
       a.style.animationDelay = `${Math.min(index, 12) * 0.03}s`;
       const img = document.createElement("img");
-      img.src = row.coverUrl || "";
+      img.src = row.coverUrl || row.image_url || "";
       img.alt = displayTitle(row.title) || "";
       img.loading = index < 6 ? "eager" : "lazy";
       const title = document.createElement("strong");
-      title.textContent = displayTitle(row.title) || id;
+      title.textContent = displayTitle(row.title || row.product_name) || id;
+      const meta = document.createElement("span");
+      meta.className = "js-meta";
+      if (isWeb) {
+        const bits = [row.brand, row.seller_name].filter(Boolean);
+        meta.textContent = bits.join(" · ");
+      }
       const band = document.createElement("em");
-      const key = row.confidence_band || "reference";
-      band.textContent = BAND_LABEL[key] || "참고 결과";
-      band.dataset.band = key;
+      if (isWeb && row.similarity_display != null) {
+        const pct = Math.round(Number(row.similarity_display) * 100);
+        band.textContent = `웹 · 유사도 ${pct}%`;
+        band.dataset.band = "web";
+      } else {
+        const key = row.confidence_band || "reference";
+        band.textContent = BAND_LABEL[key] || "참고 결과";
+        band.dataset.band = key;
+      }
       const fav = document.createElement("button");
       fav.type = "button";
       fav.className = "js-fav" + (loadList(FAV_KEY).includes(String(id)) ? " is-fav" : "");
@@ -122,7 +142,9 @@
         ev.stopPropagation();
         toggleFav(String(id), fav);
       });
-      a.append(img, title, band, fav);
+      a.append(img, title);
+      if (meta.textContent) a.append(meta);
+      a.append(band, fav);
       container.append(a);
     });
   }
@@ -166,9 +188,21 @@
     }
     els.status.style.whiteSpace = "";
     const ms = payload.processing_ms ? ` · ${payload.processing_ms}ms` : "";
-    setStatus(`${rows.length}건 찾았습니다${ms}`);
-    const firstId = rows[0].product_id || rows[0].id;
-    if (firstId) await showRelated(firstId);
+    const policy = payload.result_policy || "";
+    const policyLabel =
+      policy === "web_only"
+        ? " · 웹 결과"
+        : policy === "portfolio_only"
+          ? " · 포트폴리오"
+          : "";
+    setStatus(`${rows.length}건 찾았습니다${policyLabel}${ms}`);
+    const first = rows[0];
+    if (first && first.source_type !== "web") {
+      const firstId = first.product_id || first.id;
+      if (firstId) await showRelated(firstId);
+    } else {
+      els.related.hidden = true;
+    }
   }
 
   /** Resize/compress before upload (long side ≤1280) to cut transfer + server decode. */

@@ -248,6 +248,15 @@ video[hidden],
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.js-card .js-meta {
+  font-size: 11px;
+  color: rgba(245,242,238,.62);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .js-card em {
   color: var(--brand);
   font-size: 11px;
@@ -308,3 +317,5 @@ body.is-searching .js-panel {
 .js-card em[data-band="very_similar"] { color: #ff8236; }
 .js-card em[data-band="similar"] { color: #ffb07a; }
 .js-card em[data-band="reference"] { color: rgba(245,242,238,.55); }
+.js-card em[data-band="web"] { color: #8ec5ff; }
+.js-card.is-web img { border-color: rgba(142,197,255,.35); }
