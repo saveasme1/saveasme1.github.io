@@ -3,7 +3,6 @@
   const body = document.body.dataset;
   const API = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const TOKEN_KEY = "gongbang171.adminToken";
-  const RAW = "https://raw.githubusercontent.com/saveasme1/gongbang171_temp/main";
   const type = body.boardType;
   const label = body.boardLabel;
   const draftPath = `${type}-draft.json`;
@@ -42,7 +41,7 @@
   const dateLocal = (value = new Date()) =>
     window.GongbangTime ? window.GongbangTime.toDateTimeLocal(value) : "";
   const sortItems = (items) => [...items].sort((a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0));
-  const assetUrl = (value) => /^https?:\/\//i.test(value || "") ? value : `${RAW}/${String(value || "").replace(/^\/+/, "")}`;
+  const assetUrl = (value) => /^https?:\/\//i.test(value || "") ? value : `/${String(value || "").replace(/^\/+/, "")}`;
   const message = (element, text, tone = "") => {
     element.textContent = text;
     element.className = `form-status ${tone}`.trim();
