@@ -78,6 +78,17 @@
       .slice(0, 28);
   }
 
+  function formatFx(amount, currency) {
+    if (amount == null || Number.isNaN(Number(amount))) return null;
+    const cur = String(currency || "USD").toUpperCase();
+    const n = Number(amount);
+    const symbols = { USD: "$", EUR: "€", GBP: "£", JPY: "¥", KRW: "₩" };
+    const sym = symbols[cur] || `${cur} `;
+    if (cur === "JPY") return `${sym}${Math.round(n).toLocaleString("en-US")}`;
+    if (cur === "KRW") return `${sym}${Math.round(n).toLocaleString("ko-KR")}`;
+    return `${sym}${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  }
+
   class PriceTrendPanel {
     /**
      * @param {HTMLElement} mountEl
@@ -241,17 +252,59 @@
         link.href = href;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = "링크";
+        link.textContent = "출처링크";
         link.title = href;
 
         metaRow.append(badge, link);
         main.append(top, metaRow);
 
-        const em = document.createElement("em");
-        em.textContent = won(row.price);
-        if (row.price_is_estimate) em.title = "참고 추정가";
+        const priceBox = document.createElement("div");
+        priceBox.className = "price-trend-panel__prices";
 
-        li.append(main, em);
+        const cur = String(row.original_currency || row.currency || "KRW").toUpperCase();
+        const hasFx =
+          meta.overseas &&
+          cur &&
+          cur !== "KRW" &&
+          row.original_amount != null &&
+          !Number.isNaN(Number(row.original_amount));
+
+        if (hasFx) {
+          const fxLine = document.createElement("span");
+          fxLine.className = "price-trend-panel__price-fx";
+          fxLine.textContent = formatFx(row.original_amount, cur);
+          fxLine.title = `해외 표기가 (${cur})`;
+
+          const fxNote = document.createElement("small");
+          fxNote.className = "price-trend-panel__price-note";
+          fxNote.textContent = `해외(${cur})`;
+
+          const krwLine = document.createElement("strong");
+          krwLine.className = "price-trend-panel__price-krw";
+          krwLine.textContent = won(row.price);
+
+          const krwNote = document.createElement("small");
+          krwNote.className = "price-trend-panel__price-note";
+          krwNote.textContent = "원화환산";
+          if (row.fx_rate) {
+            krwNote.title = `환율 1 ${cur} ≈ ${Number(row.fx_rate).toLocaleString("ko-KR")}원`;
+          }
+
+          priceBox.append(fxLine, fxNote, krwLine, krwNote);
+        } else {
+          const krwLine = document.createElement("strong");
+          krwLine.className = "price-trend-panel__price-krw";
+          krwLine.textContent = won(row.price);
+
+          const krwNote = document.createElement("small");
+          krwNote.className = "price-trend-panel__price-note";
+          krwNote.textContent = meta.overseas ? "원화" : "국내가";
+
+          priceBox.append(krwLine, krwNote);
+        }
+        if (row.price_is_estimate) priceBox.title = "참고 추정가 포함";
+
+        li.append(main, priceBox);
         this.els.sellers.append(li);
       });
       if (!sellers.length) {
