@@ -497,9 +497,20 @@
       els.title.textContent = safeTitle;
     }
     if (window.GongbangBoardMeta?.renderMetaRow) {
+      const cover = item.cover || item.image || (item.images && item.images[0]) || "";
+      const imageAbs = /^https?:\/\//i.test(cover)
+        ? cover
+        : `${location.origin}/${String(cover).replace(/^\/+/, "")}`;
       window.GongbangBoardMeta.renderMetaRow(els.meta, {
         dateText: formatDate(publishedAt(item)),
         viewCount,
+        board: "portfolio",
+        tryOn: {
+          id: item.id,
+          title: brandText(item.title || ""),
+          category: item.category || "",
+          image: imageAbs,
+        },
       });
     }
     if (window.GongbangHtmlEditor) {
