@@ -171,6 +171,38 @@
     if (firstId) await showRelated(firstId);
   }
 
+  /** Resize/compress before upload (long side ≤1280) to cut transfer + server decode. */
+  async function compressImageFile(file, maxSide = 1280, quality = 0.85) {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const w = bmp.width;
+      const h = bmp.height;
+      const m = Math.max(w, h);
+      if (m <= maxSide && file.size <= 1.2 * 1024 * 1024) {
+        bmp.close();
+        return file;
+      }
+      const scale = Math.min(1, maxSide / m);
+      const cw = Math.max(1, Math.round(w * scale));
+      const ch = Math.max(1, Math.round(h * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bmp, 0, 0, cw, ch);
+      bmp.close();
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob((b) => resolve(b), "image/jpeg", quality)
+      );
+      if (!blob) return file;
+      const base = (file.name || "query").replace(/\.[^.]+$/, "");
+      return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    } catch {
+      return file;
+    }
+  }
+
   async function searchImage(file) {
     if (!file) {
       setStatus("검색할 사진이 없습니다.", true);
@@ -181,8 +213,9 @@
     els.results.replaceChildren();
     els.related.hidden = true;
     try {
+      const upload = await compressImageFile(file);
       const body = new FormData();
-      body.append("file", file, file.name || "query.jpg");
+      body.append("file", upload, upload.name || "query.jpg");
       const res = await fetch(`${API_BASE}/search/image?limit=24`, {
         method: "POST",
         body,
