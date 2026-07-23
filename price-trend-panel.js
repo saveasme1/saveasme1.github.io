@@ -313,39 +313,69 @@
         this.els.sellers.append(li);
       }
 
-      this.renderChart(data.history || []);
+      this.renderChart(data.history || [], data.sellers || []);
     }
 
-    renderChart(history) {
-      const labels = history.map((h) => {
+    renderChart(history, sellers = []) {
+      const wrap = this.root.querySelector(".price-trend-panel__chart-wrap");
+      // Trust guard: only real positive observations
+      const points = (history || []).filter((h) => {
+        const p = Number(h?.price);
+        return Number.isFinite(p) && p > 0 && h?.observed_at && String(h.source || "") !== "backfill";
+      });
+
+      if (typeof window.Chart === "undefined") {
+        this.els.status.textContent += " · 차트 라이브러리 로딩 필요";
+        return;
+      }
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = null;
+      }
+
+      let empty = wrap.querySelector(".price-trend-panel__chart-empty");
+      if (!points.length) {
+        this.els.canvas.style.display = "none";
+        if (!empty) {
+          empty = document.createElement("p");
+          empty.className = "price-trend-panel__chart-empty";
+          wrap.append(empty);
+        }
+        empty.hidden = false;
+        empty.textContent = "수집된 실측 가격 포인트가 없어 그래프를 표시하지 않습니다.";
+        return;
+      }
+
+      this.els.canvas.style.display = "block";
+      if (empty) empty.hidden = true;
+
+      const labels = points.map((h) => {
         try {
           return new Date(h.observed_at).toLocaleDateString("ko-KR", {
             month: "numeric",
             day: "numeric",
           });
         } catch {
-          return h.observed_at;
+          return String(h.observed_at).slice(0, 10);
         }
       });
-      const values = history.map((h) => Number(h.price));
-      if (typeof window.Chart === "undefined") {
-        this.els.status.textContent += " · 차트 라이브러리 로딩 필요";
-        return;
-      }
-      if (this.chart) this.chart.destroy();
+      const values = points.map((h) => Number(h.price));
+
       this.chart = new window.Chart(this.els.canvas.getContext("2d"), {
         type: "line",
         data: {
           labels,
           datasets: [
             {
-              label: "가격",
+              label: "실측가(원화)",
               data: values,
               borderColor: "#1a1714",
               backgroundColor: "rgba(26,23,20,0.08)",
-              fill: true,
-              tension: 0.35,
-              pointRadius: 2,
+              fill: points.length > 1,
+              tension: points.length > 2 ? 0.25 : 0,
+              pointRadius: points.length === 1 ? 5 : 3,
+              pointHoverRadius: 6,
+              showLine: points.length > 1,
             },
           ],
         },
@@ -358,13 +388,42 @@
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: (ctx) => won(ctx.parsed.y),
+                title: (items) => {
+                  const i = items?.[0]?.dataIndex ?? 0;
+                  const h = points[i];
+                  try {
+                    return new Date(h.observed_at).toLocaleString("ko-KR");
+                  } catch {
+                    return String(h?.observed_at || "");
+                  }
+                },
+                label: (ctx) => {
+                  const h = points[ctx.dataIndex] || {};
+                  const cur = String(h.original_currency || "KRW").toUpperCase();
+                  const overseas =
+                    h.region === "overseas" ||
+                    (cur && cur !== "KRW" && h.original_amount != null);
+                  const lines = [];
+                  if (overseas && cur !== "KRW" && h.original_amount != null) {
+                    lines.push(`해외 ${formatFx(h.original_amount, cur)}`);
+                    lines.push(`원화환산 ${won(h.price)}`);
+                    if (h.fx_rate) {
+                      lines.push(`환율 1 ${cur} ≈ ${Number(h.fx_rate).toLocaleString("ko-KR")}원`);
+                    }
+                  } else {
+                    lines.push(`원화 ${won(h.price)}`);
+                  }
+                  if (h.domain || h.seller_name) {
+                    lines.push(`출처 ${h.seller_name || h.domain}`);
+                  }
+                  return lines;
+                },
               },
             },
           },
           scales: {
             x: {
-              ticks: { maxTicksLimit: 5, color: "#6b6762", font: { size: 10 } },
+              ticks: { maxTicksLimit: Math.min(6, Math.max(1, points.length)), color: "#6b6762", font: { size: 10 } },
               grid: { display: false },
             },
             y: {

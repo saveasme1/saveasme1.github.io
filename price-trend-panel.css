@@ -138,6 +138,14 @@
   max-width: 100% !important;
   height: 100% !important;
 }
+.price-trend-panel__chart-empty {
+  margin: 0;
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--pt-muted);
+  line-height: 1.45;
+}
 .price-trend-panel__sellers {
   border: 1px solid var(--pt-line);
   border-radius: 12px;
