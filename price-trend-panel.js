@@ -161,29 +161,36 @@
 
         const source = document.createElement("small");
         source.className = "price-trend-panel__source";
-        const kind =
-          row.source_kind === "product_page"
-            ? row.region === "overseas"
-              ? "해외 신품 상세"
-              : "신품 상품상세"
-            : row.region === "overseas"
-              ? "해외 신품 검색"
-              : "신품 검색목록";
-        const est = row.price_is_estimate ? "참고추정가" : "신품수집가";
-        const region = row.region === "overseas" ? "해외사이트" : "국내";
-        let fx = "";
-        if (row.original_currency && row.original_currency !== "KRW" && row.original_amount != null) {
-          fx = ` · ${row.original_currency} ${Number(row.original_amount).toLocaleString()}→KRW`;
+        if (row.source_label) {
+          source.textContent = String(row.source_label).replace(/\s*·\s*출처:.+$/, "");
+        } else {
+          const kind =
+            row.source_kind === "product_page"
+              ? row.region === "overseas"
+                ? "해외 신품 상세"
+                : "신품 상품상세"
+              : row.region === "overseas"
+                ? "해외 신품 검색"
+                : "신품 검색목록";
+          const est = row.price_is_estimate ? "참고추정가" : "신품수집가";
+          const region = row.region === "overseas" ? "해외사이트" : "국내";
+          let fx = "";
+          if (row.original_currency && row.original_currency !== "KRW" && row.original_amount != null) {
+            fx = ` · ${row.original_currency} ${Number(row.original_amount).toLocaleString()}→KRW`;
+          }
+          source.textContent = `${region} · ${row.domain || "—"} · ${kind} · ${est}${fx}`;
         }
-        source.textContent = `${region} · ${row.domain || "—"} · ${kind} · ${est}${fx}`;
 
-        const urlHint = document.createElement("small");
+        const urlHint = document.createElement("a");
         urlHint.className = "price-trend-panel__url";
+        urlHint.href = a.href;
+        urlHint.target = "_blank";
+        urlHint.rel = "noopener noreferrer";
         try {
           const u = new URL(a.href);
-          urlHint.textContent = `${u.hostname}${u.pathname.slice(0, 48)}`;
+          urlHint.textContent = `출처: ${u.hostname}${u.pathname.slice(0, 64)}`;
         } catch {
-          urlHint.textContent = a.href;
+          urlHint.textContent = `출처: ${a.href}`;
         }
 
         main.append(a, source, urlHint);
