@@ -3,7 +3,7 @@
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260724-tryon12";
+  const TRYON_BUST = "20260724-tryon13";
   let overlay = null;
   let frame = null;
 
@@ -15,7 +15,7 @@
     overlay.hidden = true;
     overlay.innerHTML = `
       <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="착용해보기">
-        <iframe class="heritage-tryon-frame" title="착용해보기" allow="camera *; microphone *; fullscreen *" allowfullscreen></iframe>
+        <iframe class="heritage-tryon-frame" title="착용해보기" allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>
       </div>`;
     document.body.append(overlay);
     frame = overlay.querySelector("iframe");
