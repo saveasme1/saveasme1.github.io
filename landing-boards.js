@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const RAW = "https://raw.githubusercontent.com/saveasme1/gongbang171_temp/main";
   const API = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const TOKEN_KEY = "gongbang171.adminToken";
   const $ = (id) => document.getElementById(id);
@@ -70,11 +69,12 @@
     slideCount: 0,
   };
 
+  // Serve board images from this site (hand-made.kr / github.io), not private raw.githubusercontent.
   const assetUrl = (value) => {
-    const path = String(value || "").replace(/^\/+/, "");
+    const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    return `${RAW}/${path}`;
+    return `/${path.replace(/^\/+/, "")}`;
   };
   const formatDate = (value) => (window.GongbangTime ? window.GongbangTime.formatDate(value) : "");
   const decodeBase64 = (value) =>
