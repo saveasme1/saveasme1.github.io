@@ -1,0 +1,70 @@
+/* Fullscreen same-window try-on shell (does not alter board layout when closed). */
+.heritage-tryon-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: stretch;
+  padding: 0;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(8px);
+}
+.heritage-tryon-overlay[hidden] { display: none !important; }
+.heritage-tryon-sheet {
+  width: 100%;
+  height: 100%;
+  background: #0f0e0c;
+  overflow: hidden;
+}
+.heritage-tryon-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #0f0e0c;
+}
+html.heritage-tryon-open,
+body.heritage-tryon-open {
+  overflow: hidden !important;
+}
+
+.post-meta-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.post-meta-tryon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #1a1714;
+  background: #1a1714;
+  color: #f7f2ea;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.post-meta-tryon:hover { filter: brightness(1.12); }
+
+@media (max-width: 560px) {
+  .post-meta-tryon {
+    min-height: 26px;
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+}
