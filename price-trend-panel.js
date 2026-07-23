@@ -77,7 +77,23 @@
       this.open = !!next;
       this.root.classList.toggle("is-open", this.open);
       this.root.setAttribute("aria-hidden", this.open ? "false" : "true");
-      if (this.open) this.load();
+      if (this.open) {
+        this.load();
+        // Wait for slide-open then scroll panel into view (detail dialog / page)
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            this.root.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            const sheet =
+              this.root.closest(".board-detail") ||
+              this.root.closest(".board-dialog__sheet") ||
+              this.root.closest(".board-dialog");
+            if (sheet && typeof sheet.scrollTo === "function") {
+              const top = this.root.offsetTop - 24;
+              sheet.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+            }
+          }, 80);
+        });
+      }
     }
 
     toggle() {
@@ -93,11 +109,12 @@
         return;
       }
       this.els.status.classList.remove("is-error");
-      this.els.status.textContent = "웹에서 유사 상품·가격을 자동 검색 중…";
+      this.els.status.textContent = "신품 판매처·가격을 검색 중… (중고 제외)";
       const params = new URLSearchParams({
         title: product.title || "",
         brand: product.brand || "",
         image_url: product.imageUrl || "",
+        force: "1",
       });
       try {
         const res = await fetch(`${API_BASE}/trend/${encodeURIComponent(product.id)}?${params}`, {
@@ -106,6 +123,10 @@
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.detail || "불러오기 실패");
         this.render(data);
+        // After content paints, ensure panel is visible
+        setTimeout(() => {
+          this.root.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 120);
       } catch (err) {
         this.els.status.textContent = err.message || "가격 정보를 불러오지 못했습니다.";
         this.els.status.classList.add("is-error");
@@ -142,11 +163,11 @@
         source.className = "price-trend-panel__source";
         const kind =
           row.source_kind === "product_page"
-            ? "상품 상세"
+            ? "신품 상품상세"
             : row.source_kind === "search_listing"
-              ? "검색 목록"
-              : "판매처 페이지";
-        const est = row.price_is_estimate ? "추정가" : "수집가";
+              ? "신품 검색목록"
+              : "신품 판매처";
+        const est = row.price_is_estimate ? "참고추정가" : "신품수집가";
         source.textContent = `${row.domain || "—"} · ${kind} · ${est}`;
 
         const urlHint = document.createElement("small");
