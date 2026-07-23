@@ -3,7 +3,6 @@
 
   const API_BASE = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const API_ORIGIN = new URL(API_BASE).origin;
-  const RAW = "https://raw.githubusercontent.com/saveasme1/gongbang171_temp/main";
   const TOKEN_KEY = "gongbang171.adminToken";
   const PAGE_SIZE = 10;
   const BOARDS = [
@@ -58,7 +57,7 @@
     if (!value) return "";
     if (/^https?:\/\//i.test(value)) return value;
     if (String(value).startsWith("/uploads/")) return `${API_ORIGIN}${value}`;
-    return `${RAW}/${String(value).replace(/^\/+/, "")}`;
+    return `/${String(value).replace(/^\/+/, "")}`;
   }
 
   function formatDate(value) {
@@ -84,7 +83,7 @@
   }
 
   async function loadBoardJson(type) {
-    const response = await fetch(`${RAW}/${type}-data.json?t=${Date.now()}`, { cache: "no-store" });
+    const response = await fetch(`/${type}-data.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) return [];
     const payload = await response.json().catch(() => ({}));
     return Array.isArray(payload.items) ? payload.items : Array.isArray(payload) ? payload : [];
