@@ -13,8 +13,8 @@
     overlay.className = "heritage-tryon-overlay";
     overlay.hidden = true;
     overlay.innerHTML = `
-      <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="가상착용">
-        <iframe class="heritage-tryon-frame" title="가상착용" allow="camera; microphone; clipboard-write"></iframe>
+      <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="착용해보기">
+        <iframe class="heritage-tryon-frame" title="착용해보기" allow="camera; microphone; clipboard-write"></iframe>
       </div>`;
     document.body.append(overlay);
     frame = overlay.querySelector("iframe");
