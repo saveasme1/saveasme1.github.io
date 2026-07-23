@@ -426,7 +426,8 @@ body.has-gb-top-brand .landing {
   margin-left: 10px;
 }
 .detail-copy .post-meta-kakao,
-.detail-copy .post-meta-tryon {
+.detail-copy .post-meta-tryon,
+.detail-copy .post-meta-pricetrend {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -440,16 +441,25 @@ body.has-gb-top-brand .landing {
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
 }
 .detail-copy .post-meta-kakao {
   border: 1px solid #fee500;
   background: #fee500;
   color: #191919;
 }
-.detail-copy .post-meta-tryon {
+.detail-copy .post-meta-tryon,
+.detail-copy .post-meta-pricetrend {
   border: 1px solid #1a1714;
   background: #1a1714;
   color: #f7f2ea;
+}
+.detail-copy .post-meta-tryon:hover,
+.detail-copy .post-meta-pricetrend:hover { filter: brightness(1.12); }
+.detail-copy .post-meta-pricetrend[aria-expanded="true"] {
+  background: #f7f2ea;
+  color: #1a1714;
 }
 .detail-copy h2 { margin: 0; color: #171719; font-size: clamp(20px,4vw,28px); letter-spacing: -.04em; }
 .detail-copy > p { margin: 16px 0 0; color: #444; font-size: 14px; line-height: 1.8; white-space: pre-wrap; }
@@ -745,8 +755,10 @@ body.has-gb-bottom-nav .toast-stack {
   .notice-row strong { font-size: 12px; }
   .post-meta-kakao,
   .post-meta-tryon,
+  .post-meta-pricetrend,
   .detail-copy .post-meta-kakao,
-  .detail-copy .post-meta-tryon { min-height: 26px; padding: 3px 8px; font-size: 10px; }
+  .detail-copy .post-meta-tryon,
+  .detail-copy .post-meta-pricetrend { min-height: 26px; padding: 3px 8px; font-size: 10px; }
   .board-carousel-nav { width: 40px; height: 40px; font-size: 27px; }
 }
 

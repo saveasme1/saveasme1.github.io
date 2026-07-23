@@ -112,6 +112,21 @@
         location.href = `${TRYON_BASE}?${params.toString()}`;
       });
       actions.append(tryOn);
+
+      const priceBtn = document.createElement("button");
+      priceBtn.type = "button";
+      priceBtn.className = "post-meta-pricetrend";
+      priceBtn.textContent = "가격추세";
+      priceBtn.setAttribute("aria-expanded", "false");
+      priceBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof options.onPriceTrend === "function") {
+          const open = options.onPriceTrend();
+          priceBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+      });
+      actions.append(priceBtn);
     }
 
     target.append(left, actions);

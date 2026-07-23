@@ -1,0 +1,178 @@
+/*! Heritage Price Trend Panel — reusable, isolated staging */
+:root {
+  --pt-ink: #171719;
+  --pt-muted: #6b6762;
+  --pt-line: rgba(22, 21, 19, 0.12);
+  --pt-paper: #f7f5f2;
+  --pt-accent: #1a1714;
+  --pt-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.post-meta-pricetrend {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #1a1714;
+  background: #1a1714;
+  color: #f7f2ea;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+}
+.post-meta-pricetrend:hover { filter: brightness(1.12); }
+.post-meta-pricetrend[aria-expanded="true"] {
+  background: #f7f2ea;
+  color: #1a1714;
+}
+
+.price-trend-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.42s var(--pt-ease);
+  margin-top: 0;
+}
+.price-trend-panel.is-open {
+  grid-template-rows: 1fr;
+  margin-top: 16px;
+}
+.price-trend-panel__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.price-trend-panel__card {
+  border: 1px solid var(--pt-line);
+  border-radius: 14px;
+  background: var(--pt-paper);
+  padding: 16px;
+  color: var(--pt-ink);
+}
+.price-trend-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.price-trend-panel__head h3 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.03em;
+}
+.price-trend-panel__updated {
+  font-size: 11px;
+  color: var(--pt-muted);
+  white-space: nowrap;
+}
+.price-trend-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.price-trend-panel__stat {
+  border: 1px solid var(--pt-line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+}
+.price-trend-panel__stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--pt-muted);
+}
+.price-trend-panel__stat strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.price-trend-panel__body {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.price-trend-panel__chart-wrap {
+  border: 1px solid var(--pt-line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  min-height: 220px;
+}
+.price-trend-panel__sellers {
+  border: 1px solid var(--pt-line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  max-height: 280px;
+  overflow: auto;
+}
+.price-trend-panel__sellers h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.price-trend-panel__sellers ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.price-trend-panel__sellers li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pt-line);
+}
+.price-trend-panel__seller-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.price-trend-panel__source,
+.price-trend-panel__url {
+  display: block;
+  font-size: 11px;
+  color: var(--pt-muted);
+  line-height: 1.35;
+  word-break: break-all;
+}
+.price-trend-panel__url { opacity: 0.85; }
+.price-trend-panel__sellers li:last-child { border-bottom: 0; padding-bottom: 0; }
+.price-trend-panel__sellers a {
+  color: var(--pt-ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.price-trend-panel__sellers a:hover { text-decoration: underline; }
+.price-trend-panel__sellers em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--pt-muted);
+  font-variant-numeric: tabular-nums;
+}
+.price-trend-panel__status {
+  font-size: 12px;
+  color: var(--pt-muted);
+  margin: 0 0 10px;
+}
+.price-trend-panel__status.is-error { color: #b42318; }
+
+@media (max-width: 720px) {
+  .price-trend-panel__stats { grid-template-columns: 1fr; }
+  .price-trend-panel__body { grid-template-columns: 1fr; }
+  .post-meta-pricetrend { min-height: 26px; padding: 3px 8px; font-size: 10px; }
+}

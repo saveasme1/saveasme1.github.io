@@ -38,7 +38,8 @@ body.heritage-tryon-open {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-.post-meta-tryon {
+.post-meta-tryon,
+.post-meta-pricetrend {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -59,10 +60,16 @@ body.heritage-tryon-open {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.post-meta-tryon:hover { filter: brightness(1.12); }
+.post-meta-tryon:hover,
+.post-meta-pricetrend:hover { filter: brightness(1.12); }
+.post-meta-pricetrend[aria-expanded="true"] {
+  background: #f7f2ea;
+  color: #1a1714;
+}
 
 @media (max-width: 560px) {
-  .post-meta-tryon {
+  .post-meta-tryon,
+  .post-meta-pricetrend {
     min-height: 26px;
     padding: 3px 8px;
     font-size: 10px;

@@ -27,6 +27,7 @@
     content: $("detailContent"),
     images: $("detailImages"),
     actions: $("detailActions"),
+    priceMount: $("priceTrendMount"),
   };
 
   if (!els.grid || !els.dialog) return;
@@ -38,6 +39,7 @@
     page: 1,
     member: null,
     current: null,
+    pricePanel: null,
     slideIndex: 0,
     slideCount: 0,
     opened: false,
@@ -482,6 +484,28 @@
     els.actions.append(edit, manage);
   }
 
+  function ensurePricePanel() {
+    if (state.pricePanel) return state.pricePanel;
+    if (!els.priceMount || !window.HeritagePriceTrendPanel) return null;
+    state.pricePanel = new window.HeritagePriceTrendPanel(els.priceMount, {
+      getProduct: () => {
+        const item = state.current;
+        if (!item) return null;
+        const cover = item.cover || item.image || (item.images && item.images[0]) || "";
+        const imageAbs = /^https?:\/\//i.test(cover)
+          ? cover
+          : `${location.origin}/${String(cover).replace(/^\/+/, "")}`;
+        return {
+          id: item.id,
+          title: brandText(item.title || ""),
+          brand: item.brand || "",
+          imageUrl: imageAbs,
+        };
+      },
+    });
+    return state.pricePanel;
+  }
+
   async function openDetail(item) {
     state.current = item;
     let viewCount = Number(item.viewCount) || 0;
@@ -496,6 +520,8 @@
     } else {
       els.title.textContent = safeTitle;
     }
+    const panel = ensurePricePanel();
+    if (panel) panel.setExpanded(false);
     if (window.GongbangBoardMeta?.renderMetaRow) {
       const cover = item.cover || item.image || (item.images && item.images[0]) || "";
       const path = String(cover).replace(/^\/+/, "");
@@ -513,6 +539,7 @@
           path,
           image: imageAbs,
         },
+        onPriceTrend: () => (panel ? panel.toggle() : false),
       });
     }
     if (window.GongbangHtmlEditor) {
@@ -537,6 +564,7 @@
     state.slideIndex = 0;
     state.slideCount = 0;
     state.current = null;
+    if (state.pricePanel) state.pricePanel.setExpanded(false);
   }
 
   function renderSession() {
