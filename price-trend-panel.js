@@ -109,13 +109,13 @@
         return;
       }
       this.els.status.classList.remove("is-error");
-      this.els.status.textContent = "신품 판매처·가격을 검색 중… (중고 제외)";
+      this.els.status.textContent = "저장된 신품 시세를 불러오는 중…";
       const params = new URLSearchParams({
         title: product.title || "",
         brand: product.brand || "",
         image_url: product.imageUrl || "",
-        force: "1",
       });
+      // Do not force-refresh every open — overnight batch fills DB; only fetch if stale server-side.
       try {
         const res = await fetch(`${API_BASE}/trend/${encodeURIComponent(product.id)}?${params}`, {
           cache: "no-store",
@@ -163,12 +163,19 @@
         source.className = "price-trend-panel__source";
         const kind =
           row.source_kind === "product_page"
-            ? "신품 상품상세"
-            : row.source_kind === "search_listing"
-              ? "신품 검색목록"
-              : "신품 판매처";
+            ? row.region === "overseas"
+              ? "해외 신품 상세"
+              : "신품 상품상세"
+            : row.region === "overseas"
+              ? "해외 신품 검색"
+              : "신품 검색목록";
         const est = row.price_is_estimate ? "참고추정가" : "신품수집가";
-        source.textContent = `${row.domain || "—"} · ${kind} · ${est}`;
+        const region = row.region === "overseas" ? "해외사이트" : "국내";
+        let fx = "";
+        if (row.original_currency && row.original_currency !== "KRW" && row.original_amount != null) {
+          fx = ` · ${row.original_currency} ${Number(row.original_amount).toLocaleString()}→KRW`;
+        }
+        source.textContent = `${region} · ${row.domain || "—"} · ${kind} · ${est}${fx}`;
 
         const urlHint = document.createElement("small");
         urlHint.className = "price-trend-panel__url";
