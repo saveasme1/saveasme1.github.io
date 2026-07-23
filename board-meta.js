@@ -3,6 +3,8 @@
 
   const API_BASE = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const KAKAO_URL = "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
+  // Isolated try-on MVP (does not live under production routing logic).
+  const TRYON_BASE = "https://saveasme1.github.io/heritage-tryon/studio.html";
 
   function formatViews(count) {
     const n = Math.max(0, Number(count) || 0);
@@ -71,6 +73,9 @@
     views.textContent = viewsText;
     left.append(views);
 
+    const actions = document.createElement("div");
+    actions.className = "post-meta-actions";
+
     const kakao = document.createElement("a");
     kakao.className = "post-meta-kakao";
     kakao.href = KAKAO_URL;
@@ -78,8 +83,26 @@
     kakao.rel = "noopener noreferrer";
     kakao.textContent = "카카오톡 문의하기";
     kakao.addEventListener("click", (event) => event.stopPropagation());
+    actions.append(kakao);
 
-    target.append(left, kakao);
+    // Portfolio board only — never on shipping/notices/reviews.
+    if (options.board === "portfolio" && options.tryOn) {
+      const tryOn = document.createElement("a");
+      tryOn.className = "post-meta-tryon";
+      tryOn.textContent = "Try It On";
+      tryOn.target = "_blank";
+      tryOn.rel = "noopener noreferrer";
+      const params = new URLSearchParams();
+      if (options.tryOn.id) params.set("id", options.tryOn.id);
+      if (options.tryOn.image) params.set("image", options.tryOn.image);
+      if (options.tryOn.title) params.set("title", options.tryOn.title);
+      if (options.tryOn.category) params.set("category", options.tryOn.category);
+      tryOn.href = `${TRYON_BASE}?${params.toString()}`;
+      tryOn.addEventListener("click", (event) => event.stopPropagation());
+      actions.append(tryOn);
+    }
+
+    target.append(left, actions);
   }
 
   function syncCarouselHeight(viewport) {
