@@ -87,18 +87,30 @@
 
     // Portfolio board only — never on shipping/notices/reviews.
     if (options.board === "portfolio" && options.tryOn) {
-      const tryOn = document.createElement("a");
+      const tryOn = document.createElement("button");
+      tryOn.type = "button";
       tryOn.className = "post-meta-tryon";
-      tryOn.textContent = "Try It On";
-      tryOn.target = "_blank";
-      tryOn.rel = "noopener noreferrer";
-      const params = new URLSearchParams();
-      if (options.tryOn.id) params.set("id", options.tryOn.id);
-      if (options.tryOn.image) params.set("image", options.tryOn.image);
-      if (options.tryOn.title) params.set("title", options.tryOn.title);
-      if (options.tryOn.category) params.set("category", options.tryOn.category);
-      tryOn.href = `${TRYON_BASE}?${params.toString()}`;
-      tryOn.addEventListener("click", (event) => event.stopPropagation());
+      tryOn.textContent = "착용해보기";
+      tryOn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof window.openHeritageTryOn === "function") {
+          window.openHeritageTryOn(options.tryOn);
+          return;
+        }
+        // Fallback: same-tab navigation (never a new window)
+        const params = new URLSearchParams();
+        params.set("embed", "0");
+        if (options.tryOn.id) params.set("id", options.tryOn.id);
+        if (options.tryOn.title) params.set("title", options.tryOn.title);
+        if (options.tryOn.category) params.set("category", options.tryOn.category);
+        const image = options.tryOn.path || options.tryOn.image || "";
+        if (image) {
+          if (/^https?:\/\//i.test(image)) params.set("image", image);
+          else params.set("path", String(image).replace(/^\/+/, ""));
+        }
+        location.href = `${TRYON_BASE}?${params.toString()}`;
+      });
       actions.append(tryOn);
     }
 
