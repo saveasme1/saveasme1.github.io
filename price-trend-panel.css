@@ -39,6 +39,10 @@
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.42s var(--pt-ease);
   margin-top: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .price-trend-panel.is-open {
   grid-template-rows: 1fr;
@@ -47,13 +51,19 @@
 .price-trend-panel__inner {
   overflow: hidden;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 .price-trend-panel__card {
   border: 1px solid var(--pt-line);
   border-radius: 14px;
   background: var(--pt-paper);
-  padding: 16px;
+  padding: 14px;
   color: var(--pt-ink);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .price-trend-panel__head {
   display: flex;
@@ -83,6 +93,7 @@
   border-radius: 10px;
   background: #fff;
   padding: 10px 12px;
+  min-width: 0;
 }
 .price-trend-panel__stat span {
   display: block;
@@ -92,30 +103,50 @@
 .price-trend-panel__stat strong {
   display: block;
   margin-top: 4px;
-  font-size: 15px;
+  font-size: 14px;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
+
+/* Chart narrower so seller column has room; never overflow */
 .price-trend-panel__body {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 14px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 0.88fr);
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .price-trend-panel__chart-wrap {
   border: 1px solid var(--pt-line);
   border-radius: 12px;
   background: #fff;
-  padding: 10px;
-  min-height: 220px;
+  padding: 8px;
+  height: 200px;
+  max-height: 200px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+.price-trend-panel__chart-wrap canvas {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
 }
 .price-trend-panel__sellers {
   border: 1px solid var(--pt-line);
   border-radius: 12px;
   background: #fff;
   padding: 10px 12px;
-  max-height: 280px;
+  max-height: 220px;
   overflow: auto;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .price-trend-panel__sellers h4 {
   margin: 0 0 8px;
@@ -126,43 +157,95 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .price-trend-panel__sellers li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: start;
+  align-items: center;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--pt-line);
-}
-.price-trend-panel__seller-main {
-  display: grid;
-  gap: 2px;
   min-width: 0;
 }
-.price-trend-panel__source,
-.price-trend-panel__url {
-  display: block;
-  font-size: 11px;
-  color: var(--pt-muted);
-  line-height: 1.35;
-  word-break: break-all;
-}
-.price-trend-panel__url { opacity: 0.85; }
 .price-trend-panel__sellers li:last-child { border-bottom: 0; padding-bottom: 0; }
-.price-trend-panel__sellers a {
-  color: var(--pt-ink);
+
+.price-trend-panel__seller-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.price-trend-panel__seller-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.price-trend-panel__flag {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1;
+}
+.price-trend-panel__seller-name {
   font-size: 13px;
   font-weight: 700;
-  text-decoration: none;
+  color: var(--pt-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
-.price-trend-panel__sellers a:hover { text-decoration: underline; }
+.price-trend-panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.price-trend-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  border: 1px solid var(--pt-line);
+  background: #f3f1ee;
+  color: var(--pt-muted);
+}
+.price-trend-panel__badge.is-overseas {
+  background: #eef4fb;
+  border-color: rgba(37, 99, 235, 0.28);
+  color: #1d4ed8;
+}
+.price-trend-panel__badge.is-kr {
+  background: #f3f1ee;
+  color: #444;
+}
+.price-trend-panel__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--pt-ink);
+  background: #fff;
+  color: var(--pt-ink) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  line-height: 1.3;
+}
+.price-trend-panel__link:hover {
+  background: var(--pt-ink);
+  color: #fff !important;
+}
 .price-trend-panel__sellers em {
   font-style: normal;
   font-size: 12px;
   color: var(--pt-muted);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .price-trend-panel__status {
   font-size: 12px;
@@ -171,8 +254,28 @@
 }
 .price-trend-panel__status.is-error { color: #b42318; }
 
+@media (max-width: 900px) {
+  .price-trend-panel__body {
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.95fr);
+  }
+  .price-trend-panel__chart-wrap {
+    height: 180px;
+    max-height: 180px;
+  }
+}
+
 @media (max-width: 720px) {
   .price-trend-panel__stats { grid-template-columns: 1fr; }
-  .price-trend-panel__body { grid-template-columns: 1fr; }
+  .price-trend-panel__body {
+    grid-template-columns: 1fr;
+  }
+  .price-trend-panel__chart-wrap {
+    height: 168px;
+    max-height: 168px;
+    width: 100%;
+  }
+  .price-trend-panel__sellers {
+    max-height: none;
+  }
   .post-meta-pricetrend { min-height: 26px; padding: 3px 8px; font-size: 10px; }
 }

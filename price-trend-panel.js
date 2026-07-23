@@ -20,9 +20,67 @@
     }
   }
 
+  function hostOf(url) {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    } catch {
+      return String(url || "").toLowerCase();
+    }
+  }
+
+  /** @returns {{ overseas: boolean, flag: string, country: string }} */
+  function originMeta(row) {
+    const host = hostOf(row.domain || row.product_url || row.listing_url || "");
+    const label = String(row.source_label || "");
+    const region = String(row.region || "");
+
+    const rules = [
+      { test: /(naver\.|coupang\.|ssg\.|lotteon\.|gmarket\.|11st\.|thehyundai\.|auction\.co\.kr)/, flag: "🇰🇷", country: "KR", overseas: false },
+      { test: /(amazon\.co\.jp|yahoo\.co\.jp|rakuten\.co\.jp)/, flag: "🇯🇵", country: "JP", overseas: true },
+      { test: /(amazon\.com|saksfifthavenue|net-a-porter|farfetch|tiffany\.com|google\.)/, flag: "🇺🇸", country: "US", overseas: true },
+      { test: /cartier\.com/, flag: "🇫🇷", country: "FR", overseas: true },
+      { test: /(bulgari\.com|bvlgari\.com)/, flag: "🇮🇹", country: "IT", overseas: true },
+      { test: /vancleefarpels\.com/, flag: "🇫🇷", country: "FR", overseas: true },
+      { test: /chanel\.com/, flag: "🇫🇷", country: "FR", overseas: true },
+      { test: /hermes\.com/, flag: "🇫🇷", country: "FR", overseas: true },
+      { test: /\.co\.kr$|\.kr$/, flag: "🇰🇷", country: "KR", overseas: false },
+      { test: /\.co\.jp$|\.jp$/, flag: "🇯🇵", country: "JP", overseas: true },
+      { test: /\.fr$/, flag: "🇫🇷", country: "FR", overseas: true },
+      { test: /\.it$/, flag: "🇮🇹", country: "IT", overseas: true },
+      { test: /\.uk$|\.co\.uk$/, flag: "🇬🇧", country: "UK", overseas: true },
+      { test: /\.de$/, flag: "🇩🇪", country: "DE", overseas: true },
+      { test: /\.com$/, flag: "🇺🇸", country: "US", overseas: true },
+    ];
+
+    for (const r of rules) {
+      if (r.test.test(host)) return { overseas: r.overseas, flag: r.flag, country: r.country };
+    }
+
+    const overseas =
+      region === "overseas" ||
+      /외국|해외/.test(label) ||
+      (!/\.kr$/.test(host) && !!host);
+    return {
+      overseas,
+      flag: overseas ? "🌐" : "🇰🇷",
+      country: overseas ? "OVERSEAS" : "KR",
+    };
+  }
+
+  function shortSellerName(row) {
+    const raw = String(row.seller_name || row.domain || "판매처");
+    return raw
+      .replace(/\(해외신품\)/g, "")
+      .replace(/\(카탈로그\)/g, "")
+      .replace(/공식신품/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 28);
+  }
+
   class PriceTrendPanel {
     /**
-     * @param {HTMLElement} mountEl - container inserted below detail section
+     * @param {HTMLElement} mountEl
      * @param {{ getProduct: () => ({id:string,title?:string,brand?:string,imageUrl?:string}|null) }} opts
      */
     constructor(mountEl, opts = {}) {
@@ -52,7 +110,7 @@
             </div>
             <div class="price-trend-panel__body">
               <div class="price-trend-panel__chart-wrap">
-                <canvas data-pt-canvas width="640" height="240" aria-label="가격 히스토리 차트"></canvas>
+                <canvas data-pt-canvas aria-label="가격 히스토리 차트"></canvas>
               </div>
               <div class="price-trend-panel__sellers">
                 <h4>판매처</h4>
@@ -79,7 +137,6 @@
       this.root.setAttribute("aria-hidden", this.open ? "false" : "true");
       if (this.open) {
         this.load();
-        // Wait for slide-open then scroll panel into view (detail dialog / page)
         requestAnimationFrame(() => {
           setTimeout(() => {
             this.root.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -91,6 +148,7 @@
               const top = this.root.offsetTop - 24;
               sheet.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
             }
+            if (this.chart) this.chart.resize();
           }, 80);
         });
       }
@@ -115,7 +173,6 @@
         brand: product.brand || "",
         image_url: product.imageUrl || "",
       });
-      // Do not force-refresh every open — overnight batch fills DB; only fetch if stale server-side.
       try {
         const res = await fetch(`${API_BASE}/trend/${encodeURIComponent(product.id)}?${params}`, {
           cache: "no-store",
@@ -123,9 +180,9 @@
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.detail || "불러오기 실패");
         this.render(data);
-        // After content paints, ensure panel is visible
         setTimeout(() => {
           this.root.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          if (this.chart) this.chart.resize();
         }, 120);
       } catch (err) {
         this.els.status.textContent = err.message || "가격 정보를 불러오지 못했습니다.";
@@ -141,70 +198,58 @@
       this.els.updated.textContent = formatUpdated(s.last_updated);
       this.els.status.textContent = `판매처 ${s.seller_count || (data.sellers || []).length}곳 기준`;
       if (s.includes_estimates) {
-        this.els.status.textContent += " · 일부 추정가 포함(출처 표기 참고)";
+        this.els.status.textContent += " · 일부 참고가 포함";
       }
 
       const sellers = data.sellers || [];
       this.els.sellers.replaceChildren();
       sellers.forEach((row) => {
+        const meta = originMeta(row);
+        const href = row.product_url || row.listing_url || "#";
+
         const li = document.createElement("li");
         li.className = "price-trend-panel__seller";
 
         const main = document.createElement("div");
         main.className = "price-trend-panel__seller-main";
 
-        const a = document.createElement("a");
-        a.href = row.product_url || row.listing_url || "#";
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.textContent = row.seller_name || row.domain || "판매처";
+        const top = document.createElement("div");
+        top.className = "price-trend-panel__seller-top";
 
-        const source = document.createElement("small");
-        source.className = "price-trend-panel__source";
-        if (row.source_label) {
-          source.textContent = String(row.source_label)
-            .replace(/\s*·\s*출처:.+$/, "")
-            .replaceAll("해외사이트", "외국사이트")
-            .replaceAll("해외 신품", "외국 신품")
-            .replaceAll("공식사이트", "외국사이트(공식)");
-        } else {
-          const isForeign =
-            row.region === "overseas" ||
-            /\.(com|jp|uk|fr|it|de)(\/|$)/i.test(String(row.domain || row.product_url || ""));
-          const kind =
-            row.source_kind === "product_page"
-              ? isForeign
-                ? "외국 신품 상세"
-                : "신품 상품상세"
-              : isForeign
-                ? "외국 신품 검색"
-                : "신품 검색목록";
-          const est = row.price_is_estimate ? "참고추정가" : "신품수집가";
-          const region = isForeign ? "외국사이트" : "국내";
-          let fx = "";
-          if (row.original_currency && row.original_currency !== "KRW" && row.original_amount != null) {
-            fx = ` · ${row.original_currency} ${Number(row.original_amount).toLocaleString()}→KRW`;
-          }
-          source.textContent = `${region} · ${row.domain || "—"} · ${kind} · ${est}${fx}`;
-        }
+        const flag = document.createElement("span");
+        flag.className = "price-trend-panel__flag";
+        flag.textContent = meta.flag;
+        flag.title = meta.country;
+        flag.setAttribute("aria-label", meta.overseas ? "해외 판매처" : "국내 판매처");
 
-        const urlHint = document.createElement("a");
-        urlHint.className = "price-trend-panel__url";
-        urlHint.href = a.href;
-        urlHint.target = "_blank";
-        urlHint.rel = "noopener noreferrer";
-        try {
-          const u = new URL(a.href);
-          urlHint.textContent = `출처: ${u.hostname}${u.pathname.slice(0, 64)}`;
-        } catch {
-          urlHint.textContent = `출처: ${a.href}`;
-        }
+        const name = document.createElement("span");
+        name.className = "price-trend-panel__seller-name";
+        name.textContent = shortSellerName(row);
+        name.title = row.seller_name || row.domain || "";
 
-        main.append(a, source, urlHint);
+        top.append(flag, name);
+
+        const metaRow = document.createElement("div");
+        metaRow.className = "price-trend-panel__meta";
+
+        const badge = document.createElement("span");
+        badge.className = `price-trend-panel__badge ${meta.overseas ? "is-overseas" : "is-kr"}`;
+        badge.textContent = meta.overseas ? "해외" : "국내";
+
+        const link = document.createElement("a");
+        link.className = "price-trend-panel__link";
+        link.href = href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "링크";
+        link.title = href;
+
+        metaRow.append(badge, link);
+        main.append(top, metaRow);
 
         const em = document.createElement("em");
         em.textContent = won(row.price);
-        if (row.price_is_estimate) em.title = "크롤 차단 등으로 추정된 가격";
+        if (row.price_is_estimate) em.title = "참고 추정가";
 
         li.append(main, em);
         this.els.sellers.append(li);
@@ -254,6 +299,8 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          resizeDelay: 50,
+          layout: { padding: { top: 4, right: 6, bottom: 2, left: 2 } },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -263,16 +310,24 @@
             },
           },
           scales: {
-            x: { ticks: { maxTicksLimit: 6, color: "#6b6762" }, grid: { display: false } },
+            x: {
+              ticks: { maxTicksLimit: 5, color: "#6b6762", font: { size: 10 } },
+              grid: { display: false },
+            },
             y: {
               ticks: {
                 color: "#6b6762",
+                font: { size: 10 },
+                maxTicksLimit: 5,
                 callback: (v) => `${Math.round(v / 10000)}만`,
               },
               grid: { color: "rgba(22,21,19,0.08)" },
             },
           },
         },
+      });
+      requestAnimationFrame(() => {
+        if (this.chart) this.chart.resize();
       });
     }
 
