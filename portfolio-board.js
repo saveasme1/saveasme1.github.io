@@ -498,9 +498,10 @@
     }
     if (window.GongbangBoardMeta?.renderMetaRow) {
       const cover = item.cover || item.image || (item.images && item.images[0]) || "";
+      const path = String(cover).replace(/^\/+/, "");
       const imageAbs = /^https?:\/\//i.test(cover)
         ? cover
-        : `${location.origin}/${String(cover).replace(/^\/+/, "")}`;
+        : `${location.origin}/${path}`;
       window.GongbangBoardMeta.renderMetaRow(els.meta, {
         dateText: formatDate(publishedAt(item)),
         viewCount,
@@ -509,6 +510,7 @@
           id: item.id,
           title: brandText(item.title || ""),
           category: item.category || "",
+          path,
           image: imageAbs,
         },
       });
