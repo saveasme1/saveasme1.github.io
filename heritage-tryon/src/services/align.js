@@ -75,36 +75,54 @@ function dist2(ax, ay, bx, by) {
 }
 
 function scoreBracelet(lm) {
-  // Phone in RIGHT hand → left arm angled in (not a straight horizontal bar).
+  // Phone in RIGHT hand → left arm tilts toward screen RIGHT (hand upper-right).
   const wrist = lm[0];
   const mid = lm[9];
   const tip = lm[12];
   const indexMcp = lm[5];
   const pinkyMcp = lm[17];
-  const target = { x: 0.52, y: 0.48 };
+  if (!wrist || !mid) {
+    return { score: 0, ok: false, far: true, message: "왼팔·손목이 화면에 들어오게 해 주세요", placement: null };
+  }
+  const target = { x: 0.48, y: 0.48 };
   const d = dist2(wrist.x, wrist.y, target.x, target.y);
   const ang = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
-  const angOk = ang > -145 && ang < -20;
-  const fistUp = tip.y < wrist.y;
+  // Fingers toward upper-right: roughly +20° … +145° (was wrongly -145…-20)
+  const angOk = ang > 20 && ang < 145;
+  const handUp = tip ? tip.y < wrist.y : mid.y < wrist.y;
   const palmSpan =
     indexMcp && pinkyMcp ? dist2(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y) : 0.12;
   let score = Math.max(0, 1 - d / 0.24);
   if (angOk) score = Math.min(1, score + 0.14);
   else score *= 0.7;
-  if (fistUp) score = Math.min(1, score + 0.1);
+  if (handUp) score = Math.min(1, score + 0.1);
   else score *= 0.75;
   if (palmSpan > 0.06 && palmSpan < 0.35) score = Math.min(1, score + 0.05);
   const ok = score >= 0.7 && d <= 0.14;
   const far = d > 0.3 || score < 0.28;
+  const planeAng = indexMcp && pinkyMcp
+    ? (Math.atan2(pinkyMcp.y - indexMcp.y, pinkyMcp.x - indexMcp.x) * 180) / Math.PI
+    : ang + 90;
+  const frontAng = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
   return {
     score,
     ok,
     far,
     message: far
-      ? "왼팔을 비스듬히 · 주황 링(+)에 손목을 맞춰 주세요"
+      ? "왼팔을 비스듬히(오른쪽↑) · 주황 링(+)에 손목을 맞춰 주세요"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "오른손 폰 · 왼팔 비스듬히 · 손펴서 손목(+)",
+        : "오른손 폰 · 왼팔 오른쪽↑ · 손목(+)",
+    placement: {
+      kind: "bracelet",
+      center: {
+        x: wrist.x + ((wrist.x - mid.x) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.04,
+        y: wrist.y + ((wrist.y - mid.y) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.04,
+      },
+      width: Math.max(palmSpan * 1.35, 0.16),
+      angle: planeAng,
+      frontAngle: frontAng,
+    },
   };
 }
 
