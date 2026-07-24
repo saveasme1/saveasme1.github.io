@@ -435,10 +435,14 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
 export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring") {
   const bodyCanvas = bodyImg instanceof HTMLCanvasElement ? bodyImg : canvasFromImage(bodyImg);
 
-  // Bracelet keeps WebGL PBR. Rings use dedicated 2D band (3D wrist occluder hid rings).
-  if (type === "bracelet") {
+  // Bracelet + necklace: WebGL PBR. Rings: dedicated 2D band.
+  if (type === "bracelet" || type === "necklace") {
     try {
       const { composeTryOn3D } = await import("./tryon3d.js");
+      // Always re-strip watermark before 3D texture sample
+      const { stripPortfolioWatermark } = await import("./sam2.js");
+      stripPortfolioWatermark(jewelryCanvas);
+      despillCanvas(jewelryCanvas);
       return await composeTryOn3D(bodyCanvas, jewelryCanvas, target, type);
     } catch (err) {
       console.warn("3D try-on failed, fallback 2D", err);
@@ -452,6 +456,10 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
   octx.drawImage(bodyCanvas, 0, 0);
 
   despillCanvas(jewelryCanvas);
+  try {
+    const { stripPortfolioWatermark } = await import("./sam2.js");
+    stripPortfolioWatermark(jewelryCanvas);
+  } catch (_) {}
   const bounds = jewelryBounds(jewelryCanvas);
   const crop = document.createElement("canvas");
   crop.width = Math.max(1, bounds.w);
@@ -561,8 +569,8 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
     };
   }
   if (type === "necklace") {
-    // Guide/collarbone band — not mid-chest logo height
-    return { center: { x: w * 0.5, y: h * 0.38 }, width: w * 0.2, angle: 0 };
+    // Guide/neck band — not mid-chest logo height
+    return { center: { x: w * 0.5, y: h * 0.4 }, width: w * 0.22, angle: 0 };
   }
   if (type === "bracelet") {
     return {
