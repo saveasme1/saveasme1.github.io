@@ -151,8 +151,8 @@ export function stripPortfolioWatermark(canvas) {
     return chroma >= 28 && r >= 90 && r + 12 >= g && b <= r * 0.92 + 40;
   };
 
-  // 1) Hard wipe top caption band (Handmade… almost always here)
-  const yTop = Math.max(12, Math.floor(h * 0.16));
+  // 1) Hard wipe top caption band only (Handmade…) — keep jewelry body intact
+  const yTop = Math.max(10, Math.floor(h * 0.11));
   for (let y = 0; y < yTop; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -164,9 +164,9 @@ export function stripPortfolioWatermark(canvas) {
     }
   }
 
-  // 2) Wider top corners (lockup text)
-  const boxH = Math.floor(h * 0.14);
-  const boxW = Math.floor(w * 0.62);
+  // 2) Top corners only
+  const boxH = Math.floor(h * 0.1);
+  const boxW = Math.floor(w * 0.5);
   for (const x0 of [0, Math.max(0, w - boxW)]) {
     for (let y = 0; y < boxH; y++) {
       for (let x = x0; x < x0 + boxW && x < w; x++) {
@@ -177,8 +177,8 @@ export function stripPortfolioWatermark(canvas) {
     }
   }
 
-  // 3) Any remaining light-gray / near-white text streaks in upper third
-  const yMid = Math.floor(h * 0.28);
+  // 3) Light gray text streaks only in top 12%
+  const yMid = Math.floor(h * 0.12);
   for (let y = 0; y < yMid; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -190,7 +190,6 @@ export function stripPortfolioWatermark(canvas) {
       const lum = (r + g + b) / 3;
       const chroma = Math.max(r, g, b) - Math.min(r, g, b);
       if (chroma < 36 && lum > 145) clearPixel(i);
-      if (chroma < 22 && lum > 60 && lum < 190 && y < h * 0.12) clearPixel(i);
     }
   }
 
