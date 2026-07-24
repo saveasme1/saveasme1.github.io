@@ -29,6 +29,11 @@ const state = {
   autoCaptureArmed: true,
   capturing: false,
   closingCameraFromUi: false,
+  camZoom: 1,
+  lastPlacement: null,
+  capturePlacement: null,
+  pinchStartDist: 0,
+  pinchStartZoom: 1,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -287,14 +292,14 @@ const CAMERA_HINT = {
   ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
   earring: "전면 카메라 · 귀를 가이드에 맞춘 뒤 3초간 유지",
-  necklace: "전면 카메라 · 쇄골(+)에 맞춘 뒤 3초간 유지",
+  necklace: "전면 · 줌으로 가까이 · 큰 가이드에 쇄골 맞추고 3초 유지",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
   earring: "오른쪽 귀(+)",
-  necklace: "얼굴↑ · 쇄골(+) · 3초 유지",
+  necklace: "가까이 · 쇄골(+) · 3초 유지",
 };
 
 const FINGER_LABEL = {
@@ -514,14 +519,97 @@ function usesFrontCamera(type) {
   return type === "earring" || type === "necklace";
 }
 
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 2.6;
+
+function defaultZoomForType(type) {
+  if (type === "necklace") return 1.45;
+  if (type === "earring") return 1.25;
+  return 1;
+}
+
+function applyVideoTransform() {
+  const video = $("cameraVideo");
+  if (!video) return;
+  const z = state.camZoom || 1;
+  const front = usesFrontCamera(state.wearType);
+  video.style.transformOrigin = "center center";
+  video.style.transform = front ? `scaleX(-1) scale(${z})` : `scale(${z})`;
+  const label = $("zoomLabel");
+  if (label) label.textContent = `${z.toFixed(1)}×`;
+}
+
+function setCamZoom(next) {
+  const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(next) || 1));
+  state.camZoom = Math.round(z * 20) / 20;
+  applyVideoTransform();
+}
+
+function touchDistance(touches) {
+  if (!touches || touches.length < 2) return 0;
+  const a = touches[0];
+  const b = touches[1];
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
+function bindCameraZoomGestures() {
+  const stage = document.querySelector(".camera-stage");
+  if (!stage || stage.dataset.zoomBound === "1") return;
+  stage.dataset.zoomBound = "1";
+
+  stage.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length === 2) {
+        state.pinchStartDist = touchDistance(e.touches);
+        state.pinchStartZoom = state.camZoom || 1;
+      }
+    },
+    { passive: true }
+  );
+  stage.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches.length !== 2 || !state.pinchStartDist) return;
+      e.preventDefault();
+      const d = touchDistance(e.touches);
+      setCamZoom(state.pinchStartZoom * (d / state.pinchStartDist));
+    },
+    { passive: false }
+  );
+  stage.addEventListener(
+    "touchend",
+    () => {
+      state.pinchStartDist = 0;
+    },
+    { passive: true }
+  );
+}
+
+function placementToPixels(placement, imgW, imgH) {
+  if (!placement?.center) return null;
+  return {
+    center: { x: placement.center.x * imgW, y: placement.center.y * imgH },
+    width: Math.max(8, (placement.width || 0.05) * imgW),
+    angle: placement.angle || 0,
+    frontAngle: placement.frontAngle != null ? placement.frontAngle : (placement.angle || 0) - 90,
+    finger: placement.finger,
+    source: "capture",
+  };
+}
+
 async function alignTick() {
   if (!state.cameraOpen || state.capturing) return;
   const video = $("cameraVideo");
   const type = resolveType();
   const mirror = usesFrontCamera(type);
   try {
-    const result = await evaluateAlignment(video, type, state.earSide, state.ringFinger, { mirror });
+    const result = await evaluateAlignment(video, type, state.earSide, state.ringFinger, {
+      mirror,
+      zoom: state.camZoom || 1,
+    });
     if (result) {
+      if (result.placement && result.ok) state.lastPlacement = result.placement;
       const need = HOLD_MS[type] || 3000;
       let holdInfo = null;
       if (result.ok) {
@@ -564,7 +652,7 @@ function closeCameraSheet({ fromHistory = false } = {}) {
   if (sheet) {
     sheet.hidden = true;
     sheet.classList.add("is-hidden");
-    sheet.classList.remove("is-align-ok", "is-align-far", "is-front-mirror");
+    sheet.classList.remove("is-align-ok", "is-align-far", "is-front-mirror", "show-zoom");
   }
   document.body.classList.remove("camera-open");
   state.cameraOpen = false;
@@ -602,6 +690,7 @@ async function openGuidedCamera() {
   state.cameraOpen = true;
   state.capturing = false;
   state.autoCaptureArmed = true;
+  state.lastPlacement = null;
   setStatus("카메라 권한을 허용하면 가이드가 표시됩니다…");
 
   if (embedded) {
@@ -627,11 +716,21 @@ async function openGuidedCamera() {
     // 전면 = 신분증/얼굴인식처럼 거울 미리보기. 후면 = 미러 없음.
     const front = usesFrontCamera(state.wearType);
     sheet.classList.toggle("is-front-mirror", front);
-    video.style.transform = "";
+    sheet.classList.toggle("show-zoom", front || state.wearType === "necklace");
+    setCamZoom(defaultZoomForType(state.wearType));
+    bindCameraZoomGestures();
+    const zoomBar = $("zoomBar");
+    if (zoomBar) {
+      const showZ = front;
+      zoomBar.hidden = !showZ;
+      zoomBar.classList.toggle("is-hidden", !showZ);
+    }
     await video.play();
     setStatus(CAMERA_HINT[state.wearType] || "가이드에 맞춘 뒤 3초간 유지하세요.");
     if ($("cameraSub")) {
-      $("cameraSub").textContent = "가이드에 맞춘 뒤 3초간 유지하면 자동 촬영됩니다 · 직접 눌러도 됩니다";
+      $("cameraSub").textContent = front
+        ? "두 손가락으로 줌 · 가이드에 맞춘 뒤 3초 유지 · 셔터도 가능"
+        : "가이드에 맞춘 뒤 3초간 유지하면 자동 촬영됩니다 · 직접 눌러도 됩니다";
     }
     if (state.wearType === "earring") {
       setEarSide(state.earSide || "right");
@@ -658,15 +757,43 @@ function shutterCapture() {
   }
   state.capturing = true;
   stopAlignLoop();
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  // Freeze last good ring placement from live align (still-image redetect often fails)
+  state.capturePlacement =
+    state.wearType === "ring" && state.lastPlacement ? { ...state.lastPlacement } : null;
+
+  const front = usesFrontCamera(state.wearType);
+  const z = Math.max(1, state.camZoom || 1);
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  const cw = vw / z;
+  const ch = vh / z;
+  const sx = (vw - cw) / 2;
+  const sy = (vh - ch) / 2;
+  canvas.width = Math.max(1, Math.round(cw));
+  canvas.height = Math.max(1, Math.round(ch));
   const ctx = canvas.getContext("2d");
-  // 전면 거울 미리보기와 동일하게 저장 (보이는 대로 촬영)
-  if (usesFrontCamera(state.wearType)) {
+  ctx.save();
+  if (front) {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
   }
-  ctx.drawImage(video, 0, 0);
+  ctx.drawImage(video, sx, sy, cw, ch, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  // Placement was in full-frame video coords; remap into zoomed crop (+ mirror for front)
+  if (state.capturePlacement?.center) {
+    const p = state.capturePlacement;
+    let nx = (p.center.x * vw - sx) / cw;
+    let ny = (p.center.y * vh - sy) / ch;
+    if (front) nx = 1 - nx;
+    p.center = { x: nx, y: ny };
+    p.width = (p.width || 0.05) * z;
+    if (front && p.angle != null) {
+      p.angle = 180 - p.angle;
+      p.frontAngle = p.angle - 90;
+    }
+  }
+
   canvas.toBlob((blob) => {
     if (!blob) {
       state.capturing = false;
@@ -724,6 +851,15 @@ async function runMergeTryOn() {
     let target = detection.target;
     if (useType === "bracelet") {
       target = detection.allTargets?.bracelet || fallbackTarget(state.bodyImage, "bracelet");
+    } else if (useType === "ring") {
+      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
+      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
+      const fromCapture = placementToPixels(state.capturePlacement, w, h);
+      target =
+        fromCapture ||
+        detection.allTargets?.ring ||
+        detection.target ||
+        fallbackTarget(state.bodyImage, "ring", { ringFinger: state.ringFinger });
     } else if (!target) {
       target = fallbackTarget(state.bodyImage, useType, {
         earSide: state.earSide,
@@ -732,7 +868,9 @@ async function runMergeTryOn() {
     }
     const usedFallback = useType === "bracelet"
       ? !detection.allTargets?.bracelet
-      : !detection.target;
+      : useType === "ring"
+        ? !(state.capturePlacement || detection.allTargets?.ring || detection.target)
+        : !detection.target;
 
     setMergeProgress(82);
     const after = await withTimeout(
@@ -828,6 +966,8 @@ $("fingerBar")?.addEventListener("click", (event) => {
   if (!btn) return;
   setRingFinger(btn.dataset.finger);
 });
+$("zoomIn")?.addEventListener("click", () => setCamZoom((state.camZoom || 1) + 0.15));
+$("zoomOut")?.addEventListener("click", () => setCamZoom((state.camZoom || 1) - 0.15));
 
 setStageMode("split");
 applyWearTypeFromProduct();
