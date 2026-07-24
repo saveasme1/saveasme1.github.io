@@ -28,7 +28,10 @@ async function getVideoHand() {
         "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
       delegate: "CPU",
     },
-    numHands: 1,
+    numHands: 2,
+    minHandDetectionConfidence: 0.35,
+    minHandPresenceConfidence: 0.35,
+    minTrackingConfidence: 0.35,
     runningMode: "VIDEO",
   });
   return videoHand;
@@ -117,16 +120,30 @@ function scoreRing(lm, finger = "ring") {
       ok: false,
       far: true,
       message: `왼손 손등 · ${spec.label}가 보이게 해 주세요`,
+      placement: null,
     };
   }
   const mid = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
   const d = dist2(mid.x, mid.y, spec.target.x, spec.target.y);
   const fingersUp = tip.y < mcp.y;
-  let score = Math.max(0, 1 - d / 0.24);
-  if (fingersUp) score = Math.min(1, score + 0.1);
-  else score *= 0.45;
-  const ok = score >= 0.8;
-  const far = score < 0.3;
+  let score = Math.max(0, 1 - d / 0.3);
+  if (fingersUp) score = Math.min(1, score + 0.12);
+  else score *= 0.55;
+  const ok = score >= 0.72;
+  const far = score < 0.28;
+  // Finger diameter ≈ neighboring MCP span (more stable than whole-finger length)
+  const neighbors = {
+    index: [9],
+    middle: [5, 13],
+    ring: [9, 17],
+    pinky: [13],
+  };
+  let fingerW = dist2(mcp.x, mcp.y, pip.x, pip.y) * 0.4;
+  for (const ni of neighbors[finger] || neighbors.ring) {
+    const n = lm[ni];
+    if (n) fingerW = Math.max(fingerW, dist2(mcp.x, mcp.y, n.x, n.y) * 0.48);
+  }
+  const ang = (Math.atan2(tip.y - mcp.y, tip.x - mcp.x) * 180) / Math.PI;
   return {
     score,
     ok,
@@ -136,6 +153,17 @@ function scoreRing(lm, finger = "ring") {
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
         : `왼손 손등 · ${spec.label}(+)에 맞춰 주세요`,
+    placement: {
+      kind: "ring",
+      finger,
+      center: mid,
+      width: fingerW,
+      angle: ang,
+      frontAngle: ang - 90,
+      mcp: { x: mcp.x, y: mcp.y },
+      pip: { x: pip.x, y: pip.y },
+      tip: { x: tip.x, y: tip.y },
+    },
   };
 }
 
@@ -167,44 +195,58 @@ function scoreEarring(faceLm, earSide, mirror = false) {
   };
 }
 
-function scoreNecklace(poseLm, mirror = false) {
+function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const ls = poseLm[11];
   const rs = poseLm[12];
   const nose = poseLm[0];
   if (!ls || !rs) return { score: 0, ok: false, far: true, message: "목·어깨가 보이게 맞춰 주세요" };
 
-  const mx = (x) => (mirror ? 1 - x : x);
-  const mid = { x: (mx(ls.x) + mx(rs.x)) / 2, y: (ls.y + rs.y) / 2 };
-  const shoulderW = dist2(ls.x, ls.y, rs.x, rs.y);
+  const z = Math.max(1, zoom || 1);
+  // CSS zoom from center → map full-frame landmarks into on-screen space
+  const mapX = (x) => {
+    const sx = mirror ? 1 - x : x;
+    return 0.5 + (sx - 0.5) * z;
+  };
+  const mapY = (y) => 0.5 + (y - 0.5) * z;
+
+  const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
+  const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
+  const noseY = nose ? mapY(nose.y) : null;
   const collar = {
     x: mid.x,
-    y: nose ? nose.y * 0.28 + mid.y * 0.72 : mid.y - shoulderW * 0.06,
+    y: noseY != null ? noseY * 0.3 + mid.y * 0.7 : mid.y - shoulderW * 0.06,
   };
-  const target = { x: 0.5, y: 0.4 };
+  // Closer selfie: collarbone sits higher in frame
+  const target = { x: 0.5, y: 0.34 };
   const d = dist2(collar.x, collar.y, target.x, target.y);
 
-  let score = Math.max(0, 1 - d / 0.2);
-  const level = 1 - Math.min(1, Math.abs(ls.y - rs.y) / 0.07);
+  let score = Math.max(0, 1 - d / 0.22);
+  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.08);
   score *= 0.5 + 0.5 * level;
-  if (shoulderW < 0.24 || shoulderW > 0.58) score *= 0.4;
-  if (!nose) score *= 0.55;
-  else if (nose.y > 0.38) score *= 0.35;
-  else if (nose.y < 0.04) score *= 0.65;
+  // Prefer filling the large guide (closer / zoomed-in)
+  if (shoulderW < 0.38) score *= 0.45;
+  else if (shoulderW < 0.48) score *= 0.75;
+  if (shoulderW > 0.92) score *= 0.55;
+  if (noseY == null) score *= 0.55;
+  else if (noseY > 0.42) score *= 0.4;
+  else if (noseY < 0.02) score *= 0.7;
 
   const vis = [ls, rs, nose].filter(Boolean);
   if (vis.some((p) => p.visibility != null && p.visibility < 0.45)) score *= 0.5;
 
-  const ok = score >= 0.84;
+  const ok = score >= 0.78;
   const far = score < 0.35;
   return {
     score,
     ok,
     far,
     message: far
-      ? "쇄골이 가이드에서 벗어났습니다. 얼굴을 위로 · 상반신을 가운데"
+      ? shoulderW < 0.38
+        ? "너무 멀어요 · 줌(+)하거나 가까이 와 주세요"
+        : "쇄골이 가이드에서 벗어났습니다"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "얼굴↑ · 쇄골(+)을 가이드에 정확히 맞춰 주세요",
+        : "얼굴↑ · 큰 가이드에 쇄골을 맞춰 주세요",
   };
 }
 
@@ -224,6 +266,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
   }
   lastVideoTime = video.currentTime;
   const mirror = Boolean(opts.mirror);
+  const zoom = Math.max(1, Number(opts.zoom) || 1);
 
   try {
     if (type === "ring" || type === "bracelet") {
@@ -236,8 +279,6 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       if (type === "ring" && hands.length > 1) {
         const leftIdx = handed.findIndex((h) => h?.[0]?.categoryName === "Left");
         if (leftIdx >= 0) lm = hands[leftIdx];
-      } else if (type === "ring" && handed[0]?.[0]?.categoryName === "Right" && hands.length === 1) {
-        // still use it but message will nudge left hand
       }
       if (!lm) {
         return {
@@ -247,6 +288,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
           message: type === "ring"
             ? "왼손 손등이 화면에 들어오게 해 주세요"
             : "팔·손목이 화면에 들어오게 해 주세요",
+          placement: null,
         };
       }
       return type === "ring" ? scoreRing(lm, ringFinger) : scoreBracelet(lm);
@@ -263,7 +305,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       const res = detector.detectForVideo(video, now);
       const lm = res.landmarks?.[0];
       if (!lm) return { score: 0, ok: false, far: true, message: "상체가 화면에 들어오게 해 주세요" };
-      return scoreNecklace(lm, mirror);
+      return scoreNecklace(lm, mirror, zoom);
     }
   } catch (err) {
     console.warn("align", err);
