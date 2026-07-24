@@ -491,7 +491,7 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     crop.getContext("2d").drawImage(syn, 0, 0);
   }
 
-  // Bracelet: 3D if possible, then ALWAYS stamp product on wrist (visible guarantee)
+  // Bracelet: WebGL only (NO flat stamp overlay — that looked like paint paste)
   if (type === "bracelet") {
     const t = target?.center ? target : null;
     if (!t) {
@@ -500,19 +500,28 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     }
     try {
       const { composeTryOn3D } = await import("./tryon3d.js");
-      const threeOut = await composeTryOn3D(bodyCanvas, jewelryCanvas, t, "bracelet");
-      octx.clearRect(0, 0, out.width, out.height);
-      octx.drawImage(threeOut, 0, 0);
+      return await composeTryOn3D(bodyCanvas, jewelryCanvas, t, "bracelet");
     } catch (err) {
-      console.warn("3D bracelet failed, stamp-only", err);
+      console.warn("3D bracelet failed, volumetric wrap fallback", err);
+      let targetW = Math.max(8, t.width || out.width * 0.28);
+      targetW = Math.max(targetW, minWidthForType(out.width, "bracelet"));
+      const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
+      const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
+      try {
+        wrapBraceletCylinder(
+          octx,
+          bodyCanvas,
+          crop,
+          { x: cx, y: cy },
+          targetW,
+          t.angle || 32,
+          t.frontAngle
+        );
+      } catch (e2) {
+        console.warn("wrapBraceletCylinder", e2);
+      }
+      return out;
     }
-    let targetW = Math.max(8, t.width || out.width * 0.28);
-    targetW = Math.max(targetW, minWidthForType(out.width, "bracelet"));
-    // Clamp center into frame so stamp cannot land off-canvas
-    const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
-    const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
-    placeBraceletStamp(octx, crop, { x: cx, y: cy }, targetW, t.angle || 32);
-    return out;
   }
 
   const layer = document.createElement("canvas");
