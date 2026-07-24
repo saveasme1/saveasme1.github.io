@@ -184,14 +184,15 @@ html, body { margin: 0; min-height: 100%; }
   position: fixed;
   inset: 0;
   z-index: 80;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   background: #0b0b0b;
   color: #fff;
 }
 .camera-sheet.is-hidden,
 .camera-sheet[hidden] { display: none !important; }
 .camera-top {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
@@ -221,6 +222,7 @@ html, body { margin: 0; min-height: 100%; }
 }
 .camera-stage {
   position: relative;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
   background: #111;
@@ -263,17 +265,19 @@ html, body { margin: 0; min-height: 100%; }
 .camera-sheet.is-align-ok .guide-dim {
   background: rgba(0, 24, 12, 0.18);
 }
+/* Soft silhouette guides (not skeleton line art) */
 .guide-art {
   display: none;
   position: relative;
   z-index: 1;
-  width: min(88vw, 380px);
+  width: min(92vw, 420px);
   height: auto;
-  max-height: min(70dvh, 620px);
+  max-height: min(72dvh, 640px);
   object-fit: contain;
   pointer-events: none;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.35));
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.35));
   transition: filter 0.2s ease, transform 0.25s ease;
+  opacity: 0.92;
 }
 .camera-sheet.is-align-far .guide-art {
   filter: drop-shadow(0 0 8px rgba(255, 90, 30, 0.85)) drop-shadow(0 0 1px rgba(0,0,0,0.4));
@@ -470,6 +474,7 @@ html, body { margin: 0; min-height: 100%; }
   pointer-events: none;
 }
 .ear-side-bar {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
@@ -495,6 +500,7 @@ html, body { margin: 0; min-height: 100%; }
   color: #ffd7bf;
 }
 .finger-bar {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
@@ -535,6 +541,7 @@ html, body { margin: 0; min-height: 100%; }
   font-weight: 800;
 }
 .camera-bottom {
+  flex: 0 0 auto;
   display: grid;
   justify-items: center;
   gap: 10px;
