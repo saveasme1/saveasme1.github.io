@@ -755,7 +755,7 @@
         body: "{}",
       })
         .then(() => {
-          els.syncState.textContent = `배포 완료 · ${published.items.length}개 · PDF 백그라운드 갱신 중`;
+          els.syncState.textContent = `배포 완료 · ${published.items.length}개 · PDF 백그라운드 갱신 중 (완료 후 /portfolio/portfolio-latest.pdf)`;
         })
         .catch(() => {
           els.syncState.textContent = `배포 완료 · ${published.items.length}개 · 기존 PDF 유지`;

@@ -167,7 +167,7 @@
   }
 
   function publishedAt(item) {
-    return item.sortAt || item.publishedAt || item.uploadedAt || "";
+    return item.sortAt || item.uploadedAt || item.createdAt || item.publishedAt || "";
   }
 
   function filteredItems() {

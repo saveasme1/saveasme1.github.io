@@ -171,6 +171,16 @@ body.has-gb-top-brand .landing {
     radial-gradient(circle at 12% 0%, rgba(255, 130, 54, .14), transparent 42%),
     var(--panel);
 }
+.action-portfolio {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 130, 54, .16), transparent 44%),
+    var(--panel);
+}
+.action-pdf {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(154, 129, 96, .18), transparent 42%),
+    var(--panel);
+}
 .action-gold {
   background:
     radial-gradient(circle at 12% 0%, rgba(255, 130, 54, .14), transparent 42%),
