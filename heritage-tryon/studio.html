@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon29" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon30" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -92,30 +92,54 @@
       <button type="button" class="finger-btn" data-finger="pinky">소지</button>
     </div>
     <div class="camera-stage">
-      <video id="cameraVideo" class="camera-video" playsinline muted autoplay></video>
-      <canvas id="cameraSnap" class="is-hidden"></canvas>
-      <div id="cameraGuide" class="camera-guide" data-type="bracelet" data-ear="right" aria-hidden="true">
-        <div class="guide-dim"></div>
-        <img class="guide-art" data-for="bracelet" src="./public/guides/bracelet.png?v=17" alt="" />
-        <img class="guide-art" data-for="ring" src="./public/guides/ring.png?v=17" alt="" />
-        <img class="guide-art" data-for="earring" data-ear-side="right" src="./public/guides/ear-right.png?v=17" alt="" />
-        <img class="guide-art" data-for="earring" data-ear-side="left" src="./public/guides/ear-left.png?v=17" alt="" />
-        <img class="guide-art" data-for="necklace" src="./public/guides/necklace.png?v=17" alt="" />
-        <p id="guideCaption" class="guide-caption">손↑ · 손목(+) · 팔뚝↓</p>
-        <div id="holdCountdown" class="hold-countdown is-hidden" hidden aria-live="polite">
-          <svg class="hold-ring" viewBox="0 0 40 40" aria-hidden="true">
-            <circle class="hold-ring-bg" cx="20" cy="20" r="18" />
-            <circle id="holdRingFill" class="hold-ring-fill" cx="20" cy="20" r="18" />
-          </svg>
-          <span class="hold-countdown-num"></span>
-        </div>
-        <p id="alignAlert" class="align-alert is-hidden" role="status" aria-live="polite"></p>
-      </div>
-      <div id="zoomBar" class="zoom-bar is-hidden" hidden>
+      <div id="zoomSideLeft" class="zoom-side zoom-side-left is-hidden" hidden>
         <button type="button" id="zoomOut" class="zoom-btn" aria-label="축소">−</button>
-        <span id="zoomLabel" class="zoom-label">1.0×</span>
+        <svg class="zoom-gesture" viewBox="0 0 48 72" aria-hidden="true">
+          <!-- pinch-out: fingers moving apart = 축소 안내 -->
+          <g class="zoom-gesture-pinch-out" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 44c0-8 2-14 6-18" />
+            <path d="M30 44c0-8-2-14-6-18" />
+            <circle cx="24" cy="22" r="3.2" fill="#fff" stroke="none" />
+            <path d="M10 30l-5-2M38 30l5-2" opacity="0.9" />
+            <path d="M12 36H6M36 36h6" opacity="0.75" />
+          </g>
+        </svg>
+        <span class="zoom-side-label">축소</span>
+      </div>
+      <div class="camera-viewport">
+        <video id="cameraVideo" class="camera-video" playsinline muted autoplay></video>
+        <canvas id="cameraSnap" class="is-hidden"></canvas>
+        <div id="cameraGuide" class="camera-guide" data-type="bracelet" data-ear="right" aria-hidden="true">
+          <div class="guide-dim"></div>
+          <img class="guide-art" data-for="bracelet" src="./public/guides/bracelet.png?v=17" alt="" />
+          <img class="guide-art" data-for="ring" src="./public/guides/ring.png?v=17" alt="" />
+          <img class="guide-art" data-for="earring" data-ear-side="right" src="./public/guides/ear-right.png?v=17" alt="" />
+          <img class="guide-art" data-for="earring" data-ear-side="left" src="./public/guides/ear-left.png?v=17" alt="" />
+          <img class="guide-art" data-for="necklace" src="./public/guides/necklace.png?v=17" alt="" />
+          <p id="guideCaption" class="guide-caption">손↑ · 손목(+) · 팔뚝↓</p>
+          <div id="holdCountdown" class="hold-countdown is-hidden" hidden aria-live="polite">
+            <svg class="hold-ring" viewBox="0 0 40 40" aria-hidden="true">
+              <circle class="hold-ring-bg" cx="20" cy="20" r="18" />
+              <circle id="holdRingFill" class="hold-ring-fill" cx="20" cy="20" r="18" />
+            </svg>
+            <span class="hold-countdown-num"></span>
+          </div>
+          <p id="alignAlert" class="align-alert is-hidden" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <div id="zoomSideRight" class="zoom-side zoom-side-right is-hidden" hidden>
         <button type="button" id="zoomIn" class="zoom-btn" aria-label="확대">+</button>
-        <p class="zoom-hint">두 손가락으로 확대·축소</p>
+        <svg class="zoom-gesture" viewBox="0 0 48 72" aria-hidden="true">
+          <!-- pinch-in: fingers moving together = 확대 안내 -->
+          <g class="zoom-gesture-pinch-in" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 28c4 6 6 12 6 18" />
+            <path d="M34 28c-4 6-6 12-6 18" />
+            <circle cx="24" cy="50" r="3.2" fill="#fff" stroke="none" />
+            <path d="M8 22l4 3M40 22l-4 3" opacity="0.9" />
+            <path d="M12 18h6M30 18h6" opacity="0.75" />
+          </g>
+        </svg>
+        <span class="zoom-side-label">확대</span>
       </div>
     </div>
     <div class="camera-bottom">
@@ -124,6 +148,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260724-tryon29"></script>
+  <script type="module" src="./src/studio.js?v=20260724-tryon30"></script>
 </body>
 </html>
