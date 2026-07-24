@@ -292,14 +292,14 @@ const CAMERA_HINT = {
   ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
   earring: "전면 카메라 · 귀를 가이드에 맞춘 뒤 3초간 유지",
-  necklace: "전면 · 얼굴·목만 대충 맞추고 3초 유지",
+  necklace: "전면 · 얼굴·목을 가이드 중심에 맞추고 3초 유지",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
   earring: "오른쪽 귀(+)",
-  necklace: "얼굴·목 · 3초 유지",
+  necklace: "얼굴·목 · 가이드 중심 · 3초",
 };
 
 const FINGER_LABEL = {
@@ -550,8 +550,6 @@ function setZoomUiVisible(show) {
     el.hidden = !show;
     el.classList.toggle("is-hidden", !show);
   });
-  const stage = document.querySelector(".camera-stage");
-  stage?.classList.toggle("has-zoom-sides", show);
 }
 
 function touchDistance(touches) {
