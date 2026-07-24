@@ -126,6 +126,66 @@ function hardenAlpha(canvas) {
   return canvas;
 }
 
+/**
+ * Strip portfolio marketing text like "Handmade of High Quality"
+ * (common top/corner overlay — NOT part of the jewelry).
+ */
+export function stripPortfolioWatermark(canvas) {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const w = canvas.width;
+  const h = canvas.height;
+  if (!w || !h) return canvas;
+  const id = ctx.getImageData(0, 0, w, h);
+  const d = id.data;
+
+  const clearPixel = (i) => {
+    d[i] = 0;
+    d[i + 1] = 0;
+    d[i + 2] = 0;
+    d[i + 3] = 0;
+  };
+
+  // 1) Top band — watermark almost always lives here
+  const yTop = Math.max(8, Math.floor(h * 0.12));
+  for (let y = 0; y < yTop; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const a = d[i + 3];
+      if (a < 8) continue;
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      const lum = (r + g + b) / 3;
+      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+      // Light gray / white text or banner (not yellow/gold jewelry)
+      if (chroma < 40 && lum > 150) clearPixel(i);
+      // Soft dark-gray caption on pale plate
+      if (chroma < 28 && lum > 70 && lum < 170 && y < h * 0.09) clearPixel(i);
+    }
+  }
+
+  // 2) Top-left / top-right corner boxes (text lockups)
+  const boxH = Math.floor(h * 0.1);
+  const boxW = Math.floor(w * 0.55);
+  for (const x0 of [0, Math.max(0, w - boxW)]) {
+    for (let y = 0; y < boxH; y++) {
+      for (let x = x0; x < x0 + boxW && x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (d[i + 3] < 8) continue;
+        const r = d[i];
+        const g = d[i + 1];
+        const b = d[i + 2];
+        const lum = (r + g + b) / 3;
+        const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+        if (chroma < 45 && lum > 130) clearPixel(i);
+      }
+    }
+  }
+
+  ctx.putImageData(id, 0, 0);
+  return canvas;
+}
+
 async function transformersCutout(img, onStatus = () => {}) {
   onStatus("고품질 AI 누끼 로딩… (RMBG)");
   const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2");
@@ -285,7 +345,10 @@ export async function processJewelryImage(url, onStatus = () => {}) {
     }
   }
 
-  if (canvas) canvas = hardenAlpha(canvas);
+  if (canvas) {
+    canvas = hardenAlpha(canvas);
+    stripPortfolioWatermark(canvas);
+  }
 
   if (!canvas || !isCutoutGood(canvas)) {
     const refined = refineCutout(img, onStatus);
@@ -306,6 +369,7 @@ export async function processJewelryImage(url, onStatus = () => {}) {
     method = "aggressive-chroma";
   }
 
+  stripPortfolioWatermark(canvas);
   const blob = await new Promise((r) => canvas.toBlob(r, "image/png"));
   onStatus(`누끼 완료 (${method})`);
   return { canvas, blob, method };
