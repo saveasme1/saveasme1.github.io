@@ -40,6 +40,13 @@ export async function loadPortfolio() {
   throw lastError || new Error("포트폴리오를 불러오지 못했습니다.");
 }
 
+/** Fetch one item (incl. multi-angle images[]) by id. */
+export async function loadPortfolioItem(id) {
+  if (!id) return null;
+  const items = await loadPortfolio();
+  return items.find((x) => x.id === id) || null;
+}
+
 /**
  * Infer wear part from product title/category.
  * Order matters: bracelet before bare "링", etc.
