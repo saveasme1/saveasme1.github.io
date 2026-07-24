@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 560" fill="none">
+  <defs>
+    <linearGradient id="skin" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#efc6a6" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#d4a07e" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+  <!-- Slightly tilted bust for one-hand selfie -->
+  <g transform="translate(185,210) rotate(6)">
+    <!-- shoulders / neck -->
+    <ellipse cx="0" cy="95" rx="118" ry="70" fill="url(#skin)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <rect x="-28" y="10" width="56" height="70" rx="22" fill="url(#skin)" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+    <!-- head -->
+    <ellipse cx="4" cy="-55" rx="58" ry="72" fill="url(#skin)" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+    <!-- hair hint -->
+    <path d="M-50,-70 Q4,-130 58,-70" stroke="rgba(255,255,255,0.25)" stroke-width="18" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- necklace arc guide -->
+  <path d="M95,255 Q185,300 275,248" stroke="#ff8236" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.95"/>
+  <circle cx="185" cy="292" r="6" fill="#ff8236"/>
+  <text x="198" y="280" fill="#ffb089" font-size="14" font-family="system-ui,sans-serif" font-weight="700">+</text>
+</svg>
