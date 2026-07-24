@@ -22,8 +22,8 @@ function load(url) {
 }
 
 export async function prepareJewelry(item, onStatus = () => {}) {
-  // cut9: harder Handmade watermark wipe + necklace 3D
-  const cacheId = `${item.id}::cut9`;
+  // cut10: keep jewelry body — watermark wipe only top band
+  const cacheId = `${item.id}::cut10`;
   try {
     const cached = await getProcessed(cacheId);
     if (cached?.blob) {
