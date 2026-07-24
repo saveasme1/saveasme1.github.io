@@ -26,220 +26,206 @@ body {
   height: 1000px;
   margin: 0 auto;
   overflow: hidden;
-  position: relative;
   display: flex;
   flex-direction: column;
   background:
     radial-gradient(ellipse 60% 40% at 0% 0%, rgba(255,123,54,.2), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 100% 100%, rgba(255,123,54,.1), transparent 55%),
     linear-gradient(180deg, #f7f3ee 0%, var(--paper) 55%, #efe9e1 100%);
 }
 .brand {
   color: var(--orange);
   font-weight: 900;
   letter-spacing: -.02em;
-  background: linear-gradient(180deg, transparent 62%, rgba(255,123,54,.22) 62%);
-  padding: 0 .06em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  background: linear-gradient(180deg, transparent 58%, rgba(255,123,54,.28) 58%);
+  padding: 0 .04em;
 }
 .sec.b .brand {
   color: var(--orange2);
-  background: linear-gradient(180deg, transparent 62%, rgba(255,154,91,.28) 62%);
+  background: linear-gradient(180deg, transparent 58%, rgba(255,154,91,.32) 58%);
 }
 .sec.c .brand {
   color: #1b130f;
-  background: linear-gradient(180deg, transparent 62%, rgba(255,255,255,.45) 62%);
+  background: linear-gradient(180deg, transparent 58%, rgba(255,255,255,.5) 58%);
 }
 .top {
   flex: 0 0 auto;
-  height: 56px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 34px;
+  padding: 0 28px;
   border-bottom: 1px solid var(--line);
 }
 .logo {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   color: var(--orange);
 }
 .logo small {
   display: block;
   margin-top: 1px;
-  font-size: 9px;
-  letter-spacing: .08em;
+  font-size: 10px;
+  letter-spacing: .1em;
   color: var(--muted);
   font-weight: 700;
-}
-.logo span {
-  display: block;
-  width: 34px;
-  height: 2px;
-  margin-top: 5px;
-  border-radius: 99px;
-  background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
 .issue {
   text-align: right;
-  font-size: 9px;
-  letter-spacing: .14em;
+  font-size: 11px;
+  letter-spacing: .12em;
   color: var(--muted);
-  line-height: 1.5;
-  font-weight: 700;
+  line-height: 1.4;
+  font-weight: 800;
 }
 .hero {
   flex: 0 0 auto;
-  padding: 14px 34px 10px;
+  padding: 10px 28px 8px;
 }
 .kicker {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   color: var(--orange);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .2em;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .18em;
 }
 .kicker i {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--orange);
-  box-shadow: 0 0 0 4px rgba(255,123,54,.14);
 }
 .hero h1 {
-  margin: 6px 0 5px;
-  font-size: 26px;
-  line-height: 1.12;
-  letter-spacing: -.04em;
-  font-weight: 800;
+  margin: 6px 0 4px;
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -.045em;
+  font-weight: 900;
 }
 .hero p {
   margin: 0;
-  color: #524d47;
-  font-size: 13px;
-  line-height: 1.45;
+  color: #3f3b36;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 650;
   word-break: keep-all;
 }
 .main {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 2px 34px 12px;
+  padding: 2px 28px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 .sec {
   flex: 1 1 0;
   min-height: 0;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
   border: 1px solid rgba(23,23,23,.08);
-  background: rgba(255,255,255,.78);
-  box-shadow: 0 6px 16px rgba(35,26,18,.045);
+  background: #fff;
   display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 11px;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
   align-items: center;
 }
 .sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
 .sec.b { background: #242220; color: #fff; border-color: transparent; }
-.sec.b .num { color: rgba(255,154,91,.95); }
-.sec.b .body { color: rgba(255,255,255,.78); }
+.sec.b .num { color: var(--orange2); }
+.sec.b .body { color: rgba(255,255,255,.88); }
 .sec.c {
   background: linear-gradient(135deg, var(--orange), #ff995b);
   color: #1b130f;
   border-color: transparent;
 }
-.sec.c .num { color: rgba(27,19,15,.55); }
-.sec.c .body { color: rgba(27,19,15,.9); }
+.sec.c .num { color: rgba(27,19,15,.65); }
+.sec.c .body { color: rgba(27,19,15,.95); }
 .sec.d {
-  flex: 1.25 1 0;
+  flex: 1.2 1 0;
   background: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0;
-  padding: 12px 14px 13px;
+  padding: 10px 14px;
 }
 .sec.d .toprow {
   display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 11px;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
   align-items: center;
   margin-bottom: 8px;
 }
 .icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   background: #171717;
   color: var(--orange);
-  flex-shrink: 0;
 }
-.sec.b .icon-wrap { background: rgba(255,255,255,.08); color: var(--orange2); }
-.sec.c .icon-wrap { background: rgba(27,19,15,.16); color: #fff; }
+.sec.b .icon-wrap { background: rgba(255,255,255,.1); color: var(--orange2); }
+.sec.c .icon-wrap { background: rgba(27,19,15,.18); color: #fff; }
 .icon-wrap svg {
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   stroke: currentColor;
   fill: none;
-  stroke-width: 1.9;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .num {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .12em;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .14em;
   color: var(--orange);
   margin-bottom: 2px;
 }
 h2 {
   margin: 0;
-  font-size: 15px;
-  letter-spacing: -.03em;
-  line-height: 1.2;
-  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+  font-weight: 900;
 }
 .body {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: #403d39;
+  margin: 4px 0 0;
+  font-size: 18px;
+  line-height: 1.38;
+  font-weight: 650;
+  color: #2f2c28;
   word-break: keep-all;
 }
 .checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px 18px;
+  gap: 6px 14px;
 }
 .check {
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   letter-spacing: -.02em;
-  line-height: 1.3;
-  color: #2a2724;
+  line-height: 1.28;
+  color: #1f1c19;
 }
 .check.wide { grid-column: 1 / -1; }
 .check i {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   margin-top: 1px;
   border-radius: 50%;
   background: var(--orange);
   color: #fff;
   font-style: normal;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 900;
   display: grid;
   place-items: center;
@@ -247,24 +233,25 @@ h2 {
 }
 .foot {
   flex: 0 0 auto;
-  height: 48px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 34px;
+  padding: 0 28px;
   background: #171717;
   color: #bdb7b1;
-  font-size: 9px;
-  letter-spacing: .14em;
+  font-size: 11px;
+  letter-spacing: .12em;
+  font-weight: 700;
 }
 .foot strong {
   color: var(--orange2);
-  font-size: 12px;
-  letter-spacing: .12em;
+  font-size: 14px;
+  letter-spacing: .1em;
   font-weight: 900;
 }
 .foot .line {
-  width: 64px;
+  width: 56px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
@@ -273,14 +260,14 @@ h2 {
 <body>
 <div class="poster">
   <header class="top">
-    <div class="logo">본 헤리티지<small>BON HERITAGE</small><span></span></div>
+    <div class="logo">본 헤리티지<small>BON HERITAGE</small></div>
     <div class="issue">PRIVATE MEMBERSHIP<br>BRAND RENEWAL 2026</div>
   </header>
 
   <section class="hero">
     <div class="kicker"><i></i>IMPORTANT NOTICE</div>
     <h1>운영방식 변경 및 브랜드 리뉴얼 안내</h1>
-    <p>새로운 시작과 함께 <b class="brand">2026년 8월 1일부터 본 헤리티지</b>라는 이름으로 다시 인사드립니다. <b class="brand">본 헤리티지</b> = 근본 있는 기술을 이어가는 브랜드.</p>
+    <p><b class="brand">2026년 8월 1일부터 본 헤리티지</b>로 다시 인사드립니다. <b class="brand">본 헤리티지</b> = 근본 있는 기술을 이어가는 브랜드.</p>
   </section>
 
   <div class="main">
@@ -291,7 +278,7 @@ h2 {
       <div>
         <div class="num">01 / BON HERITAGE</div>
         <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
-        <p class="body" style="margin-top:5px">이름은 바뀌지만 15년 제작 철학과 품질, 고객을 소중히 여기는 마음은 변하지 않습니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
+        <p class="body">이름은 바뀌어도 15년 철학·품질·정성은 그대로. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 보답하겠습니다.</p>
       </div>
     </article>
 
@@ -302,7 +289,7 @@ h2 {
       <div>
         <div class="num">02 / WHY</div>
         <h2>브랜드 가치를 지키기 위해</h2>
-        <p class="body" style="margin-top:5px">제품·콘텐츠·운영·상담 모방 사례가 이어졌습니다. 고객님께만 드릴 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해 운영 방식을 전면 개편합니다.</p>
+        <p class="body">제품·콘텐츠·운영 모방이 이어졌습니다. <b class="brand">본 헤리티지</b>의 기술과 가치를 지키기 위해 운영을 전면 개편합니다.</p>
       </div>
     </article>
 
@@ -313,7 +300,7 @@ h2 {
       <div>
         <div class="num">03 / PRIVATE</div>
         <h2>공개형 → 프라이빗 멤버십</h2>
-        <p class="body" style="margin-top:5px">누구나 이용하는 공개형 운영이 아닙니다. 대표 카카오톡 간단 인증 후 <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매 등 정보를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
+        <p class="body">카카오톡 간단 인증 후 <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
       </div>
     </article>
 
@@ -329,10 +316,10 @@ h2 {
       </div>
       <div class="checks">
         <div class="check"><i>✓</i><span>더욱 전문적인 상담</span></div>
-        <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
+        <div class="check"><i>✓</i><span>검증된 고객 중심 서비스</span></div>
         <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
-        <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
-        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
+        <div class="check"><i>✓</i><span>한정 제작 · 공동구매 운영</span></div>
+        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 등 신규 카테고리</span></div>
         <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
       </div>
     </article>
