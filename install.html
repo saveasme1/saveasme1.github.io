@@ -105,7 +105,7 @@
       font-weight: 700;
     }
 
-    /* —— PC: 3-column Kakao-style —— */
+    /* —— PC: 3-column install panels —— */
     .panels {
       display: none;
       grid-template-columns: repeat(3, 1fr);
@@ -122,14 +122,22 @@
       min-height: 320px;
     }
     .panel__icon {
-      width: 40px; height: 40px;
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
       display: grid;
       place-items: center;
-      font-size: 20px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       background: rgba(22, 21, 19, 0.06);
     }
+    .panel__icon svg {
+      width: 26px;
+      height: 26px;
+      display: block;
+    }
+    .panel__icon.is-android { background: rgba(61, 220, 132, 0.14); color: #1a9b4a; }
+    .panel__icon.is-apple { background: rgba(22, 21, 19, 0.08); color: #161513; }
+    .panel__icon.is-pc { background: rgba(255, 130, 54, 0.12); color: #c45a12; }
     .panel h2 {
       margin: 0 0 8px;
       font-size: 18px;
@@ -288,7 +296,7 @@
     <div class="open-banner__row">
       <div class="open-banner__copy">
         <strong id="bannerTitle">브라우저에서 열기</strong>
-        <span id="bannerDesc">카톡 안에서는 설치가 안 됩니다</span>
+        <span id="bannerDesc">앱 안에서는 설치할 수 없습니다</span>
       </div>
       <button type="button" class="open-banner__btn" id="bannerOpen">열기</button>
     </div>
@@ -299,50 +307,57 @@
       <img src="icons/icon-192.png" alt="" width="56" height="56">
       <div>
         <strong>헤리티지</strong>
-        <span>홈 화면 · PC에 앱처럼 설치</span>
+        <span>주문제작 주얼리 · 포트폴리오 앱</span>
       </div>
     </div>
-    <h1>앱 설치</h1>
-    <p class="lead" id="lead">기기에 맞는 설치 방법만 보여 드립니다.</p>
+    <h1>헤리티지 앱 설치</h1>
+    <p class="lead" id="lead">원하시는 기기에서 홈 화면·바탕화면에 추가해 바로 이용하세요.</p>
     <div class="device" id="deviceLabel">감지 중…</div>
 
-    <!-- PC: 3 columns like KakaoTalk download -->
     <div class="panels" id="pcPanels" aria-label="기기별 설치">
       <section class="panel" id="panelPc">
-        <div class="panel__icon" aria-hidden="true">💻</div>
-        <h2>Windows / Mac</h2>
-        <p>Chrome 또는 Edge에서 이 PC에 앱으로 설치합니다. Safari(맥)는 PC 설치를 지원하지 않습니다.</p>
+        <div class="panel__icon is-pc" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H13v2h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-2H5.5A1.5 1.5 0 0 1 4 14.5v-9ZM5.5 5.5v9h13v-9h-13Z"/></svg>
+        </div>
+        <h2>컴퓨터</h2>
+        <p>Chrome 또는 Microsoft Edge에서 설치하면 시작 메뉴·독에서 앱처럼 실행됩니다.</p>
         <ol>
-          <li>아래 버튼을 누르거나</li>
-          <li>주소창 오른쪽 <b>설치(⊕)</b> / 메뉴 → <b>앱 설치</b></li>
+          <li>아래 <b>PC에 앱 설치</b>를 누르거나</li>
+          <li>주소창 오른쪽 <b>설치</b> 아이콘 · 메뉴의 <b>앱 설치</b>를 선택하세요</li>
         </ol>
         <button type="button" class="btn btn-primary" id="pcInstallBtn">PC에 앱 설치</button>
-        <div class="hint" id="pcInstallHint">설치 준비 중…</div>
-        <a class="btn btn-ghost" href="./landing.html">사이트로 바로 열기</a>
+        <div class="hint" id="pcInstallHint">잠시만 기다려 주세요</div>
+        <a class="btn btn-ghost" href="./landing.html">웹으로 바로 이용</a>
       </section>
 
       <section class="panel" id="panelAndroid">
-        <div class="panel__icon" aria-hidden="true">🤖</div>
+        <div class="panel__icon is-android" aria-hidden="true">
+          <!-- Android robot mark — simplified, free to use as UI glyph -->
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 9.48 19.2 6.4a.4.4 0 0 0-.7-.4l-1.66 3.1A7.8 7.8 0 0 0 12 8c-1.75 0-3.36.55-4.84 1.5L5.5 6a.4.4 0 1 0-.7.4l1.6 3.08A7.9 7.9 0 0 0 4 15.2V16a2 2 0 0 0 2 2h.4v2.2a1.2 1.2 0 0 0 2.4 0V18h6.4v2.2a1.2 1.2 0 0 0 2.4 0V18H18a2 2 0 0 0 2-2v-.8a7.9 7.9 0 0 0-2.4-5.72ZM7.4 14.2a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm9.2 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>
+        </div>
         <h2>Android</h2>
-        <p>Chrome · 삼성 인터넷에서 홈 화면에 추가하거나 앱으로 설치합니다.</p>
+        <p>스마트폰 Chrome 또는 삼성 인터넷에서 홈 화면에 추가해 앱처럼 사용하세요.</p>
         <ol>
-          <li>휴대폰 Chrome으로 이 페이지를 엽니다</li>
-          <li>메뉴(⋮) → <b>앱 설치</b> / <b>홈 화면에 추가</b></li>
+          <li>휴대폰 브라우저로 이 페이지를 엽니다</li>
+          <li>메뉴에서 <b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 선택하세요</li>
         </ol>
-        <button type="button" class="btn btn-primary" id="pcCopyAndroid">Android 설치 링크 복사</button>
-        <div class="hint">휴대폰에 붙여넣어 여세요</div>
+        <button type="button" class="btn btn-primary" id="pcCopyAndroid">설치 링크 복사</button>
+        <div class="hint">복사한 주소를 휴대폰 브라우저에 붙여넣기</div>
       </section>
 
       <section class="panel" id="panelIos">
-        <div class="panel__icon" aria-hidden="true"></div>
+        <div class="panel__icon is-apple" aria-hidden="true">
+          <!-- Apple logo path (simple mark for UI) -->
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16.7 12.6c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3.8ZM14.6 6.5c.6-.7 1-1.7.9-2.7-1 .1-2.1.7-2.7 1.5-.6.7-1.1 1.7-.9 2.7 1 0 2-.6 2.7-1.5Z"/></svg>
+        </div>
         <h2>iPhone</h2>
-        <p>카메라로 QR을 찍으면 Safari로 열립니다. 공유 → 홈 화면에 추가.</p>
-        <img class="qr" src="icons/qr-install.png" alt="아이폰 설치 QR" width="148" height="148">
+        <p>카메라로 QR을 스캔한 뒤 Safari에서 홈 화면에 추가하세요.</p>
+        <img class="qr" src="icons/qr-install.png" alt="아이폰 설치용 QR 코드" width="148" height="148">
         <ol>
-          <li>기본 카메라로 QR 스캔</li>
-          <li>Safari에서 공유 → <b>홈 화면에 추가</b></li>
+          <li>기본 카메라로 QR을 스캔합니다</li>
+          <li>Safari에서 <b>공유</b> → <b>홈 화면에 추가</b></li>
         </ol>
-        <button type="button" class="btn btn-secondary" id="pcCopyIos">iPhone 설치 링크 복사</button>
+        <button type="button" class="btn btn-secondary" id="pcCopyIos">설치 링크 복사</button>
       </section>
     </div>
 
@@ -360,7 +375,7 @@
         <div style="display:flex;justify-content:center;margin:14px 0 4px">
           <img src="icons/qr-install.png" alt="헤리티지 설치 QR" width="180" height="180" style="width:180px;height:180px;border-radius:12px;border:1px solid var(--line);background:#fff">
         </div>
-        <p class="note">카톡 안에서는 설치가 안 됩니다. Safari로 연 뒤 추가하세요.</p>
+        <p class="note">카카오톡 등 앱 안에서는 설치할 수 없습니다. Safari로 연 뒤 홈 화면에 추가하세요.</p>
       </section>
 
       <section class="guide mob-android" id="mobAndroidGuide">
@@ -370,7 +385,7 @@
           <li><b>앱 설치하기</b>를 누르거나</li>
           <li>메뉴(⋮) → <b>앱 설치</b> / <b>홈 화면에 추가</b></li>
         </ol>
-        <p class="note">카톡 안이면 먼저 “브라우저에서 열기”로 Chrome을 여세요.</p>
+        <p class="note">카카오톡 등 앱 안이라면 먼저 브라우저에서 열어 주세요.</p>
       </section>
     </div>
   </div>
@@ -397,21 +412,22 @@
 
     document.body.className = "is-" + mode + (isInApp ? " has-banner" : "");
     document.getElementById("deviceLabel").textContent =
-      (mode === "ios" ? "iPhone / iPad" : mode === "android" ? "Android" : "PC")
-      + (isInApp ? " · 인앱" : "")
-      + (isStandalone ? " · 설치됨" : "");
+      (mode === "ios" ? "현재 기기: iPhone / iPad" : mode === "android" ? "현재 기기: Android" : "현재 기기: 컴퓨터")
+      + (isStandalone ? " · 설치 완료" : "");
 
     if (mode === "other") {
       document.getElementById("lead").textContent =
-        "왼쪽 PC 설치 · 가운데 Android · 오른쪽 iPhone(QR) — 카카오톡 앱 설치 화면처럼 나란히 보여 드립니다.";
+        "컴퓨터·Android·iPhone 중 사용하실 기기를 골라 설치해 주세요.";
     } else if (mode === "ios") {
       document.getElementById("lead").textContent =
-        isInApp ? "카톡 안에서는 설치가 안 됩니다. Safari로 열어 주세요."
-          : "아이폰 설치 안내만 표시됩니다.";
+        isInApp
+          ? "카카오톡 등 앱 안에서는 설치할 수 없습니다. Safari에서 열어 주세요."
+          : "아래 안내대로 홈 화면에 추가하시면 앱처럼 이용할 수 있습니다.";
     } else {
       document.getElementById("lead").textContent =
-        isInApp ? "카톡 안에서는 설치가 안 됩니다. Chrome으로 열어 주세요."
-          : "안드로이드 설치 안내만 표시됩니다.";
+        isInApp
+          ? "카카오톡 등 앱 안에서는 설치할 수 없습니다. Chrome에서 열어 주세요."
+          : "아래 버튼을 누르거나 메뉴에서 홈 화면에 추가해 주세요.";
     }
 
     function showToast(msg) {
@@ -461,7 +477,7 @@
       deferredPrompt.prompt();
       deferredPrompt.userChoice.finally(function () {
         deferredPrompt = null;
-        setPcHint("주소창 ⊕ 또는 메뉴 → 앱 설치");
+        setPcHint("주소창의 설치 아이콘, 또는 메뉴의 앱 설치를 이용하세요");
       });
       return true;
     }
@@ -477,12 +493,12 @@
       if (isStandalone) {
         pcBtn.textContent = "이미 설치됨 — 사이트로 이동";
         pcBtn.onclick = function () { location.href = "./landing.html"; };
-        setPcHint("시작 메뉴에서 HERITAGE로도 실행할 수 있습니다");
+        setPcHint("시작 메뉴·독에서 헤리티지로 바로 실행할 수 있습니다");
       } else {
         pcBtn.onclick = function () {
           if (tryNativeInstall()) return;
-          showToast("주소창 오른쪽 ⊕(설치) 아이콘을 누르세요");
-          setPcHint("Chrome이 설치 창을 안 줄 때는 주소창 ⊕가 정석입니다");
+          showToast("주소창 오른쪽 설치 아이콘을 눌러 주세요");
+          setPcHint("버튼이 안 보이면 주소창 오른쪽 설치 아이콘을 눌러 주세요");
         };
       }
     }
@@ -522,13 +538,13 @@
         var site = document.createElement("a");
         site.className = "btn btn-ghost";
         site.href = "./landing.html";
-        site.textContent = "사이트로 바로 열기";
+        site.textContent = "웹으로 바로 이용";
         mob.appendChild(site);
       } else {
         var how = document.createElement("button");
         how.type = "button";
         how.className = "btn btn-primary";
-        how.textContent = "홈 화면에 추가 방법 보기";
+        how.textContent = "홈 화면에 추가하기";
         how.onclick = function () {
           showToast("공유 → 홈 화면에 추가");
           var g = document.getElementById("mobIosGuide");
@@ -539,7 +555,7 @@
         var site2 = document.createElement("a");
         site2.className = "btn btn-ghost";
         site2.href = "./landing.html";
-        site2.textContent = "사이트로 바로 열기";
+        site2.textContent = "웹으로 바로 이용";
         mob.appendChild(site2);
       }
     }
@@ -560,17 +576,17 @@
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
       deferredPrompt = event;
-      setPcHint("클릭하면 설치 창이 열립니다");
+      setPcHint("아래 버튼을 누르면 설치가 시작됩니다");
       var mobInstall = document.getElementById("mobInstallBtn");
-      if (mobInstall) mobInstall.textContent = "앱 설치하기 (클릭)";
+      if (mobInstall) mobInstall.textContent = "앱 설치하기";
     });
 
     window.addEventListener("appinstalled", function () {
       deferredPrompt = null;
-      showToast("설치되었습니다");
-      setPcHint("설치 완료");
+      showToast("설치가 완료되었습니다");
+      setPcHint("설치가 완료되었습니다");
       if (pcBtn) {
-        pcBtn.textContent = "사이트로 열기";
+        pcBtn.textContent = "앱 열기";
         pcBtn.onclick = function () { location.href = "./landing.html"; };
       }
     });
@@ -578,11 +594,15 @@
     if ("serviceWorker" in navigator && mode === "other" && !isStandalone) {
       navigator.serviceWorker.ready.then(function () {
         setTimeout(function () {
-          if (!deferredPrompt) setPcHint("준비되면 버튼이 바뀝니다 · 아니면 주소창 ⊕");
+          if (!deferredPrompt) {
+            setPcHint("주소창 오른쪽 설치 아이콘, 또는 메뉴의 앱 설치를 이용하세요");
+          }
         }, 1600);
       }).catch(function () {});
       setTimeout(function () {
-        if (!deferredPrompt) setPcHint("주소창 오른쪽 ⊕(설치) 또는 메뉴 → 앱 설치");
+        if (!deferredPrompt) {
+          setPcHint("주소창 오른쪽 설치 아이콘, 또는 메뉴의 앱 설치를 이용하세요");
+        }
       }, 3200);
     }
   })();
