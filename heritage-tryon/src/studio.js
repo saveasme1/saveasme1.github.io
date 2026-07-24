@@ -290,14 +290,14 @@ function onPickFile(event) {
 
 const CAMERA_HINT = {
   ring: "오른손 폰 · 왼손 비스듬히 · 아래에서 손가락 선택",
-  bracelet: "오른손 폰 · 왼팔 비스듬히 · 손펴서 손목(+)",
+  bracelet: "오른손 폰 · 왼팔 오른쪽↑ · 손목(+)",
   earring: "한손 셀카 · 살짝 기울여 귀를 가이드에",
   necklace: "한손 셀카 · 얼굴·목을 가이드에 맞추고 3초",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 비스듬 · 약지(+)",
-  bracelet: "왼팔 비스듬 · 손펴서 · 손목(+)",
+  bracelet: "왼팔 오른쪽↑ · 손목(+)",
   earring: "살짝 기울여 · 귀(+)",
   necklace: "한손 셀카 · 얼굴·목(+)",
 };
@@ -616,9 +616,10 @@ async function alignTick() {
       zoom: state.camZoom || 1,
     });
     if (result) {
-      // Must be truly locked — loose ok alone must not start 3-2-1
+      if (result.placement && ((result.score || 0) >= 0.55 || result.ok)) {
+        state.lastPlacement = result.placement;
+      }
       const locked = Boolean(result.ok) && (result.score || 0) >= 0.86;
-      if (result.placement && locked) state.lastPlacement = result.placement;
       const need = HOLD_MS[type] || 3000;
       if (locked) {
         state.goodStreak += 1;
@@ -773,9 +774,11 @@ function shutterCapture() {
   }
   state.capturing = true;
   stopAlignLoop();
-  // Freeze last good ring placement from live align (still-image redetect often fails)
+  // Freeze last good placement from live align (still-image redetect often fails)
   state.capturePlacement =
-    state.wearType === "ring" && state.lastPlacement ? { ...state.lastPlacement } : null;
+    (state.wearType === "ring" || state.wearType === "bracelet") && state.lastPlacement
+      ? { ...state.lastPlacement }
+      : null;
 
   const front = usesFrontCamera(state.wearType);
   const z = Math.max(ZOOM_MIN, state.camZoom || 1);
@@ -888,7 +891,14 @@ async function runMergeTryOn() {
     const useType = detection.type || type;
     let target = detection.target;
     if (useType === "bracelet") {
-      target = detection.allTargets?.bracelet || fallbackTarget(state.bodyImage, "bracelet");
+      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
+      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
+      const fromCapture = placementToPixels(state.capturePlacement, w, h);
+      target =
+        fromCapture ||
+        detection.allTargets?.bracelet ||
+        detection.target ||
+        fallbackTarget(state.bodyImage, "bracelet");
     } else if (useType === "ring") {
       const w = state.bodyImage.naturalWidth || state.bodyImage.width;
       const h = state.bodyImage.naturalHeight || state.bodyImage.height;
@@ -905,7 +915,7 @@ async function runMergeTryOn() {
       });
     }
     const usedFallback = useType === "bracelet"
-      ? !detection.allTargets?.bracelet
+      ? !(state.capturePlacement || detection.allTargets?.bracelet || detection.target)
       : useType === "ring"
         ? !(state.capturePlacement || detection.allTargets?.ring || detection.target)
         : !detection.target;
