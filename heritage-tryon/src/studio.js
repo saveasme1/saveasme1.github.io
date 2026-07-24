@@ -286,15 +286,15 @@ function onPickFile(event) {
 const CAMERA_HINT = {
   ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
-  earring: "전면 카메라 · 내 오른쪽 귀는 화면 왼쪽에 보입니다",
-  necklace: "전면 카메라 · 얼굴↑ · 쇄골(+)에 정확히 맞추고 유지",
+  earring: "전면 카메라 · 귀를 가이드에 맞춘 뒤 3초간 유지",
+  necklace: "전면 카메라 · 쇄골(+)에 맞춘 뒤 3초간 유지",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
-  earring: "오른쪽 귀 → 화면 왼쪽 가이드",
-  necklace: "전면 · 얼굴↑ · 쇄골(+) · 유지",
+  earring: "오른쪽 귀(+)",
+  necklace: "얼굴↑ · 쇄골(+) · 3초 유지",
 };
 
 const FINGER_LABEL = {
@@ -321,8 +321,7 @@ function facingModeForType(type) {
 }
 
 function earringGuideCaption(anatomicalSide) {
-  if (anatomicalSide === "left") return "왼쪽 귀 → 화면 오른쪽 가이드";
-  return "오른쪽 귀 → 화면 왼쪽 가이드";
+  return anatomicalSide === "left" ? "왼쪽 귀(+)" : "오른쪽 귀(+)";
 }
 
 function ringGuideCaption(finger) {
@@ -354,7 +353,6 @@ function postParent(type) {
 function setEarSide(side) {
   state.earSide = side === "left" ? "left" : "right";
   const guide = $("cameraGuide");
-  // dataset.ear = anatomical; CSS maps opposite side for unmirrored front cam
   if (guide) guide.dataset.ear = state.earSide;
   document.querySelectorAll(".ear-side-btn").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.ear === state.earSide);
@@ -365,8 +363,8 @@ function setEarSide(side) {
   if (state.wearType === "earring" && $("cameraHint")) {
     $("cameraHint").textContent =
       state.earSide === "right"
-        ? "전면 카메라 · 오른쪽 귀를 화면 왼쪽 가이드에"
-        : "전면 카메라 · 왼쪽 귀를 화면 오른쪽 가이드에";
+        ? "전면 카메라 · 오른쪽 귀를 가이드에 맞추세요"
+        : "전면 카메라 · 왼쪽 귀를 가이드에 맞추세요";
   }
 }
 
@@ -447,22 +445,54 @@ function stopAlignLoop() {
     alert.classList.add("is-hidden");
     alert.classList.remove("is-ok");
   }
+  const holdEl = $("holdCountdown");
+  if (holdEl) {
+    holdEl.hidden = true;
+    holdEl.classList.add("is-hidden");
+    const num = holdEl.querySelector(".hold-countdown-num");
+    if (num) num.textContent = "";
+  }
 }
 
-function applyAlignUi(result) {
+function applyAlignUi(result, holdInfo = null) {
   const sheet = $("cameraSheet");
   const hint = $("cameraHint");
   const alert = $("alignAlert");
+  const holdEl = $("holdCountdown");
   if (!sheet || !result) return;
 
   sheet.classList.toggle("is-align-ok", Boolean(result.ok));
   sheet.classList.toggle("is-align-far", Boolean(result.far));
 
-  if (result.message && hint) hint.textContent = result.message;
+  let message = result.message || "";
+  if (result.ok && holdInfo) {
+    const leftMs = Math.max(0, holdInfo.need - holdInfo.held);
+    const sec = Math.max(1, Math.ceil(leftMs / 1000));
+    message = leftMs > 50 ? `그대로 ${sec}초간 유지해 주세요` : "촬영합니다";
+    if (holdEl) {
+      holdEl.hidden = false;
+      holdEl.classList.remove("is-hidden");
+      holdEl.dataset.sec = String(sec);
+      const num = holdEl.querySelector(".hold-countdown-num");
+      if (num) num.textContent = String(sec);
+      const ring = $("holdRingFill");
+      if (ring) {
+        const p = Math.min(1, holdInfo.held / Math.max(1, holdInfo.need));
+        ring.style.strokeDashoffset = String((1 - p) * 113.1);
+      }
+    }
+  } else if (holdEl) {
+    holdEl.hidden = true;
+    holdEl.classList.add("is-hidden");
+    const num = holdEl.querySelector(".hold-countdown-num");
+    if (num) num.textContent = "";
+  }
+
+  if (message && hint) hint.textContent = message;
 
   if (!alert) return;
   if (result.far || result.ok) {
-    alert.textContent = result.message || "";
+    alert.textContent = message;
     alert.classList.toggle("is-ok", Boolean(result.ok));
     alert.classList.remove("is-hidden");
   } else {
@@ -472,28 +502,35 @@ function applyAlignUi(result) {
   }
 }
 
-/** Hold ms after ok before auto-shutter — avoid snap-on-first-touch. */
+/** KYC-style hold: 3 seconds after alignment ok. */
 const HOLD_MS = {
-  necklace: 1200,
-  earring: 1000,
-  ring: 1000,
-  bracelet: 900,
+  necklace: 3000,
+  earring: 3000,
+  ring: 3000,
+  bracelet: 3000,
 };
+
+function usesFrontCamera(type) {
+  return type === "earring" || type === "necklace";
+}
 
 async function alignTick() {
   if (!state.cameraOpen || state.capturing) return;
   const video = $("cameraVideo");
   const type = resolveType();
+  const mirror = usesFrontCamera(type);
   try {
-    const result = await evaluateAlignment(video, type, state.earSide, state.ringFinger);
+    const result = await evaluateAlignment(video, type, state.earSide, state.ringFinger, { mirror });
     if (result) {
-      applyAlignUi(result);
+      const need = HOLD_MS[type] || 3000;
+      let holdInfo = null;
       if (result.ok) {
         state.goodStreak += 1;
         if (!state.goodSince) state.goodSince = performance.now();
         const held = performance.now() - state.goodSince;
-        const need = HOLD_MS[type] || 1000;
-        if (state.autoCaptureArmed && held >= need && state.goodStreak >= 18) {
+        holdInfo = { held, need };
+        applyAlignUi(result, holdInfo);
+        if (state.autoCaptureArmed && held >= need && state.goodStreak >= 12) {
           state.autoCaptureArmed = false;
           shutterCapture();
           return;
@@ -501,6 +538,7 @@ async function alignTick() {
       } else {
         state.goodStreak = 0;
         state.goodSince = 0;
+        applyAlignUi(result, null);
       }
     }
   } catch (err) {
@@ -526,7 +564,7 @@ function closeCameraSheet({ fromHistory = false } = {}) {
   if (sheet) {
     sheet.hidden = true;
     sheet.classList.add("is-hidden");
-    sheet.classList.remove("is-align-ok", "is-align-far");
+    sheet.classList.remove("is-align-ok", "is-align-far", "is-front-mirror");
   }
   document.body.classList.remove("camera-open");
   state.cameraOpen = false;
@@ -586,10 +624,15 @@ async function openGuidedCamera() {
     });
     state.cameraStream = stream;
     video.srcObject = stream;
-    // 전면·후면 모두 미러 없음 — 귀걸이는 오른쪽 귀가 화면 왼쪽에 옴
+    // 전면 = 신분증/얼굴인식처럼 거울 미리보기. 후면 = 미러 없음.
+    const front = usesFrontCamera(state.wearType);
+    sheet.classList.toggle("is-front-mirror", front);
     video.style.transform = "";
     await video.play();
-    setStatus(CAMERA_HINT[state.wearType] || "가이드에 맞춘 뒤 촬영하세요.");
+    setStatus(CAMERA_HINT[state.wearType] || "가이드에 맞춘 뒤 3초간 유지하세요.");
+    if ($("cameraSub")) {
+      $("cameraSub").textContent = "가이드에 맞춘 뒤 3초간 유지하면 자동 촬영됩니다 · 직접 눌러도 됩니다";
+    }
     if (state.wearType === "earring") {
       setEarSide(state.earSide || "right");
     }
@@ -617,7 +660,13 @@ function shutterCapture() {
   stopAlignLoop();
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  const ctx = canvas.getContext("2d");
+  // 전면 거울 미리보기와 동일하게 저장 (보이는 대로 촬영)
+  if (usesFrontCamera(state.wearType)) {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
   canvas.toBlob((blob) => {
     if (!blob) {
       state.capturing = false;
