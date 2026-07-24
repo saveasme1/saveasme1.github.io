@@ -199,10 +199,9 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const ls = poseLm[11];
   const rs = poseLm[12];
   const nose = poseLm[0];
-  if (!ls || !rs) return { score: 0, ok: false, far: true, message: "목·어깨가 보이게 맞춰 주세요" };
+  if (!ls || !rs) return { score: 0, ok: false, far: true, message: "얼굴·목이 보이게 맞춰 주세요" };
 
-  const z = Math.max(1, zoom || 1);
-  // CSS zoom from center → map full-frame landmarks into on-screen space
+  const z = Math.max(0.5, Number(zoom) || 1);
   const mapX = (x) => {
     const sx = mirror ? 1 - x : x;
     return 0.5 + (sx - 0.5) * z;
@@ -212,41 +211,26 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
   const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
   const noseY = nose ? mapY(nose.y) : null;
-  const collar = {
-    x: mid.x,
-    y: noseY != null ? noseY * 0.3 + mid.y * 0.7 : mid.y - shoulderW * 0.06,
-  };
-  // Closer selfie: collarbone sits higher in frame
-  const target = { x: 0.5, y: 0.34 };
-  const d = dist2(collar.x, collar.y, target.x, target.y);
 
-  let score = Math.max(0, 1 - d / 0.22);
-  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.08);
-  score *= 0.5 + 0.5 * level;
-  // Prefer filling the large guide (closer / zoomed-in)
-  if (shoulderW < 0.38) score *= 0.45;
-  else if (shoulderW < 0.48) score *= 0.75;
-  if (shoulderW > 0.92) score *= 0.55;
-  if (noseY == null) score *= 0.55;
-  else if (noseY > 0.42) score *= 0.4;
-  else if (noseY < 0.02) score *= 0.7;
+  // Loose: face + neck roughly in frame (not collarbone precision)
+  let score = 0.2;
+  if (noseY != null && noseY > 0.04 && noseY < 0.55) score += 0.35;
+  else if (noseY != null) score += 0.1;
+  if (mid.y > 0.22 && mid.y < 0.78) score += 0.25;
+  if (Math.abs(mid.x - 0.5) < 0.28) score += 0.15;
+  if (shoulderW > 0.12 && shoulderW < 0.98) score += 0.1;
 
-  const vis = [ls, rs, nose].filter(Boolean);
-  if (vis.some((p) => p.visibility != null && p.visibility < 0.45)) score *= 0.5;
-
-  const ok = score >= 0.78;
+  const ok = score >= 0.62;
   const far = score < 0.35;
   return {
     score,
     ok,
     far,
     message: far
-      ? shoulderW < 0.38
-        ? "너무 멀어요 · 줌(+)하거나 가까이 와 주세요"
-        : "쇄골이 가이드에서 벗어났습니다"
+      ? "얼굴·목이 가이드에서 벗어났습니다"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "얼굴↑ · 큰 가이드에 쇄골을 맞춰 주세요",
+        : "얼굴과 목 위치가 대충 맞으면 됩니다",
   };
 }
 
@@ -266,7 +250,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
   }
   lastVideoTime = video.currentTime;
   const mirror = Boolean(opts.mirror);
-  const zoom = Math.max(1, Number(opts.zoom) || 1);
+  const zoom = Math.max(0.5, Number(opts.zoom) || 1);
 
   try {
     if (type === "ring" || type === "bracelet") {
