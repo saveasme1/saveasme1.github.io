@@ -49,93 +49,93 @@ body {
 }
 .top {
   flex: 0 0 auto;
-  height: 52px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 24px;
   border-bottom: 1px solid var(--line);
 }
 .logo {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: .08em;
   color: var(--orange);
 }
 .logo small {
   display: block;
-  margin-top: 1px;
-  font-size: 10px;
+  margin-top: 0;
+  font-size: 9px;
   letter-spacing: .1em;
   color: var(--muted);
   font-weight: 700;
 }
 .issue {
   text-align: right;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: .12em;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.35;
   font-weight: 800;
 }
 .hero {
   flex: 0 0 auto;
-  padding: 10px 28px 8px;
+  padding: 8px 24px 6px;
 }
 .kicker {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: var(--orange);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: .18em;
+  letter-spacing: .16em;
 }
 .kicker i {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--orange);
 }
 .hero h1 {
-  margin: 6px 0 4px;
-  font-size: 34px;
+  margin: 4px 0 3px;
+  font-size: 28px;
   line-height: 1.1;
-  letter-spacing: -.045em;
+  letter-spacing: -.04em;
   font-weight: 900;
 }
 .hero p {
   margin: 0;
   color: #3f3b36;
-  font-size: 18px;
-  line-height: 1.4;
+  font-size: 16px;
+  line-height: 1.35;
   font-weight: 650;
   word-break: keep-all;
 }
 .main {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 2px 28px 10px;
+  padding: 2px 24px 8px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 .sec {
   flex: 1 1 0;
   min-height: 0;
-  padding: 10px 14px;
-  border-radius: 14px;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: 1px solid rgba(23,23,23,.08);
   background: #fff;
   display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
   align-items: center;
 }
 .sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
 .sec.b { background: #242220; color: #fff; border-color: transparent; }
 .sec.b .num { color: var(--orange2); }
-.sec.b .body { color: rgba(255,255,255,.88); }
+.sec.b .body { color: rgba(255,255,255,.9); }
 .sec.c {
   background: linear-gradient(135deg, var(--orange), #ff995b);
   color: #1b130f;
@@ -144,24 +144,24 @@ body {
 .sec.c .num { color: rgba(27,19,15,.65); }
 .sec.c .body { color: rgba(27,19,15,.95); }
 .sec.d {
-  flex: 1.2 1 0;
+  flex: 1.15 1 0;
   background: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 .sec.d .toprow {
   display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 12px;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 .icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
   display: grid;
   place-items: center;
   background: #171717;
@@ -170,8 +170,8 @@ body {
 .sec.b .icon-wrap { background: rgba(255,255,255,.1); color: var(--orange2); }
 .sec.c .icon-wrap { background: rgba(27,19,15,.18); color: #fff; }
 .icon-wrap svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
@@ -179,23 +179,23 @@ body {
   stroke-linejoin: round;
 }
 .num {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   color: var(--orange);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 h2 {
   margin: 0;
-  font-size: 24px;
-  letter-spacing: -.035em;
+  font-size: 20px;
+  letter-spacing: -.03em;
   line-height: 1.15;
   font-weight: 900;
 }
 .body {
-  margin: 4px 0 0;
-  font-size: 18px;
-  line-height: 1.38;
+  margin: 3px 0 0;
+  font-size: 15px;
+  line-height: 1.32;
   font-weight: 650;
   color: #2f2c28;
   word-break: keep-all;
@@ -203,29 +203,29 @@ h2 {
 .checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px 14px;
+  gap: 4px 12px;
 }
 .check {
   display: flex;
   align-items: flex-start;
-  gap: 7px;
-  font-size: 17px;
+  gap: 6px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: -.02em;
-  line-height: 1.28;
+  line-height: 1.25;
   color: #1f1c19;
 }
 .check.wide { grid-column: 1 / -1; }
 .check i {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   margin-top: 1px;
   border-radius: 50%;
   background: var(--orange);
   color: #fff;
   font-style: normal;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 900;
   display: grid;
   place-items: center;
@@ -233,25 +233,25 @@ h2 {
 }
 .foot {
   flex: 0 0 auto;
-  height: 44px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 24px;
   background: #171717;
   color: #bdb7b1;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: .12em;
   font-weight: 700;
 }
 .foot strong {
   color: var(--orange2);
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: .1em;
   font-weight: 900;
 }
 .foot .line {
-  width: 56px;
+  width: 50px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
@@ -267,7 +267,7 @@ h2 {
   <section class="hero">
     <div class="kicker"><i></i>IMPORTANT NOTICE</div>
     <h1>운영방식 변경 및 브랜드 리뉴얼 안내</h1>
-    <p><b class="brand">2026년 8월 1일부터 본 헤리티지</b>로 다시 인사드립니다. <b class="brand">본 헤리티지</b> = 근본 있는 기술을 이어가는 브랜드.</p>
+    <p>새로운 시작과 함께 <b class="brand">2026년 8월 1일부터 본 헤리티지</b>라는 이름으로 다시 인사드리게 되었습니다. <b class="brand">본 헤리티지</b>는 근본 있는 기술을 이어가는 브랜드입니다.</p>
   </section>
 
   <div class="main">
@@ -277,8 +277,8 @@ h2 {
       </div>
       <div>
         <div class="num">01 / BON HERITAGE</div>
-        <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
-        <p class="body">이름은 바뀌어도 15년 철학·품질·정성은 그대로. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 보답하겠습니다.</p>
+        <h2>공방 171에서 <span class="brand">본 헤리티지</span>로</h2>
+        <p class="body">안녕하세요. 공방 171입니다. 15년 동안 믿고 찾아주신 모든 고객님께 진심으로 감사드립니다. 이름은 바뀌지만, 15년 동안 지켜온 제작 철학과 품질, 그리고 고객 한 분 한 분을 소중히 생각하는 마음은 변하지 않습니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
       </div>
     </article>
 
@@ -288,8 +288,8 @@ h2 {
       </div>
       <div>
         <div class="num">02 / WHY</div>
-        <h2>브랜드 가치를 지키기 위해</h2>
-        <p class="body">제품·콘텐츠·운영 모방이 이어졌습니다. <b class="brand">본 헤리티지</b>의 기술과 가치를 지키기 위해 운영을 전면 개편합니다.</p>
+        <h2>브랜드의 가치를 지키기 위해</h2>
+        <p class="body">그동안 저희의 제품, 콘텐츠, 운영 방식, 상담 시스템 등을 그대로 모방하는 사례가 지속적으로 발생했습니다. 고객님께만 드릴 수 있는 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해, 운영 방식을 전면 개편하기로 결정했습니다.</p>
       </div>
     </article>
 
@@ -299,8 +299,8 @@ h2 {
       </div>
       <div>
         <div class="num">03 / PRIVATE</div>
-        <h2>공개형 → 프라이빗 멤버십</h2>
-        <p class="body">카카오톡 간단 인증 후 <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
+        <h2>공개형에서 프라이빗 멤버십으로</h2>
+        <p class="body">앞으로는 홈페이지를 누구나 자유롭게 이용하는 공개형 운영이 아닙니다. 대표 카카오톡을 통한 간단한 고객 인증 후, <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매 이벤트 등 다양한 정보를 안내해 드리는 프라이빗 멤버십 운영 방식으로 변경됩니다.</p>
       </div>
     </article>
 
@@ -314,12 +314,13 @@ h2 {
           <h2><span class="brand">본 헤리티지</span>로 더 나아지는 점</h2>
         </div>
       </div>
+      <p class="body" style="margin:0 0 5px"><b class="brand">본 헤리티지</b>로 바뀌며 상담부터 제품 라인까지, 고객님이 체감하실 변화를 준비했습니다. 항상 감사합니다.</p>
       <div class="checks">
         <div class="check"><i>✓</i><span>더욱 전문적인 상담</span></div>
-        <div class="check"><i>✓</i><span>검증된 고객 중심 서비스</span></div>
+        <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
         <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
-        <div class="check"><i>✓</i><span>한정 제작 · 공동구매 운영</span></div>
-        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 등 신규 카테고리</span></div>
+        <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
+        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
         <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
       </div>
     </article>
