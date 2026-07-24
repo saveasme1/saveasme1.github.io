@@ -74,64 +74,19 @@ function makeGoldMaterial(THREE, metal, ambient, mapTex) {
   return mat;
 }
 
-/** Build Cartier Love–style band: thick torus + screw studs (not flat sticker). */
+/** Product band torus — no Love screws / Clash studs (those morph the SKU). */
 function buildLoveBracelet(THREE, material, radius) {
   const group = new THREE.Group();
   const major = radius;
-  const tube = Math.max(3.2, radius * 0.2);
-  const band = new THREE.Mesh(
-    new THREE.TorusGeometry(major, tube, 36, 128),
-    material
-  );
+  const tube = Math.max(3.5, radius * 0.22);
+  const band = new THREE.Mesh(new THREE.TorusGeometry(major, tube, 40, 128), material);
   band.castShadow = true;
   band.receiveShadow = true;
   group.add(band);
-
-  // Inner polish rim (slightly smaller tube) for thickness read
-  const innerMat = material.clone();
-  innerMat.roughness = Math.min(0.35, (material.roughness || 0.2) + 0.08);
-  const inner = new THREE.Mesh(
-    new THREE.TorusGeometry(major * 0.92, tube * 0.45, 24, 96),
-    innerMat
-  );
-  inner.castShadow = true;
-  group.add(inner);
-
-  // Screw heads around the band (Love cue)
-  const studMat = material.clone();
-  studMat.roughness = 0.32;
-  studMat.metalness = 1;
-  const studCount = 16;
-  for (let i = 0; i < studCount; i++) {
-    const t = (i / studCount) * Math.PI * 2;
-    const cx = Math.cos(t) * major;
-    const cy = Math.sin(t) * major;
-    const nx = Math.cos(t);
-    const ny = Math.sin(t);
-    const head = new THREE.Mesh(
-      new THREE.CylinderGeometry(tube * 0.55, tube * 0.55, tube * 0.55, 12),
-      studMat
-    );
-    head.position.set(cx + nx * tube * 0.85, cy + ny * tube * 0.85, 0);
-    head.quaternion.setFromUnitVectors(
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(nx, ny, 0).normalize()
-    );
-    head.castShadow = true;
-    group.add(head);
-    // slot
-    const slot = new THREE.Mesh(
-      new THREE.BoxGeometry(tube * 0.7, tube * 0.12, tube * 0.18),
-      new THREE.MeshStandardMaterial({ color: 0x3a2a10, metalness: 0.4, roughness: 0.55 })
-    );
-    slot.position.copy(head.position).add(new THREE.Vector3(nx, ny, 0).multiplyScalar(tube * 0.28));
-    slot.quaternion.copy(head.quaternion);
-    group.add(slot);
-  }
   return group;
 }
 
-/** @deprecated alias — keep name for any external refs */
+/** @deprecated alias */
 function buildClashBracelet(THREE, material, radius) {
   return buildLoveBracelet(THREE, material, radius);
 }
@@ -414,8 +369,8 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
       : buildLoveBracelet(T, goldMat, posed.wristR * 1.02);
   posed.group.add(jewel);
 
-  // Arm depth occluder — ONLY hide back of band; too-thick occluder ate entire bracelet
-  const occluder = buildArmOccluder(T, posed.wristR * 5.5, posed.wristR * 0.58);
+  // Arm occluder — thick enough to hide back of torus through wrist
+  const occluder = buildArmOccluder(T, posed.wristR * 6.5, posed.wristR * 0.82);
   occluder.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), posed.forearm);
   occluder.position.copy(posed.group.position);
   occluder.renderOrder = -2;
