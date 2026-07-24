@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HERITAGE 운영방식 변경 및 브랜드 리뉴얼 안내 · 1000×1500</title>
+<title>본 헤리티지 운영방식 변경 및 브랜드 리뉴얼 안내 · 1000×1500</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 @page { size: 1000px 1500px; margin: 0; }
@@ -36,7 +36,7 @@ body {
   content: "";
   position: absolute;
   right: -140px;
-  top: 500px;
+  top: 480px;
   width: 420px;
   height: 420px;
   border-radius: 50%;
@@ -45,38 +45,46 @@ body {
   pointer-events: none;
 }
 .top {
-  height: 96px;
+  height: 88px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 56px;
+  padding: 0 52px;
   border-bottom: 1px solid var(--line);
   position: relative;
   z-index: 2;
 }
 .logo {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: .28em;
+  letter-spacing: .2em;
+}
+.logo small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--muted);
+  font-weight: 700;
 }
 .logo span {
   display: block;
-  width: 46px;
+  width: 44px;
   height: 3px;
-  margin-top: 10px;
+  margin-top: 8px;
   border-radius: 99px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
 .issue {
   text-align: right;
   font-size: 11px;
-  letter-spacing: .2em;
+  letter-spacing: .18em;
   color: var(--muted);
-  line-height: 1.65;
+  line-height: 1.6;
   font-weight: 700;
 }
 .hero {
-  padding: 28px 56px 16px;
+  padding: 22px 52px 10px;
   position: relative;
   z-index: 2;
 }
@@ -85,29 +93,28 @@ body {
   align-items: center;
   gap: 10px;
   color: var(--orange);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: .26em;
+  letter-spacing: .24em;
 }
 .kicker i {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--orange);
-  box-shadow: 0 0 0 7px rgba(255,123,54,.14);
+  box-shadow: 0 0 0 6px rgba(255,123,54,.14);
 }
 .brand-change {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin: 14px 0 10px;
-  padding: 8px 14px;
+  gap: 8px;
+  margin: 12px 0 8px;
+  padding: 7px 13px;
   border-radius: 999px;
   background: rgba(23,23,23,.92);
   color: #fff;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 750;
-  letter-spacing: -.01em;
 }
 .brand-change em {
   font-style: normal;
@@ -116,42 +123,42 @@ body {
 }
 .brand-change .arrow { color: var(--orange); font-weight: 900; }
 .hero h1 {
-  margin: 8px 0 10px;
-  font-size: 40px;
-  line-height: 1.16;
+  margin: 6px 0 8px;
+  font-size: 36px;
+  line-height: 1.14;
   letter-spacing: -.04em;
   font-weight: 800;
 }
 .hero p {
   margin: 0;
-  max-width: 860px;
+  max-width: 880px;
   color: #524d47;
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.55;
   word-break: keep-all;
 }
 .sections {
-  padding: 4px 56px 0;
+  padding: 2px 52px 0;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   position: relative;
   z-index: 2;
 }
 .sec {
   display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 18px;
+  grid-template-columns: 64px 1fr;
+  gap: 16px;
   align-items: start;
-  padding: 20px 22px;
-  border-radius: 22px;
+  padding: 16px 18px;
+  border-radius: 20px;
   border: 1px solid rgba(23,23,23,.08);
-  background: rgba(255,255,255,.68);
-  box-shadow: 0 12px 30px rgba(35,26,18,.05);
+  background: rgba(255,255,255,.7);
+  box-shadow: 0 10px 26px rgba(35,26,18,.05);
 }
-.sec:nth-child(1) { background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,248,243,.95)); }
+.sec:nth-child(1) { background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,248,243,.96)); }
 .sec:nth-child(2) { background: #242220; color: #fff; border-color: transparent; }
 .sec:nth-child(2) .num,
-.sec:nth-child(2) .body { color: rgba(255,255,255,.74); }
+.sec:nth-child(2) .body { color: rgba(255,255,255,.76); }
 .sec:nth-child(2) h2 { color: #fff; }
 .sec:nth-child(3) {
   background: linear-gradient(135deg, var(--orange), #ff995b);
@@ -159,12 +166,11 @@ body {
   border-color: transparent;
 }
 .sec:nth-child(3) .num { color: rgba(27,19,15,.55); }
-.sec:nth-child(3) .body { color: rgba(27,19,15,.86); }
-.sec:nth-child(4) { padding-bottom: 16px; }
+.sec:nth-child(3) .body { color: rgba(27,19,15,.88); }
 .icon-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   display: grid;
   place-items: center;
   background: #171717;
@@ -174,8 +180,8 @@ body {
 .sec:nth-child(2) .icon-wrap { background: rgba(255,255,255,.08); color: var(--orange2); }
 .sec:nth-child(3) .icon-wrap { background: rgba(27,19,15,.16); color: #fff; }
 .icon-wrap svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.8;
@@ -183,52 +189,53 @@ body {
   stroke-linejoin: round;
 }
 .num {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: .2em;
+  letter-spacing: .18em;
   color: var(--orange);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 h2 {
-  margin: 0 0 8px;
-  font-size: 21px;
+  margin: 0 0 6px;
+  font-size: 19px;
   letter-spacing: -.03em;
-  line-height: 1.28;
+  line-height: 1.25;
   font-weight: 800;
 }
 .body {
   margin: 0;
-  font-size: 14.5px;
-  line-height: 1.62;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: #403d39;
   word-break: keep-all;
 }
 .checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px 12px;
-  margin-top: 10px;
+  gap: 6px 10px;
+  margin-top: 8px;
 }
 .check {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
+  gap: 7px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -.02em;
   line-height: 1.35;
   color: #2a2724;
 }
+.check.wide { grid-column: 1 / -1; }
 .check i {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   margin-top: 1px;
   border-radius: 50%;
   background: var(--orange);
   color: #fff;
   font-style: normal;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
   display: grid;
   place-items: center;
@@ -239,24 +246,24 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 78px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 56px;
+  padding: 0 52px;
   background: #171717;
   color: #bdb7b1;
   font-size: 11px;
-  letter-spacing: .18em;
+  letter-spacing: .16em;
   z-index: 2;
 }
 .foot strong {
   color: #fff;
   font-size: 14px;
-  letter-spacing: .28em;
+  letter-spacing: .2em;
 }
 .foot .line {
-  width: 100px;
+  width: 90px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
@@ -265,15 +272,15 @@ h2 {
 <body>
 <div class="poster">
   <header class="top">
-    <div class="logo">HERITAGE<span></span></div>
+    <div class="logo">본 헤리티지<small>BON HERITAGE</small><span></span></div>
     <div class="issue">PRIVATE MEMBERSHIP<br>BRAND RENEWAL 2026</div>
   </header>
 
   <section class="hero">
     <div class="kicker"><i></i>IMPORTANT NOTICE</div>
-    <div class="brand-change">공방 171 <span class="arrow">→</span> <em>HERITAGE</em> 브랜드 리뉴얼</div>
+    <div class="brand-change">공방 171 <span class="arrow">→</span> <em>본 헤리티지</em> · 8월 1일부터</div>
     <h1>운영방식 변경 및<br>브랜드 리뉴얼 안내</h1>
-    <p>15년의 신뢰를 이어, 주문제작 주얼리 브랜드 <strong>HERITAGE</strong>로 새롭게 선보입니다. 더 높은 전문성과 프라이빗한 서비스로 고객님과 함께하겠습니다.</p>
+    <p>새로운 시작과 함께 <strong>8월 1일부터 본 헤리티지</strong>라는 이름으로 다시 인사드리게 되었습니다. <strong>본 헤리티지</strong>는 근본 있는 기술을 이어가는 브랜드입니다.</p>
   </section>
 
   <div class="sections">
@@ -282,9 +289,9 @@ h2 {
         <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
       </div>
       <div>
-        <div class="num">01 / THANKS · HERITAGE</div>
-        <h2>공방 171에서 HERITAGE로</h2>
-        <p class="body">안녕하세요. 공방 171입니다. 15년 동안 믿고 찾아주신 모든 고객님께 진심으로 감사드립니다. 이제는 더 높은 서비스와 전문성을 위해 브랜드명을 <strong>HERITAGE</strong>로 리뉴얼합니다. HERITAGE는 공방 171이 쌓아 온 신뢰와 제작 노하우를 이어, 주문제작 주얼리를 더 깊이 있게 선보이는 프라이빗 브랜드입니다.</p>
+        <div class="num">01 / BON HERITAGE</div>
+        <h2>공방 171에서 본 헤리티지로</h2>
+        <p class="body">안녕하세요. 공방 171입니다. 15년 동안 믿고 찾아주신 모든 고객님께 진심으로 감사드립니다. 이름은 바뀌지만, 15년 동안 지켜온 제작 철학과 품질, 그리고 고객 한 분 한 분을 소중히 생각하는 마음은 변하지 않습니다. 앞으로도 본 헤리티지만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
       </div>
     </article>
 
@@ -295,7 +302,7 @@ h2 {
       <div>
         <div class="num">02 / WHY RENEWAL</div>
         <h2>브랜드의 가치를 지키기 위해</h2>
-        <p class="body">그동안 저희의 제품, 콘텐츠, 운영 방식, 상담 시스템 등을 그대로 모방하는 사례가 지속적으로 발생했습니다. 고객님께만 드릴 수 있는 차별화된 경험과 HERITAGE의 브랜드 가치를 지키기 위해, 운영 방식을 전면 개편하기로 결정했습니다.</p>
+        <p class="body">그동안 저희의 제품, 콘텐츠, 운영 방식, 상담 시스템 등을 그대로 모방하는 사례가 지속적으로 발생했습니다. 고객님께만 드릴 수 있는 차별화된 경험과 본 헤리티지의 근본 있는 기술·브랜드 가치를 지키기 위해, 운영 방식을 전면 개편하기로 결정했습니다.</p>
       </div>
     </article>
 
@@ -306,7 +313,7 @@ h2 {
       <div>
         <div class="num">03 / PRIVATE MEMBERSHIP</div>
         <h2>공개형에서 프라이빗 멤버십으로</h2>
-        <p class="body">앞으로는 홈페이지를 누구나 자유롭게 이용하는 공개형 운영이 아닙니다. 대표 카카오톡을 통한 간단한 고객 인증 후, HERITAGE 포트폴리오·신제품·공동구매 이벤트 등 다양한 정보를 안내해 드리는 프라이빗 멤버십 운영 방식으로 변경됩니다.</p>
+        <p class="body">앞으로는 홈페이지를 누구나 자유롭게 이용하는 공개형 운영이 아닙니다. 대표 카카오톡을 통한 간단한 고객 인증 후, 본 헤리티지 포트폴리오·신제품·공동구매 이벤트 등 다양한 정보를 안내해 드리는 프라이빗 멤버십 운영 방식으로 변경됩니다.</p>
       </div>
     </article>
 
@@ -317,23 +324,23 @@ h2 {
       <div>
         <div class="num">04 / WHAT GETS BETTER</div>
         <h2>리뉴얼로 더 나아지는 점</h2>
-        <p class="body">HERITAGE로 바뀌며 상담부터 제품 라인까지, 고객님이 체감하실 수 있는 변화를 준비했습니다.</p>
+        <p class="body">본 헤리티지로 바뀌며 상담부터 제품 라인까지, 고객님이 체감하실 변화를 준비했습니다. 항상 감사합니다.</p>
         <div class="checks">
           <div class="check"><i>✓</i><span>더욱 전문적인 상담</span></div>
           <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
           <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
           <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
-          <div class="check"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
-          <div class="check"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
+          <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
+          <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
         </div>
       </div>
     </article>
   </div>
 
   <footer class="foot">
-    <strong>HERITAGE</strong>
+    <strong>본 헤리티지</strong>
     <div class="line"></div>
-    <span>GONGBANG 171 · CRAFTED WITH TRUST</span>
+    <span>GONGBANG 171 · SINCE 2011</span>
   </footer>
 </div>
 </body>
