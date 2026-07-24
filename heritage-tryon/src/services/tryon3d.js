@@ -1,6 +1,6 @@
 /**
- * Studio-grade WebGL try-on (Three.js PBR + depth occlusion).
- * Bracelet/ring: real 3D mesh posed from MediaPipe wrist frame, not a 2D sticker.
+ * WebGL try-on — Clash-style studded bracelet + correct wrist pose.
+ * (Previous thin gold "line" was torus edge-on to camera.)
  */
 
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
@@ -49,85 +49,98 @@ function sampleAmbient(bodyCanvas) {
       n++;
     }
   }
-  return {
-    r: (r / n) / 255,
-    g: (g / n) / 255,
-    b: (b / n) / 255,
-  };
+  return { r: (r / n) / 255, g: (g / n) / 255, b: (b / n) / 255 };
 }
 
-function makeGoldMaterial(THREE, metal, ambient) {
-  return new THREE.MeshPhysicalMaterial({
+function makeGoldMaterial(THREE, metal, ambient, mapTex) {
+  const mat = new THREE.MeshPhysicalMaterial({
     color: new THREE.Color(metal.r, metal.g, metal.b),
+    map: mapTex || null,
     metalness: 1.0,
-    roughness: 0.22,
-    clearcoat: 0.55,
-    clearcoatRoughness: 0.18,
+    roughness: 0.2,
+    clearcoat: 0.65,
+    clearcoatRoughness: 0.15,
     reflectivity: 1.0,
-    envMapIntensity: 1.35,
-    emissive: new THREE.Color(metal.r * 0.04, metal.g * 0.03, metal.b * 0.01),
-    sheen: 0.2,
-    sheenColor: new THREE.Color(ambient.r, ambient.g, ambient.b),
+    envMapIntensity: 1.5,
+    emissive: new THREE.Color(metal.r * 0.03, metal.g * 0.025, metal.b * 0.01),
   });
+  if (mapTex) {
+    mat.color = new THREE.Color(1, 1, 1);
+    mapTex.colorSpace = THREE.SRGBColorSpace;
+    mapTex.wrapS = THREE.RepeatWrapping;
+    mapTex.wrapT = THREE.RepeatWrapping;
+    mapTex.needsUpdate = true;
+  }
+  return mat;
 }
 
-/** Oval Love-style bracelet with tube + screw studs. */
-function buildBraceletMesh(THREE, material, radius, tube) {
+/** Build Clash-like wide band with pyramid studs (not a thin Love torus). */
+function buildClashBracelet(THREE, material, radius) {
   const group = new THREE.Group();
-  // Flattened oval torus (Love bracelet silhouette)
-  const torus = new THREE.Mesh(
-    new THREE.TorusGeometry(radius, tube, 36, 160),
-    material
-  );
-  torus.scale.set(1, 0.72, 1);
-  torus.castShadow = true;
-  torus.receiveShadow = true;
-  group.add(torus);
+  // Oval bracelet around Z axis (hole = Z = forearm)
+  const rx = radius;
+  const ry = radius * 0.78;
+  // Band cross-section: wide & tall like Clash
+  const halfW = radius * 0.07; // radial thickness
+  const halfH = radius * 0.16; // band height (studs sit on this)
 
-  // Inner bevel ring for thickness cue
-  const inner = new THREE.Mesh(
-    new THREE.TorusGeometry(radius - tube * 0.15, tube * 0.55, 24, 120),
-    material.clone()
-  );
-  inner.material.roughness = 0.28;
-  inner.scale.set(1, 0.72, 1);
-  group.add(inner);
+  const shape = new THREE.Shape();
+  shape.moveTo(-halfW, -halfH);
+  shape.lineTo(halfW, -halfH);
+  shape.lineTo(halfW, halfH);
+  shape.lineTo(-halfW, halfH);
+  shape.closePath();
 
-  // Screw / stud accents around the front arc
+  const pts = [];
+  const SEG = 96;
+  for (let i = 0; i <= SEG; i++) {
+    const t = (i / SEG) * Math.PI * 2;
+    pts.push(new THREE.Vector3(Math.cos(t) * rx, Math.sin(t) * ry, 0));
+  }
+  const path = new THREE.CatmullRomCurve3(pts, true);
+
+  const bandGeo = new THREE.ExtrudeGeometry(shape, {
+    steps: SEG,
+    bevelEnabled: false,
+    extrudePath: path,
+    curveSegments: 8,
+  });
+  const band = new THREE.Mesh(bandGeo, material);
+  band.castShadow = true;
+  band.receiveShadow = true;
+  group.add(band);
+
+  // Pyramid studs along outer rim (Clash signature)
   const studMat = material.clone();
-  studMat.roughness = 0.35;
-  studMat.metalness = 1;
-  for (let i = 0; i < 12; i++) {
-    const t = (i / 12) * Math.PI * 2;
-    // skip deep back studs slightly (still add a few for wrap feel)
+  studMat.roughness = 0.28;
+  const studCount = 28;
+  for (let i = 0; i < studCount; i++) {
+    const t = (i / studCount) * Math.PI * 2;
+    const cx = Math.cos(t) * rx;
+    const cy = Math.sin(t) * ry;
+    // outward normal in XY
+    const nx = Math.cos(t);
+    const ny = Math.sin(t);
     const stud = new THREE.Mesh(
-      new THREE.CylinderGeometry(tube * 0.38, tube * 0.38, tube * 0.55, 12),
+      new THREE.ConeGeometry(halfH * 0.55, halfH * 1.15, 4),
       studMat
     );
-    const sx = Math.cos(t) * radius;
-    const sy = Math.sin(t) * radius * 0.72;
-    stud.position.set(sx, sy, 0);
-    // orient stud outward
-    stud.lookAt(sx * 2, sy * 2, 0);
-    stud.rotateX(Math.PI / 2);
+    stud.position.set(cx + nx * halfW * 1.05, cy + ny * halfW * 1.05, 0);
+    // point outward
+    stud.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(nx, ny, 0).normalize()
+    );
+    stud.castShadow = true;
     group.add(stud);
-
-    const cap = new THREE.Mesh(
-      new THREE.SphereGeometry(tube * 0.42, 12, 12),
-      studMat
-    );
-    cap.position.set(sx * 1.02, sy * 1.02, 0);
-    group.add(cap);
   }
 
   return group;
 }
 
-function buildRingMesh(THREE, material, radius, tube) {
-  const mesh = new THREE.Mesh(
-    new THREE.TorusGeometry(radius, tube, 28, 96),
-    material
-  );
+function buildRingMesh(THREE, material, radius) {
+  const tube = radius * 0.22;
+  const mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 28, 96), material);
   mesh.castShadow = true;
   return mesh;
 }
@@ -137,7 +150,7 @@ function buildArmOccluder(THREE, length, radius) {
   try {
     geo = new THREE.CapsuleGeometry(radius, Math.max(length - radius * 2, radius), 8, 16);
   } catch (_) {
-    geo = new THREE.CylinderGeometry(radius, radius * 0.95, length, 24);
+    geo = new THREE.CylinderGeometry(radius * 0.95, radius, length, 24);
   }
   const mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   mat.colorWrite = false;
@@ -146,44 +159,52 @@ function buildArmOccluder(THREE, length, radius) {
   return mesh;
 }
 
-function deg(n) {
-  return (n * Math.PI) / 180;
-}
-
 /**
- * Pose bracelet in photo pixel space (Y-down image → Y-up Three).
+ * Critical: bracelet hole must align with forearm in the IMAGE plane.
+ * Edge-on torus = thin gold line (the bug in tryon21 screenshots).
  */
-function poseFromTarget(THREE, target, imgW, imgH, kind) {
+function poseWristGroup(THREE, target, imgW, imgH) {
   const cx = target.center.x;
   const cy = target.center.y;
-  const wristR = Math.max(8, (target.width || imgW * 0.2) * 0.42);
-  const plane = deg(target.angle || 0);
-  const front = deg(target.frontAngle != null ? target.frontAngle : (target.angle || 0) - 90);
+  const wristR = Math.max(10, (target.width || imgW * 0.22) * 0.45);
 
-  const x = cx - imgW / 2;
-  const y = -(cy - imgH / 2);
+  // Forearm direction in image (y-down): from knuckles toward wrist/elbow
+  const frontRad = ((target.frontAngle != null ? target.frontAngle : (target.angle || 0) - 90) * Math.PI) / 180;
+  // Unit vector along forearm in image space
+  const fImgX = Math.cos(frontRad);
+  const fImgY = Math.sin(frontRad);
+  // Three.js Y-up
+  const forearm = new THREE.Vector3(fImgX, -fImgY, 0).normalize();
 
   const group = new THREE.Group();
-  group.position.set(x, y, 0);
+  group.position.set(cx - imgW / 2, -(cy - imgH / 2), 0);
 
-  // Image Y-down angles → Three Y-up (negate).
-  // 1) Lay torus in wrist plane (hole along forearm).
-  // 2) Align across-wrist with landmark plane angle.
-  // 3) Slight tilt so tube volume reads in photo.
-  group.rotation.order = "ZYX";
-  group.rotation.z = -plane;
-  group.rotation.x = Math.PI / 2.2;
-  group.rotation.y = -(front - plane) * 0.85;
+  // Default torus/extrude hole along +Z → align to forearm
+  group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), forearm);
 
-  const tube = kind === "ring" ? wristR * 0.2 : wristR * 0.17;
-  const major = kind === "ring" ? wristR * 0.58 : wristR * 1.02;
-  return { group, major, tube, wristR };
+  // Spin so band "top" faces camera (+Z) as much as possible
+  const camDir = new THREE.Vector3(0, 0, 1);
+  const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(group.quaternion);
+  const projected = camDir.clone().sub(forearm.clone().multiplyScalar(camDir.dot(forearm))).normalize();
+  if (projected.lengthSq() > 0.01) {
+    const angle = localUp.angleTo(projected);
+    const cross = new THREE.Vector3().crossVectors(localUp, projected);
+    const sign = Math.sign(cross.dot(forearm)) || 1;
+    group.rotateOnWorldAxis(forearm, sign * angle);
+  }
+
+  return { group, wristR, forearm };
 }
 
-/**
- * Render 3D jewelry onto body photo. Returns HTMLCanvasElement.
- */
-export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "bracelet") {
+function textureFromCanvas(THREE, canvas) {
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "bracelet", extraCanvases = []) {
   const T = await loadThree();
   const w = bodyCanvas.width;
   const h = bodyCanvas.height;
@@ -196,92 +217,84 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
     powerPreference: "high-performance",
   });
   renderer.setSize(w, h, false);
-  renderer.setPixelRatio(1);
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.2;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFSoftShadowMap;
 
   const scene = new T.Scene();
-  const cam = new T.OrthographicCamera(-w / 2, w / 2, h / 2, -h / 2, 0.1, 5000);
-  cam.position.set(0, 0, 1200);
+  const cam = new T.OrthographicCamera(-w / 2, w / 2, h / 2, -h / 2, 0.1, 8000);
+  cam.position.set(0, 0, 2000);
   cam.lookAt(0, 0, 0);
 
   const metal = avgMetalColor(jewelryCanvas);
   const ambient = sampleAmbient(bodyCanvas);
-  const goldMat = makeGoldMaterial(T, metal, ambient);
+  // Prefer jewelry cutout as albedo so product gold/studs read from portfolio photo
+  const mapTex = textureFromCanvas(T, jewelryCanvas);
+  mapTex.repeat.set(2, 1);
+  const goldMat = makeGoldMaterial(T, metal, ambient, mapTex);
 
-  // Soft environment from photo colors (no external HDR dependency)
   const pmrem = new T.PMREMGenerator(renderer);
   const envScene = new T.Scene();
-  envScene.add(new T.AmbientLight(new T.Color(ambient.r, ambient.g, ambient.b), 1.2));
-  const sky = new T.Mesh(
-    new T.SphereGeometry(10, 16, 16),
-    new T.MeshBasicMaterial({
-      side: T.BackSide,
-      color: new T.Color(
-        Math.min(1, ambient.r * 1.2 + 0.15),
-        Math.min(1, ambient.g * 1.15 + 0.12),
-        Math.min(1, ambient.b * 1.1 + 0.1)
-      ),
-    })
+  envScene.background = new T.Color(
+    Math.min(1, ambient.r * 1.15 + 0.2),
+    Math.min(1, ambient.g * 1.1 + 0.18),
+    Math.min(1, ambient.b * 1.05 + 0.16)
   );
-  envScene.add(sky);
+  envScene.add(new T.AmbientLight(0xffffff, 0.8));
   const envTex = pmrem.fromScene(envScene, 0.04).texture;
   scene.environment = envTex;
   goldMat.envMap = envTex;
 
-  const hemi = new T.HemisphereLight(
-    new T.Color(Math.min(1, ambient.r + 0.35), Math.min(1, ambient.g + 0.32), Math.min(1, ambient.b + 0.3)),
-    new T.Color(ambient.r * 0.4, ambient.g * 0.35, ambient.b * 0.3),
-    1.05
-  );
-  scene.add(hemi);
-
-  const key = new T.DirectionalLight(0xfff2dc, 2.1);
-  key.position.set(-w * 0.15, h * 0.25, 900);
+  scene.add(new T.HemisphereLight(
+    new T.Color(Math.min(1, ambient.r + 0.4), Math.min(1, ambient.g + 0.38), Math.min(1, ambient.b + 0.35)),
+    new T.Color(ambient.r * 0.35, ambient.g * 0.3, ambient.b * 0.25),
+    1.1
+  ));
+  const key = new T.DirectionalLight(0xfff5e6, 2.4);
+  key.position.set(-w * 0.2, h * 0.35, 1600);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
   scene.add(key);
-
-  const fill = new T.DirectionalLight(0xddeeff, 0.65);
-  fill.position.set(w * 0.2, -h * 0.1, 700);
+  const fill = new T.DirectionalLight(0xe8f0ff, 0.75);
+  fill.position.set(w * 0.25, -h * 0.1, 1400);
   scene.add(fill);
-
-  const rim = new T.DirectionalLight(0xffffff, 0.55);
-  rim.position.set(0, h * 0.2, -600);
+  const rim = new T.DirectionalLight(0xffffff, 0.6);
+  rim.position.set(0, 0, -1200);
   scene.add(rim);
 
-  const posed = poseFromTarget(T, target, w, h, kind);
+  const posed = poseWristGroup(T, target, w, h);
   const jewel =
     kind === "ring"
-      ? buildRingMesh(T, goldMat, posed.major, posed.tube)
-      : buildBraceletMesh(T, goldMat, posed.major, posed.tube);
+      ? buildRingMesh(T, goldMat, posed.wristR * 0.55)
+      : buildClashBracelet(T, goldMat, posed.wristR * 1.05);
   posed.group.add(jewel);
 
-  // Forearm occluder (depth only) so band wraps / hides behind wrist
-  const occluder = buildArmOccluder(T, posed.wristR * 5.5, posed.wristR * 0.92);
-  occluder.rotation.x = Math.PI / 2;
-  occluder.position.z = 0;
-  // Match forearm: extend behind and forward from wrist
-  occluder.scale.set(1, 1, 1);
-  posed.group.add(occluder);
-
-  // Contact shadow catcher (transparent dark disc on skin plane)
-  const shadowMat = new T.ShadowMaterial({ opacity: 0.35 });
-  const shadowPlane = new T.Mesh(new T.CircleGeometry(posed.wristR * 1.35, 48), shadowMat);
-  shadowPlane.rotation.x = -Math.PI / 2;
-  shadowPlane.position.z = -posed.tube * 0.2;
-  shadowPlane.receiveShadow = true;
-  posed.group.add(shadowPlane);
-
+  // Arm depth occluder along forearm — hides back of bracelet
+  const occluder = buildArmOccluder(T, posed.wristR * 6.5, posed.wristR * 0.88);
+  // Capsule default axis = Y; align to forearm (world)
+  occluder.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), posed.forearm);
+  // Keep occluder in world orientation relative to wrist group:
+  // add as sibling under scene at same position for stable depth
+  occluder.position.copy(posed.group.position);
+  occluder.renderOrder = -2;
+  scene.add(occluder);
   scene.add(posed.group);
+
+  // Contact shadow under band
+  const shadowMat = new T.ShadowMaterial({ opacity: 0.32 });
+  const shadow = new T.Mesh(new T.CircleGeometry(posed.wristR * 1.4, 48), shadowMat);
+  shadow.position.copy(posed.group.position);
+  shadow.quaternion.copy(posed.group.quaternion);
+  shadow.rotateX(-Math.PI / 2);
+  shadow.receiveShadow = true;
+  scene.add(shadow);
 
   renderer.render(scene, cam);
 
-  // Composite: body photo + GL layer
   const out = document.createElement("canvas");
   out.width = w;
   out.height = h;
@@ -289,10 +302,10 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
   ctx.drawImage(bodyCanvas, 0, 0);
   ctx.drawImage(renderer.domElement, 0, 0);
 
-  // Cleanup GPU
   renderer.dispose();
   pmrem.dispose();
   envTex.dispose();
+  mapTex.dispose();
 
   return out;
 }
