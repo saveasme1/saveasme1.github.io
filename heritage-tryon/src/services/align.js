@@ -126,24 +126,29 @@ function scoreRing(lm) {
 }
 
 function scoreEarring(faceLm, earSide) {
+  // earSide = anatomical (사용자가 고른 귀). 전면·비미러 촬영에서
+  // 오른쪽 귀는 화면 왼쪽에, 왼쪽 귀는 화면 오른쪽에 보인다.
   const L = faceLm[234] || faceLm[127];
   const R = faceLm[454] || faceLm[356];
-  const ear = earSide === "left" ? L : R;
+  const anatomical = earSide === "left" ? "left" : "right";
+  const ear = anatomical === "left" ? L : R;
   if (!ear) return { score: 0, ok: false, far: true, message: "얼굴·귀가 보이도록 맞춰 주세요" };
-  const target = earSide === "left" ? { x: 0.28, y: 0.45 } : { x: 0.72, y: 0.45 };
+  const target = anatomical === "right" ? { x: 0.28, y: 0.45 } : { x: 0.72, y: 0.45 };
   const d = dist2(ear.x, ear.y, target.x, target.y);
   const score = Math.max(0, 1 - d / 0.35);
   const ok = score >= 0.7;
   const far = score < 0.3;
+  const label = anatomical === "left" ? "왼쪽" : "오른쪽";
+  const screenSide = anatomical === "right" ? "왼쪽" : "오른쪽";
   return {
     score,
     ok,
     far,
     message: far
-      ? `${earSide === "left" ? "왼쪽" : "오른쪽"} 귀가 가이드에서 벗어났습니다`
+      ? `${label} 귀(화면 ${screenSide})가 가이드에서 벗어났습니다`
       : ok
         ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
-        : "얼굴 가이드 안 · 귀(+)에 더 가까이",
+        : `${label} 귀 · 화면 ${screenSide} 가이드(+)에 더 가까이`,
   };
 }
 
