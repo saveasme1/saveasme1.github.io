@@ -278,21 +278,26 @@
     (function () {
       var link = document.getElementById("portfolioPdfDownload");
       if (!link) return;
-      var apiFallback = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
+      var apiPdf = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
+      function useApi(version) {
+        link.href = apiPdf + "?v=" + encodeURIComponent(version || String(Date.now()));
+        link.removeAttribute("download");
+      }
+      function useStatic(meta) {
+        link.href = "./portfolio/portfolio-latest.pdf?v=" + encodeURIComponent(meta.version);
+        link.setAttribute("download", meta.downloadName || "공방171_포트폴리오.pdf");
+      }
       fetch("./portfolio/portfolio-meta.json?_=" + Date.now(), { cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (meta) {
-          if (!meta || !meta.version || meta.version === "pending") {
-            link.href = apiFallback;
-            link.removeAttribute("download");
+          if (meta && meta.version && meta.version !== "pending") {
+            useStatic(meta);
             return;
           }
-          link.href = "./portfolio/portfolio-latest.pdf?v=" + encodeURIComponent(meta.version);
-          link.setAttribute("download", meta.downloadName || "공방171_포트폴리오.pdf");
+          useApi(null);
         })
         .catch(function () {
-          link.href = apiFallback;
-          link.removeAttribute("download");
+          useApi(null);
         });
     })();
   </script>
