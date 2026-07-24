@@ -518,12 +518,12 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
   const w = bodyImg.naturalWidth || bodyImg.width || 1;
   const h = bodyImg.naturalHeight || bodyImg.height || 1;
   if (type === "earring") {
-    // Anatomical right ear → left side of unmirrored front-camera photo
+    // Front-cam capture is mirrored (KYC) → anatomical right sits on screen/image right
     const anatomicalRight = opts.earSide !== "left";
     return {
-      center: { x: w * (anatomicalRight ? 0.28 : 0.72), y: h * 0.42 },
+      center: { x: w * (anatomicalRight ? 0.72 : 0.28), y: h * 0.42 },
       width: w * 0.07,
-      angle: anatomicalRight ? 8 : -8,
+      angle: anatomicalRight ? -8 : 8,
       side: anatomicalRight ? "right" : "left",
     };
   }
