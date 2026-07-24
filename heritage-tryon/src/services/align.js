@@ -99,29 +99,43 @@ function scoreBracelet(lm) {
   };
 }
 
-function scoreRing(lm) {
-  // Left hand dorsum, index target ~ (0.52, 0.22)
-  const mcp = lm[5];
-  const pip = lm[6];
-  const tip = lm[8];
+const FINGER_LM = {
+  index: { mcp: 5, pip: 6, tip: 8, label: "검지", target: { x: 0.52, y: 0.22 } },
+  middle: { mcp: 9, pip: 10, tip: 12, label: "중지", target: { x: 0.50, y: 0.18 } },
+  ring: { mcp: 13, pip: 14, tip: 16, label: "약지", target: { x: 0.46, y: 0.22 } },
+  pinky: { mcp: 17, pip: 18, tip: 20, label: "소지", target: { x: 0.40, y: 0.26 } },
+};
+
+function scoreRing(lm, finger = "ring") {
+  const spec = FINGER_LM[finger] || FINGER_LM.ring;
+  const mcp = lm[spec.mcp];
+  const pip = lm[spec.pip] || mcp;
+  const tip = lm[spec.tip] || pip;
+  if (!mcp || !tip) {
+    return {
+      score: 0,
+      ok: false,
+      far: true,
+      message: `왼손 손등 · ${spec.label}가 보이게 해 주세요`,
+    };
+  }
   const mid = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
-  const target = { x: 0.52, y: 0.22 };
-  const d = dist2(mid.x, mid.y, target.x, target.y);
+  const d = dist2(mid.x, mid.y, spec.target.x, spec.target.y);
   const fingersUp = tip.y < mcp.y;
-  let score = Math.max(0, 1 - d / 0.3);
+  let score = Math.max(0, 1 - d / 0.32);
   if (fingersUp) score = Math.min(1, score + 0.12);
   else score *= 0.5;
-  const ok = score >= 0.7;
-  const far = score < 0.32;
+  const ok = score >= 0.68;
+  const far = score < 0.3;
   return {
     score,
     ok,
     far,
     message: far
-      ? "왼손 손등이 가이드에서 벗어났습니다. 검지(+)에 맞춰 주세요"
+      ? `왼손 ${spec.label}가 가이드에서 벗어났습니다`
       : ok
         ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
-        : "왼손 손등 · 검지(+)에 손가락을 더 가까이",
+        : `왼손 손등 · ${spec.label}(+)에 맞춰 주세요`,
   };
 }
 
@@ -176,8 +190,10 @@ function scoreNecklace(poseLm) {
 
 /**
  * Run one alignment frame against live video.
+ * @param {string} earSide anatomical ear for earrings
+ * @param {string} ringFinger index|middle|ring|pinky
  */
-export async function evaluateAlignment(video, type, earSide = "right") {
+export async function evaluateAlignment(video, type, earSide = "right", ringFinger = "ring") {
   if (!video || video.readyState < 2) {
     return { score: 0, ok: false, far: false, message: "카메라 준비 중…" };
   }
@@ -191,7 +207,16 @@ export async function evaluateAlignment(video, type, earSide = "right") {
     if (type === "ring" || type === "bracelet") {
       const detector = await getVideoHand();
       const res = detector.detectForVideo(video, now);
-      const lm = res.landmarks?.[0];
+      const hands = res.landmarks || [];
+      const handed = res.handednesses || [];
+      // Prefer Left hand for rings
+      let lm = hands[0];
+      if (type === "ring" && hands.length > 1) {
+        const leftIdx = handed.findIndex((h) => h?.[0]?.categoryName === "Left");
+        if (leftIdx >= 0) lm = hands[leftIdx];
+      } else if (type === "ring" && handed[0]?.[0]?.categoryName === "Right" && hands.length === 1) {
+        // still use it but message will nudge left hand
+      }
       if (!lm) {
         return {
           score: 0,
@@ -202,7 +227,7 @@ export async function evaluateAlignment(video, type, earSide = "right") {
             : "팔·손목이 화면에 들어오게 해 주세요",
         };
       }
-      return type === "ring" ? scoreRing(lm) : scoreBracelet(lm);
+      return type === "ring" ? scoreRing(lm, ringFinger) : scoreBracelet(lm);
     }
     if (type === "earring") {
       const detector = await getVideoFace();
