@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon30" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon31" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -92,20 +92,6 @@
       <button type="button" class="finger-btn" data-finger="pinky">소지</button>
     </div>
     <div class="camera-stage">
-      <div id="zoomSideLeft" class="zoom-side zoom-side-left is-hidden" hidden>
-        <button type="button" id="zoomOut" class="zoom-btn" aria-label="축소">−</button>
-        <svg class="zoom-gesture" viewBox="0 0 48 72" aria-hidden="true">
-          <!-- pinch-out: fingers moving apart = 축소 안내 -->
-          <g class="zoom-gesture-pinch-out" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 44c0-8 2-14 6-18" />
-            <path d="M30 44c0-8-2-14-6-18" />
-            <circle cx="24" cy="22" r="3.2" fill="#fff" stroke="none" />
-            <path d="M10 30l-5-2M38 30l5-2" opacity="0.9" />
-            <path d="M12 36H6M36 36h6" opacity="0.75" />
-          </g>
-        </svg>
-        <span class="zoom-side-label">축소</span>
-      </div>
       <div class="camera-viewport">
         <video id="cameraVideo" class="camera-video" playsinline muted autoplay></video>
         <canvas id="cameraSnap" class="is-hidden"></canvas>
@@ -127,19 +113,20 @@
           <p id="alignAlert" class="align-alert is-hidden" role="status" aria-live="polite"></p>
         </div>
       </div>
+      <!-- 카메라 영역 축소 없이 좌·우 오버레이 -->
+      <div id="zoomSideLeft" class="zoom-side zoom-side-left is-hidden" hidden>
+        <button type="button" id="zoomOut" class="zoom-btn" aria-label="축소">−</button>
+        <div class="pinch-anim pinch-out" aria-hidden="true">
+          <span class="pinch-finger pinch-a"></span>
+          <span class="pinch-finger pinch-b"></span>
+        </div>
+      </div>
       <div id="zoomSideRight" class="zoom-side zoom-side-right is-hidden" hidden>
         <button type="button" id="zoomIn" class="zoom-btn" aria-label="확대">+</button>
-        <svg class="zoom-gesture" viewBox="0 0 48 72" aria-hidden="true">
-          <!-- pinch-in: fingers moving together = 확대 안내 -->
-          <g class="zoom-gesture-pinch-in" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 28c4 6 6 12 6 18" />
-            <path d="M34 28c-4 6-6 12-6 18" />
-            <circle cx="24" cy="50" r="3.2" fill="#fff" stroke="none" />
-            <path d="M8 22l4 3M40 22l-4 3" opacity="0.9" />
-            <path d="M12 18h6M30 18h6" opacity="0.75" />
-          </g>
-        </svg>
-        <span class="zoom-side-label">확대</span>
+        <div class="pinch-anim pinch-in" aria-hidden="true">
+          <span class="pinch-finger pinch-a"></span>
+          <span class="pinch-finger pinch-b"></span>
+        </div>
       </div>
     </div>
     <div class="camera-bottom">
@@ -148,6 +135,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260724-tryon30"></script>
+  <script type="module" src="./src/studio.js?v=20260724-tryon31"></script>
 </body>
 </html>
