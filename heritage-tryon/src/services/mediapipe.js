@@ -324,10 +324,14 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
     const rs = poses[0][12];
     const mid = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
     const shoulderW = dist(ls, rs);
+    // Front-camera (unmirrored): anatomical L/R can swap on X → ~180° angle.
+    // Keep necklace nearly upright (pendant down).
+    let ang = angleDeg(ls, rs);
+    if (Math.abs(ang) > 90) ang = ang > 0 ? ang - 180 : ang + 180;
     targets.necklace = {
       center: { x: mid.x, y: mid.y + shoulderW * 0.22 },
       width: shoulderW * 0.55,
-      angle: angleDeg(ls, rs),
+      angle: ang,
       points: [ls, rs],
     };
   }
