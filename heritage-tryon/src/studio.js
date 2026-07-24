@@ -51,6 +51,34 @@ function setStatus(msg, kind = "") {
   if (kind) el.classList.add(kind);
 }
 
+function setMergeProgress(pct) {
+  const panel = $("mergeProgress");
+  const fill = $("mergeProgressFill");
+  const label = $("mergeProgressPct");
+  if (!panel || !fill || !label) return;
+  const n = Math.max(0, Math.min(100, Math.round(pct)));
+  fill.style.width = `${n}%`;
+  label.textContent = `${n}%`;
+}
+
+function showMergeProgress(pct = 0) {
+  const panel = $("mergeProgress");
+  if (!panel) return;
+  panel.hidden = false;
+  panel.classList.remove("is-hidden");
+  setMergeProgress(pct);
+  if ($("status")) $("status").textContent = "";
+  if ($("mergeTryOn")) $("mergeTryOn").classList.add("is-hidden");
+}
+
+function hideMergeProgress() {
+  const panel = $("mergeProgress");
+  if (!panel) return;
+  panel.hidden = true;
+  panel.classList.add("is-hidden");
+  if ($("mergeTryOn")) $("mergeTryOn").classList.remove("is-hidden");
+}
+
 function setStageMode(mode) {
   const stage = $("studioStage");
   stage.classList.remove("mode-split", "mode-merging", "mode-result");
@@ -550,28 +578,31 @@ async function runMergeTryOn() {
   if (!state.bodyImage || !state.productReady) return;
   const btn = $("mergeTryOn");
   btn.disabled = true;
-  setStatus("두 화면을 합치는 중…");
   setStageMode("merging");
-  await sleep(400);
+  showMergeProgress(8);
+  await sleep(200);
 
   try {
-    setStatus("주얼리 배경 처리 중…");
+    setMergeProgress(18);
     const jewelry = await withTimeout(
       prepareJewelry({
         id: state.item.id,
         cover: state.item.sourceUrl || state.item.cover,
         title: state.item.title,
-      }, (m) => setStatus(m)),
+      }, () => {
+        // swallow text status during merge — progress bar only
+        setMergeProgress(Math.min(48, 18 + Math.random() * 8));
+      }),
       60000,
       "주얼리 전처리 시간 초과"
     );
+    setMergeProgress(52);
 
     const type = resolveType();
-    setStatus("신체 인식 준비 중…");
     let detection;
     try {
       detection = await withTimeout(
-        detectBody(state.bodyImage, type, (m) => setStatus(m), { earSide: state.earSide }),
+        detectBody(state.bodyImage, type, () => setMergeProgress(62), { earSide: state.earSide }),
         45000,
         "신체 인식 시간 초과"
       );
@@ -579,6 +610,7 @@ async function runMergeTryOn() {
       console.warn(err);
       detection = { type, target: null };
     }
+    setMergeProgress(72);
 
     const useType = detection.type || type;
     let target = detection.target;
@@ -590,23 +622,22 @@ async function runMergeTryOn() {
     const usedFallback = useType === "bracelet"
       ? !detection.allTargets?.bracelet
       : !detection.target;
-    if (usedFallback) {
-      setStatus("인식이 어려워 기본 위치로 3D 합성합니다…");
-    } else {
-      const typeLabel = { ring: "반지", bracelet: "팔찌", earring: "귀걸이", necklace: "목걸이" }[useType] || useType;
-      setStatus(`${typeLabel} 3D 착용 렌더링 중…`);
-    }
 
+    setMergeProgress(82);
     const after = await withTimeout(
       composeTryOn(state.bodyImage, jewelry.canvas, target, useType),
       45000,
       "합성 시간 초과"
     );
+    setMergeProgress(96);
     state.afterCanvas = after;
     const canvas = $("resultCanvas");
     canvas.width = after.width;
     canvas.height = after.height;
     canvas.getContext("2d").drawImage(after, 0, 0);
+    setMergeProgress(100);
+    await sleep(180);
+    hideMergeProgress();
     setStageMode("result");
     setStatus(
       usedFallback
@@ -616,6 +647,7 @@ async function runMergeTryOn() {
     );
   } catch (err) {
     console.error(err);
+    hideMergeProgress();
     setStageMode("split");
     setStatus(String(err.message || err), "is-err");
     refreshReady();
