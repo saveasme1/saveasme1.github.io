@@ -332,15 +332,21 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
   if (poses[0]?.[11] && poses[0][12]) {
     const ls = poses[0][11];
     const rs = poses[0][12];
+    const nose = poses[0][0];
     const mid = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
     const shoulderW = dist(ls, rs);
+    // Collarbone sit: between face and shoulder line — NOT mid-chest.
+    const collarY = nose
+      ? nose.y * 0.3 + mid.y * 0.7
+      : mid.y - shoulderW * 0.08;
     // Front-camera (unmirrored): anatomical L/R can swap on X → ~180° angle.
     // Keep necklace nearly upright (pendant down).
     let ang = angleDeg(ls, rs);
     if (Math.abs(ang) > 90) ang = ang > 0 ? ang - 180 : ang + 180;
     targets.necklace = {
-      center: { x: mid.x, y: mid.y + shoulderW * 0.22 },
-      width: shoulderW * 0.55,
+      // Image center slightly below collar so chain rests on clavicle, pendant drops short.
+      center: { x: mid.x, y: collarY + shoulderW * 0.1 },
+      width: shoulderW * 0.4,
       angle: ang,
       points: [ls, rs],
     };
