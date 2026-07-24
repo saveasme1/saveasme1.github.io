@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon28" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon29" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -111,6 +111,12 @@
         </div>
         <p id="alignAlert" class="align-alert is-hidden" role="status" aria-live="polite"></p>
       </div>
+      <div id="zoomBar" class="zoom-bar is-hidden" hidden>
+        <button type="button" id="zoomOut" class="zoom-btn" aria-label="축소">−</button>
+        <span id="zoomLabel" class="zoom-label">1.0×</span>
+        <button type="button" id="zoomIn" class="zoom-btn" aria-label="확대">+</button>
+        <p class="zoom-hint">두 손가락으로 확대·축소</p>
+      </div>
     </div>
     <div class="camera-bottom">
       <button type="button" id="shutterBtn" class="shutter" aria-label="촬영"></button>
@@ -118,6 +124,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260724-tryon28"></script>
+  <script type="module" src="./src/studio.js?v=20260724-tryon29"></script>
 </body>
 </html>
