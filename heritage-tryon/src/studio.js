@@ -256,15 +256,15 @@ function onPickFile(event) {
 const CAMERA_HINT = {
   ring: "왼손 손등 · 검지 주황 링(+)에 맞추세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
-  earring: "얼굴 가이드 안 · 선택한 귀(+)에 맞추세요",
-  necklace: "얼굴을 위로 · 목(+)에 맞추세요",
+  earring: "전면 카메라 · 내 오른쪽 귀는 화면 왼쪽에 보입니다",
+  necklace: "전면 카메라 · 얼굴을 위로 · 목(+)에 맞추세요",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 검지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
-  earring: "선택한 귀에 + 맞추기",
-  necklace: "얼굴↑ · 목·쇄골(+)",
+  earring: "오른쪽 귀 → 화면 왼쪽 가이드",
+  necklace: "전면 · 얼굴↑ · 목·쇄골(+)",
 };
 
 const WEAR_LABEL = {
@@ -278,6 +278,16 @@ function resolveType() {
   return state.wearType || guessTypeFromText(state.item.title, state.item.category || "") || "bracelet";
 }
 
+/** 목걸이·귀걸이 = 전면(user), 반지·팔찌 = 후면(environment) */
+function facingModeForType(type) {
+  return type === "earring" || type === "necklace" ? "user" : "environment";
+}
+
+function earringGuideCaption(anatomicalSide) {
+  if (anatomicalSide === "left") return "왼쪽 귀 → 화면 오른쪽 가이드";
+  return "오른쪽 귀 → 화면 왼쪽 가이드";
+}
+
 function postParent(type) {
   if (!embedded || !window.parent || window.parent === window) return;
   try {
@@ -288,10 +298,20 @@ function postParent(type) {
 function setEarSide(side) {
   state.earSide = side === "left" ? "left" : "right";
   const guide = $("cameraGuide");
+  // dataset.ear = anatomical; CSS maps opposite side for unmirrored front cam
   if (guide) guide.dataset.ear = state.earSide;
   document.querySelectorAll(".ear-side-btn").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.ear === state.earSide);
   });
+  if (state.wearType === "earring" && $("guideCaption")) {
+    $("guideCaption").textContent = earringGuideCaption(state.earSide);
+  }
+  if (state.wearType === "earring" && $("cameraHint")) {
+    $("cameraHint").textContent =
+      state.earSide === "right"
+        ? "전면 카메라 · 오른쪽 귀를 화면 왼쪽 가이드에"
+        : "전면 카메라 · 왼쪽 귀를 화면 오른쪽 가이드에";
+  }
 }
 
 function applyWearTypeFromProduct() {
@@ -302,10 +322,20 @@ function applyWearTypeFromProduct() {
     guide.dataset.ear = state.earSide || "right";
   }
   if ($("cameraHint")) {
-    $("cameraHint").textContent = CAMERA_HINT[state.wearType] || CAMERA_HINT.bracelet;
+    if (state.wearType === "earring") {
+      $("cameraHint").textContent =
+        state.earSide === "right"
+          ? "전면 카메라 · 오른쪽 귀를 화면 왼쪽 가이드에"
+          : "전면 카메라 · 왼쪽 귀를 화면 오른쪽 가이드에";
+    } else {
+      $("cameraHint").textContent = CAMERA_HINT[state.wearType] || CAMERA_HINT.bracelet;
+    }
   }
   if ($("guideCaption")) {
-    $("guideCaption").textContent = GUIDE_CAPTION[state.wearType] || GUIDE_CAPTION.bracelet;
+    $("guideCaption").textContent =
+      state.wearType === "earring"
+        ? earringGuideCaption(state.earSide)
+        : (GUIDE_CAPTION[state.wearType] || GUIDE_CAPTION.bracelet);
   }
   const chip = $("wearTypeChip");
   if (chip) chip.textContent = WEAR_LABEL[state.wearType] || "자동";
@@ -315,6 +345,13 @@ function applyWearTypeFromProduct() {
     const showEar = state.wearType === "earring";
     earBar.hidden = !showEar;
     earBar.classList.toggle("is-hidden", !showEar);
+  }
+  const sub = $("cameraSub");
+  if (sub) {
+    sub.textContent =
+      state.wearType === "earring" || state.wearType === "necklace"
+        ? "전면 카메라로 얼굴을 맞춘 뒤 촬영하세요"
+        : "가이드에 맞추면 자동 촬영됩니다 · 직접 눌러도 됩니다";
   }
 }
 
@@ -457,18 +494,24 @@ async function openGuidedCamera() {
 
   try {
     stopCamera();
+    const facing = facingModeForType(state.wearType);
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        facingMode: { ideal: "environment" },
+        facingMode: { ideal: facing },
         width: { ideal: 1280 },
         height: { ideal: 720 },
       },
     });
     state.cameraStream = stream;
     video.srcObject = stream;
+    // 전면·후면 모두 미러 없음 — 귀걸이는 오른쪽 귀가 화면 왼쪽에 옴
+    video.style.transform = "";
     await video.play();
     setStatus(CAMERA_HINT[state.wearType] || "가이드에 맞춘 뒤 촬영하세요.");
+    if (state.wearType === "earring") {
+      setEarSide(state.earSide || "right");
+    }
     startAlignLoop();
   } catch (err) {
     console.warn(err);
@@ -542,7 +585,7 @@ async function runMergeTryOn() {
     if (useType === "bracelet") {
       target = detection.allTargets?.bracelet || fallbackTarget(state.bodyImage, "bracelet");
     } else if (!target) {
-      target = fallbackTarget(state.bodyImage, useType);
+      target = fallbackTarget(state.bodyImage, useType, { earSide: state.earSide });
     }
     const usedFallback = useType === "bracelet"
       ? !detection.allTargets?.bracelet
