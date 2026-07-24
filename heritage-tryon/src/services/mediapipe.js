@@ -76,6 +76,9 @@ export async function initDetectors(needed = ["hand"], onStatus = () => {}) {
               "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
           },
           numHands: 2,
+          minHandDetectionConfidence: 0.35,
+          minHandPresenceConfidence: 0.35,
+          minTrackingConfidence: 0.35,
           runningMode: "IMAGE",
         },
         "손 인식"
@@ -288,26 +291,79 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
 
   // Ring on selected finger (default 약지), prefer left hand already in bestHand.
   const FINGER = {
-    index: { mcp: 5, pip: 6, tip: 8 },
-    middle: { mcp: 9, pip: 10, tip: 12 },
-    ring: { mcp: 13, pip: 14, tip: 16 },
-    pinky: { mcp: 17, pip: 18, tip: 20 },
+    index: { mcp: 5, pip: 6, tip: 8, neighbors: [9] },
+    middle: { mcp: 9, pip: 10, tip: 12, neighbors: [5, 13] },
+    ring: { mcp: 13, pip: 14, tip: 16, neighbors: [9, 17] },
+    pinky: { mcp: 17, pip: 18, tip: 20, neighbors: [13] },
   };
   const fSpec = FINGER[ringFinger] || FINGER.ring;
   if (bestHand?.[fSpec.mcp] && bestHand[fSpec.tip]) {
     const mcp = bestHand[fSpec.mcp];
     const pip = bestHand[fSpec.pip] || mcp;
     const tip = bestHand[fSpec.tip];
-    const fingerLen = Math.max(dist(mcp, tip), w * 0.04);
+    const seg = Math.max(dist(mcp, pip), w * 0.02);
+    let fingerW = seg * 0.42;
+    for (const ni of fSpec.neighbors || []) {
+      const n = bestHand[ni];
+      if (n) fingerW = Math.max(fingerW, dist(mcp, n) * 0.5);
+    }
+    fingerW = Math.min(Math.max(fingerW, w * 0.028), w * 0.09);
     targets.ring = {
-      center: { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 },
-      width: Math.max(fingerLen * 0.38, w * 0.045),
+      center: {
+        x: mcp.x * 0.4 + pip.x * 0.6,
+        y: mcp.y * 0.4 + pip.y * 0.6,
+      },
+      width: fingerW,
       angle: angleDeg(mcp, tip),
       frontAngle: angleDeg(mcp, tip) - 90,
       points: [mcp, pip, tip],
       finger: ringFinger,
       source: "hand",
     };
+  }
+
+  // Extra hand pass: mirrored probe (rear-cam handedness quirks)
+  if (!targets.ring && hand && preferredType === "ring") {
+    try {
+      const probe = document.createElement("canvas");
+      probe.width = w;
+      probe.height = h;
+      const pctx = probe.getContext("2d");
+      pctx.translate(w, 0);
+      pctx.scale(-1, 1);
+      pctx.drawImage(imageElement, 0, 0, w, h);
+      const handRes = hand.detect(probe);
+      const flipHands = (handRes.landmarks || []).map((lm) =>
+        toPx(lm, w, h).map((p) => ({ ...p, x: w - p.x }))
+      );
+      let pick = flipHands[0];
+      let best = -1;
+      for (const lm of flipHands) {
+        if (!lm?.[0] || !lm[9]) continue;
+        const span = dist(lm[0], lm[9]);
+        if (span > best) {
+          best = span;
+          pick = lm;
+        }
+      }
+      if (pick?.[fSpec.mcp] && pick[fSpec.tip]) {
+        const mcp = pick[fSpec.mcp];
+        const pip = pick[fSpec.pip] || mcp;
+        const tip = pick[fSpec.tip];
+        const seg = Math.max(dist(mcp, pip), w * 0.02);
+        targets.ring = {
+          center: { x: mcp.x * 0.4 + pip.x * 0.6, y: mcp.y * 0.4 + pip.y * 0.6 },
+          width: Math.min(Math.max(seg * 0.42, w * 0.028), w * 0.09),
+          angle: angleDeg(mcp, tip),
+          frontAngle: angleDeg(mcp, tip) - 90,
+          points: [mcp, pip, tip],
+          finger: ringFinger,
+          source: "hand-flip",
+        };
+      }
+    } catch (e) {
+      console.warn("ring flip detect", e);
+    }
   }
 
   if (faces[0]) {
