@@ -527,6 +527,17 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
       side: anatomicalRight ? "right" : "left",
     };
   }
+  if (type === "ring") {
+    const finger = opts.ringFinger || "ring";
+    const xMap = { index: 0.52, middle: 0.50, ring: 0.46, pinky: 0.40 };
+    return {
+      center: { x: w * (xMap[finger] || 0.46), y: h * 0.24 },
+      width: w * 0.07,
+      angle: -12,
+      frontAngle: -102,
+      finger,
+    };
+  }
   if (type === "necklace") {
     return { center: { x: w * 0.5, y: h * 0.48 }, width: w * 0.28, angle: 0 };
   }
