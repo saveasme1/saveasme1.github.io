@@ -211,26 +211,33 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
   const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
   const noseY = nose ? mapY(nose.y) : null;
+  // Face + neck band (NOT collarbone) — must sit near guide center
+  const faceNeck = {
+    x: mid.x,
+    y: noseY != null ? noseY * 0.5 + mid.y * 0.5 : mid.y - 0.04,
+  };
+  const target = { x: 0.5, y: 0.36 };
+  const d = dist2(faceNeck.x, faceNeck.y, target.x, target.y);
 
-  // Loose: face + neck roughly in frame (not collarbone precision)
-  let score = 0.2;
-  if (noseY != null && noseY > 0.04 && noseY < 0.55) score += 0.35;
-  else if (noseY != null) score += 0.1;
-  if (mid.y > 0.22 && mid.y < 0.78) score += 0.25;
-  if (Math.abs(mid.x - 0.5) < 0.28) score += 0.15;
-  if (shoulderW > 0.12 && shoulderW < 0.98) score += 0.1;
+  let score = Math.max(0, 1 - d / 0.16);
+  if (Math.abs(mid.x - 0.5) > 0.18) score *= 0.55;
+  if (noseY == null) score *= 0.45;
+  else if (noseY > 0.48 || noseY < 0.03) score *= 0.4;
+  if (shoulderW < 0.22 || shoulderW > 0.88) score *= 0.65;
+  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.1);
+  score *= 0.65 + 0.35 * level;
 
-  const ok = score >= 0.62;
-  const far = score < 0.35;
+  const ok = score >= 0.74;
+  const far = score < 0.4;
   return {
     score,
     ok,
     far,
     message: far
-      ? "얼굴·목이 가이드에서 벗어났습니다"
+      ? "가이드에 더 가까이 · 얼굴·목을 가운데로"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "얼굴과 목 위치가 대충 맞으면 됩니다",
+        : "얼굴·목을 가이드 중심에 맞춰 주세요",
   };
 }
 
