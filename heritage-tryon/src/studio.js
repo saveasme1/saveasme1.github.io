@@ -1,6 +1,6 @@
 import { prepareJewelry } from "./services/jewelry.js";
 import { detectBody } from "./services/mediapipe.js";
-import { assetUrl, guessTypeFromText } from "./services/portfolio.js";
+import { assetUrl, guessTypeFromText, loadPortfolioItem } from "./services/portfolio.js";
 import { composeTryOn, fallbackTarget } from "./services/tryon.js";
 import { evaluateAlignment, stopAlignClock } from "./services/align.js";
 
@@ -138,6 +138,25 @@ async function loadProduct() {
     cat.textContent = state.item.category;
     show(cat);
   }
+
+  // Pull multi-angle gallery from portfolio-data when id is present.
+  try {
+    if (state.item.id && state.item.id !== "portfolio-item") {
+      setStatus("포폴 다각도 이미지 불러오는 중…");
+      const full = await withTimeout(loadPortfolioItem(state.item.id), 12000, "포폴 조회 시간 초과");
+      if (full) {
+        state.item.title = full.title || state.item.title;
+        state.item.category = full.category || state.item.category;
+        state.item.images = Array.isArray(full.images) ? full.images : [];
+        if (!state.item.cover && full.cover) state.item.cover = full.cover;
+        $("productTitle").textContent = state.item.title || "헤리티지";
+        applyWearTypeFromProduct();
+      }
+    }
+  } catch (err) {
+    console.warn("gallery", err);
+  }
+
   const skeleton = $("productSkeleton");
   const img = $("productImage");
   hide(img);
@@ -146,7 +165,12 @@ async function loadProduct() {
   show(skeleton);
   setStatus("선택 제품 불러오는 중…");
 
-  const candidates = imageCandidates(state.item.cover);
+  const galleryPaths = (state.item.images || []).map((p) => assetUrl(p));
+  const candidates = [
+    ...galleryPaths.flatMap((u) => imageCandidates(u)),
+    ...imageCandidates(state.item.cover),
+  ].filter((u, i, arr) => u && arr.indexOf(u) === i);
+
   if (!candidates.length) {
     hide(skeleton);
     setStatus("제품 이미지가 없습니다. 포트폴리오에서 다시 열어 주세요.", "is-err");
@@ -164,7 +188,11 @@ async function loadProduct() {
       state.productReady = true;
       state.item.sourceUrl = url;
       state.item.cover = url;
-      setStatus("제품을 확인한 뒤 사진을 준비하세요.");
+      setStatus(
+        state.item.images?.length
+          ? `다각도 ${state.item.images.length}장 반영 · 사진을 준비하세요.`
+          : "제품을 확인한 뒤 사진을 준비하세요."
+      );
       refreshReady();
       return;
     } catch (err) {
