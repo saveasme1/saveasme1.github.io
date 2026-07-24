@@ -1,6 +1,6 @@
 /** Jewelry prepare — never blocks forever. */
 
-import { processJewelryImage } from "./sam2.js";
+import { processJewelryImage, stripPortfolioWatermark } from "./sam2.js";
 import { getProcessed, putProcessed } from "./storage.js";
 import { assetUrl } from "./portfolio.js";
 import { despillCanvas } from "./tryon.js";
@@ -22,7 +22,8 @@ function load(url) {
 }
 
 export async function prepareJewelry(item, onStatus = () => {}) {
-  const cacheId = `${item.id}::cut7`;
+  // cut8: watermark strip + necklace orientation fixes
+  const cacheId = `${item.id}::cut8`;
   try {
     const cached = await getProcessed(cacheId);
     if (cached?.blob) {
@@ -32,6 +33,7 @@ export async function prepareJewelry(item, onStatus = () => {}) {
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
       canvas.getContext("2d").drawImage(img, 0, 0);
+      stripPortfolioWatermark(canvas);
       despillCanvas(canvas);
       onStatus(`캐시된 투명 PNG 사용 (${cached.meta?.method || "cache"})`);
       return { canvas, blob: cached.blob, method: cached.meta?.method || "cache", objectUrl: url };
@@ -42,6 +44,7 @@ export async function prepareJewelry(item, onStatus = () => {}) {
   const src = resolveSrc(item.cover);
   if (!src) throw new Error("주얼리 이미지 경로가 없습니다.");
   const { canvas, blob, method, error } = await processJewelryImage(src, onStatus);
+  stripPortfolioWatermark(canvas);
   despillCanvas(canvas);
   const cleanBlob = await new Promise((r) => canvas.toBlob(r, "image/png"));
   try {
