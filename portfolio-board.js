@@ -59,10 +59,10 @@
     .replace(/GONGBANG\s*171/gi, "HERITAGE")
     .replace(/Gongbang\s*171/gi, "Heritage")
     .replace(/gongbang\s*171/gi, "Heritage")
-    .replace(/공방\s*171/g, "헤리티지")
-    .replace(/헤리티지는/g, "헤리티지는")
-    .replace(/헤리티지를/g, "헤리티지를")
-    .replace(/헤리티지와/g, "헤리티지와");
+    .replace(/공방\s*171/g, "본 헤리티지")
+    .replace(/본 헤리티지는/g, "본 헤리티지는")
+    .replace(/본 헤리티지를/g, "본 헤리티지를")
+    .replace(/본 헤리티지와/g, "본 헤리티지와");
 
 
   function showToast(message, options = {}) {

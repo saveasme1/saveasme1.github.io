@@ -53,7 +53,7 @@
   const brandText = (value) => String(value || "")
     .replace(/GONGBANG\s*171/gi, "HERITAGE")
     .replace(/Gongbang\s*171/gi, "Heritage")
-    .replace(/공방\s*171/g, "헤리티지");
+    .replace(/공방\s*171/g, "본 헤리티지");
 
   function kstParts(date = new Date()) {
     const fmt = new Intl.DateTimeFormat("en-CA", {

@@ -10,7 +10,7 @@ const embedded = params.get("embed") === "1";
 const state = {
   item: {
     id: params.get("id") || "portfolio-item",
-    title: params.get("title") || "헤리티지",
+    title: params.get("title") || "본 헤리티지",
     category: params.get("category") || "",
     cover: params.get("image") || params.get("path") || "",
   },
@@ -168,7 +168,7 @@ function loadIntoProductImg(url, ms = 2500) {
 }
 
 async function loadProduct() {
-  $("productTitle").textContent = state.item.title || "헤리티지";
+  $("productTitle").textContent = state.item.title || "본 헤리티지";
   const cat = $("productCat");
   if (state.item.category) {
     cat.textContent = state.item.category;
@@ -215,7 +215,7 @@ async function loadProduct() {
         state.item.title = full.title || state.item.title;
         state.item.category = full.category || state.item.category;
         state.item.images = Array.isArray(full.images) ? full.images.slice(0, 8) : [];
-        $("productTitle").textContent = state.item.title || "헤리티지";
+        $("productTitle").textContent = state.item.title || "본 헤리티지";
         if (state.item.category) {
           cat.textContent = state.item.category;
           show(cat);

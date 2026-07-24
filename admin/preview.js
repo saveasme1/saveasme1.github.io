@@ -181,7 +181,7 @@
     });
     const imageCount = items.reduce((sum, item) => sum + 1 + item.images.length, 0);
     status.textContent = `${items.length}개 게시글 · ${imageCount}장 · 예상 ${pages.length}페이지`;
-    document.title = `헤리티지 PDF 미리보기 · ${pages.length}페이지`;
+    document.title = `본 헤리티지 PDF 미리보기 · ${pages.length}페이지`;
   }
 
   async function loadManifest() {
