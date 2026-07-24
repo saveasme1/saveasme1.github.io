@@ -146,10 +146,13 @@ function angleDeg(a, b) {
  * Detect body targets.
  * @param {string} preferredType
  * @param {function} onStatus
- * @param {{ earSide?: 'left'|'right' }} options
+ * @param {{ earSide?: 'left'|'right', ringFinger?: string }} options
  */
 export async function detectBody(imageElement, preferredType = "auto", onStatus = () => {}, options = {}) {
   const earSide = options.earSide === "left" ? "left" : "right";
+  const ringFinger = ["index", "middle", "ring", "pinky"].includes(options.ringFinger)
+    ? options.ringFinger
+    : "ring";
   const typeHint = preferredType === "auto" ? "bracelet" : preferredType;
   try {
     await initDetectors(detectorsForType(preferredType === "auto" ? "bracelet" : preferredType), onStatus);
@@ -164,6 +167,7 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
 
   const targets = { ring: null, bracelet: null, earring: null, necklace: null };
   let hands = [];
+  let handLabels = [];
   let faces = [];
   let poses = [];
 
@@ -176,14 +180,15 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
       probe.getContext("2d").drawImage(imageElement, 0, 0, w, h);
       let handRes = hand.detect(probe);
       hands = (handRes.landmarks || []).map((lm) => toPx(lm, w, h));
+      handLabels = (handRes.handednesses || []).map((h) => h?.[0]?.categoryName || "");
       if (!hands.length) {
-        // Mild contrast boost retry
         const ctx = probe.getContext("2d");
         ctx.filter = "contrast(1.15) brightness(1.05)";
         ctx.drawImage(imageElement, 0, 0, w, h);
         ctx.filter = "none";
         handRes = hand.detect(probe);
         hands = (handRes.landmarks || []).map((lm) => toPx(lm, w, h));
+        handLabels = (handRes.handednesses || []).map((h) => h?.[0]?.categoryName || "");
       }
     }
   } catch (e) { console.warn("hand detect", e); }
@@ -200,16 +205,21 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
     }
   } catch (e) { console.warn("pose detect", e); }
 
-  // Prefer the largest / most central hand for bracelet & ring.
+  // Prefer the largest / most central hand; for rings prefer Left.
   let bestHand = null;
   let bestHandScore = -1;
-  for (const lm of hands) {
+  for (let hi = 0; hi < hands.length; hi++) {
+    const lm = hands[hi];
     if (!lm?.[0] || !lm[9]) continue;
     const span = dist(lm[0], lm[9]);
     const cx = (lm[0].x + lm[9].x) / 2;
     const cy = (lm[0].y + lm[9].y) / 2;
     const centerBias = 1 - Math.hypot(cx / w - 0.5, cy / h - 0.45);
-    const score = span * (0.7 + 0.3 * Math.max(0, centerBias));
+    let score = span * (0.7 + 0.3 * Math.max(0, centerBias));
+    if (preferredType === "ring" || typeHint === "ring") {
+      if (handLabels[hi] === "Left") score *= 1.45;
+      if (handLabels[hi] === "Right") score *= 0.7;
+    }
     if (score > bestHandScore) {
       bestHandScore = score;
       bestHand = lm;
@@ -229,7 +239,6 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
     const vlen = Math.hypot(vx, vy) || 1;
     const ux = vx / vlen;
     const uy = vy / vlen;
-    // Slightly past wrist bone toward forearm — classic bracelet seat.
     targets.bracelet = {
       center: {
         x: wrist.x + ux * handLen * 0.12,
@@ -277,26 +286,27 @@ export async function detectBody(imageElement, preferredType = "auto", onStatus 
     }
   }
 
-  if (bestHand?.[5] && bestHand[8]) {
-    const mcp = bestHand[5];
-    const pip = bestHand[6] || mcp;
-    const tip = bestHand[8];
+  // Ring on selected finger (default 약지), prefer left hand already in bestHand.
+  const FINGER = {
+    index: { mcp: 5, pip: 6, tip: 8 },
+    middle: { mcp: 9, pip: 10, tip: 12 },
+    ring: { mcp: 13, pip: 14, tip: 16 },
+    pinky: { mcp: 17, pip: 18, tip: 20 },
+  };
+  const fSpec = FINGER[ringFinger] || FINGER.ring;
+  if (bestHand?.[fSpec.mcp] && bestHand[fSpec.tip]) {
+    const mcp = bestHand[fSpec.mcp];
+    const pip = bestHand[fSpec.pip] || mcp;
+    const tip = bestHand[fSpec.tip];
+    const fingerLen = Math.max(dist(mcp, tip), w * 0.04);
     targets.ring = {
       center: { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 },
-      width: dist(mcp, tip) * 0.42,
+      width: Math.max(fingerLen * 0.38, w * 0.045),
       angle: angleDeg(mcp, tip),
       frontAngle: angleDeg(mcp, tip) - 90,
-      points: [mcp, tip],
-    };
-  } else if (bestHand?.[13] && bestHand[16]) {
-    const mcp = bestHand[13];
-    const tip = bestHand[16];
-    targets.ring = {
-      center: { x: (mcp.x + tip.x) / 2, y: (mcp.y + tip.y) / 2 },
-      width: dist(mcp, tip) * 0.55,
-      angle: angleDeg(mcp, tip),
-      frontAngle: angleDeg(mcp, tip) - 90,
-      points: [mcp, tip],
+      points: [mcp, pip, tip],
+      finger: ringFinger,
+      source: "hand",
     };
   }
 
