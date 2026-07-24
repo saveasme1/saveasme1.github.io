@@ -379,6 +379,17 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
 
 export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring") {
   const bodyCanvas = bodyImg instanceof HTMLCanvasElement ? bodyImg : canvasFromImage(bodyImg);
+
+  // Prefer real WebGL PBR for bracelet/ring (studio-like volume + occlusion).
+  if (type === "bracelet" || type === "ring") {
+    try {
+      const { composeTryOn3D } = await import("./tryon3d.js");
+      return await composeTryOn3D(bodyCanvas, jewelryCanvas, target, type);
+    } catch (err) {
+      console.warn("3D try-on failed, fallback 2D", err);
+    }
+  }
+
   const out = document.createElement("canvas");
   out.width = bodyCanvas.width;
   out.height = bodyCanvas.height;
