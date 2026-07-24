@@ -28,11 +28,15 @@ function jewelryBounds(canvas) {
     }
   }
   if (!found) return { x: 0, y: 0, w: width, h: height };
+  const bw = Math.min(width - 1, maxX + step) - Math.max(0, minX - step) + 1;
+  const bh = Math.min(height - 1, maxY + step) - Math.max(0, minY - step) + 1;
+  // Watermark wipe sometimes nukes too much — fall back to full canvas
+  if (bw * bh < width * height * 0.015) return { x: 0, y: 0, w: width, h: height };
   return {
     x: Math.max(0, minX - step),
     y: Math.max(0, minY - step),
-    w: Math.min(width - 1, maxX + step) - Math.max(0, minX - step) + 1,
-    h: Math.min(height - 1, maxY + step) - Math.max(0, minY - step) + 1,
+    w: bw,
+    h: bh,
   };
 }
 
