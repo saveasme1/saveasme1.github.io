@@ -290,14 +290,14 @@ function onPickFile(event) {
 
 const CAMERA_HINT = {
   ring: "오른손 폰 · 왼손 비스듬히 · 아래에서 손가락 선택",
-  bracelet: "오른손 폰 · 왼팔 오른쪽↑ · 손목(+)",
+  bracelet: "오른손 폰 · 왼손 손등 · 엄지→오른쪽 · 손목(+)",
   earring: "한손 셀카 · 살짝 기울여 귀를 가이드에",
   necklace: "한손 셀카 · 얼굴·목을 가이드에 맞추고 3초",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 비스듬 · 약지(+)",
-  bracelet: "왼팔 오른쪽↑ · 손목(+)",
+  bracelet: "왼손 손등 · 엄지→오른쪽 · 손목(+)",
   earring: "살짝 기울여 · 귀(+)",
   necklace: "한손 셀카 · 얼굴·목(+)",
 };
@@ -619,22 +619,25 @@ async function alignTick() {
       if (result.placement && ((result.score || 0) >= 0.55 || result.ok)) {
         state.lastPlacement = result.placement;
       }
-      const locked = Boolean(result.ok) && (result.score || 0) >= 0.86;
+      const lockMin = type === "bracelet" ? 0.68 : 0.86;
+      const locked = Boolean(result.ok) && (result.score || 0) >= lockMin;
       const need = HOLD_MS[type] || 3000;
+      const warmFrames = type === "bracelet" ? 8 : 20;
+      const fireFrames = type === "bracelet" ? 18 : 40;
       if (locked) {
         state.goodStreak += 1;
-        // Warm-up ~0.6s continuous lock before countdown begins
-        if (state.goodStreak < 20) {
+        // Warm-up continuous lock before countdown begins
+        if (state.goodStreak < warmFrames) {
           state.goodSince = 0;
           applyAlignUi(
-            { ...result, message: "좋아요 · 가이드에 정확히 유지 중…" },
+            { ...result, message: "좋아요 · 가이드에 유지 중…" },
             null
           );
         } else {
           if (!state.goodSince) state.goodSince = performance.now();
           const held = performance.now() - state.goodSince;
           applyAlignUi(result, { held, need });
-          if (state.autoCaptureArmed && held >= need && state.goodStreak >= 40) {
+          if (state.autoCaptureArmed && held >= need && state.goodStreak >= fireFrames) {
             state.autoCaptureArmed = false;
             shutterCapture();
             return;
