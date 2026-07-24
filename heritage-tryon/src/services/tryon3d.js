@@ -204,7 +204,146 @@ function textureFromCanvas(THREE, canvas) {
   return tex;
 }
 
+/**
+ * Necklace: catenary chain tube + pendant disc with PBR (not flat sticker).
+ */
+async function composeNecklace3D(bodyCanvas, jewelryCanvas, target) {
+  const T = await loadThree();
+  const w = bodyCanvas.width;
+  const h = bodyCanvas.height;
+  const cx = target?.center?.x ?? w * 0.5;
+  const cy = target?.center?.y ?? h * 0.4;
+  const span = Math.max(40, target?.width || w * 0.28);
+  const L = target?.left || { x: cx - span * 0.55, y: cy - span * 0.05 };
+  const R = target?.right || { x: cx + span * 0.55, y: cy - span * 0.05 };
+
+  const renderer = new T.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: true,
+    powerPreference: "high-performance",
+  });
+  renderer.setSize(w, h, false);
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+  const scene = new T.Scene();
+  const cam = new T.OrthographicCamera(-w / 2, w / 2, h / 2, -h / 2, 0.1, 8000);
+  cam.position.set(0, 0, 2000);
+  cam.lookAt(0, 0, 0);
+
+  const metal = avgMetalColor(jewelryCanvas);
+  const ambient = sampleAmbient(bodyCanvas);
+  const mapTex = textureFromCanvas(T, jewelryCanvas);
+  const goldMat = makeGoldMaterial(T, metal, ambient, mapTex);
+  goldMat.roughness = 0.22;
+  goldMat.metalness = 1;
+
+  const pmrem = new T.PMREMGenerator(renderer);
+  const envScene = new T.Scene();
+  envScene.background = new T.Color(
+    Math.min(1, ambient.r * 1.1 + 0.18),
+    Math.min(1, ambient.g * 1.05 + 0.16),
+    Math.min(1, ambient.b + 0.14)
+  );
+  const envTex = pmrem.fromScene(envScene, 0.04).texture;
+  scene.environment = envTex;
+  goldMat.envMap = envTex;
+
+  scene.add(new T.HemisphereLight(
+    new T.Color(Math.min(1, ambient.r + 0.35), Math.min(1, ambient.g + 0.32), Math.min(1, ambient.b + 0.3)),
+    new T.Color(ambient.r * 0.3, ambient.g * 0.28, ambient.b * 0.24),
+    1.05
+  ));
+  const key = new T.DirectionalLight(0xfff2e0, 2.2);
+  key.position.set(-w * 0.15, h * 0.4, 1500);
+  key.castShadow = true;
+  scene.add(key);
+  const fill = new T.DirectionalLight(0xe8f0ff, 0.7);
+  fill.position.set(w * 0.2, -h * 0.05, 1400);
+  scene.add(fill);
+
+  // Image → Three (Y up)
+  const to3 = (p, z = 0) => new T.Vector3(p.x - w / 2, -(p.y - h / 2), z);
+
+  const drop = span * 0.38;
+  const mid = { x: (L.x + R.x) / 2, y: (L.y + R.y) / 2 + drop * 0.55 };
+  // Catenary-ish chain: L → mid-low → R, with slight forward Z at center
+  const pts = [];
+  const SEG = 48;
+  for (let i = 0; i <= SEG; i++) {
+    const t = i / SEG;
+    const x = L.x + (R.x - L.x) * t;
+    const yBase = L.y + (R.y - L.y) * t;
+    const sag = Math.sin(Math.PI * t) * drop;
+    const z = Math.sin(Math.PI * t) * span * 0.12;
+    pts.push(to3({ x, y: yBase + sag }, z));
+  }
+  const curve = new T.CatmullRomCurve3(pts);
+  const tubeR = Math.max(2.2, span * 0.028);
+  const chain = new T.Mesh(
+    new T.TubeGeometry(curve, 96, tubeR, 10, false),
+    goldMat
+  );
+  chain.castShadow = true;
+  scene.add(chain);
+
+  // Pendant: billboard-ish disc with product texture, hanging at lowest point
+  const pendSize = Math.max(14, span * 0.22);
+  const pendGeo = new T.CircleGeometry(pendSize * 0.55, 48);
+  const pendMat = goldMat.clone();
+  pendMat.map = mapTex;
+  pendMat.side = T.DoubleSide;
+  const pendant = new T.Mesh(pendGeo, pendMat);
+  pendant.position.copy(to3(mid, span * 0.08));
+  pendant.castShadow = true;
+  // Face camera with slight tilt
+  pendant.lookAt(pendant.position.x, pendant.position.y, 2000);
+  scene.add(pendant);
+
+  // Thin bail / connector ring
+  const bail = new T.Mesh(
+    new T.TorusGeometry(pendSize * 0.14, tubeR * 0.85, 12, 28),
+    goldMat
+  );
+  bail.position.copy(to3({ x: mid.x, y: mid.y - pendSize * 0.55 }, span * 0.1));
+  bail.rotation.x = Math.PI / 2;
+  scene.add(bail);
+
+  // Soft contact shadow on chest
+  const shadow = new T.Mesh(
+    new T.CircleGeometry(span * 0.55, 48),
+    new T.ShadowMaterial({ opacity: 0.28 })
+  );
+  shadow.position.copy(to3({ x: mid.x, y: mid.y + drop * 0.15 }, -8));
+  shadow.rotation.x = -Math.PI / 2;
+  scene.add(shadow);
+
+  renderer.render(scene, cam);
+
+  const out = document.createElement("canvas");
+  out.width = w;
+  out.height = h;
+  const ctx = out.getContext("2d");
+  ctx.drawImage(bodyCanvas, 0, 0);
+  ctx.drawImage(renderer.domElement, 0, 0);
+
+  renderer.dispose();
+  pmrem.dispose();
+  envTex.dispose();
+  mapTex.dispose();
+  return out;
+}
+
 export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "bracelet", extraCanvases = []) {
+  if (type === "necklace") {
+    return composeNecklace3D(bodyCanvas, jewelryCanvas, target);
+  }
   const T = await loadThree();
   const w = bodyCanvas.width;
   const h = bodyCanvas.height;
@@ -311,5 +450,5 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
 }
 
 export function canUse3D(type) {
-  return type === "bracelet" || type === "ring";
+  return type === "bracelet" || type === "ring" || type === "necklace";
 }
