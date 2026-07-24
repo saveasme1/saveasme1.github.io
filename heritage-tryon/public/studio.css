@@ -309,8 +309,8 @@ html, body { margin: 0; min-height: 100%; }
 .camera-guide[data-type="necklace"] .guide-art[data-for="necklace"] {
   display: block;
 }
-.camera-guide[data-type="earring"][data-ear="right"] .guide-art[data-for="earring"][data-ear-side="right"],
-.camera-guide[data-type="earring"][data-ear="left"] .guide-art[data-for="earring"][data-ear-side="left"] {
+.camera-guide[data-type="earring"][data-ear="right"] .guide-art[data-for="earring"][data-ear-side="left"],
+.camera-guide[data-type="earring"][data-ear="left"] .guide-art[data-for="earring"][data-ear-side="right"] {
   display: block;
 }
 .guide-caption {
