@@ -472,12 +472,19 @@ export function drawBefore(canvas, image) {
   canvas.getContext("2d").drawImage(image, 0, 0, w, h);
 }
 
-/** Fallback aligned with camera guide layout (hand↑ wrist~32% from top). */
-export function fallbackTarget(bodyImg, type = "ring") {
+/** Fallback aligned with camera guide layout. */
+export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
   const w = bodyImg.naturalWidth || bodyImg.width || 1;
   const h = bodyImg.naturalHeight || bodyImg.height || 1;
   if (type === "earring") {
-    return { center: { x: w * 0.72, y: h * 0.42 }, width: w * 0.07, angle: -8 };
+    // Anatomical right ear → left side of unmirrored front-camera photo
+    const anatomicalRight = opts.earSide !== "left";
+    return {
+      center: { x: w * (anatomicalRight ? 0.28 : 0.72), y: h * 0.42 },
+      width: w * 0.07,
+      angle: anatomicalRight ? 8 : -8,
+      side: anatomicalRight ? "right" : "left",
+    };
   }
   if (type === "necklace") {
     return { center: { x: w * 0.5, y: h * 0.48 }, width: w * 0.28, angle: 0 };
