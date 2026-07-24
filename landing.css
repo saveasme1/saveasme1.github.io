@@ -173,9 +173,9 @@ body.has-gb-top-brand .landing {
   height: 22px;
   padding: 0 9px;
   border-radius: 999px;
-  border: 1px solid rgba(22, 21, 19, 0.14);
-  background: rgba(255, 255, 255, 0.72);
-  color: #5f5a53;
+  border: 1px solid rgba(245, 242, 238, 0.28);
+  background: rgba(245, 242, 238, 0.1);
+  color: #f5f2ee;
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -187,9 +187,9 @@ body.has-gb-top-brand .landing {
 }
 .action-dl:hover,
 .action-dl:focus-visible {
-  color: var(--ink, #161513);
-  border-color: rgba(255, 130, 54, 0.5);
-  background: #fff;
+  color: #1b130f;
+  border-color: var(--brand);
+  background: var(--brand);
   outline: none;
 }
 
