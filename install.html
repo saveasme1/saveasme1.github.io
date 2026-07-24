@@ -254,20 +254,20 @@
       <p class="note">카메라 QR은 Safari로 바로 열려서 카톡/네이버보다 훨씬 쉽습니다. (공유 단계는 Apple 정책상 생략 불가)</p>
     </section>
 
-    <div class="stack">
-      <button type="button" class="btn btn-primary" id="installBtn">
-        <strong>앱 설치하기</strong>
+    <div class="stack" id="actionStack">
+      <button type="button" class="btn btn-primary" id="installBtn" hidden>
+        <strong id="installTitle">앱 설치하기</strong>
         <em id="installHint">설치 안내 보기</em>
       </button>
-      <button type="button" class="btn btn-secondary" id="openExternalBtn">
+      <button type="button" class="btn btn-secondary" id="openExternalBtn" hidden>
         <strong id="openExternalLabel">브라우저에서 열기</strong>
         <em id="openExternalHint">새 창/외부 브라우저로 이동</em>
       </button>
-      <button type="button" class="btn btn-secondary" id="copyBtn">
+      <button type="button" class="btn btn-secondary" id="copyBtn" hidden>
         <strong>설치 링크 복사</strong>
-        <em>주소창에 붙여넣기</em>
+        <em id="copyHint">주소창에 붙여넣기</em>
       </button>
-      <a class="btn btn-open" href="./landing.html">설치 없이 바로 열기</a>
+      <a class="btn btn-open" id="openSiteBtn" href="./landing.html" hidden>사이트로 바로 열기</a>
     </div>
 
     <section class="guide only-ios" id="iosGuide">
@@ -290,19 +290,20 @@
     </section>
 
     <section class="guide only-pc" id="otherGuide">
-      <h2>PC에서도 설치 가능 (Chrome / Edge)</h2>
+      <h2>PC 설치 (Chrome / Edge)</h2>
       <ol>
-        <li><b>Chrome</b> 또는 <b>Edge</b>로 이 페이지를 엽니다. (Safari는 PC 설치 미지원)</li>
-        <li>위 <b>앱 설치하기</b>를 누르거나</li>
-        <li>주소창 오른쪽 <b>설치(⊕)</b> / 메뉴 → <b>앱 설치</b> / <b>Install Heritage</b></li>
-        <li>설치되면 시작 메뉴·바탕화면에서 앱처럼 실행됩니다.</li>
+        <li><b>Chrome</b> 또는 <b>Edge</b>로 이 페이지를 엽니다. (Safari PC는 설치 불가)</li>
+        <li>위 버튼이 <b>“클릭하면 설치 창이 열립니다”</b>로 바뀌면 눌러 설치합니다.</li>
+        <li>버튼이 안 바뀌면 주소창 오른쪽 <b>설치(⊕)</b> 또는 메뉴(⋮) → <b>앱 설치 / Install Heritage</b></li>
+        <li>이미 설치했다면 시작 메뉴에서 <b>HERITAGE</b>로 실행하세요.</li>
       </ol>
-      <p class="note">휴대폰용으로는 위 아이폰·안드로이드 안내(또는 QR)를 사용하세요.</p>
+      <p class="note">Chrome이 설치 창을 아직 안 띄운 경우(처음 방문·이미 설치됨·거부 이력)에는 주소창 ⊕가 정석입니다.</p>
     </section>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
 
+  <script src="pwa-register.js"></script>
   <script>
   (function () {
     var pageUrl = location.href.split("#")[0];
@@ -317,31 +318,84 @@
       || (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua))
       || (/Android/i.test(ua) && /; wv\)/i.test(ua));
     var mode = isIOS ? "ios" : isAndroid ? "android" : "other";
+    var isStandalone = window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true;
+
+    var installBtn = document.getElementById("installBtn");
+    var openExternalBtn = document.getElementById("openExternalBtn");
+    var copyBtn = document.getElementById("copyBtn");
+    var openSiteBtn = document.getElementById("openSiteBtn");
+
+    function show(el, on) {
+      if (!el) return;
+      el.hidden = !on;
+    }
 
     document.body.className = "is-" + mode + (isInApp ? " has-banner" : "");
     document.getElementById("deviceLabel").textContent =
-      (mode === "ios" ? "iPhone / iPad" : mode === "android" ? "Android" : "PC · 전체 안내")
-      + (isInApp ? " · 인앱 브라우저" : "");
-    document.getElementById("installHint").textContent =
-      mode === "ios"
-        ? (isInApp ? "먼저 Safari로 연 뒤 홈 화면에 추가" : "공유 → 홈 화면에 추가")
-        : mode === "android" ? "설치 창 또는 홈 화면에 추가" :
-      "Chrome/Edge에서 앱으로 설치";
+      (mode === "ios" ? "iPhone / iPad" : mode === "android" ? "Android" : "PC (Chrome / Edge)")
+      + (isInApp ? " · 인앱 브라우저" : "")
+      + (isStandalone ? " · 설치됨" : "");
 
+    // —— 기기별 버튼: 필요한 것만 ——
+    // PC: 설치 + 사이트열기 (브라우저열기/링크복사 불필요)
+    // iOS Safari: 설치안내 + 사이트열기
+    // iOS 인앱: Safari열기 + 링크복사
+    // Android 브라우저: 설치 + 사이트열기
+    // Android 인앱: 브라우저열기 + 링크복사 (+ 설치는 외부 브라우저 유도)
     if (mode === "other") {
+      show(installBtn, true);
+      show(openExternalBtn, false);
+      show(copyBtn, false);
+      show(openSiteBtn, true);
       document.getElementById("lead").textContent =
-        "PC(Chrome/Edge)에서도 앱 설치가 됩니다. 아래에는 아이폰·안드로이드 안면도 함께 보여 드립니다.";
-      document.getElementById("openExternalBtn").style.display = "none";
+        "Chrome·Edge에서는 이 PC에도 앱으로 설치할 수 있습니다. 아래에는 휴대폰 안면도 함께 있습니다.";
+      document.getElementById("installHint").textContent = "설치 준비 중… (잠시만)";
+      document.getElementById("installTitle").textContent = "앱 설치하기";
     } else if (mode === "ios") {
-      if (!isInApp) {
-        document.getElementById("openExternalBtn").style.display = "none";
-        document.getElementById("copyBtn").querySelector("em").textContent = "필요할 때만 사용";
+      if (isInApp) {
+        show(installBtn, false);
+        show(openExternalBtn, true);
+        show(copyBtn, true);
+        show(openSiteBtn, false);
+        document.getElementById("lead").textContent =
+          "카톡 등 인앱에서는 설치가 안 됩니다. Safari로 연 뒤 홈 화면에 추가하세요.";
+      } else {
+        show(installBtn, true);
+        show(openExternalBtn, false);
+        show(copyBtn, false);
+        show(openSiteBtn, true);
+        document.getElementById("lead").textContent =
+          "아이폰 설치 안내만 표시됩니다. 공유 → 홈 화면에 추가하세요.";
+        document.getElementById("installTitle").textContent = "홈 화면에 추가 방법";
+        document.getElementById("installHint").textContent = "공유 → 홈 화면에 추가";
       }
-      document.getElementById("lead").textContent =
-        "아이폰 설치 안내만 표시됩니다. Safari에서 공유 → 홈 화면에 추가하세요.";
     } else if (mode === "android") {
-      document.getElementById("lead").textContent =
-        "안드로이드 설치 안내만 표시됩니다. Chrome/삼성 인터넷에서 설치하세요.";
+      if (isInApp) {
+        show(installBtn, false);
+        show(openExternalBtn, true);
+        show(copyBtn, true);
+        show(openSiteBtn, false);
+        document.getElementById("lead").textContent =
+          "카톡 등 인앱에서는 설치가 안 됩니다. Chrome/삼성 인터넷으로 열어 주세요.";
+      } else {
+        show(installBtn, true);
+        show(openExternalBtn, false);
+        show(copyBtn, false);
+        show(openSiteBtn, true);
+        document.getElementById("lead").textContent =
+          "안드로이드 설치 안내만 표시됩니다.";
+        document.getElementById("installHint").textContent = "설치 준비 중…";
+      }
+    }
+
+    if (isStandalone) {
+      document.getElementById("lead").textContent = "이미 앱으로 설치되어 있습니다.";
+      show(installBtn, false);
+      show(openExternalBtn, false);
+      show(copyBtn, false);
+      show(openSiteBtn, true);
+      openSiteBtn.textContent = "앱에서 사이트 열기";
     }
 
     if (isInApp) {
@@ -352,13 +406,15 @@
         document.getElementById("bannerDesc").textContent = "설치하려면 Safari로 이동해야 합니다";
         document.getElementById("bannerOpen").textContent = "Safari 열기";
         document.getElementById("openExternalLabel").textContent = "Safari에서 열기";
-        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Safari 새 창 이동";
+        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Safari 이동";
+        document.getElementById("copyHint").textContent = "Safari 주소창에 붙여넣기";
       } else {
         document.getElementById("bannerTitle").textContent = "브라우저에서 열기";
         document.getElementById("bannerDesc").textContent = "Chrome/삼성 인터넷으로 열어 설치하세요";
         document.getElementById("bannerOpen").textContent = "열기";
         document.getElementById("openExternalLabel").textContent = "브라우저에서 열기";
-        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Chrome 등 외부 브라우저 이동";
+        document.getElementById("openExternalHint").textContent = "카톡 밖으로 Chrome 등 이동";
+        document.getElementById("copyHint").textContent = "브라우저 주소창에 붙여넣기";
       }
     }
 
@@ -366,7 +422,7 @@
       toast.textContent = msg;
       toast.className = "toast is-on";
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { toast.className = "toast"; }, 2400);
+      toastTimer = setTimeout(function () { toast.className = "toast"; }, 2800);
     }
 
     function copyLink() {
@@ -383,7 +439,6 @@
 
     function openExternalBrowser() {
       if (isAndroid) {
-        // Chrome first, then Samsung Internet fallback via same page intent without package
         var chromeIntent =
           "intent://" + hostPath +
           "#Intent;scheme=https;package=com.android.chrome;" +
@@ -393,10 +448,7 @@
           "#Intent;scheme=https;package=com.sec.android.app.sbrowser;" +
           "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
         location.href = chromeIntent;
-        setTimeout(function () {
-          // if still here, try Samsung Internet
-          location.href = samsungIntent;
-        }, 900);
+        setTimeout(function () { location.href = samsungIntent; }, 900);
         showToast("브라우저로 이동 중…");
         return;
       }
@@ -413,25 +465,39 @@
 
     function scrollGuide() {
       var el = mode === "ios"
-        ? document.getElementById("iosGuide")
+        ? document.getElementById("iosEasy") || document.getElementById("iosGuide")
         : mode === "android"
           ? document.getElementById("androidGuide")
           : document.getElementById("otherGuide");
       if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    document.getElementById("copyBtn").onclick = copyLink;
-    document.getElementById("openExternalBtn").onclick = openExternalBrowser;
+    function markInstallReady() {
+      if (mode === "other" || (mode === "android" && !isInApp)) {
+        document.getElementById("installHint").textContent = "클릭하면 설치 창이 열립니다";
+        document.getElementById("installTitle").textContent = "앱 설치하기";
+      }
+    }
+
+    function markInstallFallback() {
+      if (isStandalone || isInApp) return;
+      if (mode === "other") {
+        document.getElementById("installHint").textContent =
+          "주소창 오른쪽 설치(⊕) 아이콘을 누르세요";
+        document.getElementById("installTitle").textContent = "설치 방법 보기";
+      } else if (mode === "android") {
+        document.getElementById("installHint").textContent =
+          "메뉴(⋮) → 앱 설치 / 홈 화면에 추가";
+      }
+    }
+
+    copyBtn.onclick = copyLink;
+    openExternalBtn.onclick = openExternalBrowser;
     document.getElementById("bannerOpen").onclick = openExternalBrowser;
 
-    document.getElementById("installBtn").onclick = function () {
+    installBtn.onclick = function () {
       if (isInApp) {
         openExternalBrowser();
-        return;
-      }
-      if ((mode === "android" || mode === "other") && deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.finally(function () { deferredPrompt = null; });
         return;
       }
       if (mode === "ios") {
@@ -439,36 +505,57 @@
         scrollGuide();
         return;
       }
+      // PC / Android: native install prompt when available
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function () {
+          deferredPrompt = null;
+          markInstallFallback();
+        });
+        return;
+      }
+      // Prompt not available yet — guide address-bar install (Chrome/Edge)
       if (mode === "other") {
-        showToast("주소창 설치(⊕) 또는 메뉴 → 앱 설치");
+        showToast("주소창 오른쪽 ⊕(설치) 아이콘을 누르세요");
         scrollGuide();
         return;
       }
-      showToast("아래 설치 안내를 확인하세요");
+      showToast("메뉴 → 앱 설치 / 홈 화면에 추가");
       scrollGuide();
     };
 
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
       deferredPrompt = event;
-      if (mode === "other" || mode === "android") {
-        document.getElementById("installHint").textContent = "클릭하면 설치 창이 열립니다";
-      }
+      markInstallReady();
     });
 
     window.addEventListener("appinstalled", function () {
       deferredPrompt = null;
       showToast("설치되었습니다");
+      show(installBtn, false);
+      show(openSiteBtn, true);
+      openSiteBtn.textContent = "설치된 앱에서 열기";
     });
 
-    // KREAM-like: in-app이면 들어오자마자 외부 브라우저 열기 시도
-    if (isInApp && !/opened=1/.test(location.search)) {
+    // SW ready 후에도 프롬프트가 없으면 주소창 설치 안내로 전환
+    if ("serviceWorker" in navigator && (mode === "other" || mode === "android") && !isInApp && !isStandalone) {
+      navigator.serviceWorker.ready.then(function () {
+        setTimeout(function () {
+          if (!deferredPrompt) markInstallFallback();
+        }, 1800);
+      }).catch(function () {
+        markInstallFallback();
+      });
       setTimeout(function () {
-        openExternalBrowser();
-      }, 350);
+        if (!deferredPrompt) markInstallFallback();
+      }, 3500);
+    }
+
+    if (isInApp && !/opened=1/.test(location.search)) {
+      setTimeout(function () { openExternalBrowser(); }, 350);
     }
   })();
   </script>
-  <script src="pwa-register.js"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@
   "background_color": "#161513",
   "theme_color": "#161513",
   "categories": ["lifestyle", "shopping"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icons/icon-192.png",
