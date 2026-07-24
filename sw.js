@@ -1,5 +1,5 @@
 /* Heritage PWA service worker — relative paths for GitHub Pages */
-const CACHE_VERSION = "hx-pwa-v20260725-webapk1";
+const CACHE_VERSION = "hx-pwa-v20260725-bon1";
 const PRECACHE = [
   "./",
   "./index.html",
