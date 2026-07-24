@@ -238,6 +238,271 @@
     .compat b { color: var(--ink); }
     #panelPc .btn-primary { margin-top: 0; }
     #panelPc .hint { margin-top: 8px; margin-bottom: 14px; }
+
+    .pc-result {
+      margin: 16px 0 0;
+      display: grid;
+      gap: 14px;
+    }
+    .pc-result__title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+    }
+    .pc-os-guide {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+    }
+    .pc-os-guide__head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .pc-os-guide__head svg { width: 18px; height: 18px; }
+    .pc-os-guide__head.is-win { color: #0078d4; }
+    .pc-os-guide__cap {
+      margin: 0 0 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #3b3834;
+    }
+
+    /* Windows pin dialog */
+    .win-dlg {
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #d0d0d0;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      max-width: 360px;
+      margin: 0 auto 10px;
+    }
+    .win-dlg__title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #f3f3f3;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 12px;
+      color: #222;
+    }
+    .win-dlg__title svg { width: 12px; height: 12px; color: #0078d4; }
+    .win-dlg__body {
+      display: flex;
+      gap: 12px;
+      padding: 16px 14px 8px;
+    }
+    .win-dlg__body img {
+      width: 36px; height: 36px; border-radius: 6px; background: #161513; flex: 0 0 auto;
+    }
+    .win-dlg__body strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .win-dlg__body span {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.4;
+    }
+    .win-dlg__actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 14px 14px;
+    }
+    .win-dlg__actions span {
+      display: grid;
+      place-items: center;
+      min-height: 32px;
+      border-radius: 4px;
+      border: 1px solid #adadad;
+      background: #f4f4f4;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .win-dlg__actions .yes {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      background: #fff;
+      font-weight: 800;
+      position: relative;
+    }
+    .win-dlg__actions .yes::after {
+      content: "여기";
+      position: absolute;
+      top: -10px; right: -4px;
+      background: var(--accent);
+      color: #161513;
+      font-size: 9px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 1px 6px;
+    }
+
+    /* Windows taskbar */
+    .win-bar {
+      border-radius: 10px;
+      background: rgba(232, 236, 242, 0.95);
+      border: 1px solid #c9d0da;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .win-bar__icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.06);
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .win-bar__icon img { width: 22px; height: 22px; border-radius: 4px; }
+    .win-bar__icon.is-pin {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      background: #fff;
+    }
+    .win-bar__icon.is-pin::after {
+      content: "";
+      position: absolute;
+      left: 6px; right: 6px; bottom: -5px;
+      height: 2px;
+      border-radius: 2px;
+      background: #3b82f6;
+    }
+    .win-bar__label {
+      margin: 8px 0 0;
+      font-size: 11px;
+      color: #5f5a53;
+      text-align: center;
+    }
+    .win-bar__label b { color: var(--ink); }
+
+    /* Mac Chrome install dialog */
+    .mac-dlg {
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ececec;
+      border: 1px solid #cfcfcf;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+      max-width: 340px;
+      margin: 0 auto 10px;
+    }
+    .mac-dlg__body {
+      padding: 18px 16px 8px;
+      text-align: center;
+    }
+    .mac-dlg__body img {
+      width: 56px; height: 56px; border-radius: 12px; background: #161513; margin: 0 auto 10px;
+    }
+    .mac-dlg__body strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .mac-dlg__body span {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.45;
+    }
+    .mac-dlg__actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 14px 14px;
+    }
+    .mac-dlg__actions span {
+      display: grid;
+      place-items: center;
+      min-height: 30px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #c8c8c8;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .mac-dlg__actions .yes {
+      background: #0a84ff;
+      border-color: #0a84ff;
+      color: #fff;
+      font-weight: 800;
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      position: relative;
+    }
+    .mac-dlg__actions .yes::after {
+      content: "여기";
+      position: absolute;
+      top: -10px; right: -4px;
+      background: var(--accent);
+      color: #161513;
+      font-size: 9px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 1px 6px;
+    }
+
+    /* Mac Dock */
+    .mac-dock-wrap {
+      padding: 8px 4px 0;
+    }
+    .mac-dock {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px 8px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    .mac-dock__icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.08);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .mac-dock__icon img { width: 28px; height: 28px; border-radius: 7px; }
+    .mac-dock__icon.is-pin {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      transform: scale(1.08);
+    }
+    .mac-dock__icon.is-pin::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: #111;
+      transform: translateX(-50%);
+    }
+    .mac-dock__label {
+      margin: 8px 0 0;
+      font-size: 11px;
+      color: #5f5a53;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .mac-dock__label b { color: var(--ink); }
     .qr {
       display: block;
       width: 148px;
@@ -1020,6 +1285,76 @@
         </div>
         <button type="button" class="btn btn-primary" id="pcInstallBtn">PC에 앱 설치</button>
         <div class="hint" id="pcInstallHint">Windows · Mac 공용 · Chrome / Edge 전용</div>
+
+        <div class="pc-result">
+          <h3 class="pc-result__title">설치 버튼을 누르면 뜨는 화면</h3>
+
+          <div class="pc-os-guide">
+            <div class="pc-os-guide__head is-win">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.2 10.2 4.2v7.1H3V5.2Zm8.3-1.2L21 2.5v8.8h-9.7V4ZM3 13.2h7.2v7.1L3 19.3v-6.1Zm8.3 0H21v8.8l-9.7-1.4V13.2Z"/></svg>
+              Windows
+            </div>
+            <p class="pc-os-guide__cap">작업 표시줄 고정 창이 뜨면 <b>예</b>를 누르세요.</p>
+            <div class="win-dlg" aria-label="Windows 작업 표시줄 고정 팝업">
+              <div class="win-dlg__title">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.2 10.2 4.2v7.1H3V5.2Zm8.3-1.2L21 2.5v8.8h-9.7V4ZM3 13.2h7.2v7.1L3 19.3v-6.1Zm8.3 0H21v8.8l-9.7-1.4V13.2Z"/></svg>
+                앱
+              </div>
+              <div class="win-dlg__body">
+                <img src="icons/icon-192.png" alt="">
+                <div>
+                  <strong>작업 표시줄에 HERITAGE을(를) 고정하시겠습니까?</strong>
+                  <span>chrome.exe이(가) 작업 표시줄에 HERITAGE을(를) 고정하려고 합니다.</span>
+                </div>
+              </div>
+              <div class="win-dlg__actions">
+                <span class="yes">예</span>
+                <span>아니요</span>
+              </div>
+            </div>
+            <p class="pc-os-guide__cap"><b>예</b>를 누르면 하단 작업 표시줄에 HERITAGE 아이콘이 생깁니다.</p>
+            <div class="win-bar" aria-label="Windows 작업 표시줄">
+              <span class="win-bar__icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0078d4"><path d="M3 5.2 10.2 4.2v7.1H3V5.2Zm8.3-1.2L21 2.5v8.8h-9.7V4ZM3 13.2h7.2v7.1L3 19.3v-6.1Zm8.3 0H21v8.8l-9.7-1.4V13.2Z"/></svg></span>
+              <span class="win-bar__icon" aria-hidden="true"></span>
+              <span class="win-bar__icon" aria-hidden="true"></span>
+              <span class="win-bar__icon is-pin"><img src="icons/icon-192.png" alt="HERITAGE"></span>
+              <span class="win-bar__icon" aria-hidden="true"></span>
+              <span class="win-bar__icon" aria-hidden="true"></span>
+            </div>
+            <p class="win-bar__label">주황 표시 = <b>작업 표시줄</b>에 고정된 HERITAGE</p>
+          </div>
+
+          <div class="pc-os-guide">
+            <div class="pc-os-guide__head">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.7 12.6c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3.8ZM14.6 6.5c.6-.7 1-1.7.9-2.7-1 .1-2.1.7-2.7 1.5-.6.7-1.1 1.7-.9 2.7 1 0 2-.6 2.7-1.5Z"/></svg>
+              Mac
+            </div>
+            <p class="pc-os-guide__cap">Chrome/Edge에서 설치 확인 창이 뜨면 <b>설치</b>를 누르세요. (Safari에서는 이 창이 안 뜹니다.)</p>
+            <div class="mac-dlg" aria-label="Mac 앱 설치 팝업">
+              <div class="mac-dlg__body">
+                <img src="icons/icon-192.png" alt="">
+                <strong>앱 설치</strong>
+                <span>HERITAGE을(를) 설치하시겠습니까?<br>응용 프로그램(Chrome Apps)에 추가됩니다.</span>
+              </div>
+              <div class="mac-dlg__actions">
+                <span>취소</span>
+                <span class="yes">설치</span>
+              </div>
+            </div>
+            <p class="pc-os-guide__cap"><b>설치</b> 후 화면 아래 <b>Dock</b>과 <b>런치패드 / 응용 프로그램</b>에서 HERITAGE를 실행할 수 있습니다.</p>
+            <div class="mac-dock-wrap">
+              <div class="mac-dock" aria-label="Mac Dock">
+                <span class="mac-dock__icon" aria-hidden="true"></span>
+                <span class="mac-dock__icon" aria-hidden="true"></span>
+                <span class="mac-dock__icon is-pin"><img src="icons/icon-192.png" alt="HERITAGE"></span>
+                <span class="mac-dock__icon" aria-hidden="true"></span>
+                <span class="mac-dock__icon" aria-hidden="true"></span>
+              </div>
+              <p class="mac-dock__label">주황 표시 = <b>Dock</b>의 HERITAGE<br>안 보이면 <b>런치패드</b> 또는 <b>응용 프로그램 → Chrome Apps</b>에서 찾으세요</p>
+            </div>
+          </div>
+        </div>
+
         <h2>컴퓨터</h2>
         <p class="lead-mini">
           Windows와 Mac에서 <b>같은 설치 버튼</b>을 씁니다.
