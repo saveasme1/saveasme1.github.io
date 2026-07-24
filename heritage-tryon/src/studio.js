@@ -616,24 +616,38 @@ async function alignTick() {
       zoom: state.camZoom || 1,
     });
     if (result) {
-      if (result.placement && result.ok) state.lastPlacement = result.placement;
+      // Must be truly locked — loose ok alone must not start 3-2-1
+      const locked = Boolean(result.ok) && (result.score || 0) >= 0.86;
+      if (result.placement && locked) state.lastPlacement = result.placement;
       const need = HOLD_MS[type] || 3000;
-      let holdInfo = null;
-      if (result.ok) {
+      if (locked) {
         state.goodStreak += 1;
-        if (!state.goodSince) state.goodSince = performance.now();
-        const held = performance.now() - state.goodSince;
-        holdInfo = { held, need };
-        applyAlignUi(result, holdInfo);
-        if (state.autoCaptureArmed && held >= need && state.goodStreak >= 12) {
-          state.autoCaptureArmed = false;
-          shutterCapture();
-          return;
+        // Warm-up ~0.6s continuous lock before countdown begins
+        if (state.goodStreak < 20) {
+          state.goodSince = 0;
+          applyAlignUi(
+            { ...result, message: "좋아요 · 가이드에 정확히 유지 중…" },
+            null
+          );
+        } else {
+          if (!state.goodSince) state.goodSince = performance.now();
+          const held = performance.now() - state.goodSince;
+          applyAlignUi(result, { held, need });
+          if (state.autoCaptureArmed && held >= need && state.goodStreak >= 40) {
+            state.autoCaptureArmed = false;
+            shutterCapture();
+            return;
+          }
         }
       } else {
         state.goodStreak = 0;
         state.goodSince = 0;
-        applyAlignUi(result, null);
+        applyAlignUi(
+          result.ok
+            ? { ...result, ok: false, message: "가이드에 더 정확히 맞춰 주세요" }
+            : result,
+          null
+        );
       }
     }
   } catch (err) {
