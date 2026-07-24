@@ -9,7 +9,7 @@
   <meta name="robots" content="index,follow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>본 헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260725-pcsplit1 -->
+  <!-- cache-bust: 20260725-pcsplit2 -->
   <meta name="description" content="Windows · Mac · Android · iPhone — 본 헤리티지 앱을 홈 화면·PC에 설치하세요.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="본 헤리티지">
@@ -129,7 +129,7 @@
     /* —— PC: left PC · right mobile (Android + iPhone) —— */
     .panels {
       display: none;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
       gap: 0;
       align-items: start;
     }
@@ -138,7 +138,9 @@
     }
     body.is-other .panels-mobile {
       display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
+      align-items: start;
       margin-left: 20px;
       padding-left: 20px;
       border-left: 1px solid rgba(22, 21, 19, 0.14);
@@ -146,6 +148,9 @@
     }
     body.is-other #panelPc {
       margin-right: 4px;
+      min-width: 0;
+    }
+    body.is-other .panels-mobile > .panel {
       min-width: 0;
     }
     .panel {
@@ -947,11 +952,14 @@
     }
     body.is-other .pp-stack {
       grid-template-columns: 1fr;
-      max-width: 420px;
+      max-width: none;
+    }
+    body.is-other .pp-card {
+      max-width: none;
     }
     @media (min-width: 1100px) {
       body.is-other .pp-stack {
-        grid-template-columns: repeat(2, minmax(300px, 1fr));
+        grid-template-columns: 1fr;
         max-width: none;
       }
     }
@@ -1533,6 +1541,7 @@
         grid-template-columns: 1fr;
       }
       body.is-other .panels-mobile {
+        grid-template-columns: 1fr;
         margin-left: 0;
         padding-left: 0;
         border-left: 0;
