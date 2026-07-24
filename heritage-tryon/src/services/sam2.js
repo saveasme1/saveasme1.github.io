@@ -127,8 +127,8 @@ function hardenAlpha(canvas) {
 }
 
 /**
- * Strip portfolio marketing text like "Handmade of High Quality"
- * (common top/corner overlay — NOT part of the jewelry).
+ * Strip portfolio marketing text like "Handmade of High Quality".
+ * Aggressively clears top banner + non-metal pixels in the caption zone.
  */
 export function stripPortfolioWatermark(canvas) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -145,40 +145,52 @@ export function stripPortfolioWatermark(canvas) {
     d[i + 3] = 0;
   };
 
-  // 1) Top band — watermark almost always lives here
-  const yTop = Math.max(8, Math.floor(h * 0.12));
+  const isWarmMetal = (r, g, b) => {
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+    // Gold / rose / brass — keep. Gray/white/black text — kill.
+    return chroma >= 28 && r >= 90 && r + 12 >= g && b <= r * 0.92 + 40;
+  };
+
+  // 1) Hard wipe top caption band (Handmade… almost always here)
+  const yTop = Math.max(12, Math.floor(h * 0.16));
   for (let y = 0; y < yTop; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
+      if (d[i + 3] < 6) continue;
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      if (!isWarmMetal(r, g, b)) clearPixel(i);
+    }
+  }
+
+  // 2) Wider top corners (lockup text)
+  const boxH = Math.floor(h * 0.14);
+  const boxW = Math.floor(w * 0.62);
+  for (const x0 of [0, Math.max(0, w - boxW)]) {
+    for (let y = 0; y < boxH; y++) {
+      for (let x = x0; x < x0 + boxW && x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (d[i + 3] < 6) continue;
+        if (!isWarmMetal(d[i], d[i + 1], d[i + 2])) clearPixel(i);
+      }
+    }
+  }
+
+  // 3) Any remaining light-gray / near-white text streaks in upper third
+  const yMid = Math.floor(h * 0.28);
+  for (let y = 0; y < yMid; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
       const a = d[i + 3];
-      if (a < 8) continue;
+      if (a < 10) continue;
       const r = d[i];
       const g = d[i + 1];
       const b = d[i + 2];
       const lum = (r + g + b) / 3;
       const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-      // Light gray / white text or banner (not yellow/gold jewelry)
-      if (chroma < 40 && lum > 150) clearPixel(i);
-      // Soft dark-gray caption on pale plate
-      if (chroma < 28 && lum > 70 && lum < 170 && y < h * 0.09) clearPixel(i);
-    }
-  }
-
-  // 2) Top-left / top-right corner boxes (text lockups)
-  const boxH = Math.floor(h * 0.1);
-  const boxW = Math.floor(w * 0.55);
-  for (const x0 of [0, Math.max(0, w - boxW)]) {
-    for (let y = 0; y < boxH; y++) {
-      for (let x = x0; x < x0 + boxW && x < w; x++) {
-        const i = (y * w + x) * 4;
-        if (d[i + 3] < 8) continue;
-        const r = d[i];
-        const g = d[i + 1];
-        const b = d[i + 2];
-        const lum = (r + g + b) / 3;
-        const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-        if (chroma < 45 && lum > 130) clearPixel(i);
-      }
+      if (chroma < 36 && lum > 145) clearPixel(i);
+      if (chroma < 22 && lum > 60 && lum < 190 && y < h * 0.12) clearPixel(i);
     }
   }
 
