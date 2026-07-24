@@ -74,68 +74,66 @@ function makeGoldMaterial(THREE, metal, ambient, mapTex) {
   return mat;
 }
 
-/** Build Clash-like wide band with pyramid studs (not a thin Love torus). */
-function buildClashBracelet(THREE, material, radius) {
+/** Build Cartier Love–style band: thick torus + screw studs (not flat sticker). */
+function buildLoveBracelet(THREE, material, radius) {
   const group = new THREE.Group();
-  // Oval bracelet around Z axis (hole = Z = forearm)
-  const rx = radius;
-  const ry = radius * 0.78;
-  // Band cross-section: wide & tall like Clash
-  const halfW = radius * 0.07; // radial thickness
-  const halfH = radius * 0.16; // band height (studs sit on this)
-
-  const shape = new THREE.Shape();
-  shape.moveTo(-halfW, -halfH);
-  shape.lineTo(halfW, -halfH);
-  shape.lineTo(halfW, halfH);
-  shape.lineTo(-halfW, halfH);
-  shape.closePath();
-
-  const pts = [];
-  const SEG = 96;
-  for (let i = 0; i <= SEG; i++) {
-    const t = (i / SEG) * Math.PI * 2;
-    pts.push(new THREE.Vector3(Math.cos(t) * rx, Math.sin(t) * ry, 0));
-  }
-  const path = new THREE.CatmullRomCurve3(pts, true);
-
-  const bandGeo = new THREE.ExtrudeGeometry(shape, {
-    steps: SEG,
-    bevelEnabled: false,
-    extrudePath: path,
-    curveSegments: 8,
-  });
-  const band = new THREE.Mesh(bandGeo, material);
+  const major = radius;
+  const tube = Math.max(2.2, radius * 0.16);
+  const band = new THREE.Mesh(
+    new THREE.TorusGeometry(major, tube, 36, 128),
+    material
+  );
   band.castShadow = true;
   band.receiveShadow = true;
   group.add(band);
 
-  // Pyramid studs along outer rim (Clash signature)
+  // Inner polish rim (slightly smaller tube) for thickness read
+  const innerMat = material.clone();
+  innerMat.roughness = Math.min(0.35, (material.roughness || 0.2) + 0.08);
+  const inner = new THREE.Mesh(
+    new THREE.TorusGeometry(major * 0.92, tube * 0.45, 24, 96),
+    innerMat
+  );
+  inner.castShadow = true;
+  group.add(inner);
+
+  // Screw heads around the band (Love cue)
   const studMat = material.clone();
-  studMat.roughness = 0.28;
-  const studCount = 28;
+  studMat.roughness = 0.32;
+  studMat.metalness = 1;
+  const studCount = 16;
   for (let i = 0; i < studCount; i++) {
     const t = (i / studCount) * Math.PI * 2;
-    const cx = Math.cos(t) * rx;
-    const cy = Math.sin(t) * ry;
-    // outward normal in XY
+    const cx = Math.cos(t) * major;
+    const cy = Math.sin(t) * major;
     const nx = Math.cos(t);
     const ny = Math.sin(t);
-    const stud = new THREE.Mesh(
-      new THREE.ConeGeometry(halfH * 0.55, halfH * 1.15, 4),
+    const head = new THREE.Mesh(
+      new THREE.CylinderGeometry(tube * 0.55, tube * 0.55, tube * 0.55, 12),
       studMat
     );
-    stud.position.set(cx + nx * halfW * 1.05, cy + ny * halfW * 1.05, 0);
-    // point outward
-    stud.quaternion.setFromUnitVectors(
+    head.position.set(cx + nx * tube * 0.85, cy + ny * tube * 0.85, 0);
+    head.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(nx, ny, 0).normalize()
     );
-    stud.castShadow = true;
-    group.add(stud);
+    head.castShadow = true;
+    group.add(head);
+    // slot
+    const slot = new THREE.Mesh(
+      new THREE.BoxGeometry(tube * 0.7, tube * 0.12, tube * 0.18),
+      new THREE.MeshStandardMaterial({ color: 0x3a2a10, metalness: 0.4, roughness: 0.55 })
+    );
+    slot.position.copy(head.position).add(new THREE.Vector3(nx, ny, 0).multiplyScalar(tube * 0.28));
+    slot.quaternion.copy(head.quaternion);
+    group.add(slot);
   }
-
   return group;
+}
+
+/** @deprecated alias — keep name for any external refs */
+function buildClashBracelet(THREE, material, radius) {
+  return buildLoveBracelet(THREE, material, radius);
 }
 
 function buildRingMesh(THREE, material, radius) {
@@ -152,8 +150,12 @@ function buildArmOccluder(THREE, length, radius) {
   } catch (_) {
     geo = new THREE.CylinderGeometry(radius * 0.95, radius, length, 24);
   }
-  const mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  mat.colorWrite = false;
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    colorWrite: false,
+    depthWrite: true,
+    depthTest: true,
+  });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.renderOrder = -1;
   return mesh;
@@ -409,29 +411,28 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
   const jewel =
     kind === "ring"
       ? buildRingMesh(T, goldMat, posed.wristR * 0.55)
-      : buildClashBracelet(T, goldMat, posed.wristR * 1.05);
+      : buildLoveBracelet(T, goldMat, posed.wristR * 1.02);
   posed.group.add(jewel);
 
-  // Arm depth occluder along forearm — hides back of bracelet
-  const occluder = buildArmOccluder(T, posed.wristR * 6.5, posed.wristR * 0.88);
-  // Capsule default axis = Y; align to forearm (world)
+  // Arm depth occluder along forearm — hides back of bracelet (must write depth)
+  const occluder = buildArmOccluder(T, posed.wristR * 7.2, posed.wristR * 0.95);
   occluder.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), posed.forearm);
-  // Keep occluder in world orientation relative to wrist group:
-  // add as sibling under scene at same position for stable depth
   occluder.position.copy(posed.group.position);
   occluder.renderOrder = -2;
   scene.add(occluder);
   scene.add(posed.group);
 
-  // Contact shadow under band
-  const shadowMat = new T.ShadowMaterial({ opacity: 0.32 });
-  const shadow = new T.Mesh(new T.CircleGeometry(posed.wristR * 1.4, 48), shadowMat);
+  // Soft contact AO disc under band (doesn't replace metal)
+  const shadowMat = new T.ShadowMaterial({ opacity: 0.28 });
+  const shadow = new T.Mesh(new T.CircleGeometry(posed.wristR * 1.35, 48), shadowMat);
   shadow.position.copy(posed.group.position);
   shadow.quaternion.copy(posed.group.quaternion);
   shadow.rotateX(-Math.PI / 2);
   shadow.receiveShadow = true;
   scene.add(shadow);
 
+  // Depth clear then render: occluder first via renderOrder, then jewel
+  renderer.autoClear = true;
   renderer.render(scene, cam);
 
   const out = document.createElement("canvas");
