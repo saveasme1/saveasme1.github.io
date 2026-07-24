@@ -290,14 +290,14 @@ function onPickFile(event) {
 
 const CAMERA_HINT = {
   ring: "오른손 폰 · 왼손 비스듬히 · 아래에서 손가락 선택",
-  bracelet: "오른손 폰 · 왼팔 비스듬히 · 주먹↑ 손목(+)",
+  bracelet: "오른손 폰 · 왼팔 비스듬히 · 손펴서 손목(+)",
   earring: "한손 셀카 · 살짝 기울여 귀를 가이드에",
   necklace: "한손 셀카 · 얼굴·목을 가이드에 맞추고 3초",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 비스듬 · 약지(+)",
-  bracelet: "왼팔 비스듬 · 주먹↑ · 손목(+)",
+  bracelet: "왼팔 비스듬 · 손펴서 · 손목(+)",
   earring: "살짝 기울여 · 귀(+)",
   necklace: "한손 셀카 · 얼굴·목(+)",
 };
