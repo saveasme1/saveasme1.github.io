@@ -75,51 +75,62 @@ function dist2(ax, ay, bx, by) {
 }
 
 function scoreBracelet(lm) {
-  // Phone in RIGHT hand → left arm tilts toward screen RIGHT (hand upper-right).
+  // Left arm, dorsum, phone in right hand. Keep scoring LOOSE so live lock works.
   const wrist = lm[0];
   const mid = lm[9];
-  const tip = lm[12];
+  const tip = lm[12] || mid;
   const indexMcp = lm[5];
   const pinkyMcp = lm[17];
   if (!wrist || !mid) {
-    return { score: 0, ok: false, far: true, message: "왼팔·손목이 화면에 들어오게 해 주세요", placement: null };
+    return {
+      score: 0,
+      ok: false,
+      far: true,
+      message: "왼팔·손목이 화면에 들어오게 해 주세요",
+      placement: null,
+    };
   }
-  const target = { x: 0.48, y: 0.48 };
+  const target = { x: 0.5, y: 0.52 };
   const d = dist2(wrist.x, wrist.y, target.x, target.y);
   const ang = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
-  // Fingers toward upper-right: roughly +20° … +145° (was wrongly -145…-20)
-  const angOk = ang > 20 && ang < 145;
-  const handUp = tip ? tip.y < wrist.y : mid.y < wrist.y;
+  // Accept wide diagonal poses (either tilt) — user often won't match exact guide angle
+  const angOk = Math.abs(ang) > 15 && Math.abs(ang) < 165;
+  const handTowardTop = mid.y < wrist.y + 0.08;
   const palmSpan =
     indexMcp && pinkyMcp ? dist2(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y) : 0.12;
-  let score = Math.max(0, 1 - d / 0.24);
-  if (angOk) score = Math.min(1, score + 0.14);
-  else score *= 0.7;
-  if (handUp) score = Math.min(1, score + 0.1);
-  else score *= 0.75;
-  if (palmSpan > 0.06 && palmSpan < 0.35) score = Math.min(1, score + 0.05);
-  const ok = score >= 0.7 && d <= 0.14;
-  const far = d > 0.3 || score < 0.28;
-  const planeAng = indexMcp && pinkyMcp
-    ? (Math.atan2(pinkyMcp.y - indexMcp.y, pinkyMcp.x - indexMcp.x) * 180) / Math.PI
-    : ang + 90;
+  const handSize = dist2(wrist.x, wrist.y, tip.x, tip.y);
+
+  let score = Math.max(0, 1 - d / 0.38);
+  if (angOk) score = Math.min(1, score + 0.12);
+  if (handTowardTop) score = Math.min(1, score + 0.18);
+  if (palmSpan > 0.04 && palmSpan < 0.45) score = Math.min(1, score + 0.12);
+  if (handSize > 0.1) score = Math.min(1, score + 0.1);
+  // Soft floor once a hand is clearly in-frame near center
+  if (d < 0.28 && handSize > 0.12) score = Math.max(score, 0.72);
+
+  const ok = score >= 0.62 && d <= 0.26;
+  const far = d > 0.45 || score < 0.22;
+  const planeAng =
+    indexMcp && pinkyMcp
+      ? (Math.atan2(pinkyMcp.y - indexMcp.y, pinkyMcp.x - indexMcp.x) * 180) / Math.PI
+      : ang + 90;
   const frontAng = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
   return {
     score,
     ok,
     far,
     message: far
-      ? "왼팔을 비스듬히(오른쪽↑) · 주황 링(+)에 손목을 맞춰 주세요"
+      ? "왼손 손등 · 주황 링(+)에 손목을 맞춰 주세요"
       : ok
-        ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "오른손 폰 · 왼팔 오른쪽↑ · 손목(+)",
+        ? "좋아요! 그대로 유지해 주세요"
+        : "왼손 손등 · 엄지→오른쪽 · 손목(+)",
     placement: {
       kind: "bracelet",
       center: {
-        x: wrist.x + ((wrist.x - mid.x) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.04,
-        y: wrist.y + ((wrist.y - mid.y) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.04,
+        x: wrist.x + ((wrist.x - mid.x) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
+        y: wrist.y + ((wrist.y - mid.y) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
       },
-      width: Math.max(palmSpan * 1.35, 0.16),
+      width: Math.max(palmSpan * 1.4, handSize * 0.35, 0.14),
       angle: planeAng,
       frontAngle: frontAng,
     },
@@ -127,10 +138,11 @@ function scoreBracelet(lm) {
 }
 
 const FINGER_LM = {
-  index: { mcp: 5, pip: 6, tip: 8, label: "검지", target: { x: 0.56, y: 0.3 } },
-  middle: { mcp: 9, pip: 10, tip: 12, label: "중지", target: { x: 0.52, y: 0.26 } },
-  ring: { mcp: 13, pip: 14, tip: 16, label: "약지", target: { x: 0.48, y: 0.3 } },
-  pinky: { mcp: 17, pip: 18, tip: 20, label: "소지", target: { x: 0.42, y: 0.34 } },
+  // Left hand dorsum, fingers upper-right → index more left, pinky more right
+  index: { mcp: 5, pip: 6, tip: 8, label: "검지", target: { x: 0.44, y: 0.28 } },
+  middle: { mcp: 9, pip: 10, tip: 12, label: "중지", target: { x: 0.5, y: 0.24 } },
+  ring: { mcp: 13, pip: 14, tip: 16, label: "약지", target: { x: 0.56, y: 0.28 } },
+  pinky: { mcp: 17, pip: 18, tip: 20, label: "소지", target: { x: 0.62, y: 0.32 } },
 };
 
 function scoreRing(lm, finger = "ring") {
@@ -288,11 +300,31 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       const hands = res.landmarks || [];
       const handed = res.handednesses || [];
       let lm = hands[0];
-      if (type === "ring" && hands.length > 1) {
+      // Prefer anatomical Left for ring/bracelet (left hand dorsum)
+      if (hands.length > 1) {
         const leftIdx = handed.findIndex((h) => h?.[0]?.categoryName === "Left");
         if (leftIdx >= 0) lm = hands[leftIdx];
+      } else if (hands.length === 1 && handed[0]?.[0]?.categoryName === "Right" && type === "bracelet") {
+        // Still accept single detected hand — rear-cam handedness is often flipped
+        lm = hands[0];
       }
       if (!lm) {
+        // Pose wrist fallback so bracelet isn't stuck on "no hand"
+        try {
+          const pose = await getVideoPose();
+          const pres = pose.detectForVideo(video, now);
+          const plm = pres.landmarks?.[0];
+          const lw = plm?.[15];
+          if (lw) {
+            const fake = [];
+            fake[0] = { x: lw.x, y: lw.y };
+            fake[9] = { x: lw.x + 0.04, y: lw.y - 0.12 };
+            fake[12] = { x: lw.x + 0.05, y: lw.y - 0.18 };
+            fake[5] = { x: lw.x - 0.03, y: lw.y - 0.08 };
+            fake[17] = { x: lw.x + 0.06, y: lw.y - 0.06 };
+            return scoreBracelet(fake);
+          }
+        } catch (_) {}
         return {
           score: 0,
           ok: false,
