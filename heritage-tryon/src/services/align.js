@@ -1,5 +1,6 @@
 /**
  * Live camera alignment (PASS/ID-style) using MediaPipe VIDEO hand/face/pose.
+ * Poses assume phone held in the RIGHT hand → left arm / face slightly angled.
  */
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
@@ -73,41 +74,45 @@ function dist2(ax, ay, bx, by) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-/**
- * Score 0..1 how well landmarks match guide target zone.
- * @returns {{ score: number, message: string, ok: boolean, far: boolean }}
- */
 function scoreBracelet(lm) {
-  // Guide: fist top, wrist ~ (0.50, 0.32)
+  // Phone in RIGHT hand → left arm angled in (not a straight horizontal bar).
   const wrist = lm[0];
   const mid = lm[9];
   const tip = lm[12];
-  const target = { x: 0.5, y: 0.32 };
+  const indexMcp = lm[5];
+  const pinkyMcp = lm[17];
+  const target = { x: 0.52, y: 0.48 };
   const d = dist2(wrist.x, wrist.y, target.x, target.y);
-  const handAbove = mid.y < wrist.y + 0.02 && tip.y < wrist.y;
-  let score = Math.max(0, 1 - d / 0.14);
-  if (handAbove) score = Math.min(1, score + 0.08);
-  else score *= 0.4;
-  if (d > 0.08) score = Math.min(score, 0.7);
-  const ok = score >= 0.88 && d <= 0.06;
-  const far = d > 0.18 || score < 0.35;
+  const ang = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
+  const angOk = ang > -145 && ang < -20;
+  const fistUp = tip.y < wrist.y;
+  const palmSpan =
+    indexMcp && pinkyMcp ? dist2(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y) : 0.12;
+  let score = Math.max(0, 1 - d / 0.24);
+  if (angOk) score = Math.min(1, score + 0.14);
+  else score *= 0.7;
+  if (fistUp) score = Math.min(1, score + 0.1);
+  else score *= 0.75;
+  if (palmSpan > 0.06 && palmSpan < 0.35) score = Math.min(1, score + 0.05);
+  const ok = score >= 0.7 && d <= 0.14;
+  const far = d > 0.3 || score < 0.28;
   return {
     score,
     ok,
     far,
     message: far
-      ? "손목이 가이드에서 벗어났습니다. 주황 링(+)에 맞춰 주세요"
+      ? "왼팔을 비스듬히 · 주황 링(+)에 손목을 맞춰 주세요"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "주먹을 위로 · 주황 링(+)에 손목을 더 가까이",
+        : "오른손 폰 · 왼팔 비스듬히 · 주먹↑ 손목(+)",
   };
 }
 
 const FINGER_LM = {
-  index: { mcp: 5, pip: 6, tip: 8, label: "검지", target: { x: 0.52, y: 0.22 } },
-  middle: { mcp: 9, pip: 10, tip: 12, label: "중지", target: { x: 0.50, y: 0.18 } },
-  ring: { mcp: 13, pip: 14, tip: 16, label: "약지", target: { x: 0.46, y: 0.22 } },
-  pinky: { mcp: 17, pip: 18, tip: 20, label: "소지", target: { x: 0.40, y: 0.26 } },
+  index: { mcp: 5, pip: 6, tip: 8, label: "검지", target: { x: 0.56, y: 0.3 } },
+  middle: { mcp: 9, pip: 10, tip: 12, label: "중지", target: { x: 0.52, y: 0.26 } },
+  ring: { mcp: 13, pip: 14, tip: 16, label: "약지", target: { x: 0.48, y: 0.3 } },
+  pinky: { mcp: 17, pip: 18, tip: 20, label: "소지", target: { x: 0.42, y: 0.34 } },
 };
 
 function scoreRing(lm, finger = "ring") {
@@ -127,13 +132,14 @@ function scoreRing(lm, finger = "ring") {
   const mid = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
   const d = dist2(mid.x, mid.y, spec.target.x, spec.target.y);
   const fingersUp = tip.y < mcp.y;
-  let score = Math.max(0, 1 - d / 0.16);
-  if (fingersUp) score = Math.min(1, score + 0.08);
-  else score *= 0.4;
-  if (d > 0.09) score = Math.min(score, 0.68);
-  const ok = score >= 0.88 && d <= 0.065;
-  const far = d > 0.2 || score < 0.28;
-  // Finger diameter ≈ neighboring MCP span (more stable than whole-finger length)
+  const ang = (Math.atan2(tip.y - mcp.y, tip.x - mcp.x) * 180) / Math.PI;
+  const angOk = ang > -150 && ang < -10;
+  let score = Math.max(0, 1 - d / 0.22);
+  if (fingersUp) score = Math.min(1, score + 0.1);
+  else score *= 0.55;
+  if (angOk) score = Math.min(1, score + 0.08);
+  const ok = score >= 0.72 && d <= 0.11;
+  const far = d > 0.26 || score < 0.28;
   const neighbors = {
     index: [9],
     middle: [5, 13],
@@ -145,7 +151,6 @@ function scoreRing(lm, finger = "ring") {
     const n = lm[ni];
     if (n) fingerW = Math.max(fingerW, dist2(mcp.x, mcp.y, n.x, n.y) * 0.48);
   }
-  const ang = (Math.atan2(tip.y - mcp.y, tip.x - mcp.x) * 180) / Math.PI;
   return {
     score,
     ok,
@@ -154,7 +159,7 @@ function scoreRing(lm, finger = "ring") {
       ? `왼손 ${spec.label}가 가이드에서 벗어났습니다`
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : `왼손 손등 · ${spec.label}(+)에 맞춰 주세요`,
+        : `왼손 비스듬히 · ${spec.label}(+)에 맞춰 주세요`,
     placement: {
       kind: "ring",
       finger,
@@ -170,21 +175,18 @@ function scoreRing(lm, finger = "ring") {
 }
 
 function scoreEarring(faceLm, earSide, mirror = false) {
-  // earSide = anatomical. Mirrored front preview (KYC): right ear → screen right.
-  // Unmirrored raw landmarks: right ear is on the left of the frame → flip X when scoring.
   const L = faceLm[234] || faceLm[127];
   const R = faceLm[454] || faceLm[356];
   const anatomical = earSide === "left" ? "left" : "right";
   const ear = anatomical === "left" ? L : R;
   if (!ear) return { score: 0, ok: false, far: true, message: "얼굴·귀가 보이도록 맞춰 주세요" };
   const sx = mirror ? 1 - ear.x : ear.x;
-  // Screen-space target (mirror preview = same side as anatomical)
-  const target = anatomical === "right" ? { x: 0.72, y: 0.45 } : { x: 0.28, y: 0.45 };
+  const target = anatomical === "right" ? { x: 0.68, y: 0.4 } : { x: 0.32, y: 0.4 };
   const d = dist2(sx, ear.y, target.x, target.y);
-  let score = Math.max(0, 1 - d / 0.14);
-  if (d > 0.08) score = Math.min(score, 0.7);
-  const ok = score >= 0.88 && d <= 0.06;
-  const far = d > 0.18 || score < 0.3;
+  let score = Math.max(0, 1 - d / 0.18);
+  if (d > 0.1) score = Math.min(score, 0.78);
+  const ok = score >= 0.78 && d <= 0.09;
+  const far = d > 0.22 || score < 0.3;
   const label = anatomical === "left" ? "왼쪽" : "오른쪽";
   return {
     score,
@@ -194,7 +196,7 @@ function scoreEarring(faceLm, earSide, mirror = false) {
       ? `${label} 귀가 가이드에서 벗어났습니다`
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : `${label} 귀를 가이드(+)에 맞춰 주세요`,
+        : `${label} 귀 · 살짝 기울여 가이드(+)에`,
   };
 }
 
@@ -214,25 +216,24 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
   const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
   const noseY = nose ? mapY(nose.y) : null;
-  // Face + neck near guide center — hard distance gate so 3-2-1 doesn't fire early
   const faceNeck = {
     x: mid.x,
     y: noseY != null ? noseY * 0.55 + mid.y * 0.45 : mid.y - 0.04,
   };
-  const target = { x: 0.5, y: 0.36 };
+  const target = { x: 0.52, y: 0.34 };
   const d = dist2(faceNeck.x, faceNeck.y, target.x, target.y);
 
-  let score = Math.max(0, 1 - d / 0.11);
-  if (Math.abs(mid.x - 0.5) > 0.12) score *= 0.45;
-  if (noseY == null) score *= 0.3;
-  else if (noseY > 0.4 || noseY < 0.06) score *= 0.35;
-  if (shoulderW < 0.28 || shoulderW > 0.78) score *= 0.5;
-  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.08);
-  score *= 0.55 + 0.45 * level;
-  if (d > 0.085) score = Math.min(score, 0.65);
+  let score = Math.max(0, 1 - d / 0.14);
+  if (Math.abs(mid.x - 0.5) > 0.2) score *= 0.55;
+  if (noseY == null) score *= 0.35;
+  else if (noseY > 0.45 || noseY < 0.04) score *= 0.4;
+  if (shoulderW < 0.22 || shoulderW > 0.85) score *= 0.55;
+  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.12);
+  score *= 0.6 + 0.4 * level;
+  if (d > 0.11) score = Math.min(score, 0.72);
 
-  const ok = score >= 0.9 && d <= 0.055;
-  const far = d > 0.16 || score < 0.35;
+  const ok = score >= 0.8 && d <= 0.08;
+  const far = d > 0.2 || score < 0.35;
   return {
     score,
     ok,
@@ -241,15 +242,14 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
       ? "가이드에 더 가까이 · 얼굴·목을 가운데로"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "얼굴·목을 가이드 중심에 더 정확히 맞춰 주세요",
+        : "한손 셀카 · 얼굴·목을 가이드에 맞춰 주세요",
   };
 }
 
 /**
- * Run one alignment frame against live video.
- * @param {string} earSide anatomical ear for earrings
+ * @param {string} earSide anatomical ear
  * @param {string} ringFinger index|middle|ring|pinky
- * @param {{ mirror?: boolean }} opts front-camera mirror preview (KYC)
+ * @param {{ mirror?: boolean, zoom?: number }} opts
  */
 export async function evaluateAlignment(video, type, earSide = "right", ringFinger = "ring", opts = {}) {
   if (!video || video.readyState < 2) {
@@ -257,7 +257,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
   }
   const now = performance.now();
   if (video.currentTime === lastVideoTime) {
-    return null; // skip duplicate frame
+    return null;
   }
   lastVideoTime = video.currentTime;
   const mirror = Boolean(opts.mirror);
@@ -269,7 +269,6 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       const res = detector.detectForVideo(video, now);
       const hands = res.landmarks || [];
       const handed = res.handednesses || [];
-      // Prefer Left hand for rings
       let lm = hands[0];
       if (type === "ring" && hands.length > 1) {
         const leftIdx = handed.findIndex((h) => h?.[0]?.categoryName === "Left");
@@ -282,7 +281,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
           far: true,
           message: type === "ring"
             ? "왼손 손등이 화면에 들어오게 해 주세요"
-            : "팔·손목이 화면에 들어오게 해 주세요",
+            : "왼팔·손목이 화면에 들어오게 해 주세요",
           placement: null,
         };
       }
