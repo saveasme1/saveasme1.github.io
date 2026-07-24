@@ -496,15 +496,15 @@ async function runMergeTryOn() {
       ? !detection.allTargets?.bracelet
       : !detection.target;
     if (usedFallback) {
-      setStatus("인식이 어려워 기본 위치로 합성합니다…");
+      setStatus("인식이 어려워 기본 위치로 3D 합성합니다…");
     } else {
       const typeLabel = { ring: "반지", bracelet: "팔찌", earring: "귀걸이", necklace: "목걸이" }[useType] || useType;
-      setStatus(`${typeLabel} 위치에 합성 중…`);
+      setStatus(`${typeLabel} 3D 착용 렌더링 중…`);
     }
 
     const after = await withTimeout(
       composeTryOn(state.bodyImage, jewelry.canvas, target, useType),
-      15000,
+      45000,
       "합성 시간 초과"
     );
     state.afterCanvas = after;
