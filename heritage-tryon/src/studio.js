@@ -25,6 +25,7 @@ const state = {
   cameraHistoryLocal: false,
   alignRaf: 0,
   goodStreak: 0,
+  goodSince: 0,
   autoCaptureArmed: true,
   capturing: false,
   closingCameraFromUi: false,
@@ -286,14 +287,14 @@ const CAMERA_HINT = {
   ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
   earring: "전면 카메라 · 내 오른쪽 귀는 화면 왼쪽에 보입니다",
-  necklace: "전면 카메라 · 얼굴을 위로 · 목(+)에 맞추세요",
+  necklace: "전면 카메라 · 얼굴↑ · 쇄골(+)에 정확히 맞추고 유지",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
   earring: "오른쪽 귀 → 화면 왼쪽 가이드",
-  necklace: "전면 · 얼굴↑ · 목·쇄골(+)",
+  necklace: "전면 · 얼굴↑ · 쇄골(+) · 유지",
 };
 
 const FINGER_LABEL = {
@@ -437,6 +438,7 @@ function stopAlignLoop() {
   }
   stopAlignClock();
   state.goodStreak = 0;
+  state.goodSince = 0;
   const sheet = $("cameraSheet");
   sheet?.classList.remove("is-align-ok", "is-align-far");
   const alert = $("alignAlert");
@@ -470,6 +472,14 @@ function applyAlignUi(result) {
   }
 }
 
+/** Hold ms after ok before auto-shutter — avoid snap-on-first-touch. */
+const HOLD_MS = {
+  necklace: 1200,
+  earring: 1000,
+  ring: 1000,
+  bracelet: 900,
+};
+
 async function alignTick() {
   if (!state.cameraOpen || state.capturing) return;
   const video = $("cameraVideo");
@@ -480,13 +490,17 @@ async function alignTick() {
       applyAlignUi(result);
       if (result.ok) {
         state.goodStreak += 1;
-        if (state.autoCaptureArmed && state.goodStreak >= 10) {
+        if (!state.goodSince) state.goodSince = performance.now();
+        const held = performance.now() - state.goodSince;
+        const need = HOLD_MS[type] || 1000;
+        if (state.autoCaptureArmed && held >= need && state.goodStreak >= 18) {
           state.autoCaptureArmed = false;
           shutterCapture();
           return;
         }
       } else {
         state.goodStreak = 0;
+        state.goodSince = 0;
       }
     }
   } catch (err) {
@@ -499,6 +513,7 @@ function startAlignLoop() {
   stopAlignLoop();
   state.autoCaptureArmed = true;
   state.goodStreak = 0;
+  state.goodSince = 0;
   state.alignRaf = requestAnimationFrame(alignTick);
 }
 
