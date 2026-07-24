@@ -9,7 +9,7 @@
   <meta name="robots" content="index,follow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260725-webapk1 -->
+  <!-- cache-bust: 20260725-ppguide1 -->
   <meta name="description" content="Windows · Mac · Android · iPhone — 헤리티지 앱을 홈 화면·PC에 설치하세요.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="헤리티지">
@@ -27,7 +27,7 @@
   <meta name="twitter:title" content="헤리티지 앱 설치">
   <meta name="twitter:description" content="Windows · Mac · Android · iPhone에서 설치하는 링크입니다.">
   <meta name="twitter:image" content="https://hand-made.kr/icons/og-install-v20260725b.png">
-  <link rel="manifest" href="manifest.webmanifest?v=20260725-webapk1">
+  <link rel="manifest" href="manifest.webmanifest?v=20260725-ppguide1">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="image_src" href="https://hand-made.kr/icons/og-install-v20260725b.png">
@@ -900,6 +900,244 @@
     }
     .sim__steps b { color: #fff; }
 
+    /* Google Play Protect 경고창 가이드 */
+    .pp-guide {
+      margin-top: 18px;
+      padding: 14px 12px 16px;
+      border-radius: 16px;
+      background: rgba(22, 21, 19, 0.04);
+      border: 1px solid var(--line);
+    }
+    .pp-guide__lead {
+      margin: 0 0 12px;
+      color: #3b3834;
+      font-size: 13.5px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+    .pp-guide__lead span {
+      color: #c2410c;
+    }
+    .pp-stack {
+      display: grid;
+      gap: 14px;
+    }
+    @media (min-width: 720px) {
+      .pp-stack {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+        gap: 14px;
+      }
+    }
+    .pp-step {
+      margin: 0 0 8px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: rgba(255, 130, 54, 0.14);
+      color: #9a3412;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    .pp-step span {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #161513;
+      font-size: 10px;
+    }
+    .pp-card {
+      background: #3c4043;
+      color: #e8eaed;
+      border-radius: 28px;
+      padding: 20px 18px 14px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+      font-family: "Roboto", "Noto Sans KR", system-ui, sans-serif;
+    }
+    .pp-card__brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+    .pp-card__shield {
+      width: 36px;
+      height: 36px;
+    }
+    .pp-card__brand-label {
+      font-size: 11.5px;
+      color: #bdc1c6;
+    }
+    .pp-card__title {
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #fff;
+    }
+    .pp-card__app {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+    .pp-card__app-icon-wrap {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+    }
+    .pp-card__app-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: block;
+      background: #111;
+      object-fit: cover;
+    }
+    .pp-card__warn-badge {
+      position: absolute;
+      right: -4px;
+      bottom: -4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fdd663;
+      color: #202124;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+      border: 2px solid #3c4043;
+    }
+    .pp-card__app-name {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+    }
+    .pp-card__msg {
+      margin: 0 0 10px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #e8eaed;
+    }
+    .pp-card__more {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0 0 14px;
+      padding: 6px 8px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: none;
+      color: #e8eaed;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .pp-card__more.is-pick {
+      border-color: #f97316;
+      background: rgba(249, 115, 22, 0.14);
+      font-weight: 800;
+      animation: ppPulse 1.5s ease-in-out infinite;
+    }
+    .pp-card__more.is-pick::after {
+      content: "여기";
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #161513;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+    .pp-card__more svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+    .pp-card.is-open .pp-card__more svg { transform: rotate(180deg); }
+    .pp-card__details {
+      display: none;
+      margin: 0 0 4px;
+    }
+    .pp-card.is-open .pp-card__details { display: block; }
+    .pp-card.is-open .pp-card__more { display: none; }
+    .pp-card__details p {
+      margin: 0 0 12px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #e8eaed;
+    }
+    .pp-card__details a {
+      color: #8ab4f8;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .pp-card__anyway {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 0 14px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      background: transparent;
+      font-family: inherit;
+      cursor: default;
+    }
+    .pp-card__anyway.is-pick {
+      border-color: #f97316;
+      background: rgba(249, 115, 22, 0.14);
+      font-weight: 800;
+      animation: ppPulse 1.5s ease-in-out infinite;
+    }
+    .pp-card__anyway.is-pick::after {
+      content: "여기";
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #161513;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+    @keyframes ppPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.45); }
+      50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+    }
+    .pp-card__ok {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      background: #8ab4f8;
+      color: #202124;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      font-family: inherit;
+      cursor: default;
+    }
+    .pp-guide__hint {
+      margin: 12px 0 0;
+      text-align: center;
+      color: #9a3412;
+      font-size: 12.5px;
+      line-height: 1.5;
+      font-weight: 800;
+    }
+
     .ios-fast {
       margin-top: 12px;
       padding: 14px;
@@ -1514,10 +1752,75 @@
               <p class="sim__steps"><b>현재 페이지 추가</b> → <b>홈 화면</b> 선택하면 끝입니다</p>
             </div>
 
+            <div class="pp-guide" aria-label="Google Play 프로텍트 경고 안내">
+              <p class="pp-guide__lead">
+                Chrome에서 <b>앱 설치하기</b>를 누르면 아래처럼
+                <span>Google Play 프로텍트</span> 경고가 뜰 수 있습니다.
+                사이트 문제가 아니라 Chrome 설치 검사 화면입니다.
+                순서대로 <b>세부정보 더보기</b> → <b>무시하고 설치하기</b>를 누르세요.
+              </p>
+              <div class="pp-stack">
+                <div>
+                  <p class="pp-step"><span>1</span>먼저 <b>세부정보 더보기</b>를 누르세요</p>
+                  <div class="pp-card" id="ppCardCollapsed" data-pp-card>
+                    <div class="pp-card__brand">
+                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
+                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
+                      </svg>
+                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
+                    </div>
+                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
+                    <div class="pp-card__app">
+                      <div class="pp-card__app-icon-wrap">
+                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
+                      </div>
+                      <span class="pp-card__app-name">HERITAGE</span>
+                    </div>
+                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
+                    <button type="button" class="pp-card__more is-pick" data-pp-more aria-expanded="false">
+                      세부정보 더보기
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div class="pp-card__details">
+                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" target="_blank" rel="noopener noreferrer">자세히 알아보세요</a>.</p>
+                      <span class="pp-card__anyway">무시하고 설치하기</span>
+                    </div>
+                    <div class="pp-card__ok" role="presentation">확인</div>
+                  </div>
+                </div>
+                <div>
+                  <p class="pp-step"><span>2</span>그다음 <b>무시하고 설치하기</b>를 누르세요</p>
+                  <div class="pp-card is-open" aria-hidden="true">
+                    <div class="pp-card__brand">
+                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
+                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
+                      </svg>
+                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
+                    </div>
+                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
+                    <div class="pp-card__app">
+                      <div class="pp-card__app-icon-wrap">
+                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
+                      </div>
+                      <span class="pp-card__app-name">HERITAGE</span>
+                    </div>
+                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
+                    <div class="pp-card__details">
+                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" tabindex="-1">자세히 알아보세요</a>.</p>
+                      <span class="pp-card__anyway is-pick">무시하고 설치하기</span>
+                    </div>
+                    <div class="pp-card__ok" role="presentation">확인</div>
+                  </div>
+                </div>
+              </div>
+              <p class="pp-guide__hint">확인은 설치를 취소합니다. 반드시 <b>무시하고 설치하기</b>를 누르세요.</p>
+            </div>
+
             <p class="note-muted">
-              Chrome에서 <b>앱 설치</b>를 누르면 Play 프로텍트 경고가 뜰 수 있습니다.
-              사이트 문제가 아니라 Chrome이 만든 설치 파일(WebAPK) 검사 화면입니다.
-              <b>무시하고 설치하기</b>를 누르면 됩니다.
               경고가 싫으면 위처럼 <b>현재 페이지 추가 → 홈 화면</b>으로 추가하세요. (이 방식은 보통 경고가 안 뜹니다.)
             </p>
             <p class="note">메뉴가 정상적으로 보이지 않으면 카카오톡 등 앱이 아니라 <b>브라우저에서 열기</b>로 연 뒤 다시 시도하세요.</p>
@@ -1833,6 +2136,20 @@
         pcBtn.textContent = "앱 열기";
         pcBtn.onclick = function () { location.href = "./landing.html"; };
       }
+    });
+
+    // Play Protect 가이드: 세부정보 더보기 토글
+    document.querySelectorAll("[data-pp-more]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var card = btn.closest("[data-pp-card]");
+        if (!card) return;
+        var open = !card.classList.contains("is-open");
+        card.classList.toggle("is-open", open);
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        btn.classList.toggle("is-pick", !open);
+        var anyway = card.querySelector(".pp-card__anyway");
+        if (anyway) anyway.classList.toggle("is-pick", open);
+      });
     });
 
     if ("serviceWorker" in navigator && mode === "other" && !isStandalone) {
