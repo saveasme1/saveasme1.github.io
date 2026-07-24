@@ -9,8 +9,8 @@
   <meta name="robots" content="noindex,nofollow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260724-install4 -->
-  <link rel="manifest" href="manifest.webmanifest?v=20260724-install4">
+  <!-- cache-bust: 20260724-install5 -->
+  <link rel="manifest" href="manifest.webmanifest?v=20260724-install5">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <style>
@@ -123,7 +123,6 @@
       flex-direction: column;
       min-height: 0;
     }
-    .panel > .btn { margin-top: auto; }
     .panel .btn + .hint { margin-top: 8px; }
     .panel .btn + .btn { margin-top: 8px; }
     .panel__body {
@@ -518,13 +517,40 @@
       padding: 0;
       border-radius: 0;
     }
-    /* Phone already open: hide PC-oriented copy CTAs */
-    body.is-android #pcCopyAndroid,
-    body.is-android #pcCopyAndroid + .hint,
-    body.is-ios #pcCopyIos,
-    body.is-ios #pcCopyIos + .hint { display: none !important; }
+    /* PC vs phone copy within shared panels */
+    .view-mobile { display: none !important; }
+    body.is-android .view-pc,
+    body.is-ios .view-pc { display: none !important; }
+    body.is-android .view-mobile,
+    body.is-ios .view-mobile { display: block !important; }
+    body.is-other .view-mobile { display: none !important; }
 
-    .mob-actions {
+    .panel__cta {
+      margin: 0 0 12px;
+    }
+    .panel__cta .btn { margin-top: 0; }
+    .panel__cta .hint { margin-top: 8px; }
+    .panel > .btn { margin-top: 12px; }
+
+    .step-head {
+      margin: 0 0 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(22, 21, 19, 0.05);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.55;
+      color: #3b3834;
+    }
+    .step-head strong { color: var(--ink); }
+    .step-label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      color: var(--accent);
+    }
       display: none;
       width: min(440px, 100%);
       margin: 0 auto 14px;
@@ -586,10 +612,31 @@
         </div>
         <h2>Android</h2>
         <div class="panel__body">
-          <p class="lead-mini">
-            삼성 인터넷 메뉴에는 <b>‘앱 설치’</b> 문구가 없습니다.
-            하단 오른쪽 <b>⋮</b> → <b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b>을 선택하세요.
-          </p>
+          <!-- PC: start with copy → open on phone -->
+          <div class="view-pc">
+            <p class="step-head">
+              <span class="step-label">1단계 · PC에서</span>
+              아래 <b>설치 링크 복사</b>를 누른 뒤, 휴대폰 브라우저(삼성 인터넷·Chrome) 주소창에 붙여넣어 열어 주세요.
+            </p>
+            <div class="panel__cta">
+              <button type="button" class="btn btn-primary" id="pcCopyAndroid">설치 링크 복사</button>
+              <div class="hint">복사한 주소를 휴대폰에서 열면 설치 안내가 이어집니다</div>
+            </div>
+            <p class="step-head">
+              <span class="step-label">2단계 · 휴대폰에서</span>
+              삼성 인터넷 메뉴에는 <b>‘앱 설치’</b> 문구가 없습니다.
+              하단 오른쪽 <b>⋮</b> → <b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b>을 선택하세요.
+            </p>
+          </div>
+
+          <!-- Phone: already on device -->
+          <div class="view-mobile">
+            <p class="step-head">
+              <span class="step-label">지금 휴대폰에서</span>
+              삼성 인터넷 메뉴에는 <b>‘앱 설치’</b>가 없습니다.
+              아래 그림처럼 하단 오른쪽 <b>⋮</b> → <b>현재 페이지 추가</b>(4번째) → <b>홈 화면</b>을 선택하세요.
+            </p>
+          </div>
 
           <div class="sim" id="androidSim" aria-label="삼성 인터넷 설치 안내">
             <p class="sim__cap">실제 브라우저와 같은 위치 · 주황 표시를 따라 누르세요</p>
@@ -662,10 +709,9 @@
             Chrome이라면 메뉴(⋮)에 <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>가 보일 수 있습니다.
             ‘앱 설치’ 시 Play 프로텍트 경고가 뜨면 <b>무시하고 설치하기</b>를 누르면 됩니다.
           </p>
-          <p class="note">카카오톡 등 앱 안이라면 먼저 브라우저에서 열어 주세요.</p>
+          <p class="note view-pc">메뉴·추가가 정상적으로 보이지 않으면 카카오톡 등 앱이 아니라 <b>삼성 인터넷 또는 Chrome</b>에서 다시 열어 주세요.</p>
+          <p class="note view-mobile">설치 메뉴가 안 보이거나 동작이 이상하면 카카오톡 안이 아니라 <b>브라우저에서 열기</b>로 연 뒤 다시 시도하세요.</p>
         </div>
-        <button type="button" class="btn btn-primary" id="pcCopyAndroid">설치 링크 복사</button>
-        <div class="hint">휴대폰 브라우저에 붙여넣어 연 뒤, 위 메뉴대로 추가하세요</div>
       </section>
 
       <section class="panel" id="panelIos">
@@ -674,35 +720,55 @@
         </div>
         <h2>iPhone</h2>
         <div class="panel__body">
-          <p class="lead-mini">가장 빠른 방법: <b>기본 카메라로 QR</b> → Safari → 공유 → 홈 화면에 추가.</p>
-          <img class="qr" src="icons/qr-install.png" alt="아이폰 설치용 QR 코드" width="148" height="148">
+          <!-- PC: QR / copy first -->
+          <div class="view-pc">
+            <p class="step-head">
+              <span class="step-label">1단계 · PC에서</span>
+              아이폰 <b>기본 카메라로 QR</b>을 스캔하거나, 아래 링크를 복사해 아이폰 Safari에 붙여넣어 열어 주세요.
+            </p>
+            <img class="qr" src="icons/qr-install.png" alt="아이폰 설치용 QR 코드" width="148" height="148">
+            <div class="panel__cta">
+              <button type="button" class="btn btn-secondary" id="pcCopyIos">설치 링크 복사</button>
+              <div class="hint">QR이 가장 빠르고, 안 되면 링크를 Safari에 붙여넣기</div>
+            </div>
+            <p class="step-head">
+              <span class="step-label">2단계 · 아이폰 Safari에서</span>
+              하단 <b>공유</b> → <b>홈 화면에 추가</b>를 선택하면 설치가 끝납니다.
+            </p>
+            <div class="ios-fast">
+              <h3>Safari에서 추가 순서</h3>
+              <ol>
+                <li>알림을 눌러 <b>Safari</b>로 엽니다 (카톡 안이면 Safari로 전환)</li>
+                <li>하단 <b>공유</b> → <b>홈 화면에 추가</b> → 추가</li>
+              </ol>
+            </div>
+            <p class="note">공유·추가가 정상적으로 보이지 않으면 카카오톡 등이 아니라 <b>Safari</b>에서 다시 열어 주세요.</p>
+          </div>
 
-          <div class="ios-fast">
-            <h3>QR로 연 뒤 (권장)</h3>
-            <ol>
-              <li>아이폰 <b>기본 카메라</b>로 QR을 스캔합니다</li>
-              <li>알림을 눌러 <b>Safari</b>로 엽니다</li>
-              <li>하단 <b>공유</b> → <b>홈 화면에 추가</b></li>
-            </ol>
+          <!-- Phone: already on iPhone -->
+          <div class="view-mobile">
+            <p class="step-head">
+              <span class="step-label">지금 아이폰에서</span>
+              이미 이 페이지를 보고 있다면 QR·복사가 필요 없습니다.
+              Safari에서 <b>공유</b> → <b>홈 화면에 추가</b>만 하면 됩니다.
+            </p>
+            <div class="ios-fast">
+              <h3>Safari로 보고 있다면</h3>
+              <ol>
+                <li>하단 <b>공유</b> 버튼을 누릅니다</li>
+                <li><b>홈 화면에 추가</b> → 추가</li>
+              </ol>
+            </div>
+            <div class="ios-fast" style="margin-top:10px">
+              <h3>카카오톡 등 앱 안에서 열렸다면</h3>
+              <ol>
+                <li>위 <b>Safari에서 열기</b>로 먼저 이동합니다</li>
+                <li>Safari에서 <b>공유</b> → <b>홈 화면에 추가</b></li>
+              </ol>
+            </div>
+            <p class="note">공유 메뉴가 안 보이거나 설치가 안 되면 앱 안이 아니라 <b>Safari에서 열기</b>로 연 뒤 다시 시도하세요.</p>
           </div>
-          <div class="ios-fast" style="margin-top:10px">
-            <h3>이미 Safari로 설치 페이지를 보고 있다면</h3>
-            <ol>
-              <li>하단 <b>공유</b> 버튼을 누릅니다</li>
-              <li><b>홈 화면에 추가</b> → 추가</li>
-            </ol>
-          </div>
-          <div class="ios-fast" style="margin-top:10px">
-            <h3>카카오톡·다른 앱 안에서 열렸다면</h3>
-            <ol>
-              <li><b>Safari에서 열기</b>로 먼저 이동합니다 (복사보다 빠름)</li>
-              <li>Safari에서 <b>공유</b> → <b>홈 화면에 추가</b></li>
-            </ol>
-          </div>
-          <p class="note">카카오톡 등 앱 안에서는 설치할 수 없습니다. Safari로 연 뒤 추가하세요.</p>
         </div>
-        <button type="button" class="btn btn-secondary" id="pcCopyIos">설치 링크 복사</button>
-        <div class="hint">QR이 안 되면 링크를 복사해 Safari에 붙여넣기</div>
       </section>
     </div>
   </div>
@@ -819,8 +885,10 @@
         };
       }
     }
-    document.getElementById("pcCopyAndroid").onclick = copyLink;
-    document.getElementById("pcCopyIos").onclick = copyLink;
+    var copyAndroid = document.getElementById("pcCopyAndroid");
+    var copyIos = document.getElementById("pcCopyIos");
+    if (copyAndroid) copyAndroid.onclick = copyLink;
+    if (copyIos) copyIos.onclick = copyLink;
 
     // Mobile action buttons (only needed ones)
     var mob = document.getElementById("mobActions");
