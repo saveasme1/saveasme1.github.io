@@ -82,10 +82,10 @@ function scoreBracelet(lm) {
   const target = { x: 0.5, y: 0.32 };
   const d = dist2(wrist.x, wrist.y, target.x, target.y);
   const handAbove = mid.y < wrist.y + 0.02 && tip.y < wrist.y;
-  let score = Math.max(0, 1 - d / 0.28);
-  if (handAbove) score = Math.min(1, score + 0.15);
-  else score *= 0.55;
-  const ok = score >= 0.72;
+  let score = Math.max(0, 1 - d / 0.22);
+  if (handAbove) score = Math.min(1, score + 0.12);
+  else score *= 0.5;
+  const ok = score >= 0.8;
   const far = score < 0.35;
   return {
     score,
@@ -94,7 +94,7 @@ function scoreBracelet(lm) {
     message: far
       ? "손목이 가이드에서 벗어났습니다. 주황 링(+)에 맞춰 주세요"
       : ok
-        ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
+        ? "좋아요! 자세를 유지하세요…"
         : "주먹을 위로 · 주황 링(+)에 손목을 더 가까이",
   };
 }
@@ -122,10 +122,10 @@ function scoreRing(lm, finger = "ring") {
   const mid = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
   const d = dist2(mid.x, mid.y, spec.target.x, spec.target.y);
   const fingersUp = tip.y < mcp.y;
-  let score = Math.max(0, 1 - d / 0.32);
-  if (fingersUp) score = Math.min(1, score + 0.12);
-  else score *= 0.5;
-  const ok = score >= 0.68;
+  let score = Math.max(0, 1 - d / 0.24);
+  if (fingersUp) score = Math.min(1, score + 0.1);
+  else score *= 0.45;
+  const ok = score >= 0.8;
   const far = score < 0.3;
   return {
     score,
@@ -134,7 +134,7 @@ function scoreRing(lm, finger = "ring") {
     message: far
       ? `왼손 ${spec.label}가 가이드에서 벗어났습니다`
       : ok
-        ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
+        ? "좋아요! 자세를 유지하세요…"
         : `왼손 손등 · ${spec.label}(+)에 맞춰 주세요`,
   };
 }
@@ -149,8 +149,8 @@ function scoreEarring(faceLm, earSide) {
   if (!ear) return { score: 0, ok: false, far: true, message: "얼굴·귀가 보이도록 맞춰 주세요" };
   const target = anatomical === "right" ? { x: 0.28, y: 0.45 } : { x: 0.72, y: 0.45 };
   const d = dist2(ear.x, ear.y, target.x, target.y);
-  const score = Math.max(0, 1 - d / 0.35);
-  const ok = score >= 0.7;
+  const score = Math.max(0, 1 - d / 0.26);
+  const ok = score >= 0.8;
   const far = score < 0.3;
   const label = anatomical === "left" ? "왼쪽" : "오른쪽";
   const screenSide = anatomical === "right" ? "왼쪽" : "오른쪽";
@@ -161,7 +161,7 @@ function scoreEarring(faceLm, earSide) {
     message: far
       ? `${label} 귀(화면 ${screenSide})가 가이드에서 벗어났습니다`
       : ok
-        ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
+        ? "좋아요! 자세를 유지하세요…"
         : `${label} 귀 · 화면 ${screenSide} 가이드(+)에 더 가까이`,
   };
 }
@@ -169,22 +169,44 @@ function scoreEarring(faceLm, earSide) {
 function scoreNecklace(poseLm) {
   const ls = poseLm[11];
   const rs = poseLm[12];
+  const nose = poseLm[0];
   if (!ls || !rs) return { score: 0, ok: false, far: true, message: "목·어깨가 보이게 맞춰 주세요" };
-  const mid = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 + 0.06 };
-  const target = { x: 0.5, y: 0.55 };
-  const d = dist2(mid.x, mid.y, target.x, target.y);
-  const score = Math.max(0, 1 - d / 0.35);
-  const ok = score >= 0.68;
-  const far = score < 0.3;
+
+  const mid = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
+  const shoulderW = dist2(ls.x, ls.y, rs.x, rs.y);
+  // Collarbone ≈ between nose and shoulder line (not mid-chest).
+  const collar = {
+    x: mid.x,
+    y: nose ? nose.y * 0.28 + mid.y * 0.72 : mid.y - shoulderW * 0.06,
+  };
+  const target = { x: 0.5, y: 0.4 };
+  const d = dist2(collar.x, collar.y, target.x, target.y);
+
+  let score = Math.max(0, 1 - d / 0.2);
+  // Shoulders roughly level
+  const level = 1 - Math.min(1, Math.abs(ls.y - rs.y) / 0.07);
+  score *= 0.5 + 0.5 * level;
+  // Framing distance: shoulders fill a usable portion of the frame
+  if (shoulderW < 0.24 || shoulderW > 0.58) score *= 0.4;
+  // Face must sit in the upper band so collar isn't mid-torso
+  if (!nose) score *= 0.55;
+  else if (nose.y > 0.38) score *= 0.35;
+  else if (nose.y < 0.04) score *= 0.65;
+
+  const vis = [ls, rs, nose].filter(Boolean);
+  if (vis.some((p) => p.visibility != null && p.visibility < 0.45)) score *= 0.5;
+
+  const ok = score >= 0.84;
+  const far = score < 0.35;
   return {
     score,
     ok,
     far,
     message: far
-      ? "목·쇄골이 가이드에서 벗어났습니다"
+      ? "쇄골이 가이드에서 벗어났습니다. 얼굴을 위로 · 상반신을 가운데"
       : ok
-        ? "좋아요! 잠시 유지하면 자동 촬영됩니다"
-        : "얼굴을 위 · 목(+)에 더 가까이",
+        ? "좋아요! 쇄골 위치 유지하세요…"
+        : "얼굴↑ · 쇄골(+)을 가이드에 정확히 맞춰 주세요",
   };
 }
 
