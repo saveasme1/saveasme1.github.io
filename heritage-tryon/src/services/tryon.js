@@ -215,32 +215,32 @@ function buildMetalStrip(crop, stripW = 512, stripH = 48) {
 }
 
 /**
- * Volumetric torus bracelet around wrist.
- * Local frame: X = across wrist, Y = along forearm (depth foreshortened on X–screen).
- * Tube cross-section gives round metal + side crescents + AO, not a flat sticker.
+ * Product-faithful bracelet wrap — FRONT of wrist ONLY (back occluded by arm).
+ * No Love screw studs / Clash pyramids — those changed the product shape.
  */
 function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleDeg, frontAngleDeg) {
-  // Plane of the bracelet: across the wrist (angleDeg from landmarks).
   const plane = (angleDeg * Math.PI) / 180;
-  // Knuckles / "front" of arm in image
-  const frontRef = ((frontAngleDeg != null ? frontAngleDeg : angleDeg - 90) * Math.PI) / 180;
+  // Camera-up side of wrist (top-down shot): favor screen-up as "front"
+  const frontRef =
+    frontAngleDeg != null
+      ? (frontAngleDeg * Math.PI) / 180
+      : plane - Math.PI / 2;
 
-  const majorR = Math.max(14, wristW * 0.46); // wrist radius across
-  const depthR = Math.max(9, majorR * 0.52); // foreshortened depth axis
-  const tubeR = clamp(majorR * 0.2, 5, majorR * 0.28); // round metal thickness
-  const bandHalf = clamp(majorR * 0.16, 4, majorR * 0.22); // width along forearm
+  const majorR = Math.max(16, wristW * 0.48);
+  const depthR = Math.max(10, majorR * 0.48);
+  const tubeR = clamp(majorR * 0.22, 6, majorR * 0.32);
+  const bandHalf = clamp(majorR * 0.2, 5, majorR * 0.28);
 
-  const { strip, avg } = buildMetalStrip(crop, 768, 64);
+  const { strip, avg } = buildMetalStrip(crop, 1024, 96);
   const stripCtx = strip.getContext("2d", { willReadFrequently: true });
   const { data: td, width: sw, height: sh } = stripCtx.getImageData(0, 0, strip.width, strip.height);
 
   const cosP = Math.cos(plane);
   const sinP = Math.sin(plane);
-  // Forearm axis in screen ≈ perpendicular to bracelet plane
   const alongX = -sinP;
   const alongY = cosP;
 
-  const pad = Math.ceil(majorR + tubeR + bandHalf + 10);
+  const pad = Math.ceil(majorR + tubeR + bandHalf + 12);
   const x0 = Math.max(0, Math.floor(center.x - pad));
   const y0 = Math.max(0, Math.floor(center.y - pad));
   const x1 = Math.min(layerCtx.canvas.width, Math.ceil(center.x + pad));
@@ -248,36 +248,31 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
   const bw = Math.max(1, x1 - x0);
   const bh = Math.max(1, y1 - y0);
 
-  const back = layerCtx.createImageData(bw, bh);
   const front = layerCtx.createImageData(bw, bh);
-  const bd = back.data;
   const fd = front.data;
 
-  // Soft contact AO on skin (under jewelry)
+  // Contact AO only (under metal)
   layerCtx.save();
   layerCtx.translate(center.x, center.y);
   layerCtx.rotate(plane);
-  const ao = layerCtx.createRadialGradient(0, 0, majorR * 0.35, 0, 0, majorR + tubeR);
-  ao.addColorStop(0, "rgba(0,0,0,0.00)");
-  ao.addColorStop(0.72, "rgba(0,0,0,0.18)");
-  ao.addColorStop(0.9, "rgba(0,0,0,0.32)");
+  const ao = layerCtx.createRadialGradient(0, 0, majorR * 0.3, 0, 0, majorR + tubeR);
+  ao.addColorStop(0, "rgba(0,0,0,0)");
+  ao.addColorStop(0.75, "rgba(0,0,0,0.16)");
   ao.addColorStop(1, "rgba(0,0,0,0)");
   layerCtx.fillStyle = ao;
   layerCtx.beginPath();
-  layerCtx.ellipse(0, 0, majorR + tubeR * 0.6, depthR + tubeR * 0.45, 0, 0, Math.PI * 2);
+  layerCtx.ellipse(0, 0, majorR + tubeR * 0.5, depthR + tubeR * 0.4, 0, 0, Math.PI * 2);
   layerCtx.fill();
-  // Inner ring contact shadow
-  layerCtx.strokeStyle = "rgba(0,0,0,0.28)";
-  layerCtx.lineWidth = Math.max(2, tubeR * 0.45);
-  layerCtx.beginPath();
-  layerCtx.ellipse(0, 0, majorR - tubeR * 0.15, depthR - tubeR * 0.1, 0, 0, Math.PI * 2);
-  layerCtx.stroke();
   layerCtx.restore();
 
-  const lightX = 0.35;
-  const lightY = -0.75;
-  const lightZ = 0.55;
+  const lightX = 0.25;
+  const lightY = -0.8;
+  const lightZ = 0.5;
   const llen = Math.hypot(lightX, lightY, lightZ) || 1;
+
+  // Prefer screen-up as visible face for top-down arm photos
+  const camUpX = 0;
+  const camUpY = -1;
 
   for (let py = 0; py < bh; py++) {
     for (let px = 0; px < bw; px++) {
@@ -285,51 +280,36 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
       const gy = y0 + py + 0.5;
       const dx = gx - center.x;
       const dy = gy - center.y;
-      // Local: lx across plane, ly depth-in-plane, la along forearm
-      const lx = dx * cosP + dy * sinP;
-      const ly = -dx * sinP + dy * cosP;
-      // Project out the along-forearm component using ly as depth axis of ellipse
-      // Bracelet sits mostly in lx–depth; band width uses offset along forearm.
-      // Approximate along as ly contribution from arm angle: use second axis.
-      const across = lx;
-      const depth = ly;
+      const across = dx * cosP + dy * sinP;
+      const depth = -dx * sinP + dy * cosP;
       const along = dx * alongX + dy * alongY;
-
-      if (Math.abs(along) > bandHalf * 1.35) continue;
+      if (Math.abs(along) > bandHalf * 1.4) continue;
 
       const nx = across / majorR;
       const ny = depth / depthR;
       const er = Math.hypot(nx, ny);
       if (er < 1e-4) continue;
 
-      // Nearest point on major ellipse
       const ex = (nx / er) * majorR;
       const ey = (ny / er) * depthR;
-      const radialDist = Math.hypot(across - ex, depth - ey);
-      // Tube SDF in radial + along (stadium / rounded rect tube)
-      const radialGap = radialDist;
-      const alongGap = Math.max(0, Math.abs(along) - bandHalf * 0.55);
-      const tubeDist = Math.hypot(radialGap - 0, alongGap); // center of tube at major ellipse
-      // Reinterpret: distance to tube centerline (ellipse) in 2D then include along
-      const dRadial = Math.abs(radialDist); // from ellipse curve — wait radialDist IS distance to ellipse point
-      // Better tube: radial distance from major radius in elliptical metric
-      const eMetric = er; // 1 on surface
+      const eMetric = er;
       const dMaj = Math.abs(eMetric - 1) * ((majorR + depthR) * 0.5);
-      const tubeSdf = Math.hypot(dMaj, Math.max(0, Math.abs(along) - bandHalf * 0.15)) - tubeR;
-      if (tubeSdf > 0.85) continue;
+      const tubeSdf = Math.hypot(dMaj, Math.max(0, Math.abs(along) - bandHalf * 0.2)) - tubeR;
+      if (tubeSdf > 0.7) continue;
 
       const theta = Math.atan2(ny, nx);
-      // Camera faces +Z; back of wrist is negative depth (behind arm)
-      // Use elliptical "depth" : positive ny toward one side.
-      // Front of bracelet = side facing knuckles (frontRef relative to plane).
-      const facing = Math.cos(theta - (frontRef - plane));
-      const isBack = facing < -0.05;
 
-      // Tube surface normal (outward from tube centerline)
-      const invEr = 1 / er;
-      const radialDirX = nx * invEr;
-      const radialDirY = ny * invEr;
-      // From ellipse point to pixel → tube normal in plane
+      // World direction from wrist center to this ellipse point (screen)
+      const wx = ex * cosP - ey * sinP;
+      const wy = ex * sinP + ey * cosP;
+      // Visible = toward camera-up (top of wrist). Hide underside / far side.
+      const towardCam = (wx * camUpX + wy * camUpY) / (Math.hypot(wx, wy) || 1);
+      // Also require outer side of tube (not buried in arm)
+      if (towardCam < 0.08) continue; // HARD occlusion — no back hoop through arm
+
+      const facing = Math.cos(theta - (frontRef - plane));
+      if (facing < -0.35 && towardCam < 0.35) continue;
+
       let tnx = across - ex;
       let tny = depth - ey;
       let tnz = along * 0.35;
@@ -339,15 +319,11 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
       tnz /= tnLen;
 
       const ndot = (tnx * lightX + tny * lightY + tnz * lightZ) / llen;
-      const diff = 0.38 + 0.62 * Math.max(0, ndot);
-      const spec = Math.pow(Math.max(0, ndot), 22) * 95;
-      const fresnel = Math.pow(1 - Math.max(0, Math.abs(tnz) * 0.4 + Math.max(0, facing) * 0.6), 1.4) * 28;
-      // Roundness cue: darker in tube creases toward skin
-      const crease = clamp(1 - Math.abs(eMetric - 1) / (tubeR / majorR + 1e-6), 0, 1);
-      const aoMul = 0.72 + 0.28 * crease;
+      const diff = 0.42 + 0.58 * Math.max(0, ndot);
+      const spec = Math.pow(Math.max(0, ndot), 18) * 70;
 
       const u = ((theta / (Math.PI * 2)) + 0.5) * (sw - 1);
-      const v = clamp((ndot * 0.5 + 0.5) * (sh - 1), 0, sh - 1);
+      const v = clamp((0.35 + towardCam * 0.45) * (sh - 1), 0, sh - 1);
       let [r, g, b] = sampleBilinear(td, sw, sh, u, v);
       if (!(r + g + b > 0)) {
         r = avg[0];
@@ -355,78 +331,42 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
         b = avg[2];
       }
 
-      let shade = diff * aoMul;
-      if (isBack) shade *= 0.42;
-      r = clamp(r * shade + spec * (isBack ? 0.15 : 1) + fresnel * (isBack ? 0.2 : 1), 0, 255);
-      g = clamp(g * shade + spec * 0.9 * (isBack ? 0.15 : 1) + fresnel * 0.85, 0, 255);
-      b = clamp(b * shade + spec * 0.65 * (isBack ? 0.15 : 1) + fresnel * 0.5, 0, 255);
+      // Keep pave sparkle — don't crush product colors
+      const shade = diff * (0.85 + 0.15 * towardCam);
+      r = clamp(r * shade + spec, 0, 255);
+      g = clamp(g * shade + spec * 0.92, 0, 255);
+      b = clamp(b * shade + spec * 0.7, 0, 255);
 
-      const edge = clamp(1 - tubeSdf / 0.85, 0, 1);
-      const vis = isBack ? 0.55 : 1;
-      // Hide most of true back (behind wrist); keep side crescents
-      const sideKeep = clamp(1 + facing * 1.1, 0, 1);
-      const alpha = clamp(255 * Math.pow(edge, 0.65) * vis * (isBack ? sideKeep * 0.75 : 1), 0, 255);
-      if (alpha < 4) continue;
+      const edge = clamp(1 - tubeSdf / 0.7, 0, 1);
+      const alpha = clamp(255 * Math.pow(edge, 0.55) * clamp(towardCam * 1.35, 0.35, 1), 0, 255);
+      if (alpha < 8) continue;
 
       const o = (py * bw + px) * 4;
-      const dest = isBack ? bd : fd;
-      // alpha composite into layer buffer
-      const oa = dest[o + 3] / 255;
+      const oa = fd[o + 3] / 255;
       const na = alpha / 255;
       const outA = na + oa * (1 - na);
       if (outA < 1e-4) continue;
-      dest[o] = (r * na + dest[o] * oa * (1 - na)) / outA;
-      dest[o + 1] = (g * na + dest[o + 1] * oa * (1 - na)) / outA;
-      dest[o + 2] = (b * na + dest[o + 2] * oa * (1 - na)) / outA;
-      dest[o + 3] = outA * 255;
+      fd[o] = (r * na + fd[o] * oa * (1 - na)) / outA;
+      fd[o + 1] = (g * na + fd[o + 1] * oa * (1 - na)) / outA;
+      fd[o + 2] = (b * na + fd[o + 2] * oa * (1 - na)) / outA;
+      fd[o + 3] = outA * 255;
     }
   }
 
-  // Raised screw studs on front arc (Love bracelet cue)
-  for (let k = 0; k < 10; k++) {
-    const th = -Math.PI * 0.92 + (k / 9) * Math.PI * 1.84;
-    const facing = Math.cos(th - (frontRef - plane));
-    if (facing < 0.2) continue;
-    const ex = Math.cos(th) * majorR;
-    const ey = Math.sin(th) * depthR;
-    const gx = center.x + ex * cosP - ey * sinP;
-    const gy = center.y + ex * sinP + ey * cosP;
-    const sx = Math.floor(gx - x0);
-    const sy = Math.floor(gy - y0);
-    const rad = Math.max(2.2, tubeR * 0.42);
-    for (let yy = -rad * 1.2; yy <= rad * 1.2; yy++) {
-      for (let xx = -rad * 1.2; xx <= rad * 1.2; xx++) {
-        const rr = Math.hypot(xx, yy);
-        if (rr > rad * 1.15) continue;
-        const px = sx + Math.round(xx);
-        const py = sy + Math.round(yy);
-        if (px < 0 || py < 0 || px >= bw || py >= bh) continue;
-        const o = (py * bw + px) * 4;
-        const bump = Math.max(0, 1 - rr / rad);
-        const hi = Math.pow(bump, 1.6);
-        fd[o] = clamp(avg[0] * (0.55 + 0.45 * hi) + hi * 80, 0, 255);
-        fd[o + 1] = clamp(avg[1] * (0.55 + 0.45 * hi) + hi * 70, 0, 255);
-        fd[o + 2] = clamp(avg[2] * (0.55 + 0.4 * hi) + hi * 40, 0, 255);
-        fd[o + 3] = Math.max(fd[o + 3], 210 * bump);
-      }
-    }
-  }
-
-  const tmpBack = document.createElement("canvas");
-  tmpBack.width = bw;
-  tmpBack.height = bh;
-  tmpBack.getContext("2d").putImageData(back, 0, 0);
-  layerCtx.drawImage(tmpBack, x0, y0);
-
-  // Wrist body occludes back / fills hole — elliptical stamp
+  // Stamp a foreshortened slice of the real product on the top arc (nail/pave identity)
   layerCtx.save();
   layerCtx.translate(center.x, center.y);
   layerCtx.rotate(plane);
   layerCtx.beginPath();
-  layerCtx.ellipse(0, 0, majorR - tubeR * 0.35, depthR - tubeR * 0.25, 0, 0, Math.PI * 2);
+  // Top half ellipse clip (visible band)
+  layerCtx.ellipse(0, 0, majorR + tubeR * 0.15, depthR + tubeR * 0.1, 0, Math.PI, Math.PI * 2);
   layerCtx.clip();
-  layerCtx.setTransform(1, 0, 0, 1, 0, 0);
-  layerCtx.drawImage(bodyCanvas, 0, 0);
+  const stampW = majorR * 2.05;
+  const stampH = Math.max(tubeR * 2.4, bandHalf * 2.8);
+  layerCtx.globalAlpha = 0.92;
+  layerCtx.imageSmoothingEnabled = true;
+  layerCtx.imageSmoothingQuality = "high";
+  layerCtx.drawImage(crop, -stampW / 2, -stampH * 0.75, stampW, stampH);
   layerCtx.restore();
 
   const tmpFront = document.createElement("canvas");
@@ -491,7 +431,7 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     crop.getContext("2d").drawImage(syn, 0, 0);
   }
 
-  // Bracelet: WebGL Love band + volumetric wrap insurance (occluder used to wipe metal)
+  // Bracelet: product texture wrap on wrist FRONT only (no Love-stud 3D mesh — wrong product)
   if (type === "bracelet") {
     const t = target?.center ? target : null;
     if (!t) {
@@ -501,35 +441,18 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
     const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
     let targetW = Math.max(minWidthForType(out.width, "bracelet"), t.width || out.width * 0.28);
-    const center = { x: cx, y: cy };
-
-    let composed = null;
-    try {
-      const { composeTryOn3D } = await import("./tryon3d.js");
-      composed = await composeTryOn3D(bodyCanvas, jewelryCanvas, { ...t, center, width: targetW }, "bracelet");
-    } catch (err) {
-      console.warn("3D bracelet failed", err);
-    }
-
-    const base = composed || out;
-    if (composed) {
-      octx.clearRect(0, 0, out.width, out.height);
-      octx.drawImage(composed, 0, 0);
-    }
-
-    // Always add volumetric wrap — guarantees visible metal wrapped on wrist
     try {
       wrapBraceletCylinder(
         octx,
         bodyCanvas,
         crop,
-        center,
+        { x: cx, y: cy },
         targetW,
         t.angle || 38,
         t.frontAngle
       );
-    } catch (e2) {
-      console.warn("wrapBraceletCylinder", e2);
+    } catch (err) {
+      console.warn("bracelet wrap failed", err);
     }
     return out;
   }
