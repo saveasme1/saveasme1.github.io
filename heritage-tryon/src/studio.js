@@ -74,7 +74,7 @@ function refreshReady() {
   if (ready) setStatus("준비가 끝났습니다. ‘착용해보기’를 눌러 결과를 확인하세요.", "is-ok");
 }
 
-function imageCandidates(raw) {
+function imageCandidates(raw, { maxMirrors = 2 } = {}) {
   let value = String(raw || "").trim();
   if (!value) return [];
   try { value = decodeURIComponent(value); } catch (_) {}
@@ -86,14 +86,15 @@ function imageCandidates(raw) {
   const pushMirrors = (path) => {
     const p = String(path || "").replace(/^\/+/, "");
     if (!p) return;
+    // Prefer same-site first; keep list short to avoid timeout stacking.
     if (onGithubHost) {
       push(`${location.origin}/${p}`);
-      push(`https://saveasme1.github.io/${p}`);
       push(`https://hand-made.kr/${p}`);
+      if (maxMirrors > 2) push(`https://saveasme1.github.io/${p}`);
     } else {
       push(`https://hand-made.kr/${p}`);
-      push(`https://saveasme1.github.io/${p}`);
-      push(assetUrl(p));
+      push(`${location.origin}/${p}`);
+      if (maxMirrors > 2) push(`https://saveasme1.github.io/${p}`);
     }
   };
 
@@ -108,10 +109,10 @@ function imageCandidates(raw) {
   } else {
     pushMirrors(value);
   }
-  return list;
+  return list.slice(0, Math.max(1, maxMirrors + 1));
 }
 
-function loadIntoProductImg(url, ms = 4500) {
+function loadIntoProductImg(url, ms = 2500) {
   const img = $("productImage");
   return new Promise((resolve, reject) => {
     let done = false;
@@ -139,24 +140,6 @@ async function loadProduct() {
     show(cat);
   }
 
-  // Pull multi-angle gallery from portfolio-data when id is present.
-  try {
-    if (state.item.id && state.item.id !== "portfolio-item") {
-      setStatus("포폴 다각도 이미지 불러오는 중…");
-      const full = await withTimeout(loadPortfolioItem(state.item.id), 12000, "포폴 조회 시간 초과");
-      if (full) {
-        state.item.title = full.title || state.item.title;
-        state.item.category = full.category || state.item.category;
-        state.item.images = Array.isArray(full.images) ? full.images : [];
-        if (!state.item.cover && full.cover) state.item.cover = full.cover;
-        $("productTitle").textContent = state.item.title || "헤리티지";
-        applyWearTypeFromProduct();
-      }
-    }
-  } catch (err) {
-    console.warn("gallery", err);
-  }
-
   const skeleton = $("productSkeleton");
   const img = $("productImage");
   hide(img);
@@ -164,23 +147,15 @@ async function loadProduct() {
   img.alt = "";
   show(skeleton);
   setStatus("선택 제품 불러오는 중…");
+  applyWearTypeFromProduct();
 
-  const galleryPaths = (state.item.images || []).map((p) => assetUrl(p));
-  const candidates = [
-    ...galleryPaths.flatMap((u) => imageCandidates(u)),
-    ...imageCandidates(state.item.cover),
-  ].filter((u, i, arr) => u && arr.indexOf(u) === i);
-
-  if (!candidates.length) {
-    hide(skeleton);
-    setStatus("제품 이미지가 없습니다. 포트폴리오에서 다시 열어 주세요.", "is-err");
-    return;
-  }
-
+  // 1) Show cover from URL params FIRST (never wait on full portfolio JSON).
+  const coverCandidates = imageCandidates(state.item.cover, { maxMirrors: 2 });
+  let shown = false;
   let lastErr;
-  for (const url of candidates) {
+  for (const url of coverCandidates) {
     try {
-      await loadIntoProductImg(url, 4500);
+      await loadIntoProductImg(url, 2500);
       img.src = url;
       img.alt = state.item.title || "선택 제품";
       show(img);
@@ -188,17 +163,66 @@ async function loadProduct() {
       state.productReady = true;
       state.item.sourceUrl = url;
       state.item.cover = url;
-      setStatus(
-        state.item.images?.length
-          ? `다각도 ${state.item.images.length}장 반영 · 사진을 준비하세요.`
-          : "제품을 확인한 뒤 사진을 준비하세요."
-      );
+      setStatus("제품을 확인한 뒤 사진을 준비하세요.");
       refreshReady();
-      return;
+      shown = true;
+      break;
     } catch (err) {
       lastErr = err;
     }
   }
+
+  // 2) Enrich gallery in background (optional). Must not block first paint.
+  if (state.item.id && state.item.id !== "portfolio-item") {
+    loadPortfolioItem(state.item.id)
+      .then((full) => {
+        if (!full) return;
+        state.item.title = full.title || state.item.title;
+        state.item.category = full.category || state.item.category;
+        state.item.images = Array.isArray(full.images) ? full.images.slice(0, 8) : [];
+        $("productTitle").textContent = state.item.title || "헤리티지";
+        if (state.item.category) {
+          cat.textContent = state.item.category;
+          show(cat);
+        }
+        applyWearTypeFromProduct();
+        if (state.item.images?.length && shown) {
+          setStatus(`다각도 ${state.item.images.length}장 준비됨 · 사진을 준비하세요.`);
+        }
+      })
+      .catch((err) => console.warn("gallery enrich", err));
+  }
+
+  if (shown) return;
+
+  // 3) Last resort: try first gallery path only (still capped).
+  try {
+    const full = await withTimeout(loadPortfolioItem(state.item.id), 6000, "포폴 조회 시간 초과");
+    const first = full?.images?.[0] || full?.cover;
+    if (first) {
+      for (const url of imageCandidates(first, { maxMirrors: 2 })) {
+        try {
+          await loadIntoProductImg(url, 2500);
+          img.src = url;
+          img.alt = state.item.title || "선택 제품";
+          show(img);
+          hide(skeleton);
+          state.productReady = true;
+          state.item.sourceUrl = url;
+          state.item.cover = url;
+          state.item.images = full.images || [];
+          setStatus("제품을 확인한 뒤 사진을 준비하세요.");
+          refreshReady();
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+    }
+  } catch (err) {
+    lastErr = err;
+  }
+
   hide(skeleton);
   hide(img);
   setStatus(`제품 이미지를 불러오지 못했습니다. ${lastErr?.message || ""}`.trim(), "is-err");
