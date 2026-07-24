@@ -71,7 +71,7 @@ export function despillCanvas(canvas) {
 
 function minWidthForType(outW, type) {
   if (type === "bracelet") return outW * 0.22;
-  if (type === "necklace") return outW * 0.22;
+  if (type === "necklace") return outW * 0.16;
   if (type === "earring") return outW * 0.07;
   return outW * 0.085;
 }
@@ -539,7 +539,8 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
     };
   }
   if (type === "necklace") {
-    return { center: { x: w * 0.5, y: h * 0.48 }, width: w * 0.28, angle: 0 };
+    // Guide/collarbone band — not mid-chest logo height
+    return { center: { x: w * 0.5, y: h * 0.38 }, width: w * 0.2, angle: 0 };
   }
   if (type === "bracelet") {
     return {
