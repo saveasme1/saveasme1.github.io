@@ -439,7 +439,7 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
 export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring") {
   const bodyCanvas = bodyImg instanceof HTMLCanvasElement ? bodyImg : canvasFromImage(bodyImg);
 
-  // Necklace: WebGL chain. Bracelet: skip flaky 3D occluder path — reliable 2D stamp.
+  // Necklace: WebGL chain
   if (type === "necklace") {
     try {
       const { composeTryOn3D } = await import("./tryon3d.js");
@@ -491,6 +491,30 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     crop.getContext("2d").drawImage(syn, 0, 0);
   }
 
+  // Bracelet: 3D if possible, then ALWAYS stamp product on wrist (visible guarantee)
+  if (type === "bracelet") {
+    const t = target?.center ? target : null;
+    if (!t) {
+      console.warn("bracelet compose: missing target");
+      return out;
+    }
+    try {
+      const { composeTryOn3D } = await import("./tryon3d.js");
+      const threeOut = await composeTryOn3D(bodyCanvas, jewelryCanvas, t, "bracelet");
+      octx.clearRect(0, 0, out.width, out.height);
+      octx.drawImage(threeOut, 0, 0);
+    } catch (err) {
+      console.warn("3D bracelet failed, stamp-only", err);
+    }
+    let targetW = Math.max(8, t.width || out.width * 0.28);
+    targetW = Math.max(targetW, minWidthForType(out.width, "bracelet"));
+    // Clamp center into frame so stamp cannot land off-canvas
+    const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
+    const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
+    placeBraceletStamp(octx, crop, { x: cx, y: cy }, targetW, t.angle || 32);
+    return out;
+  }
+
   const layer = document.createElement("canvas");
   layer.width = out.width;
   layer.height = out.height;
@@ -505,12 +529,6 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     if (type === "necklace") targetH = targetW * aspect * 0.9;
 
     const angle = t.angle || 0;
-
-    if (type === "bracelet") {
-      // Skip flaky volumetric wrap — stamp is reliable and always visible on wrist
-      placeBraceletStamp(lctx, crop, t.center, targetW, angle);
-      return;
-    }
 
     if (type === "ring") {
       placeRingOnFinger(lctx, crop, { ...t, width: targetW }, out.width);
@@ -563,40 +581,40 @@ function cropHasOpaque(canvas) {
 /** Guaranteed-visible bracelet stamp on wrist (product photo as oval band). */
 function placeBraceletStamp(layerCtx, crop, center, wristW, angleDeg) {
   if (!center || !crop?.width) return;
-  const w = Math.max(28, wristW * 1.05);
+  const w = Math.max(36, wristW * 1.15);
   const ang = ((angleDeg || 0) * Math.PI) / 180;
   const aspect = crop.height / Math.max(crop.width, 1);
-  const bw = w * 1.05;
-  const bh = Math.max(w * 0.36, bw * Math.min(aspect, 0.55) * 0.55);
+  const bw = w * 1.15;
+  const bh = Math.max(w * 0.42, bw * Math.min(aspect, 0.6) * 0.6);
   layerCtx.save();
   layerCtx.translate(center.x, center.y);
   layerCtx.rotate(ang);
   layerCtx.imageSmoothingEnabled = true;
   layerCtx.imageSmoothingQuality = "high";
   // contact shadow under band
-  layerCtx.fillStyle = "rgba(0,0,0,0.32)";
+  layerCtx.fillStyle = "rgba(0,0,0,0.35)";
   layerCtx.beginPath();
-  layerCtx.ellipse(2, 4, bw * 0.5, bh * 0.55, 0, 0, Math.PI * 2);
+  layerCtx.ellipse(2, 5, bw * 0.55, bh * 0.6, 0, 0, Math.PI * 2);
   layerCtx.fill();
   // metal rim so band always reads even if crop is sparse
-  layerCtx.strokeStyle = "rgba(201,162,74,0.92)";
-  layerCtx.lineWidth = Math.max(5, w * 0.07);
+  layerCtx.strokeStyle = "rgba(201,162,74,0.98)";
+  layerCtx.lineWidth = Math.max(7, w * 0.09);
   layerCtx.beginPath();
-  layerCtx.ellipse(0, 0, bw * 0.48, bh * 0.42, 0, 0, Math.PI * 2);
+  layerCtx.ellipse(0, 0, bw * 0.52, bh * 0.45, 0, 0, Math.PI * 2);
   layerCtx.stroke();
   // product photo clipped to stadium band
   layerCtx.save();
   layerCtx.beginPath();
-  layerCtx.ellipse(0, 0, bw * 0.5, bh * 0.48, 0, 0, Math.PI * 2);
+  layerCtx.ellipse(0, 0, bw * 0.55, bh * 0.52, 0, 0, Math.PI * 2);
   layerCtx.clip();
-  layerCtx.globalAlpha = 0.98;
+  layerCtx.globalAlpha = 1;
   layerCtx.drawImage(crop, -bw / 2, -bh / 2, bw, bh);
   layerCtx.restore();
   // highlight arc (top of metal)
-  layerCtx.strokeStyle = "rgba(255,240,200,0.55)";
-  layerCtx.lineWidth = Math.max(2, w * 0.025);
+  layerCtx.strokeStyle = "rgba(255,240,200,0.65)";
+  layerCtx.lineWidth = Math.max(2, w * 0.03);
   layerCtx.beginPath();
-  layerCtx.ellipse(0, -bh * 0.08, bw * 0.42, bh * 0.28, 0, Math.PI * 1.15, Math.PI * 1.85);
+  layerCtx.ellipse(0, -bh * 0.08, bw * 0.45, bh * 0.3, 0, Math.PI * 1.15, Math.PI * 1.85);
   layerCtx.stroke();
   layerCtx.restore();
 }
@@ -639,12 +657,12 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
     return { center: { x: w * 0.5, y: h * 0.4 }, width: w * 0.22, angle: 0 };
   }
   if (type === "bracelet") {
-    // Match angled left-arm guide (fist up, wrist mid-frame)
+    // Match flipped guide: hand upper-RIGHT, elbow lower-LEFT
     return {
-      center: { x: w * 0.46, y: h * 0.48 },
+      center: { x: w * 0.48, y: h * 0.48 },
       width: w * 0.34,
-      angle: -38,
-      frontAngle: -128,
+      angle: 32,
+      frontAngle: 122,
     };
   }
   return { center: { x: w * 0.55, y: h * 0.28 }, width: w * 0.09, angle: -15 };
