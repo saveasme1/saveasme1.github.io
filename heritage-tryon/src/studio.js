@@ -292,14 +292,14 @@ const CAMERA_HINT = {
   ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
   earring: "전면 카메라 · 귀를 가이드에 맞춘 뒤 3초간 유지",
-  necklace: "전면 · 줌으로 가까이 · 큰 가이드에 쇄골 맞추고 3초 유지",
+  necklace: "전면 · 얼굴·목만 대충 맞추고 3초 유지",
 };
 
 const GUIDE_CAPTION = {
   ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
   earring: "오른쪽 귀(+)",
-  necklace: "가까이 · 쇄골(+) · 3초 유지",
+  necklace: "얼굴·목 · 3초 유지",
 };
 
 const FINGER_LABEL = {
@@ -519,12 +519,12 @@ function usesFrontCamera(type) {
   return type === "earring" || type === "necklace";
 }
 
-const ZOOM_MIN = 1;
+const ZOOM_MIN = 0.55;
 const ZOOM_MAX = 2.6;
 
 function defaultZoomForType(type) {
-  if (type === "necklace") return 1.45;
-  if (type === "earring") return 1.25;
+  if (type === "necklace") return 1.2;
+  if (type === "earring") return 1.15;
   return 1;
 }
 
@@ -535,14 +535,23 @@ function applyVideoTransform() {
   const front = usesFrontCamera(state.wearType);
   video.style.transformOrigin = "center center";
   video.style.transform = front ? `scaleX(-1) scale(${z})` : `scale(${z})`;
-  const label = $("zoomLabel");
-  if (label) label.textContent = `${z.toFixed(1)}×`;
 }
 
 function setCamZoom(next) {
   const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(next) || 1));
   state.camZoom = Math.round(z * 20) / 20;
   applyVideoTransform();
+}
+
+function setZoomUiVisible(show) {
+  ["zoomSideLeft", "zoomSideRight"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    el.hidden = !show;
+    el.classList.toggle("is-hidden", !show);
+  });
+  const stage = document.querySelector(".camera-stage");
+  stage?.classList.toggle("has-zoom-sides", show);
 }
 
 function touchDistance(touches) {
@@ -654,6 +663,7 @@ function closeCameraSheet({ fromHistory = false } = {}) {
     sheet.classList.add("is-hidden");
     sheet.classList.remove("is-align-ok", "is-align-far", "is-front-mirror", "show-zoom");
   }
+  setZoomUiVisible(false);
   document.body.classList.remove("camera-open");
   state.cameraOpen = false;
   state.capturing = false;
@@ -716,20 +726,14 @@ async function openGuidedCamera() {
     // 전면 = 신분증/얼굴인식처럼 거울 미리보기. 후면 = 미러 없음.
     const front = usesFrontCamera(state.wearType);
     sheet.classList.toggle("is-front-mirror", front);
-    sheet.classList.toggle("show-zoom", front || state.wearType === "necklace");
     setCamZoom(defaultZoomForType(state.wearType));
     bindCameraZoomGestures();
-    const zoomBar = $("zoomBar");
-    if (zoomBar) {
-      const showZ = front;
-      zoomBar.hidden = !showZ;
-      zoomBar.classList.toggle("is-hidden", !showZ);
-    }
+    setZoomUiVisible(front);
     await video.play();
     setStatus(CAMERA_HINT[state.wearType] || "가이드에 맞춘 뒤 3초간 유지하세요.");
     if ($("cameraSub")) {
       $("cameraSub").textContent = front
-        ? "두 손가락으로 줌 · 가이드에 맞춘 뒤 3초 유지 · 셔터도 가능"
+        ? "좌·우 버튼 또는 두 손가락으로 줌 · 얼굴·목 맞춘 뒤 3초 유지"
         : "가이드에 맞춘 뒤 3초간 유지하면 자동 촬영됩니다 · 직접 눌러도 됩니다";
     }
     if (state.wearType === "earring") {
@@ -762,35 +766,57 @@ function shutterCapture() {
     state.wearType === "ring" && state.lastPlacement ? { ...state.lastPlacement } : null;
 
   const front = usesFrontCamera(state.wearType);
-  const z = Math.max(1, state.camZoom || 1);
+  const z = Math.max(ZOOM_MIN, state.camZoom || 1);
   const vw = video.videoWidth;
   const vh = video.videoHeight;
-  const cw = vw / z;
-  const ch = vh / z;
-  const sx = (vw - cw) / 2;
-  const sy = (vh - ch) / 2;
-  canvas.width = Math.max(1, Math.round(cw));
-  canvas.height = Math.max(1, Math.round(ch));
   const ctx = canvas.getContext("2d");
-  ctx.save();
-  if (front) {
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-  }
-  ctx.drawImage(video, sx, sy, cw, ch, 0, 0, canvas.width, canvas.height);
-  ctx.restore();
 
-  // Placement was in full-frame video coords; remap into zoomed crop (+ mirror for front)
-  if (state.capturePlacement?.center) {
-    const p = state.capturePlacement;
-    let nx = (p.center.x * vw - sx) / cw;
-    let ny = (p.center.y * vh - sy) / ch;
-    if (front) nx = 1 - nx;
-    p.center = { x: nx, y: ny };
-    p.width = (p.width || 0.05) * z;
-    if (front && p.angle != null) {
-      p.angle = 180 - p.angle;
-      p.frontAngle = p.angle - 90;
+  if (z > 1.001) {
+    const cw = vw / z;
+    const ch = vh / z;
+    const sx = (vw - cw) / 2;
+    const sy = (vh - ch) / 2;
+    canvas.width = Math.max(1, Math.round(cw));
+    canvas.height = Math.max(1, Math.round(ch));
+    ctx.save();
+    if (front) {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, sx, sy, cw, ch, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    if (state.capturePlacement?.center) {
+      const p = state.capturePlacement;
+      let nx = (p.center.x * vw - sx) / cw;
+      let ny = (p.center.y * vh - sy) / ch;
+      if (front) nx = 1 - nx;
+      p.center = { x: nx, y: ny };
+      p.width = (p.width || 0.05) * z;
+      if (front && p.angle != null) {
+        p.angle = 180 - p.angle;
+        p.frontAngle = p.angle - 90;
+      }
+    }
+  } else {
+    // z <= 1: full frame (shrink is preview-only; can't capture wider than sensor)
+    canvas.width = vw;
+    canvas.height = vh;
+    ctx.save();
+    if (front) {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0);
+    ctx.restore();
+
+    if (state.capturePlacement?.center && front) {
+      const p = state.capturePlacement;
+      p.center = { x: 1 - p.center.x, y: p.center.y };
+      if (p.angle != null) {
+        p.angle = 180 - p.angle;
+        p.frontAngle = p.angle - 90;
+      }
     }
   }
 
