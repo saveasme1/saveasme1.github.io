@@ -9,8 +9,8 @@
   <meta name="robots" content="noindex,nofollow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260724-install6 -->
-  <link rel="manifest" href="manifest.webmanifest?v=20260724-install6">
+  <!-- cache-bust: 20260724-install7 -->
+  <link rel="manifest" href="manifest.webmanifest?v=20260724-install7">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <style>
@@ -293,16 +293,72 @@
       font-size: 11px;
       line-height: 1.4;
     }
+    .sim__phase {
+      margin: 10px 12px 0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 130, 54, 0.16);
+      color: #ffe3d0;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .sim__phase span {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #161513;
+      font-size: 10px;
+      font-weight: 800;
+    }
     .sim__stage {
       position: relative;
       padding: 12px 10px 8px;
-      min-height: 280px;
+      min-height: 220px;
     }
     .sim__chrome {
       border-radius: 12px;
       overflow: hidden;
       background: #3a3a3a;
       border: 1px solid rgba(255,255,255,0.06);
+    }
+    .sim__tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 8px 0;
+      background: #2f2f2f;
+    }
+    .sim__tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      padding: 7px 8px;
+      border-radius: 10px 10px 0 0;
+      background: #4a4a4a;
+      color: #eee;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .sim__tab img {
+      width: 14px; height: 14px; border-radius: 3px; background: #161513; flex: 0 0 auto;
+    }
+    .sim__tab em {
+      flex: 1;
+      font-style: normal;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sim__tab-add {
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      color: #ddd;
+      flex: 0 0 auto;
     }
     .sim__addr {
       display: flex;
@@ -319,9 +375,9 @@
     .sim__addr span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sim__bar {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       align-items: center;
-      height: 48px;
+      height: 52px;
       background: #2f2f2f;
       border-top: 1px solid rgba(255,255,255,0.06);
     }
@@ -333,28 +389,34 @@
       display: grid;
       place-items: center;
       height: 100%;
-      cursor: pointer;
+      cursor: default;
       padding: 0;
-    }
-    .sim__bar-btn svg { width: 22px; height: 22px; }
-    .sim__bar-btn.is-target {
       position: relative;
+    }
+    .sim__bar-btn svg { width: 20px; height: 20px; }
+    .sim__bar-btn.is-target {
       color: #fff;
+      cursor: pointer;
     }
     .sim__bar-btn.is-target::after {
       content: "";
       position: absolute;
-      inset: 6px;
+      inset: 4px;
       border-radius: 10px;
       border: 2px solid var(--accent);
-      box-shadow: 0 0 0 3px rgba(255, 130, 54, 0.25);
+      box-shadow: 0 0 0 3px rgba(255, 130, 54, 0.28);
       pointer-events: none;
+      animation: simPulseRing 1.4s ease-in-out infinite;
+    }
+    @keyframes simPulseRing {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(255, 130, 54, 0.22); }
+      50% { box-shadow: 0 0 0 6px rgba(255, 130, 54, 0.12); }
     }
     .sim__pulse {
       position: absolute;
-      right: 18px;
-      bottom: 58px;
-      max-width: 160px;
+      right: 10px;
+      bottom: 62px;
+      max-width: 170px;
       padding: 7px 10px;
       border-radius: 10px;
       background: var(--accent);
@@ -363,7 +425,7 @@
       font-weight: 700;
       line-height: 1.35;
       box-shadow: 0 6px 16px rgba(255, 130, 54, 0.35);
-      z-index: 2;
+      z-index: 4;
       pointer-events: none;
     }
     .sim__pulse::after {
@@ -374,11 +436,24 @@
       border: 6px solid transparent;
       border-top-color: var(--accent);
     }
+    .sim__stage.is-menu-open .sim__pulse {
+      right: auto;
+      left: 12px;
+      bottom: auto;
+      top: 12px;
+    }
+    .sim__stage.is-menu-open .sim__pulse::after {
+      display: none;
+    }
+    .sim__stage.is-menu-open .sim__bar-btn.is-target::after {
+      animation: none;
+      opacity: .45;
+    }
 
     .sim-menu {
       position: absolute;
       right: 10px;
-      bottom: 56px;
+      bottom: 60px;
       width: min(248px, calc(100% - 20px));
       border-radius: 14px;
       background: #3d3d3d;
@@ -409,7 +484,7 @@
     }
     .sim-menu__head strong { font-size: 12px; font-weight: 700; }
     .sim-menu__head span { display: block; color: #bdbdbd; font-size: 10px; }
-    .sim-menu__list { list-style: none; margin: 0; padding: 6px 0; }
+    .sim-menu__list { list-style: none; margin: 0; padding: 6px 0; max-height: 220px; overflow: auto; }
     .sim-menu__item {
       display: flex;
       align-items: center;
@@ -651,11 +726,11 @@
           <div class="fallback-block">
             <p class="step-head view-pc">
               <span class="step-label">2단계 · 자동 설치가 안 될 때</span>
-              다시 <b>설치 링크 복사</b> 후 휴대폰에서 열고, 아래 메뉴대로 <b>현재 페이지 추가</b> → <b>홈 화면</b>을 선택하세요.
+              다시 <b>설치 링크 복사</b> 후 휴대폰에서 열고, 아래처럼 <b>하단 ⋮</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b> 순서로 추가하세요.
             </p>
             <p class="step-head view-mobile">
               <span class="step-label">앱이 자동으로 설치되지 않을 때</span>
-              아래 <b>설치 링크 복사</b> 후, 그림 안내대로 <b>현재 페이지 추가</b> → <b>홈 화면</b>을 선택하세요.
+              <b>설치 링크 복사</b> 후, 아래 그림처럼 <b>하단 ⋮</b>을 먼저 누르고 <b>현재 페이지 추가</b> → <b>홈 화면</b>을 선택하세요.
             </p>
             <div class="panel__cta view-pc">
               <button type="button" class="btn btn-secondary" id="pcCopyAndroid2">설치 링크 복사</button>
@@ -665,26 +740,41 @@
             </div>
 
             <div class="sim" id="androidSim" aria-label="삼성 인터넷 설치 안내">
-              <p class="sim__cap">하단 오른쪽 ⋮ → 현재 페이지 추가(4번째)</p>
-              <div class="sim__stage">
-                <div class="sim__pulse" id="simPulse">② 주황 ‘현재 페이지 추가’</div>
+              <p class="sim__cap">실제 브라우저 하단바와 같습니다. 순서대로 따라 하세요.</p>
+              <p class="sim__phase" id="simPhase"><span>1</span>먼저 하단 오른쪽 <b>⋮</b> 메뉴를 누릅니다</p>
+              <div class="sim__stage" id="simStage">
+                <div class="sim__pulse" id="simPulse">① 여기를 누르세요 (⋮)</div>
                 <div class="sim__chrome">
+                  <div class="sim__tabs" aria-hidden="true">
+                    <div class="sim__tab">
+                      <img src="icons/icon-192.png" alt="">
+                      <em>헤리티지 앱 설치</em>
+                    </div>
+                    <div class="sim__tab-add">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    </div>
+                  </div>
                   <div class="sim__addr">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5L12 14.8 7.5 16.7l.9-5L4.8 8.2l5-.7L12 3z"/></svg>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     <span>hand-made.kr</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
                   </div>
-                  <div class="sim__bar">
+                  <div class="sim__bar" aria-label="브라우저 하단 탭">
                     <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
                     <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
                     <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5z"/></svg></span>
-                    <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg></span>
-                    <button type="button" class="sim__bar-btn is-target" id="simMenuBtn" aria-label="브라우저 메뉴 열기" aria-expanded="true" aria-controls="simMenu">
+                    <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.5 4.5L18 9l-3.8 2.8L15.5 17 12 14.2 8.5 17l1.3-5.2L6 9l4.5-1.5L12 3z"/></svg></span>
+                    <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5L12 14.8 7.5 16.7l.9-5L4.8 8.2l5-.7L12 3z"/></svg></span>
+                    <span class="sim__bar-btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/><text x="12" y="14.5" text-anchor="middle" font-size="8" fill="currentColor" stroke="none" font-family="sans-serif">2</text></svg></span>
+                    <button type="button" class="sim__bar-btn is-target" id="simMenuBtn" aria-label="브라우저 메뉴 ⋮" aria-expanded="false" aria-controls="simMenu">
                       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
                     </button>
                   </div>
                 </div>
 
-                <div class="sim-menu is-open" id="simMenu" role="menu" aria-label="브라우저 메뉴 예시">
+                <div class="sim-menu" id="simMenu" role="menu" aria-label="브라우저 메뉴 예시">
                   <div class="sim-menu__head">
                     <img src="icons/icon-192.png" alt="">
                     <div>
@@ -725,8 +815,8 @@
                   </ul>
                 </div>
               </div>
-              <p class="sim__steps">
-                <b>⋮</b> → 주황 <b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b>
+              <p class="sim__steps" id="simSteps">
+                <b>①</b> 하단 오른쪽 <b>⋮</b> → <b>②</b> <b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b>
               </p>
             </div>
 
@@ -961,21 +1051,34 @@
       }
     }
 
-    // Android browser mock: toggle menu highlight
+    // Android browser mock: step1 = ⋮ on bottom bar, step2 = 현재 페이지 추가
     (function () {
       var btn = document.getElementById("simMenuBtn");
       var menu = document.getElementById("simMenu");
       var pulse = document.getElementById("simPulse");
+      var phase = document.getElementById("simPhase");
+      var stage = document.getElementById("simStage");
       if (!btn || !menu) return;
-      btn.addEventListener("click", function () {
-        var open = !menu.classList.contains("is-open");
+
+      function setOpen(open) {
         menu.classList.toggle("is-open", open);
+        if (stage) stage.classList.toggle("is-menu-open", open);
         btn.setAttribute("aria-expanded", open ? "true" : "false");
         if (pulse) {
           pulse.textContent = open
-            ? "② 주황 ‘현재 페이지 추가’"
-            : "① 여기를 누르세요";
+            ? "② 현재 페이지 추가"
+            : "① 여기를 누르세요 (⋮)";
         }
+        if (phase) {
+          phase.innerHTML = open
+            ? "<span>2</span>메뉴에서 <b>현재 페이지 추가</b>(위에서 4번째)를 고른 뒤 <b>홈 화면</b>"
+            : "<span>1</span>먼저 하단 오른쪽 <b>⋮</b> 메뉴를 누릅니다";
+        }
+      }
+
+      setOpen(false);
+      btn.addEventListener("click", function () {
+        setOpen(!menu.classList.contains("is-open"));
       });
     })();
 
