@@ -53,11 +53,11 @@ body {
 }
 .top {
   flex: 0 0 auto;
-  height: 58px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px;
+  padding: 0 34px;
   border-bottom: 1px solid var(--line);
 }
 .logo {
@@ -92,7 +92,7 @@ body {
 }
 .hero {
   flex: 0 0 auto;
-  padding: 12px 36px 8px;
+  padding: 14px 34px 10px;
 }
 .kicker {
   display: inline-flex;
@@ -111,8 +111,8 @@ body {
   box-shadow: 0 0 0 4px rgba(255,123,54,.14);
 }
 .hero h1 {
-  margin: 6px 0 4px;
-  font-size: 24px;
+  margin: 6px 0 5px;
+  font-size: 26px;
   line-height: 1.12;
   letter-spacing: -.04em;
   font-weight: 800;
@@ -120,39 +120,35 @@ body {
 .hero p {
   margin: 0;
   color: #524d47;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
   word-break: keep-all;
 }
 .main {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 6px 36px 12px;
+  padding: 2px 34px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
-  gap: 0;
-}
-.pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  flex: 0 0 auto;
-  align-items: start;
+  gap: 9px;
 }
 .sec {
-  padding: 12px 13px;
+  flex: 0 0 auto;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(23,23,23,.08);
   background: rgba(255,255,255,.78);
   box-shadow: 0 6px 16px rgba(35,26,18,.045);
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 11px;
+  align-items: start;
 }
 .sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
 .sec.b { background: #242220; color: #fff; border-color: transparent; }
 .sec.b .num { color: rgba(255,154,91,.95); }
 .sec.b .body { color: rgba(255,255,255,.78); }
 .sec.c {
-  flex: 0 0 auto;
   background: linear-gradient(135deg, var(--orange), #ff995b);
   color: #1b130f;
   border-color: transparent;
@@ -160,21 +156,23 @@ body {
 .sec.c .num { color: rgba(27,19,15,.55); }
 .sec.c .body { color: rgba(27,19,15,.9); }
 .sec.d {
-  flex: 0 0 auto;
   background: #fff;
-  display: block;
-  padding: 11px 14px 12px;
-}
-.head {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px 14px 13px;
+}
+.sec.d .toprow {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 11px;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .icon-wrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   display: grid;
   place-items: center;
   background: #171717;
@@ -184,8 +182,8 @@ body {
 .sec.b .icon-wrap { background: rgba(255,255,255,.08); color: var(--orange2); }
 .sec.c .icon-wrap { background: rgba(27,19,15,.16); color: #fff; }
 .icon-wrap svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.9;
@@ -197,18 +195,18 @@ body {
   font-weight: 800;
   letter-spacing: .12em;
   color: var(--orange);
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 h2 {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 15px;
   letter-spacing: -.03em;
   line-height: 1.2;
   font-weight: 800;
 }
 .body {
   margin: 0;
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: #403d39;
   word-break: keep-all;
@@ -216,14 +214,13 @@ h2 {
 .checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px 16px;
-  margin-top: 8px;
+  gap: 7px 18px;
 }
 .check {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  font-size: 12px;
+  gap: 7px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -.02em;
   line-height: 1.3;
@@ -251,7 +248,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px;
+  padding: 0 34px;
   background: #171717;
   color: #bdb7b1;
   font-size: 9px;
@@ -284,49 +281,41 @@ h2 {
   </section>
 
   <div class="main">
-    <div class="pair">
-      <article class="sec a">
-        <div class="head">
-          <div class="icon-wrap" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
-          </div>
-          <div>
-            <div class="num">01 / BON HERITAGE</div>
-            <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
-          </div>
-        </div>
-        <p class="body">이름은 바뀌지만 15년 제작 철학과 품질, 고객을 소중히 여기는 마음은 변하지 않습니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
-      </article>
+    <article class="sec a">
+      <div class="icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
+      </div>
+      <div>
+        <div class="num">01 / BON HERITAGE</div>
+        <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
+        <p class="body" style="margin-top:5px">이름은 바뀌지만 15년 제작 철학과 품질, 고객을 소중히 여기는 마음은 변하지 않습니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
+      </div>
+    </article>
 
-      <article class="sec b">
-        <div class="head">
-          <div class="icon-wrap" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
-          </div>
-          <div>
-            <div class="num">02 / WHY</div>
-            <h2>브랜드 가치를 지키기 위해</h2>
-          </div>
-        </div>
-        <p class="body">제품·콘텐츠·운영·상담 모방 사례가 이어졌습니다. 고객님께만 드릴 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해 운영을 전면 개편합니다.</p>
-      </article>
-    </div>
+    <article class="sec b">
+      <div class="icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div>
+        <div class="num">02 / WHY</div>
+        <h2>브랜드 가치를 지키기 위해</h2>
+        <p class="body" style="margin-top:5px">제품·콘텐츠·운영·상담 모방 사례가 이어졌습니다. 고객님께만 드릴 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해 운영 방식을 전면 개편합니다.</p>
+      </div>
+    </article>
 
     <article class="sec c">
-      <div class="head">
-        <div class="icon-wrap" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
-        </div>
-        <div>
-          <div class="num">03 / PRIVATE</div>
-          <h2>공개형 → 프라이빗 멤버십</h2>
-        </div>
+      <div class="icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
       </div>
-      <p class="body">누구나 이용하는 공개형 운영이 아닙니다. 대표 카카오톡 간단 인증 후 <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매 등 정보를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
+      <div>
+        <div class="num">03 / PRIVATE</div>
+        <h2>공개형 → 프라이빗 멤버십</h2>
+        <p class="body" style="margin-top:5px">누구나 이용하는 공개형 운영이 아닙니다. 대표 카카오톡 간단 인증 후 <b class="brand">본 헤리티지</b> 포트폴리오·신제품·공동구매 등 정보를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
+      </div>
     </article>
 
     <article class="sec d">
-      <div class="head">
+      <div class="toprow">
         <div class="icon-wrap" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
         </div>
