@@ -73,7 +73,38 @@ function minWidthForType(outW, type) {
   if (type === "bracelet") return outW * 0.22;
   if (type === "necklace") return outW * 0.16;
   if (type === "earring") return outW * 0.07;
+  if (type === "ring") return outW * 0.03;
   return outW * 0.085;
+}
+
+/**
+ * Place ring as foreshortened band on finger (not wrist-cylinder / Clash 3D).
+ * Product photo is scaled to finger diameter and squashed along finger axis.
+ */
+function placeRingOnFinger(layerCtx, crop, target, outW) {
+  if (!target?.center) return;
+  const diameter = Math.max(
+    minWidthForType(outW, "ring"),
+    Math.min(target.width || outW * 0.05, outW * 0.1)
+  );
+  const fingerRad = ((target.angle || 0) * Math.PI) / 180;
+  // Ring sits across the finger → rotate so local X is perpendicular to finger
+  const bandAngle = fingerRad + Math.PI / 2;
+  const size = diameter * 1.15;
+  layerCtx.save();
+  layerCtx.translate(target.center.x, target.center.y);
+  layerCtx.rotate(bandAngle);
+  // Soft contact shadow under band
+  layerCtx.fillStyle = "rgba(0,0,0,0.22)";
+  layerCtx.beginPath();
+  layerCtx.ellipse(0, diameter * 0.06, size * 0.48, size * 0.16, 0, 0, Math.PI * 2);
+  layerCtx.fill();
+  // Foreshortened oval = looking down at dorsum of hand
+  layerCtx.scale(1, 0.38);
+  layerCtx.imageSmoothingEnabled = true;
+  layerCtx.imageSmoothingQuality = "high";
+  layerCtx.drawImage(crop, -size / 2, -size / 2, size, size);
+  layerCtx.restore();
 }
 
 /** True if opaque mass is heavier on top half → pendant likely upside-down in crop. */
@@ -404,8 +435,8 @@ function wrapBraceletCylinder(layerCtx, bodyCanvas, crop, center, wristW, angleD
 export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring") {
   const bodyCanvas = bodyImg instanceof HTMLCanvasElement ? bodyImg : canvasFromImage(bodyImg);
 
-  // Prefer real WebGL PBR for bracelet/ring (studio-like volume + occlusion).
-  if (type === "bracelet" || type === "ring") {
+  // Bracelet keeps WebGL PBR. Rings use dedicated 2D band (3D wrist occluder hid rings).
+  if (type === "bracelet") {
     try {
       const { composeTryOn3D } = await import("./tryon3d.js");
       return await composeTryOn3D(bodyCanvas, jewelryCanvas, target, type);
@@ -461,16 +492,7 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     }
 
     if (type === "ring") {
-      // Thin band around finger (same cylinder model, smaller radius)
-      wrapBraceletCylinder(
-        lctx,
-        bodyCanvas,
-        crop,
-        t.center,
-        Math.max(targetW * 1.15, out.width * 0.06),
-        (t.angle || 0) + 90,
-        t.frontAngle
-      );
+      placeRingOnFinger(lctx, crop, { ...t, width: targetW }, out.width);
       return;
     }
 
@@ -532,7 +554,7 @@ export function fallbackTarget(bodyImg, type = "ring", opts = {}) {
     const xMap = { index: 0.52, middle: 0.50, ring: 0.46, pinky: 0.40 };
     return {
       center: { x: w * (xMap[finger] || 0.46), y: h * 0.24 },
-      width: w * 0.07,
+      width: w * 0.045,
       angle: -12,
       frontAngle: -102,
       finger,
