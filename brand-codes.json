@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "updated": "2026-07-24",
+  "note": "포트폴리오 타이틀 선행 코드 → 공식 브랜드. 검색은 이 브랜드만 허용.",
+  "codes": {
+    "C": {
+      "en": "Cartier",
+      "ko": "까르띠에",
+      "aliases": ["cartier"]
+    },
+    "B": {
+      "en": "Bulgari",
+      "ko": "불가리",
+      "aliases": ["bulgari", "bvlgari"]
+    },
+    "VCA": {
+      "en": "Van Cleef & Arpels",
+      "ko": "반클리프",
+      "aliases": ["van cleef", "van cleef & arpels", "vca", "알함브라"]
+    },
+    "BO": {
+      "en": "Boucheron",
+      "ko": "부쉐론",
+      "aliases": ["boucheron"]
+    },
+    "CM": {
+      "en": "Chaumet",
+      "ko": "쇼메",
+      "aliases": ["chaumet", "쇼매"]
+    },
+    "C&H": {
+      "en": "Chrome Hearts",
+      "ko": "크롬하츠",
+      "aliases": ["chrome hearts", "chromehearts", "c&h"]
+    },
+    "CL": {
+      "en": "Chanel",
+      "ko": "샤넬",
+      "aliases": ["chanel"]
+    },
+    "G": {
+      "en": "Gucci",
+      "ko": "구찌",
+      "aliases": ["gucci"]
+    },
+    "H": {
+      "en": "Hermes",
+      "ko": "에르메스",
+      "aliases": ["hermes", "hermès", "hermès"]
+    },
+    "P": {
+      "en": "Prada",
+      "ko": "프라다",
+      "aliases": ["prada"]
+    },
+    "F": {
+      "en": "Fred",
+      "ko": "프레드",
+      "aliases": ["fred", "force 10", "포스텐"]
+    },
+    "T&C": {
+      "en": "Tiffany & Co",
+      "ko": "티파니",
+      "aliases": ["tiffany", "tiffany & co", "티파니앤코", "티파니엔코", "t&c", "t&co"]
+    },
+    "L": {
+      "en": "Louis Vuitton",
+      "ko": "루이비통",
+      "aliases": ["louis vuitton", "lv", "루이 비통"]
+    },
+    "D": {
+      "en": "Damiani",
+      "ko": "다미아니",
+      "aliases": ["damiani"]
+    }
+  },
+  "code_aliases": {
+    "CH": "C&H",
+    "CANDH": "C&H",
+    "T&CO": "T&C",
+    "TCO": "T&C",
+    "TC": "T&C",
+    "BV": "B",
+    "BVLGARI": "B"
+  }
+}

@@ -626,30 +626,31 @@
   function detectShippingCategory(title, content) {
     const titleText = String(title || "");
     const bodyText = String(content || "");
+    const code = window.HeritageBrandCodes?.extractPortfolioCode?.(titleText) || "";
+    if (code === "T&C" || code === "L" || code === "D") return "ETC";
+    if (code && ["C","B","VCA","BO","CM","C&H","CL","G","H","P","F"].includes(code)) return code;
     const lead = titleText.trim().match(/^([A-Za-z0-9&]+)/);
     if (lead) {
       const token = lead[1].toUpperCase().replace(/\s+/g, "");
       const leadMap = {
         "C&H": "C&H", CH: "C&H", VCA: "VCA", VC: "VCA", BO: "BO", CM: "CM", CL: "CL",
-        BV: "B", "T&CO": "ETC", TCO: "ETC", FR: "F", DC: "ETC", CD: "ETC",
-        C: "C", B: "B", G: "G", H: "H", P: "P", F: "F", ETC: "ETC",
+        BV: "B", "T&C": "ETC", "T&CO": "ETC", TCO: "ETC", FR: "F",
+        C: "C", B: "B", G: "G", H: "H", P: "P", F: "F", L: "ETC", D: "ETC", ETC: "ETC",
       };
       if (leadMap[token]) return leadMap[token];
     }
     const rules = [
-      [/\bC\s*&\s*H\b|C&H/i, "C&H"],
+      [/\bC\s*&\s*H\b|C&H|크롬하츠/i, "C&H"],
       [/\bVCA\b|반클리프|알함브라/i, "VCA"],
-      [/\bBO\b|불가리|Bulgari|BVLGARI/i, "BO"],
-      [/\bCM\b|샤넬|Chanel/i, "CM"],
-      [/\bCL\b|셀린|Celine/i, "CL"],
-      [/\bBV\b|보테가/i, "B"],
-      [/\bT\s*&\s*CO\b|T&CO|티파니|Tiffany/i, "ETC"],
-      [/\bFR\b|프레드|Fred\b/i, "F"],
+      [/\bBO\b|부쉐론|Boucheron/i, "BO"],
+      [/\bCM\b|쇼메|쇼매|Chaumet/i, "CM"],
+      [/\bCL\b|샤넬|Chanel/i, "CL"],
+      [/\bT\s*&\s*C(?:O)?\b|T&C|티파니|Tiffany/i, "ETC"],
       [/\bC\b|까르띠에|Cartier/i, "C"],
-      [/\bB\b|부쉐론|Boucheron/i, "B"],
+      [/\bB\b|불가리|Bulgari|BVLGARI/i, "B"],
       [/\bG\b|구찌|Gucci/i, "G"],
       [/\bH\b|에르메스|Hermes|Hermès/i, "H"],
-      [/\bP\b|피아제|Piaget/i, "P"],
+      [/\bP\b|프라다|Prada/i, "P"],
       [/\bF\b|프레드|Fred\b/i, "F"],
     ];
     for (const [re, cat] of rules) if (re.test(titleText)) return cat;

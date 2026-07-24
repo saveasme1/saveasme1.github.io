@@ -498,7 +498,11 @@
         return {
           id: item.id,
           title: brandText(item.title || ""),
-          brand: item.brand || "",
+          brand:
+            item.brand ||
+            window.HeritageBrandCodes?.resolveBrand?.(item.title, item.category)?.ko ||
+            "",
+          category: item.category || window.HeritageBrandCodes?.extractPortfolioCode?.(item.title) || "",
           imageUrl: imageAbs,
         };
       },

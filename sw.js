@@ -1,5 +1,5 @@
 /* Heritage PWA service worker — relative paths for GitHub Pages */
-const CACHE_VERSION = "hx-pwa-v1";
+const CACHE_VERSION = "hx-pwa-v20260724-brand1";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -17,7 +17,10 @@ const PRECACHE = [
   "./mypage.css",
   "./boards.css",
   "./site-nav.js",
+  "./brand-codes.js",
+  "./brand-codes.json",
   "./portfolio-board.js",
+  "./price-trend-panel.js",
   "./shipping-board.js",
   "./landing-boards.js",
   "./handmade-reviews.js",

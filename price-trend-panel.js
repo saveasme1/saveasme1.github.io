@@ -244,6 +244,7 @@
         title: product.title || "",
         brand: product.brand || "",
         image_url: product.imageUrl || "",
+        category: product.category || "",
       });
       try {
         const res = await fetch(`${API_BASE}/trend/${encodeURIComponent(product.id)}?${params}`, {
