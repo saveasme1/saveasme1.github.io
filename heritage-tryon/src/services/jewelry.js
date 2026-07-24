@@ -22,8 +22,8 @@ function load(url) {
 }
 
 export async function prepareJewelry(item, onStatus = () => {}) {
-  // cut8: watermark strip + necklace orientation fixes
-  const cacheId = `${item.id}::cut8`;
+  // cut9: harder Handmade watermark wipe + necklace 3D
+  const cacheId = `${item.id}::cut9`;
   try {
     const cached = await getProcessed(cacheId);
     if (cached?.blob) {
