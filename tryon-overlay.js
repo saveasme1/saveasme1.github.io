@@ -3,9 +3,12 @@
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260724-tryon16";
+  const TRYON_BUST = "20260724-tryon17";
   let overlay = null;
   let frame = null;
+  let overlayOpen = false;
+  let cameraOpen = false;
+  let ignorePop = false;
 
   function ensureOverlay() {
     if (overlay) return overlay;
@@ -51,19 +54,74 @@
     overlay.hidden = false;
     document.documentElement.classList.add("heritage-tryon-open");
     document.body.classList.add("heritage-tryon-open");
+    if (!overlayOpen) {
+      overlayOpen = true;
+      history.pushState({ heritageTryOn: true }, "");
+    }
   }
 
-  function closeTryOn() {
+  function closeTryOnQuiet() {
     if (!overlay) return;
     overlay.hidden = true;
     if (frame) frame.src = "about:blank";
     document.documentElement.classList.remove("heritage-tryon-open");
     document.body.classList.remove("heritage-tryon-open");
+    overlayOpen = false;
+    cameraOpen = false;
   }
 
+  function closeTryOn() {
+    if (!overlayOpen) {
+      closeTryOnQuiet();
+      return;
+    }
+    closeTryOnQuiet();
+    ignorePop = true;
+    history.back();
+  }
+
+  function postToFrame(data) {
+    try {
+      frame?.contentWindow?.postMessage(data, "*");
+    } catch (_) {}
+  }
+
+  window.addEventListener("popstate", () => {
+    if (ignorePop) {
+      ignorePop = false;
+      return;
+    }
+    // Android/system back: close camera first, then overlay.
+    if (cameraOpen) {
+      cameraOpen = false;
+      postToFrame({ type: "heritage-tryon-close-camera" });
+      return;
+    }
+    if (overlayOpen) {
+      closeTryOnQuiet();
+    }
+  });
+
   window.addEventListener("message", (event) => {
-    if (!event?.data || event.data.type !== "heritage-tryon-close") return;
-    closeTryOn();
+    const type = event?.data?.type;
+    if (!type) return;
+    if (type === "heritage-tryon-close") {
+      closeTryOn();
+      return;
+    }
+    if (type === "heritage-tryon-camera-open") {
+      if (!cameraOpen) {
+        cameraOpen = true;
+        history.pushState({ heritageTryOnCamera: true }, "");
+      }
+      return;
+    }
+    if (type === "heritage-tryon-camera-close") {
+      if (!cameraOpen) return;
+      cameraOpen = false;
+      ignorePop = true;
+      history.back();
+    }
   });
 
   window.openHeritageTryOn = openTryOn;
