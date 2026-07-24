@@ -5,6 +5,17 @@
     window.JEWELRY_PRICE_API || "https://app.0-1.co.kr/api/jewelry-price/v1"
   ).replace(/\/$/, "");
 
+  const SITE_CURRENCY = {
+    KR: "KRW",
+    US: "USD",
+    JP: "JPY",
+    FR: "EUR",
+    IT: "EUR",
+    DE: "EUR",
+    UK: "GBP",
+    GB: "GBP",
+  };
+
   function won(n) {
     if (n == null || Number.isNaN(Number(n))) return "—";
     return `${Math.round(Number(n)).toLocaleString("ko-KR")}원`;
@@ -28,42 +39,69 @@
     }
   }
 
-  /** @returns {{ overseas: boolean, flag: string, country: string }} */
+  function pathOf(url) {
+    try {
+      return new URL(url).pathname.toLowerCase();
+    } catch {
+      return "";
+    }
+  }
+
+  /**
+   * Flag/country from SELLER SITE (not brand HQ).
+   * @returns {{ overseas: boolean, flag: string, country: string, siteCurrency: string }}
+   */
   function originMeta(row) {
-    const host = hostOf(row.domain || row.product_url || row.listing_url || "");
-    const label = String(row.source_label || "");
-    const region = String(row.region || "");
+    const url = String(row.product_url || row.listing_url || row.domain || "");
+    const host = hostOf(row.domain || url);
+    const path = pathOf(url);
+
+    // Locale path overrides (e.g. /fr-fr/, /en-us/)
+    if (/\/(fr-fr|fr_fr|\/fr\/)/i.test(path) || host.endsWith(".fr")) {
+      return { overseas: true, flag: "🇫🇷", country: "FR", siteCurrency: "EUR" };
+    }
+    if (/\/(en-gb|uk\/)/i.test(path) || host.endsWith(".co.uk") || host.endsWith(".uk")) {
+      return { overseas: true, flag: "🇬🇧", country: "UK", siteCurrency: "GBP" };
+    }
+    if (/\/(ja-jp|\/jp\/)/i.test(path) || host.endsWith(".co.jp") || host.endsWith(".jp")) {
+      return { overseas: true, flag: "🇯🇵", country: "JP", siteCurrency: "JPY" };
+    }
+    if (/\/(it-it|\/it\/)/i.test(path) || host.endsWith(".it")) {
+      return { overseas: true, flag: "🇮🇹", country: "IT", siteCurrency: "EUR" };
+    }
+    if (/\/(de-de|\/de\/)/i.test(path) || host.endsWith(".de")) {
+      return { overseas: true, flag: "🇩🇪", country: "DE", siteCurrency: "EUR" };
+    }
+    if (/\/(en-us|us\/)/i.test(path)) {
+      return { overseas: true, flag: "🇺🇸", country: "US", siteCurrency: "USD" };
+    }
 
     const rules = [
-      { test: /(naver\.|coupang\.|ssg\.|lotteon\.|gmarket\.|11st\.|thehyundai\.|auction\.co\.kr)/, flag: "🇰🇷", country: "KR", overseas: false },
-      { test: /(amazon\.co\.jp|yahoo\.co\.jp|rakuten\.co\.jp)/, flag: "🇯🇵", country: "JP", overseas: true },
-      { test: /(amazon\.com|saksfifthavenue|net-a-porter|farfetch|tiffany\.com|google\.)/, flag: "🇺🇸", country: "US", overseas: true },
-      { test: /cartier\.com/, flag: "🇫🇷", country: "FR", overseas: true },
-      { test: /(bulgari\.com|bvlgari\.com)/, flag: "🇮🇹", country: "IT", overseas: true },
-      { test: /vancleefarpels\.com/, flag: "🇫🇷", country: "FR", overseas: true },
-      { test: /chanel\.com/, flag: "🇫🇷", country: "FR", overseas: true },
-      { test: /hermes\.com/, flag: "🇫🇷", country: "FR", overseas: true },
-      { test: /\.co\.kr$|\.kr$/, flag: "🇰🇷", country: "KR", overseas: false },
-      { test: /\.co\.jp$|\.jp$/, flag: "🇯🇵", country: "JP", overseas: true },
-      { test: /\.fr$/, flag: "🇫🇷", country: "FR", overseas: true },
-      { test: /\.it$/, flag: "🇮🇹", country: "IT", overseas: true },
-      { test: /\.uk$|\.co\.uk$/, flag: "🇬🇧", country: "UK", overseas: true },
-      { test: /\.de$/, flag: "🇩🇪", country: "DE", overseas: true },
-      { test: /\.com$/, flag: "🇺🇸", country: "US", overseas: true },
+      { test: /(naver\.|coupang\.|ssg\.|lotteon\.|gmarket\.|11st\.|thehyundai\.|auction\.co\.kr|danawa\.|akmall\.|galleria\.|\.co\.kr$|\.kr$)/, flag: "🇰🇷", country: "KR", overseas: false, siteCurrency: "KRW" },
+      { test: /(amazon\.co\.jp|yahoo\.co\.jp|rakuten\.co\.jp)/, flag: "🇯🇵", country: "JP", overseas: true, siteCurrency: "JPY" },
+      { test: /(amazon\.com|saksfifthavenue|net-a-porter\.com|tiffany\.com|google\.)/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /farfetch\.com/, flag: "🇬🇧", country: "UK", overseas: true, siteCurrency: "GBP" },
+      // Brand boutique domains: use site TLD/.com US storefront currency, NOT brand nationality
+      { test: /cartier\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /bulgari\.com|bvlgari\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /vancleefarpels\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /chanel\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /hermes\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
+      { test: /\.com$/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
     ];
 
     for (const r of rules) {
-      if (r.test.test(host)) return { overseas: r.overseas, flag: r.flag, country: r.country };
+      if (r.test.test(host)) {
+        return { overseas: r.overseas, flag: r.flag, country: r.country, siteCurrency: r.siteCurrency };
+      }
     }
 
-    const overseas =
-      region === "overseas" ||
-      /외국|해외/.test(label) ||
-      (!/\.kr$/.test(host) && !!host);
+    const overseas = String(row.region || "") === "overseas" || (!/\.kr$/.test(host) && !!host);
     return {
       overseas,
       flag: overseas ? "🌐" : "🇰🇷",
       country: overseas ? "OVERSEAS" : "KR",
+      siteCurrency: overseas ? "USD" : "KRW",
     };
   }
 
@@ -90,15 +128,13 @@
   }
 
   class PriceTrendPanel {
-    /**
-     * @param {HTMLElement} mountEl
-     * @param {{ getProduct: () => ({id:string,title?:string,brand?:string,imageUrl?:string}|null) }} opts
-     */
     constructor(mountEl, opts = {}) {
       this.mountEl = mountEl;
       this.getProduct = opts.getProduct || (() => null);
       this.open = false;
       this.chart = null;
+      this._activeProductId = null;
+      this._loadSeq = 0;
       this._build();
     }
 
@@ -122,6 +158,7 @@
             <div class="price-trend-panel__body">
               <div class="price-trend-panel__chart-wrap">
                 <canvas data-pt-canvas aria-label="가격 히스토리 차트"></canvas>
+                <p class="price-trend-panel__chart-empty" hidden>수집된 실측 가격 포인트가 없어 그래프를 표시하지 않습니다.</p>
               </div>
               <div class="price-trend-panel__sellers">
                 <h4>판매처</h4>
@@ -142,11 +179,33 @@
       };
     }
 
+    /** Clear previous product UI so it cannot linger when switching items. */
+    resetForProduct(productId) {
+      this._activeProductId = productId || null;
+      this._loadSeq += 1;
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = null;
+      }
+      this.els.low.textContent = "—";
+      this.els.high.textContent = "—";
+      this.els.avg.textContent = "—";
+      this.els.updated.textContent = "";
+      this.els.status.textContent = productId ? "불러오는 중…" : "";
+      this.els.status.classList.remove("is-error");
+      this.els.sellers.replaceChildren();
+      this.els.canvas.style.display = "block";
+      const empty = this.root.querySelector(".price-trend-panel__chart-empty");
+      if (empty) empty.hidden = true;
+    }
+
     setExpanded(next) {
       this.open = !!next;
       this.root.classList.toggle("is-open", this.open);
       this.root.setAttribute("aria-hidden", this.open ? "false" : "true");
       if (this.open) {
+        const product = this.getProduct();
+        this.resetForProduct(product?.id || null);
         this.load();
         requestAnimationFrame(() => {
           setTimeout(() => {
@@ -177,6 +236,8 @@
         this.els.status.classList.add("is-error");
         return;
       }
+      const seq = ++this._loadSeq;
+      this._activeProductId = product.id;
       this.els.status.classList.remove("is-error");
       this.els.status.textContent = "저장된 신품 시세를 불러오는 중…";
       const params = new URLSearchParams({
@@ -189,13 +250,16 @@
           cache: "no-store",
         });
         const data = await res.json();
+        if (seq !== this._loadSeq || this._activeProductId !== product.id) return;
         if (!res.ok || !data.ok) throw new Error(data.detail || "불러오기 실패");
         this.render(data);
         setTimeout(() => {
+          if (seq !== this._loadSeq) return;
           this.root.scrollIntoView({ behavior: "smooth", block: "nearest" });
           if (this.chart) this.chart.resize();
         }, 120);
       } catch (err) {
+        if (seq !== this._loadSeq) return;
         this.els.status.textContent = err.message || "가격 정보를 불러오지 못했습니다.";
         this.els.status.classList.add("is-error");
       }
@@ -230,8 +294,8 @@
         const flag = document.createElement("span");
         flag.className = "price-trend-panel__flag";
         flag.textContent = meta.flag;
-        flag.title = meta.country;
-        flag.setAttribute("aria-label", meta.overseas ? "해외 판매처" : "국내 판매처");
+        flag.title = `출처사이트 ${meta.country}`;
+        flag.setAttribute("aria-label", meta.overseas ? `해외 출처 ${meta.country}` : "국내 출처");
 
         const name = document.createElement("span");
         name.className = "price-trend-panel__seller-name";
@@ -245,7 +309,7 @@
 
         const badge = document.createElement("span");
         badge.className = `price-trend-panel__badge ${meta.overseas ? "is-overseas" : "is-kr"}`;
-        badge.textContent = meta.overseas ? "해외" : "국내";
+        badge.textContent = meta.overseas ? `해외·${meta.country}` : "국내";
 
         const link = document.createElement("a");
         link.className = "price-trend-panel__link";
@@ -261,10 +325,9 @@
         const priceBox = document.createElement("div");
         priceBox.className = "price-trend-panel__prices";
 
-        const cur = String(row.original_currency || row.currency || "KRW").toUpperCase();
+        const cur = String(row.original_currency || meta.siteCurrency || "KRW").toUpperCase();
         const hasFx =
           meta.overseas &&
-          cur &&
           cur !== "KRW" &&
           row.original_amount != null &&
           !Number.isNaN(Number(row.original_amount));
@@ -273,11 +336,11 @@
           const fxLine = document.createElement("span");
           fxLine.className = "price-trend-panel__price-fx";
           fxLine.textContent = formatFx(row.original_amount, cur);
-          fxLine.title = `해외 표기가 (${cur})`;
+          fxLine.title = `출처사이트 통화 (${cur})`;
 
           const fxNote = document.createElement("small");
           fxNote.className = "price-trend-panel__price-note";
-          fxNote.textContent = `해외(${cur})`;
+          fxNote.textContent = `출처통화(${cur})`;
 
           const krwLine = document.createElement("strong");
           krwLine.className = "price-trend-panel__price-krw";
@@ -285,7 +348,7 @@
 
           const krwNote = document.createElement("small");
           krwNote.className = "price-trend-panel__price-note";
-          krwNote.textContent = "원화환산";
+          krwNote.textContent = "단순원화환산(실 구매가격 X)";
           if (row.fx_rate) {
             krwNote.title = `환율 1 ${cur} ≈ ${Number(row.fx_rate).toLocaleString("ko-KR")}원`;
           }
@@ -298,7 +361,7 @@
 
           const krwNote = document.createElement("small");
           krwNote.className = "price-trend-panel__price-note";
-          krwNote.textContent = meta.overseas ? "원화" : "국내가";
+          krwNote.textContent = meta.overseas ? "단순원화환산(실 구매가격 X)" : "국내가";
 
           priceBox.append(krwLine, krwNote);
         }
@@ -316,9 +379,8 @@
       this.renderChart(data.history || [], data.sellers || []);
     }
 
-    renderChart(history, sellers = []) {
+    renderChart(history) {
       const wrap = this.root.querySelector(".price-trend-panel__chart-wrap");
-      // Trust guard: only real positive observations
       const points = (history || []).filter((h) => {
         const p = Number(h?.price);
         return Number.isFinite(p) && p > 0 && h?.observed_at && String(h.source || "") !== "backfill";
@@ -399,14 +461,12 @@
                 },
                 label: (ctx) => {
                   const h = points[ctx.dataIndex] || {};
-                  const cur = String(h.original_currency || "KRW").toUpperCase();
-                  const overseas =
-                    h.region === "overseas" ||
-                    (cur && cur !== "KRW" && h.original_amount != null);
+                  const site = originMeta(h);
+                  const cur = String(h.original_currency || site.siteCurrency || "KRW").toUpperCase();
                   const lines = [];
-                  if (overseas && cur !== "KRW" && h.original_amount != null) {
-                    lines.push(`해외 ${formatFx(h.original_amount, cur)}`);
-                    lines.push(`원화환산 ${won(h.price)}`);
+                  if (site.overseas && cur !== "KRW" && h.original_amount != null) {
+                    lines.push(`출처통화 ${formatFx(h.original_amount, cur)}`);
+                    lines.push(`단순원화환산(실 구매가격 X) ${won(h.price)}`);
                     if (h.fx_rate) {
                       lines.push(`환율 1 ${cur} ≈ ${Number(h.fx_rate).toLocaleString("ko-KR")}원`);
                     }
@@ -423,7 +483,11 @@
           },
           scales: {
             x: {
-              ticks: { maxTicksLimit: Math.min(6, Math.max(1, points.length)), color: "#6b6762", font: { size: 10 } },
+              ticks: {
+                maxTicksLimit: Math.min(6, Math.max(1, points.length)),
+                color: "#6b6762",
+                font: { size: 10 },
+              },
               grid: { display: false },
             },
             y: {

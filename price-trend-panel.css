@@ -302,7 +302,22 @@
 }
 
 @media (max-width: 720px) {
-  .price-trend-panel__stats { grid-template-columns: 1fr; }
+  /* Keep 최저/최고/평균 on one horizontal row on MO/TB */
+  .price-trend-panel__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .price-trend-panel__stat {
+    padding: 8px 6px;
+  }
+  .price-trend-panel__stat span {
+    font-size: 9px;
+  }
+  .price-trend-panel__stat strong {
+    font-size: 11px;
+    margin-top: 2px;
+  }
   .price-trend-panel__body {
     grid-template-columns: 1fr;
   }
@@ -313,6 +328,12 @@
   }
   .price-trend-panel__sellers {
     max-height: none;
+  }
+  .price-trend-panel__price-note {
+    font-size: 8px;
+    max-width: 9.5em;
+    white-space: normal;
+    text-align: right;
   }
   .post-meta-pricetrend { min-height: 26px; padding: 3px 8px; font-size: 10px; }
 }

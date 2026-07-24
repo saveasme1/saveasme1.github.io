@@ -521,7 +521,10 @@
       els.title.textContent = safeTitle;
     }
     const panel = ensurePricePanel();
-    if (panel) panel.setExpanded(false);
+    if (panel) {
+      panel.resetForProduct(item.id);
+      panel.setExpanded(false);
+    }
     if (window.GongbangBoardMeta?.renderMetaRow) {
       const cover = item.cover || item.image || (item.images && item.images[0]) || "";
       const path = String(cover).replace(/^\/+/, "");
