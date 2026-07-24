@@ -290,12 +290,14 @@
     </section>
 
     <section class="guide only-pc" id="otherGuide">
-      <h2>PC / 기타</h2>
+      <h2>PC에서도 설치 가능 (Chrome / Edge)</h2>
       <ol>
-        <li>휴대폰에서 이 링크(<b>hand-made.kr/install.html</b>)를 여세요.</li>
-        <li>아이폰이면 위 아이폰 안내, 안드로이드면 위 안드로이드 안내를 따르면 됩니다.</li>
-        <li>아래 QR을 인쇄·공유해도 됩니다.</li>
+        <li><b>Chrome</b> 또는 <b>Edge</b>로 이 페이지를 엽니다. (Safari는 PC 설치 미지원)</li>
+        <li>위 <b>앱 설치하기</b>를 누르거나</li>
+        <li>주소창 오른쪽 <b>설치(⊕)</b> / 메뉴 → <b>앱 설치</b> / <b>Install Heritage</b></li>
+        <li>설치되면 시작 메뉴·바탕화면에서 앱처럼 실행됩니다.</li>
       </ol>
+      <p class="note">휴대폰용으로는 위 아이폰·안드로이드 안내(또는 QR)를 사용하세요.</p>
     </section>
   </div>
 
@@ -324,11 +326,12 @@
       mode === "ios"
         ? (isInApp ? "먼저 Safari로 연 뒤 홈 화면에 추가" : "공유 → 홈 화면에 추가")
         : mode === "android" ? "설치 창 또는 홈 화면에 추가" :
-      "휴대폰에서 열어 주세요";
+      "Chrome/Edge에서 앱으로 설치";
 
     if (mode === "other") {
       document.getElementById("lead").textContent =
-        "PC에서는 아이폰·안드로이드·PC 설치 안내를 모두 보여 드립니다. 휴대폰에서는 해당 기기 안내만 보입니다.";
+        "PC(Chrome/Edge)에서도 앱 설치가 됩니다. 아래에는 아이폰·안드로이드 안면도 함께 보여 드립니다.";
+      document.getElementById("openExternalBtn").style.display = "none";
     } else if (mode === "ios") {
       if (!isInApp) {
         document.getElementById("openExternalBtn").style.display = "none";
