@@ -78,7 +78,7 @@ function makeGoldMaterial(THREE, metal, ambient, mapTex) {
 function buildLoveBracelet(THREE, material, radius) {
   const group = new THREE.Group();
   const major = radius;
-  const tube = Math.max(2.2, radius * 0.16);
+  const tube = Math.max(3.2, radius * 0.2);
   const band = new THREE.Mesh(
     new THREE.TorusGeometry(major, tube, 36, 128),
     material
@@ -362,7 +362,7 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.45;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFSoftShadowMap;
 
@@ -414,8 +414,8 @@ export async function composeTryOn3D(bodyCanvas, jewelryCanvas, target, type = "
       : buildLoveBracelet(T, goldMat, posed.wristR * 1.02);
   posed.group.add(jewel);
 
-  // Arm depth occluder along forearm — hides back of bracelet (must write depth)
-  const occluder = buildArmOccluder(T, posed.wristR * 7.2, posed.wristR * 0.95);
+  // Arm depth occluder — ONLY hide back of band; too-thick occluder ate entire bracelet
+  const occluder = buildArmOccluder(T, posed.wristR * 5.5, posed.wristR * 0.58);
   occluder.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), posed.forearm);
   occluder.position.copy(posed.group.position);
   occluder.renderOrder = -2;
