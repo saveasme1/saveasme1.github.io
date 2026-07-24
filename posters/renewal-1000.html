@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HERITAGE 운영방식 변경 및 브랜드 리뉴얼 안내 · 1000×1000</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+@page { size: 1000px 1000px; margin: 0; }
+html, body { margin: 0; background: #111; }
+:root {
+  --ink: #171717;
+  --paper: #f4f1ec;
+  --orange: #ff7b36;
+  --orange2: #ff9a5b;
+  --muted: #7a746d;
+  --line: rgba(23,23,23,.12);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+  color: var(--ink);
+}
+.poster {
+  width: 1000px;
+  height: 1000px;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(255,123,54,.2), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 100% 100%, rgba(255,123,54,.1), transparent 55%),
+    linear-gradient(180deg, #f7f3ee 0%, var(--paper) 55%, #efe9e1 100%);
+}
+.top {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  border-bottom: 1px solid var(--line);
+}
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: .28em;
+}
+.logo span {
+  display: block;
+  width: 42px;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, var(--orange), transparent);
+}
+.issue {
+  text-align: right;
+  font-size: 11px;
+  letter-spacing: .2em;
+  color: var(--muted);
+  line-height: 1.65;
+  font-weight: 700;
+}
+.hero {
+  padding: 28px 48px 18px;
+}
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .24em;
+}
+.kicker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 6px rgba(255,123,54,.14);
+}
+.hero h1 {
+  margin: 12px 0 8px;
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: -.04em;
+  font-weight: 800;
+}
+.hero p {
+  margin: 0;
+  color: #524d47;
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 820px;
+  word-break: keep-all;
+}
+.grid {
+  padding: 6px 48px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.sec {
+  min-height: 268px;
+  padding: 22px 22px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(23,23,23,.08);
+  background: rgba(255,255,255,.7);
+  box-shadow: 0 12px 28px rgba(35,26,18,.05);
+  display: flex;
+  flex-direction: column;
+}
+.sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
+.sec.b { background: #242220; color: #fff; border-color: transparent; }
+.sec.b .num { color: rgba(255,154,91,.9); }
+.sec.b .body { color: rgba(255,255,255,.72); }
+.sec.c {
+  background: linear-gradient(135deg, var(--orange), #ff995b);
+  color: #1b130f;
+  border-color: transparent;
+}
+.sec.c .num { color: rgba(27,19,15,.55); }
+.sec.c .body { color: rgba(27,19,15,.84); }
+.sec.d { background: #fff; }
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #171717;
+  color: var(--orange);
+  flex-shrink: 0;
+}
+.sec.b .icon-wrap { background: rgba(255,255,255,.08); color: var(--orange2); }
+.sec.c .icon-wrap { background: rgba(27,19,15,.16); color: #fff; }
+.icon-wrap svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.num {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  color: var(--orange);
+  margin-bottom: 4px;
+}
+h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -.03em;
+  line-height: 1.3;
+  font-weight: 800;
+}
+.body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: #403d39;
+  word-break: keep-all;
+}
+.points {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+}
+.point {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(23,23,23,.04);
+  border: 1px solid rgba(23,23,23,.06);
+}
+.point svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  stroke: var(--orange);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.point b {
+  font-size: 12.5px;
+  letter-spacing: -.02em;
+  font-weight: 750;
+  line-height: 1.25;
+}
+.foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  background: #171717;
+  color: #bdb7b1;
+  font-size: 11px;
+  letter-spacing: .18em;
+}
+.foot strong {
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: .28em;
+}
+.foot .line {
+  width: 90px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--orange), transparent);
+}
+</style>
+</head>
+<body>
+<div class="poster">
+  <header class="top">
+    <div class="logo">HERITAGE<span></span></div>
+    <div class="issue">PRIVATE MEMBERSHIP<br>BRAND RENEWAL 2026</div>
+  </header>
+
+  <section class="hero">
+    <div class="kicker"><i></i>IMPORTANT NOTICE</div>
+    <h1>운영방식 변경 및 브랜드 리뉴얼 안내</h1>
+    <p>15년의 신뢰를 바탕으로, 더 높은 수준의 서비스와 전문성을 제공하기 위한 새로운 변화를 시작합니다.</p>
+  </section>
+
+  <div class="grid">
+    <article class="sec a">
+      <div class="head">
+        <div class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
+        </div>
+        <div>
+          <div class="num">01 / THANKS</div>
+          <h2>15년, 감사와 새로운 출발</h2>
+        </div>
+      </div>
+      <p class="body">안녕하세요. 공방 171입니다. 15년 동안 믿고 찾아주신 모든 고객님께 진심으로 감사드립니다. 더 높은 서비스와 전문성을 위해 새로운 변화를 시작합니다.</p>
+    </article>
+
+    <article class="sec b">
+      <div class="head">
+        <div class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <div class="num">02 / WHY</div>
+          <h2>브랜드의 가치를 지키기 위해</h2>
+        </div>
+      </div>
+      <p class="body">제품·콘텐츠·운영·상담을 그대로 모방하는 사례가 이어졌습니다. 차별화된 서비스와 브랜드 가치를 지키기 위해 운영 방식을 전면 개편합니다.</p>
+    </article>
+
+    <article class="sec c">
+      <div class="head">
+        <div class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+        </div>
+        <div>
+          <div class="num">03 / PRIVATE</div>
+          <h2>공개형 → 프라이빗 멤버십</h2>
+        </div>
+      </div>
+      <p class="body">누구나 이용하는 공개형 운영이 아닙니다. 대표 카카오톡 간단 인증 후 포트폴리오·신제품·공동구매 등 정보를 안내하는 프라이빗 멤버십으로 변경됩니다.</p>
+    </article>
+
+    <article class="sec d">
+      <div class="head">
+        <div class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+        </div>
+        <div>
+          <div class="num">04 / BETTER</div>
+          <h2>리뉴얼로 더 나아집니다</h2>
+        </div>
+      </div>
+      <div class="points">
+        <div class="point">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <b>전문 상담</b>
+        </div>
+        <div class="point">
+          <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          <b>검증 서비스</b>
+        </div>
+        <div class="point">
+          <svg viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="m7.5 4.2 9 5.2"/></svg>
+          <b>프리미엄 확대</b>
+        </div>
+        <div class="point">
+          <svg viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="8" rx="2"/><path d="M12 8v14"/><path d="M19 12v.01"/><path d="M5 12v.01"/><path d="M12 2v4"/><path d="m9.5 4 3-2 3 2"/></svg>
+          <b>한정·공동구매</b>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <footer class="foot">
+    <strong>HERITAGE</strong>
+    <div class="line"></div>
+    <span>CRAFTED WITH TRUST · SINCE 2011</span>
+  </footer>
+</div>
+</body>
+</html>
