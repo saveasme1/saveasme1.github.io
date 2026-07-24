@@ -230,9 +230,10 @@ html, body { margin: 0; min-height: 100%; }
   height: 100%;
   object-fit: cover;
 }
-/* 전면 = 신분증/얼굴인식처럼 거울 미리보기 (오른쪽 귀 = 화면 오른쪽) */
+/* 전면 = 신분증/얼굴인식처럼 거울 미리보기 (오른쪽 귀 = 화면 오른쪽)
+   줌은 JS에서 scale()로 함께 적용 */
 .camera-sheet.is-front-mirror .camera-video {
-  transform: scaleX(-1);
+  /* transform set inline: scaleX(-1) scale(z) */
 }
 .camera-guide {
   position: absolute;
@@ -312,6 +313,15 @@ html, body { margin: 0; min-height: 100%; }
 .camera-guide[data-type="necklace"] .guide-art[data-for="necklace"] {
   display: block;
 }
+/* 목걸이 가이드: 가까이 찍어도 들어가도록 크게 */
+.camera-guide[data-type="necklace"] .guide-art[data-for="necklace"] {
+  width: min(98vw, 560px);
+  max-height: min(90dvh, 820px);
+}
+.camera-guide[data-type="earring"] .guide-art[data-for="earring"] {
+  width: min(96vw, 480px);
+  max-height: min(84dvh, 720px);
+}
 /* 전면 미러: 해부학 귀 = 화면 같은 쪽 (신분증 UX) */
 .camera-sheet.is-front-mirror .camera-guide[data-type="earring"][data-ear="right"] .guide-art[data-for="earring"][data-ear-side="right"],
 .camera-sheet.is-front-mirror .camera-guide[data-type="earring"][data-ear="left"] .guide-art[data-for="earring"][data-ear-side="left"] {
@@ -367,6 +377,55 @@ html, body { margin: 0; min-height: 100%; }
   text-shadow: 0 2px 12px rgba(0,0,0,0.55);
   letter-spacing: -0.04em;
   line-height: 1;
+}
+.zoom-bar {
+  position: absolute;
+  right: 12px;
+  bottom: 22px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  justify-items: center;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  pointer-events: auto;
+}
+.zoom-bar.is-hidden,
+.zoom-bar[hidden] { display: none !important; }
+.zoom-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.zoom-btn:active { background: rgba(255,255,255,0.28); }
+.zoom-label {
+  min-width: 3.2em;
+  text-align: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.zoom-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: rgba(255,255,255,0.78);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 .guide-caption {
   position: absolute;
