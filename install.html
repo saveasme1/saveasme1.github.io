@@ -429,13 +429,18 @@
         openExternalBrowser();
         return;
       }
-      if (mode === "android" && deferredPrompt) {
+      if ((mode === "android" || mode === "other") && deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.finally(function () { deferredPrompt = null; });
         return;
       }
       if (mode === "ios") {
         showToast("공유 → 홈 화면에 추가");
+        scrollGuide();
+        return;
+      }
+      if (mode === "other") {
+        showToast("주소창 설치(⊕) 또는 메뉴 → 앱 설치");
         scrollGuide();
         return;
       }
@@ -446,6 +451,14 @@
     window.addEventListener("beforeinstallprompt", function (event) {
       event.preventDefault();
       deferredPrompt = event;
+      if (mode === "other" || mode === "android") {
+        document.getElementById("installHint").textContent = "클릭하면 설치 창이 열립니다";
+      }
+    });
+
+    window.addEventListener("appinstalled", function () {
+      deferredPrompt = null;
+      showToast("설치되었습니다");
     });
 
     // KREAM-like: in-app이면 들어오자마자 외부 브라우저 열기 시도
