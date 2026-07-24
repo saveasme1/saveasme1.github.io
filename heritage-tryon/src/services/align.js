@@ -85,11 +85,12 @@ function scoreBracelet(lm) {
   const target = { x: 0.5, y: 0.32 };
   const d = dist2(wrist.x, wrist.y, target.x, target.y);
   const handAbove = mid.y < wrist.y + 0.02 && tip.y < wrist.y;
-  let score = Math.max(0, 1 - d / 0.22);
-  if (handAbove) score = Math.min(1, score + 0.12);
-  else score *= 0.5;
-  const ok = score >= 0.8;
-  const far = score < 0.35;
+  let score = Math.max(0, 1 - d / 0.14);
+  if (handAbove) score = Math.min(1, score + 0.08);
+  else score *= 0.4;
+  if (d > 0.08) score = Math.min(score, 0.7);
+  const ok = score >= 0.88 && d <= 0.06;
+  const far = d > 0.18 || score < 0.35;
   return {
     score,
     ok,
@@ -126,11 +127,12 @@ function scoreRing(lm, finger = "ring") {
   const mid = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
   const d = dist2(mid.x, mid.y, spec.target.x, spec.target.y);
   const fingersUp = tip.y < mcp.y;
-  let score = Math.max(0, 1 - d / 0.3);
-  if (fingersUp) score = Math.min(1, score + 0.12);
-  else score *= 0.55;
-  const ok = score >= 0.72;
-  const far = score < 0.28;
+  let score = Math.max(0, 1 - d / 0.16);
+  if (fingersUp) score = Math.min(1, score + 0.08);
+  else score *= 0.4;
+  if (d > 0.09) score = Math.min(score, 0.68);
+  const ok = score >= 0.88 && d <= 0.065;
+  const far = d > 0.2 || score < 0.28;
   // Finger diameter ≈ neighboring MCP span (more stable than whole-finger length)
   const neighbors = {
     index: [9],
@@ -179,9 +181,10 @@ function scoreEarring(faceLm, earSide, mirror = false) {
   // Screen-space target (mirror preview = same side as anatomical)
   const target = anatomical === "right" ? { x: 0.72, y: 0.45 } : { x: 0.28, y: 0.45 };
   const d = dist2(sx, ear.y, target.x, target.y);
-  const score = Math.max(0, 1 - d / 0.26);
-  const ok = score >= 0.8;
-  const far = score < 0.3;
+  let score = Math.max(0, 1 - d / 0.14);
+  if (d > 0.08) score = Math.min(score, 0.7);
+  const ok = score >= 0.88 && d <= 0.06;
+  const far = d > 0.18 || score < 0.3;
   const label = anatomical === "left" ? "왼쪽" : "오른쪽";
   return {
     score,
@@ -211,24 +214,25 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
   const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
   const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
   const noseY = nose ? mapY(nose.y) : null;
-  // Face + neck band (NOT collarbone) — must sit near guide center
+  // Face + neck near guide center — hard distance gate so 3-2-1 doesn't fire early
   const faceNeck = {
     x: mid.x,
-    y: noseY != null ? noseY * 0.5 + mid.y * 0.5 : mid.y - 0.04,
+    y: noseY != null ? noseY * 0.55 + mid.y * 0.45 : mid.y - 0.04,
   };
   const target = { x: 0.5, y: 0.36 };
   const d = dist2(faceNeck.x, faceNeck.y, target.x, target.y);
 
-  let score = Math.max(0, 1 - d / 0.16);
-  if (Math.abs(mid.x - 0.5) > 0.18) score *= 0.55;
-  if (noseY == null) score *= 0.45;
-  else if (noseY > 0.48 || noseY < 0.03) score *= 0.4;
-  if (shoulderW < 0.22 || shoulderW > 0.88) score *= 0.65;
-  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.1);
-  score *= 0.65 + 0.35 * level;
+  let score = Math.max(0, 1 - d / 0.11);
+  if (Math.abs(mid.x - 0.5) > 0.12) score *= 0.45;
+  if (noseY == null) score *= 0.3;
+  else if (noseY > 0.4 || noseY < 0.06) score *= 0.35;
+  if (shoulderW < 0.28 || shoulderW > 0.78) score *= 0.5;
+  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.08);
+  score *= 0.55 + 0.45 * level;
+  if (d > 0.085) score = Math.min(score, 0.65);
 
-  const ok = score >= 0.74;
-  const far = score < 0.4;
+  const ok = score >= 0.9 && d <= 0.055;
+  const far = d > 0.16 || score < 0.35;
   return {
     score,
     ok,
@@ -237,7 +241,7 @@ function scoreNecklace(poseLm, mirror = false, zoom = 1) {
       ? "가이드에 더 가까이 · 얼굴·목을 가운데로"
       : ok
         ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "얼굴·목을 가이드 중심에 맞춰 주세요",
+        : "얼굴·목을 가이드 중심에 더 정확히 맞춰 주세요",
   };
 }
 
