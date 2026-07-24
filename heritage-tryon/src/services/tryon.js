@@ -76,6 +76,30 @@ function minWidthForType(outW, type) {
   return outW * 0.085;
 }
 
+/** True if opaque mass is heavier on top half → pendant likely upside-down in crop. */
+function necklaceNeedsFlip(crop) {
+  const ctx = crop.getContext("2d", { willReadFrequently: true });
+  const { data, width: w, height: h } = ctx.getImageData(0, 0, crop.width, crop.height);
+  let top = 0;
+  let bot = 0;
+  let sumY = 0;
+  let n = 0;
+  const step = Math.max(1, Math.floor(Math.min(w, h) / 200));
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
+      if (data[(y * w + x) * 4 + 3] < 40) continue;
+      n++;
+      sumY += y;
+      if (y < h * 0.5) top++;
+      else bot++;
+    }
+  }
+  if (!n) return true; // default flip — safer for Alhambra-style product shots that looked inverted
+  const cy = sumY / n / h;
+  // Pendant should sit in lower half; if center of mass is high, flip.
+  return cy < 0.52 || top > bot * 1.05;
+}
+
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
@@ -447,6 +471,23 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
         (t.angle || 0) + 90,
         t.frontAngle
       );
+      return;
+    }
+
+    // Necklace: pendant must hang DOWN.
+    // Also unwrap ~180° shoulder angle from unmirrored selfies.
+    if (type === "necklace") {
+      let ang = angle;
+      if (Math.abs(ang) > 90) ang = ang > 0 ? ang - 180 : ang + 180;
+      const flipY = necklaceNeedsFlip(crop);
+      lctx.save();
+      lctx.translate(t.center.x, t.center.y);
+      lctx.rotate((ang * Math.PI) / 180);
+      if (flipY) lctx.scale(1, -1);
+      lctx.imageSmoothingEnabled = true;
+      lctx.imageSmoothingQuality = "high";
+      lctx.drawImage(crop, -targetW / 2, -targetH / 2, targetW, targetH);
+      lctx.restore();
       return;
     }
 
