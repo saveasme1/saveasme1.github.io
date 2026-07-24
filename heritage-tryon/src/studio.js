@@ -19,6 +19,7 @@ const state = {
   productReady: false,
   wearType: "bracelet",
   earSide: "right",
+  ringFinger: "ring",
   cameraStream: null,
   cameraOpen: false,
   cameraHistoryLocal: false,
@@ -282,17 +283,24 @@ function onPickFile(event) {
 }
 
 const CAMERA_HINT = {
-  ring: "왼손 손등 · 검지 주황 링(+)에 맞추세요",
+  ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
   bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
   earring: "전면 카메라 · 내 오른쪽 귀는 화면 왼쪽에 보입니다",
   necklace: "전면 카메라 · 얼굴을 위로 · 목(+)에 맞추세요",
 };
 
 const GUIDE_CAPTION = {
-  ring: "왼손 손등 · 검지(+)",
+  ring: "왼손 손등 · 약지(+)",
   bracelet: "손↑ · 손목(+) · 팔뚝↓",
   earring: "오른쪽 귀 → 화면 왼쪽 가이드",
   necklace: "전면 · 얼굴↑ · 목·쇄골(+)",
+};
+
+const FINGER_LABEL = {
+  index: "검지",
+  middle: "중지",
+  ring: "약지",
+  pinky: "소지",
 };
 
 const WEAR_LABEL = {
@@ -314,6 +322,25 @@ function facingModeForType(type) {
 function earringGuideCaption(anatomicalSide) {
   if (anatomicalSide === "left") return "왼쪽 귀 → 화면 오른쪽 가이드";
   return "오른쪽 귀 → 화면 왼쪽 가이드";
+}
+
+function ringGuideCaption(finger) {
+  const label = FINGER_LABEL[finger] || "약지";
+  return `왼손 손등 · ${label}(+)`;
+}
+
+function setRingFinger(finger) {
+  const ok = ["index", "middle", "ring", "pinky"].includes(finger) ? finger : "ring";
+  state.ringFinger = ok;
+  document.querySelectorAll(".finger-btn").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.finger === state.ringFinger);
+  });
+  if (state.wearType === "ring") {
+    if ($("guideCaption")) $("guideCaption").textContent = ringGuideCaption(state.ringFinger);
+    if ($("cameraHint")) {
+      $("cameraHint").textContent = `왼손 손등 · ${FINGER_LABEL[state.ringFinger]}에 맞춰 주세요`;
+    }
+  }
 }
 
 function postParent(type) {
@@ -363,7 +390,9 @@ function applyWearTypeFromProduct() {
     $("guideCaption").textContent =
       state.wearType === "earring"
         ? earringGuideCaption(state.earSide)
-        : (GUIDE_CAPTION[state.wearType] || GUIDE_CAPTION.bracelet);
+        : state.wearType === "ring"
+          ? ringGuideCaption(state.ringFinger)
+          : (GUIDE_CAPTION[state.wearType] || GUIDE_CAPTION.bracelet);
   }
   const chip = $("wearTypeChip");
   if (chip) chip.textContent = WEAR_LABEL[state.wearType] || "자동";
@@ -374,12 +403,21 @@ function applyWearTypeFromProduct() {
     earBar.hidden = !showEar;
     earBar.classList.toggle("is-hidden", !showEar);
   }
+  const fingerBar = $("fingerBar");
+  if (fingerBar) {
+    const showFinger = state.wearType === "ring";
+    fingerBar.hidden = !showFinger;
+    fingerBar.classList.toggle("is-hidden", !showFinger);
+    if (showFinger) setRingFinger(state.ringFinger || "ring");
+  }
   const sub = $("cameraSub");
   if (sub) {
     sub.textContent =
       state.wearType === "earring" || state.wearType === "necklace"
         ? "전면 카메라로 얼굴을 맞춘 뒤 촬영하세요"
-        : "가이드에 맞추면 자동 촬영됩니다 · 직접 눌러도 됩니다";
+        : state.wearType === "ring"
+          ? "왼손 손등 · 손가락을 고른 뒤 가이드에 맞추세요"
+          : "가이드에 맞추면 자동 촬영됩니다 · 직접 눌러도 됩니다";
   }
 }
 
@@ -437,7 +475,7 @@ async function alignTick() {
   const video = $("cameraVideo");
   const type = resolveType();
   try {
-    const result = await evaluateAlignment(video, type, state.earSide);
+    const result = await evaluateAlignment(video, type, state.earSide, state.ringFinger);
     if (result) {
       applyAlignUi(result);
       if (result.ok) {
@@ -540,6 +578,9 @@ async function openGuidedCamera() {
     if (state.wearType === "earring") {
       setEarSide(state.earSide || "right");
     }
+    if (state.wearType === "ring") {
+      setRingFinger(state.ringFinger || "ring");
+    }
     startAlignLoop();
   } catch (err) {
     console.warn(err);
@@ -602,7 +643,10 @@ async function runMergeTryOn() {
     let detection;
     try {
       detection = await withTimeout(
-        detectBody(state.bodyImage, type, () => setMergeProgress(62), { earSide: state.earSide }),
+        detectBody(state.bodyImage, type, () => setMergeProgress(62), {
+          earSide: state.earSide,
+          ringFinger: state.ringFinger,
+        }),
         45000,
         "신체 인식 시간 초과"
       );
@@ -617,7 +661,10 @@ async function runMergeTryOn() {
     if (useType === "bracelet") {
       target = detection.allTargets?.bracelet || fallbackTarget(state.bodyImage, "bracelet");
     } else if (!target) {
-      target = fallbackTarget(state.bodyImage, useType, { earSide: state.earSide });
+      target = fallbackTarget(state.bodyImage, useType, {
+        earSide: state.earSide,
+        ringFinger: state.ringFinger,
+      });
     }
     const usedFallback = useType === "bracelet"
       ? !detection.allTargets?.bracelet
@@ -711,6 +758,11 @@ $("earSideBar")?.addEventListener("click", (event) => {
   const btn = event.target.closest(".ear-side-btn");
   if (!btn) return;
   setEarSide(btn.dataset.ear);
+});
+$("fingerBar")?.addEventListener("click", (event) => {
+  const btn = event.target.closest(".finger-btn");
+  if (!btn) return;
+  setRingFinger(btn.dataset.finger);
 });
 
 setStageMode("split");
