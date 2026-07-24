@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon24" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon25" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -66,6 +66,16 @@
     </footer>
   </div>
 
+  <div id="mergeProgress" class="merge-progress is-hidden" hidden aria-live="polite">
+    <div class="merge-progress-card">
+      <p class="merge-progress-label">착용 합성 중</p>
+      <div class="merge-progress-track" aria-hidden="true">
+        <div id="mergeProgressFill" class="merge-progress-fill"></div>
+      </div>
+      <p id="mergeProgressPct" class="merge-progress-pct">0%</p>
+    </div>
+  </div>
+
   <div id="cameraSheet" class="camera-sheet is-hidden" hidden>
     <div class="camera-top">
       <button type="button" id="closeCamera" class="icon-btn camera-close">닫기</button>
@@ -95,6 +105,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260724-tryon24"></script>
+  <script type="module" src="./src/studio.js?v=20260724-tryon25"></script>
 </body>
 </html>
