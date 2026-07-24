@@ -6,7 +6,9 @@
   const OWNER = "saveasme1";
   const REPO = "gongbang171_temp";
   const BRANCH = "main";
-  const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
+  // Private repo raw URLs 404 in browser — serve preview images from public Pages.
+  const SITE_BASE = "https://hand-made.kr";
+  const RAW_BASE = SITE_BASE;
   const DRAFT_PATH = "portfolio-draft.json";
   const PUBLISHED_PATH = "portfolio-data.json";
   const CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
