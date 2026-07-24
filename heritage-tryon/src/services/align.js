@@ -94,7 +94,7 @@ function scoreBracelet(lm) {
     message: far
       ? "손목이 가이드에서 벗어났습니다. 주황 링(+)에 맞춰 주세요"
       : ok
-        ? "좋아요! 자세를 유지하세요…"
+        ? "좋아요! 그대로 3초간 유지해 주세요"
         : "주먹을 위로 · 주황 링(+)에 손목을 더 가까이",
   };
 }
@@ -134,47 +134,48 @@ function scoreRing(lm, finger = "ring") {
     message: far
       ? `왼손 ${spec.label}가 가이드에서 벗어났습니다`
       : ok
-        ? "좋아요! 자세를 유지하세요…"
+        ? "좋아요! 그대로 3초간 유지해 주세요"
         : `왼손 손등 · ${spec.label}(+)에 맞춰 주세요`,
   };
 }
 
-function scoreEarring(faceLm, earSide) {
-  // earSide = anatomical (사용자가 고른 귀). 전면·비미러 촬영에서
-  // 오른쪽 귀는 화면 왼쪽에, 왼쪽 귀는 화면 오른쪽에 보인다.
+function scoreEarring(faceLm, earSide, mirror = false) {
+  // earSide = anatomical. Mirrored front preview (KYC): right ear → screen right.
+  // Unmirrored raw landmarks: right ear is on the left of the frame → flip X when scoring.
   const L = faceLm[234] || faceLm[127];
   const R = faceLm[454] || faceLm[356];
   const anatomical = earSide === "left" ? "left" : "right";
   const ear = anatomical === "left" ? L : R;
   if (!ear) return { score: 0, ok: false, far: true, message: "얼굴·귀가 보이도록 맞춰 주세요" };
-  const target = anatomical === "right" ? { x: 0.28, y: 0.45 } : { x: 0.72, y: 0.45 };
-  const d = dist2(ear.x, ear.y, target.x, target.y);
+  const sx = mirror ? 1 - ear.x : ear.x;
+  // Screen-space target (mirror preview = same side as anatomical)
+  const target = anatomical === "right" ? { x: 0.72, y: 0.45 } : { x: 0.28, y: 0.45 };
+  const d = dist2(sx, ear.y, target.x, target.y);
   const score = Math.max(0, 1 - d / 0.26);
   const ok = score >= 0.8;
   const far = score < 0.3;
   const label = anatomical === "left" ? "왼쪽" : "오른쪽";
-  const screenSide = anatomical === "right" ? "왼쪽" : "오른쪽";
   return {
     score,
     ok,
     far,
     message: far
-      ? `${label} 귀(화면 ${screenSide})가 가이드에서 벗어났습니다`
+      ? `${label} 귀가 가이드에서 벗어났습니다`
       : ok
-        ? "좋아요! 자세를 유지하세요…"
-        : `${label} 귀 · 화면 ${screenSide} 가이드(+)에 더 가까이`,
+        ? "좋아요! 그대로 3초간 유지해 주세요"
+        : `${label} 귀를 가이드(+)에 맞춰 주세요`,
   };
 }
 
-function scoreNecklace(poseLm) {
+function scoreNecklace(poseLm, mirror = false) {
   const ls = poseLm[11];
   const rs = poseLm[12];
   const nose = poseLm[0];
   if (!ls || !rs) return { score: 0, ok: false, far: true, message: "목·어깨가 보이게 맞춰 주세요" };
 
-  const mid = { x: (ls.x + rs.x) / 2, y: (ls.y + rs.y) / 2 };
+  const mx = (x) => (mirror ? 1 - x : x);
+  const mid = { x: (mx(ls.x) + mx(rs.x)) / 2, y: (ls.y + rs.y) / 2 };
   const shoulderW = dist2(ls.x, ls.y, rs.x, rs.y);
-  // Collarbone ≈ between nose and shoulder line (not mid-chest).
   const collar = {
     x: mid.x,
     y: nose ? nose.y * 0.28 + mid.y * 0.72 : mid.y - shoulderW * 0.06,
@@ -183,12 +184,9 @@ function scoreNecklace(poseLm) {
   const d = dist2(collar.x, collar.y, target.x, target.y);
 
   let score = Math.max(0, 1 - d / 0.2);
-  // Shoulders roughly level
   const level = 1 - Math.min(1, Math.abs(ls.y - rs.y) / 0.07);
   score *= 0.5 + 0.5 * level;
-  // Framing distance: shoulders fill a usable portion of the frame
   if (shoulderW < 0.24 || shoulderW > 0.58) score *= 0.4;
-  // Face must sit in the upper band so collar isn't mid-torso
   if (!nose) score *= 0.55;
   else if (nose.y > 0.38) score *= 0.35;
   else if (nose.y < 0.04) score *= 0.65;
@@ -205,7 +203,7 @@ function scoreNecklace(poseLm) {
     message: far
       ? "쇄골이 가이드에서 벗어났습니다. 얼굴을 위로 · 상반신을 가운데"
       : ok
-        ? "좋아요! 쇄골 위치 유지하세요…"
+        ? "좋아요! 그대로 3초간 유지해 주세요"
         : "얼굴↑ · 쇄골(+)을 가이드에 정확히 맞춰 주세요",
   };
 }
@@ -214,8 +212,9 @@ function scoreNecklace(poseLm) {
  * Run one alignment frame against live video.
  * @param {string} earSide anatomical ear for earrings
  * @param {string} ringFinger index|middle|ring|pinky
+ * @param {{ mirror?: boolean }} opts front-camera mirror preview (KYC)
  */
-export async function evaluateAlignment(video, type, earSide = "right", ringFinger = "ring") {
+export async function evaluateAlignment(video, type, earSide = "right", ringFinger = "ring", opts = {}) {
   if (!video || video.readyState < 2) {
     return { score: 0, ok: false, far: false, message: "카메라 준비 중…" };
   }
@@ -224,6 +223,7 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
     return null; // skip duplicate frame
   }
   lastVideoTime = video.currentTime;
+  const mirror = Boolean(opts.mirror);
 
   try {
     if (type === "ring" || type === "bracelet") {
@@ -256,14 +256,14 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       const res = detector.detectForVideo(video, now);
       const lm = res.faceLandmarks?.[0];
       if (!lm) return { score: 0, ok: false, far: true, message: "얼굴이 화면에 들어오게 해 주세요" };
-      return scoreEarring(lm, earSide);
+      return scoreEarring(lm, earSide, mirror);
     }
     if (type === "necklace") {
       const detector = await getVideoPose();
       const res = detector.detectForVideo(video, now);
       const lm = res.landmarks?.[0];
       if (!lm) return { score: 0, ok: false, far: true, message: "상체가 화면에 들어오게 해 주세요" };
-      return scoreNecklace(lm);
+      return scoreNecklace(lm, mirror);
     }
   } catch (err) {
     console.warn("align", err);
