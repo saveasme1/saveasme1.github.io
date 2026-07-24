@@ -55,6 +55,13 @@
     const url = String(row.product_url || row.listing_url || row.domain || "");
     const host = hostOf(row.domain || url);
     const path = pathOf(url);
+    const region = String(row.region || "").toLowerCase();
+    const cur = String(row.original_currency || "").toUpperCase();
+
+    // Server-marked domestic (Naver KRW etc.) — never show as 해외 just because .com
+    if (region === "kr" || (cur === "KRW" && region !== "overseas")) {
+      return { overseas: false, flag: "🇰🇷", country: "KR", siteCurrency: "KRW" };
+    }
 
     // Locale path overrides (e.g. /fr-fr/, /en-us/)
     if (/\/(fr-fr|fr_fr|\/fr\/)/i.test(path) || host.endsWith(".fr")) {
@@ -77,11 +84,10 @@
     }
 
     const rules = [
-      { test: /(naver\.|coupang\.|ssg\.|lotteon\.|gmarket\.|11st\.|thehyundai\.|auction\.co\.kr|danawa\.|akmall\.|galleria\.|\.co\.kr$|\.kr$)/, flag: "🇰🇷", country: "KR", overseas: false, siteCurrency: "KRW" },
+      { test: /(naver\.|coupang\.|ssg\.|lotteon\.|gmarket\.|11st\.|thehyundai\.|auction\.co\.kr|danawa\.|akmall\.|galleria\.|cafe24\.|gsshop\.|\.co\.kr$|\.kr$)/, flag: "🇰🇷", country: "KR", overseas: false, siteCurrency: "KRW" },
       { test: /(amazon\.co\.jp|yahoo\.co\.jp|rakuten\.co\.jp)/, flag: "🇯🇵", country: "JP", overseas: true, siteCurrency: "JPY" },
       { test: /(amazon\.com|saksfifthavenue|net-a-porter\.com|tiffany\.com|google\.)/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
       { test: /farfetch\.com/, flag: "🇬🇧", country: "UK", overseas: true, siteCurrency: "GBP" },
-      // Brand boutique domains: use site TLD/.com US storefront currency, NOT brand nationality
       { test: /cartier\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
       { test: /bulgari\.com|bvlgari\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
       { test: /vancleefarpels\.com/, flag: "🇺🇸", country: "US", overseas: true, siteCurrency: "USD" },
@@ -96,7 +102,7 @@
       }
     }
 
-    const overseas = String(row.region || "") === "overseas" || (!/\.kr$/.test(host) && !!host);
+    const overseas = region === "overseas" || (!/\.kr$/.test(host) && !!host);
     return {
       overseas,
       flag: overseas ? "🌐" : "🇰🇷",
