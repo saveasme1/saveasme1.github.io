@@ -53,53 +53,53 @@ body {
 }
 .top {
   flex: 0 0 auto;
-  height: 70px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 36px;
   border-bottom: 1px solid var(--line);
 }
 .logo {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: .1em;
   color: var(--orange);
 }
 .logo small {
   display: block;
-  margin-top: 2px;
-  font-size: 10px;
+  margin-top: 1px;
+  font-size: 9px;
   letter-spacing: .08em;
   color: var(--muted);
   font-weight: 700;
 }
 .logo span {
   display: block;
-  width: 38px;
-  height: 3px;
-  margin-top: 6px;
+  width: 34px;
+  height: 2px;
+  margin-top: 5px;
   border-radius: 99px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
 .issue {
   text-align: right;
-  font-size: 10px;
-  letter-spacing: .16em;
+  font-size: 9px;
+  letter-spacing: .14em;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.5;
   font-weight: 700;
 }
 .hero {
   flex: 0 0 auto;
-  padding: 14px 40px 8px;
+  padding: 12px 36px 8px;
 }
 .kicker {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   color: var(--orange);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: .2em;
 }
@@ -108,40 +108,42 @@ body {
   height: 6px;
   border-radius: 50%;
   background: var(--orange);
-  box-shadow: 0 0 0 5px rgba(255,123,54,.14);
+  box-shadow: 0 0 0 4px rgba(255,123,54,.14);
 }
 .hero h1 {
-  margin: 8px 0 5px;
-  font-size: 26px;
-  line-height: 1.15;
+  margin: 6px 0 4px;
+  font-size: 24px;
+  line-height: 1.12;
   letter-spacing: -.04em;
   font-weight: 800;
 }
 .hero p {
   margin: 0;
   color: #524d47;
-  font-size: 12.5px;
-  line-height: 1.48;
+  font-size: 12px;
+  line-height: 1.45;
   word-break: keep-all;
 }
-.grid {
+.main {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 4px 40px 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
-}
-.sec {
-  min-height: 0;
-  padding: 14px 14px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(23,23,23,.08);
-  background: rgba(255,255,255,.74);
-  box-shadow: 0 8px 20px rgba(35,26,18,.05);
+  padding: 4px 36px 10px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.sec {
+  padding: 11px 12px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(23,23,23,.08);
+  background: rgba(255,255,255,.78);
+  box-shadow: 0 6px 16px rgba(35,26,18,.045);
 }
 .sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
 .sec.b { background: #242220; color: #fff; border-color: transparent; }
@@ -154,17 +156,24 @@ body {
 }
 .sec.c .num { color: rgba(27,19,15,.55); }
 .sec.c .body { color: rgba(27,19,15,.9); }
-.sec.d { background: #fff; }
+.sec.d {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+}
 .head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 .icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   background: #171717;
@@ -174,8 +183,8 @@ body {
 .sec.b .icon-wrap { background: rgba(255,255,255,.08); color: var(--orange2); }
 .sec.c .icon-wrap { background: rgba(27,19,15,.16); color: #fff; }
 .icon-wrap svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.9;
@@ -183,52 +192,55 @@ body {
   stroke-linejoin: round;
 }
 .num {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   color: var(--orange);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: -.03em;
-  line-height: 1.22;
+  line-height: 1.2;
   font-weight: 800;
 }
 .body {
   margin: 0;
-  font-size: 11.5px;
-  line-height: 1.48;
+  font-size: 11px;
+  line-height: 1.42;
   color: #403d39;
   word-break: keep-all;
 }
 .checks {
   display: grid;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: 6px;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 14px;
+  margin-top: 8px;
+  flex: 1;
+  align-content: center;
 }
 .check {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: -.02em;
-  line-height: 1.28;
+  line-height: 1.3;
   color: #2a2724;
 }
+.check.wide { grid-column: 1 / -1; }
 .check i {
   flex-shrink: 0;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   margin-top: 1px;
   border-radius: 50%;
   background: var(--orange);
   color: #fff;
   font-style: normal;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
   display: grid;
   place-items: center;
@@ -236,24 +248,24 @@ h2 {
 }
 .foot {
   flex: 0 0 auto;
-  height: 56px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 36px;
   background: #171717;
   color: #bdb7b1;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: .14em;
 }
 .foot strong {
   color: var(--orange2);
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: .12em;
   font-weight: 900;
 }
 .foot .line {
-  width: 70px;
+  width: 64px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--orange), transparent);
 }
@@ -272,32 +284,34 @@ h2 {
     <p>새로운 시작과 함께 <b class="brand">2026년 8월 1일부터 본 헤리티지</b>라는 이름으로 다시 인사드립니다. <b class="brand">본 헤리티지</b> = 근본 있는 기술을 이어가는 브랜드.</p>
   </section>
 
-  <div class="grid">
-    <article class="sec a">
-      <div class="head">
-        <div class="icon-wrap" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
+  <div class="main">
+    <div class="pair">
+      <article class="sec a">
+        <div class="head">
+          <div class="icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.96a2.17 2.17 0 0 1 3.07 0 2.17 2.17 0 0 1 0 3.08L12 18"/></svg>
+          </div>
+          <div>
+            <div class="num">01 / BON HERITAGE</div>
+            <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
+          </div>
         </div>
-        <div>
-          <div class="num">01 / BON HERITAGE</div>
-          <h2>공방 171 → <span class="brand">본 헤리티지</span></h2>
-        </div>
-      </div>
-      <p class="body">이름은 바뀌지만 15년 제작 철학과 품질, 고객을 소중히 여기는 마음은 변하지 않습니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다. 항상 감사합니다.</p>
-    </article>
+        <p class="body">이름은 바뀌지만 15년 제작 철학·품질·고객을 소중히 여기는 마음은 그대로입니다. 앞으로도 <b class="brand">본 헤리티지</b>만의 디자인과 기술력으로 오래 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
+      </article>
 
-    <article class="sec b">
-      <div class="head">
-        <div class="icon-wrap" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+      <article class="sec b">
+        <div class="head">
+          <div class="icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div>
+            <div class="num">02 / WHY</div>
+            <h2>브랜드 가치를 지키기 위해</h2>
+          </div>
         </div>
-        <div>
-          <div class="num">02 / WHY</div>
-          <h2>브랜드 가치를 지키기 위해</h2>
-        </div>
-      </div>
-      <p class="body">제품·콘텐츠·운영·상담 모방 사례가 이어졌습니다. 고객님께만 드릴 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해 운영 방식을 전면 개편합니다.</p>
-    </article>
+        <p class="body">제품·콘텐츠·운영·상담 모방 사례가 이어졌습니다. 고객님께만 드릴 차별화된 경험과 <b class="brand">본 헤리티지</b>의 근본 있는 기술·브랜드 가치를 지키기 위해 운영을 전면 개편합니다.</p>
+      </article>
+    </div>
 
     <article class="sec c">
       <div class="head">
@@ -327,8 +341,8 @@ h2 {
         <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
         <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
         <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
-        <div class="check"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
-        <div class="check"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
+        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
+        <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
       </div>
     </article>
   </div>
