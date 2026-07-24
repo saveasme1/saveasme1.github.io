@@ -640,21 +640,255 @@
       color: #3b3834;
     }
     .step-head strong { color: var(--ink); }
-    .step-label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 11px;
+    .guide-block {
+      margin: 0 0 22px;
+      padding: 0 0 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .guide-block:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+    .guide-title {
+      margin: 0 0 8px;
+      font-size: clamp(18px, 2.4vw, 22px);
       font-weight: 800;
-      letter-spacing: .02em;
-      color: var(--accent);
+      letter-spacing: -.045em;
+      line-height: 1.25;
+      color: var(--ink);
+    }
+    .guide-sub {
+      margin: 0 0 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #3b3834;
     }
     .android-mob-top {
-      padding: 28px 0 8px;
+      padding: 8px 0 4px;
     }
     .fallback-block {
-      margin-top: 18px;
-      padding-top: 16px;
-      border-top: 1px solid var(--line);
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    /* iPhone UI mocks */
+    .ios-cam {
+      margin-top: 10px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #0b0b0b;
+      border: 1px solid rgba(22,21,19,0.15);
+      position: relative;
+    }
+    .ios-cam__view {
+      position: relative;
+      aspect-ratio: 9 / 14;
+      background:
+        radial-gradient(60% 40% at 50% 40%, rgba(255,255,255,0.08), transparent 60%),
+        linear-gradient(180deg, #1a1a1a, #0d0d0d);
+      display: grid;
+      place-items: center;
+    }
+    .ios-cam__frame {
+      width: 58%;
+      aspect-ratio: 1;
+      border: 2px solid rgba(255,255,255,0.85);
+      border-radius: 12px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.04);
+    }
+    .ios-cam__frame img {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .ios-cam__banner {
+      position: absolute;
+      left: 10px; right: 10px; top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(28, 28, 30, 0.92);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .ios-cam__banner img {
+      width: 28px; height: 28px; border-radius: 7px; background: #161513;
+    }
+    .ios-cam__banner strong { display: block; font-size: 12px; }
+    .ios-cam__banner span { display: block; font-size: 10px; color: #b0b0b5; }
+    .ios-cam__banner em {
+      margin-left: auto;
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 800;
+      color: #0a84ff;
+      white-space: nowrap;
+    }
+    .ios-cam__pulse {
+      position: absolute;
+      left: 14px; right: 14px; top: 70px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .ios-safari {
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #f2f2f7;
+      border: 1px solid var(--line);
+    }
+    .ios-safari__page {
+      padding: 16px 12px 10px;
+      min-height: 72px;
+      color: #3b3834;
+      font-size: 12px;
+    }
+    .ios-safari__bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      height: 52px;
+      background: rgba(249,249,249,0.96);
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .ios-safari__btn {
+      display: grid;
+      place-items: center;
+      height: 100%;
+      color: #0a84ff;
+      position: relative;
+    }
+    .ios-safari__btn svg { width: 22px; height: 22px; }
+    .ios-safari__btn.is-target::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 10px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 3px rgba(255,130,54,0.25);
+    }
+    .ios-safari__hint {
+      margin: 0;
+      padding: 8px 12px 12px;
+      font-size: 12px;
+      color: #5f5a53;
+      background: #fff;
+    }
+    .ios-safari__hint b { color: var(--ink); }
+
+    .ios-sheet {
+      margin-top: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #2c2c2e;
+      color: #f2f2f7;
+      border: 1px solid rgba(22,21,19,0.12);
+    }
+    .ios-sheet__cap {
+      margin: 0;
+      padding: 10px 12px 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffe3d0;
+    }
+    .ios-sheet__cap span {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #161513;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .ios-sheet__list { list-style: none; margin: 0; padding: 8px 0 12px; }
+    .ios-sheet__item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .ios-sheet__item svg { width: 20px; height: 20px; opacity: .9; }
+    .ios-sheet__item.is-pick {
+      background: rgba(255, 130, 54, 0.22);
+      font-weight: 700;
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+    .ios-sheet__item.is-pick::after {
+      content: "여기";
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 800;
+      color: #161513;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+
+    .ios-add {
+      margin-top: 12px;
+      border-radius: 16px;
+      background: #f2f2f7;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .ios-add__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fff;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 13px;
+    }
+    .ios-add__top .cancel { color: #0a84ff; }
+    .ios-add__top .add {
+      color: #0a84ff;
+      font-weight: 800;
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 8px;
+      padding: 2px 8px;
+    }
+    .ios-add__body {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #fff;
+      margin: 10px;
+      border-radius: 12px;
+    }
+    .ios-add__body img {
+      width: 48px; height: 48px; border-radius: 10px; background: #161513;
+    }
+    .ios-add__body strong { display: block; font-size: 15px; }
+    .ios-add__body span { display: block; font-size: 12px; color: #8e8e93; }
+    .ios-add__hint {
+      margin: 0;
+      padding: 0 12px 12px;
+      font-size: 12px;
+      color: #5f5a53;
     }
     body.is-android .page-title,
     body.is-android .lead,
@@ -727,36 +961,31 @@
         </div>
         <h2 class="view-pc">Android</h2>
         <div class="panel__body">
-          <!-- PC method 1 -->
-          <div class="view-pc">
-            <p class="step-head">
-              <span class="step-label">1단계 · 추천</span>
-              <b>설치 링크 복사</b> → 휴대폰 브라우저에서 연 뒤 → <b>앱 설치하기</b> 버튼을 누르면 됩니다.
+          <div class="guide-block">
+            <h3 class="guide-title">기본 설치방법</h3>
+            <p class="guide-sub view-pc">
+              <b>설치 링크 복사</b> → 휴대폰 브라우저에서 연 뒤 → <b>앱 설치하기</b>를 누르세요.
             </p>
-            <div class="panel__cta">
+            <p class="guide-sub view-mobile">
+              아래 <b>앱 설치하기</b>를 누르면 설치가 진행됩니다.
+            </p>
+            <div class="panel__cta view-pc">
               <button type="button" class="btn btn-primary" id="pcCopyAndroid">설치 링크 복사</button>
               <div class="hint">복사한 주소를 휴대폰 Chrome·삼성 인터넷에 붙여넣어 여세요</div>
             </div>
+            <div class="view-mobile android-mob-top">
+              <button type="button" class="btn btn-primary" id="mobInstallBtn">앱 설치하기</button>
+            </div>
           </div>
 
-          <!-- Mobile: only install button at top -->
-          <div class="view-mobile android-mob-top">
-            <button type="button" class="btn btn-primary" id="mobInstallBtn">앱 설치하기</button>
-          </div>
-
-          <!-- Fallback: menu guide (PC + mobile) -->
-          <div class="fallback-block">
-            <p class="step-head view-pc">
-              <span class="step-label">2단계 · 자동 설치가 안 될 때</span>
-              <b>① 설치 링크 복사</b> → 휴대폰 <b>브라우저에서 열기</b> → <b>② 하단 ⋮</b> → <b>③ 현재 페이지 추가</b> → <b>홈 화면</b>
-            </p>
-            <p class="step-head view-mobile">
-              <span class="step-label">앱이 자동으로 설치되지 않을 때 · 순서</span>
-              <b>① 설치 링크 복사</b> → <b>브라우저에서 열기</b> → <b>② 하단 ⋮</b> → <b>③ 현재 페이지 추가</b> → <b>홈 화면</b>
+          <div class="guide-block fallback-block">
+            <h3 class="guide-title">자동 설치가 안 될 때</h3>
+            <p class="guide-sub">
+              <b>설치 링크 복사</b> → <b>브라우저에서 열기</b> → 하단 <b>⋮</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b>
             </p>
             <div class="panel__cta view-pc">
               <button type="button" class="btn btn-secondary" id="pcCopyAndroid2">설치 링크 복사</button>
-              <div class="hint">복사한 주소를 휴대폰 브라우저에서 연 뒤, 아래 ①→② 그림을 따라 하세요</div>
+              <div class="hint">휴대폰 브라우저에서 연 뒤, 아래 그림을 따라 하세요</div>
             </div>
             <div class="panel__cta view-mobile">
               <button type="button" class="btn btn-secondary" id="mobCopyAndroid">설치 링크 복사</button>
@@ -764,11 +993,10 @@
               <div class="hint">먼저 링크를 복사하고 브라우저에서 연 다음, 아래 그림을 따라 하세요</div>
             </div>
 
-            <!-- ① bottom bar with ⋮ -->
-            <div class="sim" id="androidSimBar" aria-label="1. 하단 메뉴 버튼">
-              <p class="sim__phase"><span>①</span>브라우저 하단 오른쪽 <b>⋮</b> 을 누릅니다</p>
+            <div class="sim" id="androidSimBar" aria-label="하단 메뉴 버튼">
+              <p class="sim__phase"><span>⋮</span>브라우저 하단 오른쪽 <b>⋮</b> 을 누릅니다</p>
               <div class="sim__stage sim__stage--bar">
-                <div class="sim__pulse">① 여기를 누르세요 (⋮)</div>
+                <div class="sim__pulse">여기를 누르세요 (⋮)</div>
                 <div class="sim__chrome">
                   <div class="sim__tabs" aria-hidden="true">
                     <div class="sim__tab">
@@ -798,9 +1026,8 @@
               </div>
             </div>
 
-            <!-- ② existing 현재 페이지 추가 menu (kept as-is, always visible after ⋮) -->
-            <div class="sim" id="androidSimMenu" aria-label="2. 현재 페이지 추가">
-              <p class="sim__phase"><span>②</span>메뉴에서 <b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b></p>
+            <div class="sim" id="androidSimMenu" aria-label="현재 페이지 추가">
+              <p class="sim__phase"><span>메뉴</span><b>현재 페이지 추가</b>(위에서 4번째) → <b>홈 화면</b></p>
               <div class="sim__stage sim__stage--menu">
                 <div class="sim-menu is-static is-open" role="menu" aria-label="브라우저 메뉴 예시">
                   <div class="sim-menu__head">
@@ -856,58 +1083,114 @@
       </section>
 
       <section class="panel" id="panelIos">
-        <div class="panel__icon is-apple" aria-hidden="true">
+        <div class="panel__icon is-apple view-pc" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M16.7 12.6c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2 .8-1.1 1.1-2.2 1.1-2.3-.1 0-2.1-.8-2.1-3.8ZM14.6 6.5c.6-.7 1-1.7.9-2.7-1 .1-2.1.7-2.7 1.5-.6.7-1.1 1.7-.9 2.7 1 0 2-.6 2.7-1.5Z"/></svg>
         </div>
-        <h2>iPhone</h2>
+        <h2 class="view-pc">iPhone</h2>
         <div class="panel__body">
-          <!-- PC: QR / copy first -->
-          <div class="view-pc">
-            <p class="step-head">
-              <span class="step-label">1단계 · PC에서</span>
-              아이폰 <b>기본 카메라로 QR</b>을 스캔하거나, 아래 링크를 복사해 아이폰 Safari에 붙여넣어 열어 주세요.
+          <div class="guide-block">
+            <h3 class="guide-title">기본 설치방법</h3>
+            <p class="guide-sub view-pc">
+              아이폰 <b>기본 카메라</b>로 아래 QR을 스캔한 뒤, 알림을 눌러 Safari로 열고 <b>공유 → 홈 화면에 추가</b>하세요.
             </p>
-            <img class="qr" src="icons/qr-install.png" alt="아이폰 설치용 QR 코드" width="148" height="148">
-            <div class="panel__cta">
-              <button type="button" class="btn btn-secondary" id="pcCopyIos">설치 링크 복사</button>
-              <div class="hint">QR이 가장 빠르고, 안 되면 링크를 Safari에 붙여넣기</div>
-            </div>
-            <p class="step-head">
-              <span class="step-label">2단계 · 아이폰 Safari에서</span>
-              하단 <b>공유</b> → <b>홈 화면에 추가</b>를 선택하면 설치가 끝납니다.
+            <p class="guide-sub view-mobile">
+              이미 Safari로 보고 있다면 QR 없이 <b>공유 → 홈 화면에 추가</b>만 하면 됩니다.
             </p>
-            <div class="ios-fast">
-              <h3>Safari에서 추가 순서</h3>
-              <ol>
-                <li>알림을 눌러 <b>Safari</b>로 엽니다 (카톡 안이면 Safari로 전환)</li>
-                <li>하단 <b>공유</b> → <b>홈 화면에 추가</b> → 추가</li>
-              </ol>
+
+            <div class="view-pc">
+              <img class="qr" src="icons/qr-install.png" alt="아이폰 설치용 QR 코드" width="148" height="148">
+              <div class="panel__cta">
+                <button type="button" class="btn btn-secondary" id="pcCopyIos">설치 링크 복사</button>
+                <div class="hint">QR이 안 되면 링크를 Safari에 붙여넣기</div>
+              </div>
+
+              <div class="ios-cam" aria-label="카메라 QR 인식 화면">
+                <div class="ios-cam__pulse">카메라가 QR을 인식하면 위 알림이 뜹니다 → 누르세요</div>
+                <div class="ios-cam__view">
+                  <div class="ios-cam__banner">
+                    <img src="icons/icon-192.png" alt="">
+                    <div>
+                      <strong>hand-made.kr</strong>
+                      <span>Safari에서 열기</span>
+                    </div>
+                    <em>열기</em>
+                  </div>
+                  <div class="ios-cam__frame">
+                    <img src="icons/qr-install.png" alt="QR">
+                  </div>
+                </div>
+              </div>
             </div>
-            <p class="note">공유·추가가 정상적으로 보이지 않으면 카카오톡 등이 아니라 <b>Safari</b>에서 다시 열어 주세요.</p>
+
+            <div class="ios-safari" aria-label="Safari 하단 공유 버튼">
+              <div class="ios-safari__page">Safari로 설치 페이지가 열리면 하단 가운데 <b>공유</b> 버튼을 누릅니다.</div>
+              <div class="ios-safari__bar">
+                <span class="ios-safari__btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+                <span class="ios-safari__btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+                <span class="ios-safari__btn is-target" aria-label="공유">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4"/><path d="m7 8 5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+                </span>
+                <span class="ios-safari__btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8l-5-5H5a1 1 0 0 0-1 1v15z"/><path d="M14 3v5h5"/></svg></span>
+                <span class="ios-safari__btn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span>
+              </div>
+              <p class="ios-safari__hint">주황 표시가 <b>공유</b> 버튼입니다 (네모에서 위로 나가는 화살표).</p>
+            </div>
+
+            <div class="ios-sheet" aria-label="공유 시트">
+              <p class="ios-sheet__cap"><span>공유</span>목록에서 <b>홈 화면에 추가</b>를 고르세요</p>
+              <ul class="ios-sheet__list">
+                <li class="ios-sheet__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
+                  메시지에 보내기
+                </li>
+                <li class="ios-sheet__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  복사
+                </li>
+                <li class="ios-sheet__item is-pick">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+                  홈 화면에 추가
+                </li>
+                <li class="ios-sheet__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5"/><path d="M21 15V5a2 2 0 0 0-2-2H9"/></svg>
+                  즐겨찾기
+                </li>
+              </ul>
+            </div>
+
+            <div class="ios-add" aria-label="홈 화면에 추가 확인">
+              <div class="ios-add__top">
+                <span class="cancel">취소</span>
+                <strong>홈 화면에 추가</strong>
+                <span class="add">추가</span>
+              </div>
+              <div class="ios-add__body">
+                <img src="icons/icon-192.png" alt="">
+                <div>
+                  <strong>HERITAGE</strong>
+                  <span>hand-made.kr</span>
+                </div>
+              </div>
+              <p class="ios-add__hint">오른쪽 위 <b>추가</b>를 누르면 홈 화면에 아이콘이 생깁니다.</p>
+            </div>
           </div>
 
-          <!-- Phone: already on iPhone -->
-          <div class="view-mobile">
-            <p class="step-head">
-              <span class="step-label">지금 아이폰에서</span>
-              이미 이 페이지를 보고 있다면 QR·복사가 필요 없습니다.
-              Safari에서 <b>공유</b> → <b>홈 화면에 추가</b>만 하면 됩니다.
+          <div class="guide-block">
+            <h3 class="guide-title">자동 설치가 안 될 때</h3>
+            <p class="guide-sub view-pc">
+              QR·공유가 안 되면 <b>설치 링크 복사</b> → 아이폰 <b>Safari</b>에 붙여넣기 → 위와 같이 <b>공유 → 홈 화면에 추가</b>
             </p>
-            <div class="ios-fast">
-              <h3>Safari로 보고 있다면</h3>
-              <ol>
-                <li>하단 <b>공유</b> 버튼을 누릅니다</li>
-                <li><b>홈 화면에 추가</b> → 추가</li>
-              </ol>
+            <p class="guide-sub view-mobile">
+              공유 메뉴가 안 보이면 카카오톡 등이 아니라 <b>Safari에서 열기</b>로 연 뒤, 다시 <b>공유 → 홈 화면에 추가</b>하세요.
+            </p>
+            <div class="panel__cta view-pc">
+              <button type="button" class="btn btn-secondary" id="pcCopyIos2">설치 링크 복사</button>
             </div>
-            <div class="ios-fast" style="margin-top:10px">
-              <h3>카카오톡 등 앱 안에서 열렸다면</h3>
-              <ol>
-                <li>위 <b>Safari에서 열기</b>로 먼저 이동합니다</li>
-                <li>Safari에서 <b>공유</b> → <b>홈 화면에 추가</b></li>
-              </ol>
+            <div class="panel__cta view-mobile">
+              <button type="button" class="btn btn-secondary" id="mobCopyIos">설치 링크 복사</button>
+              <button type="button" class="btn btn-primary" id="mobOpenSafari" style="margin-top:8px">Safari에서 열기</button>
             </div>
-            <p class="note">공유 메뉴가 안 보이거나 설치가 안 되면 앱 안이 아니라 <b>Safari에서 열기</b>로 연 뒤 다시 시도하세요.</p>
+            <p class="note">공유·추가가 정상적으로 보이지 않으면 앱 안이 아니라 <b>Safari</b>에서 다시 열어 주세요.</p>
           </div>
         </div>
       </section>
@@ -1029,13 +1312,19 @@
     var copyAndroid = document.getElementById("pcCopyAndroid");
     var copyAndroid2 = document.getElementById("pcCopyAndroid2");
     var copyIos = document.getElementById("pcCopyIos");
+    var copyIos2 = document.getElementById("pcCopyIos2");
     var mobCopyAndroid = document.getElementById("mobCopyAndroid");
+    var mobCopyIos = document.getElementById("mobCopyIos");
     if (copyAndroid) copyAndroid.onclick = copyLink;
     if (copyAndroid2) copyAndroid2.onclick = copyLink;
     if (copyIos) copyIos.onclick = copyLink;
+    if (copyIos2) copyIos2.onclick = copyLink;
     if (mobCopyAndroid) mobCopyAndroid.onclick = copyLink;
+    if (mobCopyIos) mobCopyIos.onclick = copyLink;
     var mobOpenBrowser = document.getElementById("mobOpenBrowser");
     if (mobOpenBrowser) mobOpenBrowser.onclick = openExternalBrowser;
+    var mobOpenSafari = document.getElementById("mobOpenSafari");
+    if (mobOpenSafari) mobOpenSafari.onclick = openExternalBrowser;
 
     var mobInstallBtn = document.getElementById("mobInstallBtn");
     if (mobInstallBtn) {
