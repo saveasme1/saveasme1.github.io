@@ -902,11 +902,11 @@
 
     /* Google Play Protect 경고창 가이드 */
     .pp-guide {
-      margin-top: 18px;
-      padding: 14px 12px 16px;
-      border-radius: 16px;
-      background: rgba(22, 21, 19, 0.04);
-      border: 1px solid var(--line);
+      margin-top: 0;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      border: 0;
     }
     .pp-guide__lead {
       margin: 0 0 12px;
@@ -1657,6 +1657,80 @@
             </div>
           </div>
 
+          <div class="guide-block">
+            <h3 class="guide-title">경고창이 뜨면</h3>
+            <div class="pp-guide" aria-label="Google Play 프로텍트 경고 안내">
+              <p class="pp-guide__lead">
+                Chrome에서 <b>앱 설치하기</b>를 누르면 아래처럼
+                <span>Google Play 프로텍트</span> 경고가 뜰 수 있습니다.
+                사이트 문제가 아니라 Chrome 설치 검사 화면입니다.
+                순서대로 <b>세부정보 더보기</b> → <b>무시하고 설치하기</b>를 누르세요.
+              </p>
+              <div class="pp-stack">
+                <div>
+                  <p class="pp-step"><span>1</span>먼저 <b>세부정보 더보기</b>를 누르세요</p>
+                  <div class="pp-card" id="ppCardCollapsed" data-pp-card>
+                    <div class="pp-card__brand">
+                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
+                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
+                      </svg>
+                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
+                    </div>
+                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
+                    <div class="pp-card__app">
+                      <div class="pp-card__app-icon-wrap">
+                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
+                      </div>
+                      <span class="pp-card__app-name">HERITAGE</span>
+                    </div>
+                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
+                    <button type="button" class="pp-card__more is-pick" data-pp-more aria-expanded="false">
+                      세부정보 더보기
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div class="pp-card__details">
+                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" target="_blank" rel="noopener noreferrer">자세히 알아보세요</a>.</p>
+                      <span class="pp-card__anyway">무시하고 설치하기</span>
+                    </div>
+                    <div class="pp-card__ok" role="presentation">확인</div>
+                  </div>
+                </div>
+                <div>
+                  <p class="pp-step"><span>2</span>그다음 <b>무시하고 설치하기</b>를 누르세요</p>
+                  <div class="pp-card is-open" aria-hidden="true">
+                    <div class="pp-card__brand">
+                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
+                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
+                      </svg>
+                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
+                    </div>
+                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
+                    <div class="pp-card__app">
+                      <div class="pp-card__app-icon-wrap">
+                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
+                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
+                      </div>
+                      <span class="pp-card__app-name">HERITAGE</span>
+                    </div>
+                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
+                    <div class="pp-card__details">
+                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" tabindex="-1">자세히 알아보세요</a>.</p>
+                      <span class="pp-card__anyway is-pick">무시하고 설치하기</span>
+                    </div>
+                    <div class="pp-card__ok" role="presentation">확인</div>
+                  </div>
+                </div>
+              </div>
+              <p class="pp-guide__hint">확인은 설치를 취소합니다. 반드시 <b>무시하고 설치하기</b>를 누르세요.</p>
+            </div>
+            <p class="note-muted">
+              경고가 싫으면 아래 <b>자동 설치가 안 될 때</b>처럼 <b>현재 페이지 추가 → 홈 화면</b>으로 추가하세요. (보통 경고가 안 뜹니다.)
+            </p>
+          </div>
+
           <div class="guide-block fallback-block">
             <h3 class="guide-title">자동 설치가 안 될 때</h3>
             <p class="guide-sub">
@@ -1752,77 +1826,6 @@
               <p class="sim__steps"><b>현재 페이지 추가</b> → <b>홈 화면</b> 선택하면 끝입니다</p>
             </div>
 
-            <div class="pp-guide" aria-label="Google Play 프로텍트 경고 안내">
-              <p class="pp-guide__lead">
-                Chrome에서 <b>앱 설치하기</b>를 누르면 아래처럼
-                <span>Google Play 프로텍트</span> 경고가 뜰 수 있습니다.
-                사이트 문제가 아니라 Chrome 설치 검사 화면입니다.
-                순서대로 <b>세부정보 더보기</b> → <b>무시하고 설치하기</b>를 누르세요.
-              </p>
-              <div class="pp-stack">
-                <div>
-                  <p class="pp-step"><span>1</span>먼저 <b>세부정보 더보기</b>를 누르세요</p>
-                  <div class="pp-card" id="ppCardCollapsed" data-pp-card>
-                    <div class="pp-card__brand">
-                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
-                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
-                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
-                      </svg>
-                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
-                    </div>
-                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
-                    <div class="pp-card__app">
-                      <div class="pp-card__app-icon-wrap">
-                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
-                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
-                      </div>
-                      <span class="pp-card__app-name">HERITAGE</span>
-                    </div>
-                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
-                    <button type="button" class="pp-card__more is-pick" data-pp-more aria-expanded="false">
-                      세부정보 더보기
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-                    </button>
-                    <div class="pp-card__details">
-                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" target="_blank" rel="noopener noreferrer">자세히 알아보세요</a>.</p>
-                      <span class="pp-card__anyway">무시하고 설치하기</span>
-                    </div>
-                    <div class="pp-card__ok" role="presentation">확인</div>
-                  </div>
-                </div>
-                <div>
-                  <p class="pp-step"><span>2</span>그다음 <b>무시하고 설치하기</b>를 누르세요</p>
-                  <div class="pp-card is-open" aria-hidden="true">
-                    <div class="pp-card__brand">
-                      <svg class="pp-card__shield" viewBox="0 0 48 48" aria-hidden="true">
-                        <path fill="#8ab4f8" d="M24 4 8 10v12c0 10.5 6.8 20.2 16 22.8 9.2-2.6 16-12.3 16-22.8V10L24 4z"/>
-                        <path fill="#fff" d="M20.5 16.5v15l12-7.5-12-7.5z"/>
-                      </svg>
-                      <span class="pp-card__brand-label">Google Play 프로텍트</span>
-                    </div>
-                    <h4 class="pp-card__title">안전하지 않은 앱 차단됨</h4>
-                    <div class="pp-card__app">
-                      <div class="pp-card__app-icon-wrap">
-                        <img class="pp-card__app-icon" src="icons/icon-192.png" alt="" width="40" height="40">
-                        <span class="pp-card__warn-badge" aria-hidden="true">!</span>
-                      </div>
-                      <span class="pp-card__app-name">HERITAGE</span>
-                    </div>
-                    <p class="pp-card__msg">이 앱은 Android 이전 버전에 맞게 개발되었으며 최신 개인 정보 보호 기능을 포함하지 않습니다.</p>
-                    <div class="pp-card__details">
-                      <p>이 앱을 설치하면 기기가 위험에 노출될 수 있습니다. Play 프로텍트에 관해 <a href="https://support.google.com/googleplay/answer/2812854" tabindex="-1">자세히 알아보세요</a>.</p>
-                      <span class="pp-card__anyway is-pick">무시하고 설치하기</span>
-                    </div>
-                    <div class="pp-card__ok" role="presentation">확인</div>
-                  </div>
-                </div>
-              </div>
-              <p class="pp-guide__hint">확인은 설치를 취소합니다. 반드시 <b>무시하고 설치하기</b>를 누르세요.</p>
-            </div>
-
-            <p class="note-muted">
-              경고가 싫으면 위처럼 <b>현재 페이지 추가 → 홈 화면</b>으로 추가하세요. (이 방식은 보통 경고가 안 뜹니다.)
-            </p>
             <p class="note">메뉴가 정상적으로 보이지 않으면 카카오톡 등 앱이 아니라 <b>브라우저에서 열기</b>로 연 뒤 다시 시도하세요.</p>
           </div>
         </div>
