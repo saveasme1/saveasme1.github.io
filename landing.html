@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
   <link rel="stylesheet" href="handmade-reviews.css?v=20260724-gold2">
-  <link rel="stylesheet" href="landing.css?v=20260724-pdf1">
+  <link rel="stylesheet" href="landing.css?v=20260725-dl1">
   <link rel="stylesheet" href="portfolio-board.css?v=20260724-gold2">
   <link rel="stylesheet" href="site-nav.css?v=20260724-gold2">
   <link rel="stylesheet" href="tryon-overlay.css?v=20260725-tryon39">
@@ -41,14 +41,18 @@
     <section class="actions" aria-label="주요 기능">
       <button type="button" class="action action-portfolio" id="portfolioOpen">
         <span class="action-kicker">Portfolio</span>
-        <strong>포트폴리오 보기</strong>
+        <span class="action-title-row">
+          <strong>포트폴리오 보기</strong>
+          <span
+            class="action-dl"
+            id="portfolioPdfDemo"
+            role="link"
+            tabindex="0"
+            aria-label="포트폴리오 다운로드 (준비 중)"
+          >다운로드</span>
+        </span>
         <span class="action-hint">웹에서 본 헤리티지 포트폴리오를 확인합니다</span>
       </button>
-      <a class="action action-pdf" id="portfolioPdfDownload" href="./portfolio/portfolio-latest.pdf" download="공방171_포트폴리오.pdf">
-        <span class="action-kicker">PDF</span>
-        <strong>PDF 다운로드</strong>
-        <span class="action-hint">모바일용 인터랙티브 포트폴리오 PDF를 받습니다</span>
-      </a>
       <button type="button" class="action action-reviews" id="reviewsOpen">
         <span class="action-kicker">BOARD</span>
         <strong>실시간 리얼후기</strong>
@@ -276,29 +280,18 @@
   <script src="pwa-register.js"></script>
   <script>
     (function () {
-      var link = document.getElementById("portfolioPdfDownload");
-      if (!link) return;
-      var apiPdf = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
-      function useApi(version) {
-        link.href = apiPdf + "?v=" + encodeURIComponent(version || String(Date.now()));
-        link.removeAttribute("download");
+      var demo = document.getElementById("portfolioPdfDemo");
+      if (!demo) return;
+      function openPlaceholder(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        window.open("about:blank", "_blank", "noopener,noreferrer");
       }
-      function useStatic(meta) {
-        link.href = "./portfolio/portfolio-latest.pdf?v=" + encodeURIComponent(meta.version);
-        link.setAttribute("download", meta.downloadName || "공방171_포트폴리오.pdf");
-      }
-      fetch("./portfolio/portfolio-meta.json?_=" + Date.now(), { cache: "no-store" })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (meta) {
-          if (meta && meta.version && meta.version !== "pending") {
-            useStatic(meta);
-            return;
-          }
-          useApi(null);
-        })
-        .catch(function () {
-          useApi(null);
-        });
+      demo.addEventListener("click", openPlaceholder);
+      demo.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        openPlaceholder(event);
+      });
     })();
   </script>
 </body>
