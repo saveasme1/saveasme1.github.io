@@ -18,14 +18,30 @@ export function assetUrl(path) {
 }
 
 export async function loadPortfolio() {
+  const cacheKey = "heritage-portfolio-v1";
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed?.items?.length && Date.now() - (parsed.ts || 0) < 10 * 60 * 1000) {
+        return parsed.items;
+      }
+    }
+  } catch (_) {}
+
   let lastError;
   for (const url of DATA_URLS) {
     try {
-      const res = await fetch(`${url}?t=${Date.now()}`, { cache: "no-store" });
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(`${url}?t=${Date.now()}`, {
+        cache: "no-store",
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
-      return items.map((item) => ({
+      const items = (Array.isArray(data.items) ? data.items : []).map((item) => ({
         id: item.id,
         title: item.title || "",
         category: item.category || "",
@@ -33,6 +49,10 @@ export async function loadPortfolio() {
         cover: item.cover || item.image || (item.images && item.images[0]) || "",
         images: item.images || [],
       })).filter((x) => x.cover);
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), items }));
+      } catch (_) {}
+      return items;
     } catch (err) {
       lastError = err;
     }
