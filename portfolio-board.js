@@ -280,7 +280,7 @@
       button.addEventListener("click", () => {
         state.page = page;
         renderList();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        scrollToFirstCard();
       });
       els.pager.append(button);
     };
