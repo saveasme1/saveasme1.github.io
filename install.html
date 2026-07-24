@@ -9,7 +9,7 @@
   <meta name="robots" content="index,follow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>본 헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260725-bon1 -->
+  <!-- cache-bust: 20260725-pcsplit1 -->
   <meta name="description" content="Windows · Mac · Android · iPhone — 본 헤리티지 앱을 홈 화면·PC에 설치하세요.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="본 헤리티지">
@@ -126,12 +126,27 @@
       font-weight: 700;
     }
 
-    /* —— PC: 3-column install panels —— */
+    /* —— PC: left PC · right mobile (Android + iPhone) —— */
     .panels {
       display: none;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+      gap: 0;
+      align-items: start;
+    }
+    .panels-mobile {
+      display: contents;
+    }
+    body.is-other .panels-mobile {
+      display: grid;
       gap: 14px;
-      align-items: stretch;
+      margin-left: 20px;
+      padding-left: 20px;
+      border-left: 1px solid rgba(22, 21, 19, 0.14);
+      min-width: 0;
+    }
+    body.is-other #panelPc {
+      margin-right: 4px;
+      min-width: 0;
     }
     .panel {
       background: var(--card);
@@ -920,13 +935,24 @@
     }
     .pp-stack {
       display: grid;
-      gap: 14px;
+      gap: 16px;
+      grid-template-columns: 1fr;
     }
     @media (min-width: 720px) {
       .pp-stack {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
         align-items: start;
-        gap: 14px;
+        gap: 16px;
+      }
+    }
+    body.is-other .pp-stack {
+      grid-template-columns: 1fr;
+      max-width: 420px;
+    }
+    @media (min-width: 1100px) {
+      body.is-other .pp-stack {
+        grid-template-columns: repeat(2, minmax(300px, 1fr));
+        max-width: none;
       }
     }
     .pp-step {
@@ -951,10 +977,14 @@
     .pp-card {
       background: #3c4043;
       color: #e8eaed;
-      border-radius: 28px;
-      padding: 20px 18px 14px;
+      border-radius: 16px;
+      padding: 20px 20px 14px;
       box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
       font-family: "Roboto", "Noto Sans KR", system-ui, sans-serif;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      box-sizing: border-box;
     }
     .pp-card__brand {
       display: flex;
@@ -1119,7 +1149,7 @@
       display: block;
       width: 100%;
       border: 0;
-      border-radius: 999px;
+      border-radius: 12px;
       padding: 11px 16px;
       background: #8ab4f8;
       color: #202124;
@@ -1180,11 +1210,15 @@
     /* Visibility by device — one guide source in panels */
     body.is-other .panels { display: grid; }
     body.is-other .mob-actions { display: none !important; }
-    body.is-other .wrap { width: min(1080px, 100%); }
+    body.is-other .wrap { width: min(1280px, 100%); }
 
     body.is-ios .panels,
     body.is-android .panels {
       display: block !important;
+    }
+    body.is-ios .panels-mobile,
+    body.is-android .panels-mobile {
+      display: contents;
     }
     body.is-ios .wrap,
     body.is-android .wrap { width: min(440px, 100%); }
@@ -1498,7 +1532,19 @@
       body.is-other .panels {
         grid-template-columns: 1fr;
       }
-      body.is-other .wrap { width: min(440px, 100%); }
+      body.is-other .panels-mobile {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: 0;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(22, 21, 19, 0.14);
+      }
+      body.is-other .wrap { width: min(520px, 100%); }
+      body.is-other .pp-stack {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+      }
     }
   </style>
 </head>
@@ -1634,6 +1680,7 @@
         </ol>
       </section>
 
+      <div class="panels-mobile">
       <section class="panel" id="panelAndroid">
         <div class="panel__icon is-android view-pc" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 9.48 19.2 6.4a.4.4 0 0 0-.7-.4l-1.66 3.1A7.8 7.8 0 0 0 12 8c-1.75 0-3.36.55-4.84 1.5L5.5 6a.4.4 0 1 0-.7.4l1.6 3.08A7.9 7.9 0 0 0 4 15.2V16a2 2 0 0 0 2 2h.4v2.2a1.2 1.2 0 0 0 2.4 0V18h6.4v2.2a1.2 1.2 0 0 0 2.4 0V18H18a2 2 0 0 0 2-2v-.8a7.9 7.9 0 0 0-2.4-5.72ZM7.4 14.2a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm9.2 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>
@@ -1943,6 +1990,7 @@
           </div>
         </div>
       </section>
+      </div>
     </div>
   </div>
 
