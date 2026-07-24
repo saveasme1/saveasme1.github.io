@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon25" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260724-tryon26" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -85,6 +85,12 @@
       <button type="button" class="ear-side-btn is-active" data-ear="right">오른쪽 귀</button>
       <button type="button" class="ear-side-btn" data-ear="left">왼쪽 귀</button>
     </div>
+    <div id="fingerBar" class="finger-bar is-hidden" hidden>
+      <button type="button" class="finger-btn" data-finger="index">검지</button>
+      <button type="button" class="finger-btn" data-finger="middle">중지</button>
+      <button type="button" class="finger-btn is-active" data-finger="ring">약지</button>
+      <button type="button" class="finger-btn" data-finger="pinky">소지</button>
+    </div>
     <div class="camera-stage">
       <video id="cameraVideo" class="camera-video" playsinline muted autoplay></video>
       <canvas id="cameraSnap" class="is-hidden"></canvas>
@@ -105,6 +111,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260724-tryon25"></script>
+  <script type="module" src="./src/studio.js?v=20260724-tryon26"></script>
 </body>
 </html>
