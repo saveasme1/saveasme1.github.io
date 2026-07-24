@@ -49,11 +49,11 @@ body {
 }
 .top {
   flex: 0 0 auto;
-  height: 46px;
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px;
   border-bottom: 1px solid var(--line);
 }
 .logo {
@@ -80,7 +80,7 @@ body {
 }
 .hero {
   flex: 0 0 auto;
-  padding: 8px 24px 6px;
+  padding: 14px 32px 12px;
 }
 .kicker {
   display: inline-flex;
@@ -115,22 +115,22 @@ body {
 .main {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 2px 24px 8px;
+  padding: 6px 32px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 .sec {
   flex: 1 1 0;
   min-height: 0;
-  padding: 8px 12px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(23,23,23,.08);
   background: #fff;
   display: grid;
   grid-template-columns: 40px 1fr;
   gap: 10px;
-  align-items: center;
+  align-items: start;
 }
 .sec.a { background: linear-gradient(145deg, #fff, #fff8f3); }
 .sec.b { background: #242220; color: #fff; border-color: transparent; }
@@ -143,21 +143,7 @@ body {
 }
 .sec.c .num { color: rgba(27,19,15,.65); }
 .sec.c .body { color: rgba(27,19,15,.95); }
-.sec.d {
-  flex: 1.15 1 0;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 8px 12px;
-}
-.sec.d .toprow {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 5px;
-}
+.sec.d { background: #fff; }
 .icon-wrap {
   width: 40px;
   height: 40px;
@@ -203,7 +189,8 @@ h2 {
 .checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
+  gap: 5px 12px;
+  margin-top: 6px;
 }
 .check {
   display: flex;
@@ -233,11 +220,11 @@ h2 {
 }
 .foot {
   flex: 0 0 auto;
-  height: 40px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px;
   background: #171717;
   color: #bdb7b1;
   font-size: 10px;
@@ -305,23 +292,21 @@ h2 {
     </article>
 
     <article class="sec d">
-      <div class="toprow">
-        <div class="icon-wrap" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
-        </div>
-        <div>
-          <div class="num">04 / BETTER</div>
-          <h2><span class="brand">본 헤리티지</span>로 더 나아지는 점</h2>
-        </div>
+      <div class="icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
       </div>
-      <p class="body" style="margin:0 0 5px"><b class="brand">본 헤리티지</b>로 바뀌며 상담부터 제품 라인까지, 고객님이 체감하실 변화를 준비했습니다. 항상 감사합니다.</p>
-      <div class="checks">
-        <div class="check"><i>✓</i><span>더욱 전문적인 상담</span></div>
-        <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
-        <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
-        <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
-        <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
-        <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
+      <div>
+        <div class="num">04 / BETTER</div>
+        <h2><span class="brand">본 헤리티지</span>로 더 나아지는 점</h2>
+        <p class="body"><b class="brand">본 헤리티지</b>로 바뀌며 상담부터 제품 라인까지, 고객님이 체감하실 변화를 준비했습니다. 항상 감사합니다.</p>
+        <div class="checks">
+          <div class="check"><i>✓</i><span>더욱 전문적인 상담</span></div>
+          <div class="check"><i>✓</i><span>검증된 고객 중심의 서비스</span></div>
+          <div class="check"><i>✓</i><span>프리미엄 제품 라인 확대</span></div>
+          <div class="check"><i>✓</i><span>한정 제작 및 공동구매 운영</span></div>
+          <div class="check wide"><i>✓</i><span>골드바 · 실버바 · 다이아몬드 테니스 컬렉션 등 새로운 카테고리</span></div>
+          <div class="check wide"><i>✓</i><span>좋은 금을 더 좋은 가격으로</span></div>
+        </div>
       </div>
     </article>
   </div>
