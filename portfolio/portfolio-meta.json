@@ -1,10 +1,9 @@
 {
-  "version": "pending",
-  "updatedAt": null,
+  "version": "20260724150222",
+  "updatedAt": "2026-07-24T15:02:22.955Z",
   "downloadName": "공방171_포트폴리오.pdf",
-  "itemCount": 0,
-  "categoryCount": 0,
-  "bytes": 0,
-  "path": "/portfolio/portfolio-latest.pdf",
-  "note": "관리자 어드민에서 포트폴리오 배포 시 자동 생성됩니다."
+  "itemCount": 505,
+  "categoryCount": 12,
+  "bytes": 10885812,
+  "path": "/portfolio/portfolio-latest.pdf"
 }
