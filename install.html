@@ -209,6 +209,12 @@
     .toast.is-on { opacity: 1; }
     .is-ios .only-android { display: none !important; }
     .is-android .only-ios { display: none !important; }
+    /* PC(other): show iOS + Android + PC guides together */
+    .is-other .only-ios,
+    .is-other .only-android,
+    .is-other .only-pc { display: block !important; }
+    .is-ios .only-pc,
+    .is-android .only-pc { display: none !important; }
   </style>
 </head>
 <body>
@@ -235,7 +241,7 @@
     <p class="lead" id="lead">기기에 맞는 설치 방법만 보여 드립니다.</p>
     <div class="device" id="deviceLabel">감지 중…</div>
 
-    <section class="guide" id="iosEasy" style="margin-top:0;margin-bottom:16px;border-color:rgba(255,130,54,.35);background:rgba(255,255,255,.96)">
+    <section class="guide only-ios" id="iosEasy" style="margin-top:0;margin-bottom:16px;border-color:rgba(255,130,54,.35);background:rgba(255,255,255,.96)">
       <h2>아이폰 제일 쉬운 방법 (QR)</h2>
       <ol>
         <li>아이폰 <b>기본 카메라</b>로 아래 QR을 찍습니다.</li>
@@ -283,11 +289,12 @@
       <p class="note">카톡 안이면 위 “브라우저에서 열기”로 Chrome/인터넷 앱을 먼저 여세요.</p>
     </section>
 
-    <section class="guide" id="otherGuide" hidden>
+    <section class="guide only-pc" id="otherGuide">
       <h2>PC / 기타</h2>
       <ol>
-        <li>휴대폰에서 이 링크를 여세요.</li>
-        <li>휴대폰 브라우저에서 앱 설치하기를 사용하세요.</li>
+        <li>휴대폰에서 이 링크(<b>hand-made.kr/install.html</b>)를 여세요.</li>
+        <li>아이폰이면 위 아이폰 안내, 안드로이드면 위 안드로이드 안내를 따르면 됩니다.</li>
+        <li>아래 QR을 인쇄·공유해도 됩니다.</li>
       </ol>
     </section>
   </div>
@@ -311,20 +318,27 @@
 
     document.body.className = "is-" + mode + (isInApp ? " has-banner" : "");
     document.getElementById("deviceLabel").textContent =
-      (mode === "ios" ? "iOS" : mode === "android" ? "Android" : "PC/기타")
+      (mode === "ios" ? "iPhone / iPad" : mode === "android" ? "Android" : "PC · 전체 안내")
       + (isInApp ? " · 인앱 브라우저" : "");
     document.getElementById("installHint").textContent =
       mode === "ios"
         ? (isInApp ? "먼저 Safari로 연 뒤 홈 화면에 추가" : "공유 → 홈 화면에 추가")
         : mode === "android" ? "설치 창 또는 홈 화면에 추가" :
       "휴대폰에서 열어 주세요";
-    document.getElementById("otherGuide").hidden = mode !== "other";
 
-    // iOS Safari already: copy is secondary
-    if (mode === "ios" && !isInApp) {
-      document.getElementById("openExternalBtn").style.display = "none";
-      document.getElementById("copyBtn").querySelector("em").textContent = "필요할 때만 사용";
-      document.getElementById("lead").textContent = "Safari에서 공유 버튼으로 바로 홈 화면에 추가할 수 있습니다. 주소 복붙은 필요 없습니다.";
+    if (mode === "other") {
+      document.getElementById("lead").textContent =
+        "PC에서는 아이폰·안드로이드·PC 설치 안내를 모두 보여 드립니다. 휴대폰에서는 해당 기기 안내만 보입니다.";
+    } else if (mode === "ios") {
+      if (!isInApp) {
+        document.getElementById("openExternalBtn").style.display = "none";
+        document.getElementById("copyBtn").querySelector("em").textContent = "필요할 때만 사용";
+      }
+      document.getElementById("lead").textContent =
+        "아이폰 설치 안내만 표시됩니다. Safari에서 공유 → 홈 화면에 추가하세요.";
+    } else if (mode === "android") {
+      document.getElementById("lead").textContent =
+        "안드로이드 설치 안내만 표시됩니다. Chrome/삼성 인터넷에서 설치하세요.";
     }
 
     if (isInApp) {
