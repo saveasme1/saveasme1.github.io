@@ -491,37 +491,47 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     crop.getContext("2d").drawImage(syn, 0, 0);
   }
 
-  // Bracelet: WebGL only (NO flat stamp overlay — that looked like paint paste)
+  // Bracelet: WebGL Love band + volumetric wrap insurance (occluder used to wipe metal)
   if (type === "bracelet") {
     const t = target?.center ? target : null;
     if (!t) {
       console.warn("bracelet compose: missing target");
       return out;
     }
+    const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
+    const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
+    let targetW = Math.max(minWidthForType(out.width, "bracelet"), t.width || out.width * 0.28);
+    const center = { x: cx, y: cy };
+
+    let composed = null;
     try {
       const { composeTryOn3D } = await import("./tryon3d.js");
-      return await composeTryOn3D(bodyCanvas, jewelryCanvas, t, "bracelet");
+      composed = await composeTryOn3D(bodyCanvas, jewelryCanvas, { ...t, center, width: targetW }, "bracelet");
     } catch (err) {
-      console.warn("3D bracelet failed, volumetric wrap fallback", err);
-      let targetW = Math.max(8, t.width || out.width * 0.28);
-      targetW = Math.max(targetW, minWidthForType(out.width, "bracelet"));
-      const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
-      const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
-      try {
-        wrapBraceletCylinder(
-          octx,
-          bodyCanvas,
-          crop,
-          { x: cx, y: cy },
-          targetW,
-          t.angle || 32,
-          t.frontAngle
-        );
-      } catch (e2) {
-        console.warn("wrapBraceletCylinder", e2);
-      }
-      return out;
+      console.warn("3D bracelet failed", err);
     }
+
+    const base = composed || out;
+    if (composed) {
+      octx.clearRect(0, 0, out.width, out.height);
+      octx.drawImage(composed, 0, 0);
+    }
+
+    // Always add volumetric wrap — guarantees visible metal wrapped on wrist
+    try {
+      wrapBraceletCylinder(
+        octx,
+        bodyCanvas,
+        crop,
+        center,
+        targetW,
+        t.angle || 38,
+        t.frontAngle
+      );
+    } catch (e2) {
+      console.warn("wrapBraceletCylinder", e2);
+    }
+    return out;
   }
 
   const layer = document.createElement("canvas");
