@@ -289,17 +289,17 @@ function onPickFile(event) {
 }
 
 const CAMERA_HINT = {
-  ring: "왼손 손등 · 아래에서 착용할 손가락을 고르세요",
-  bracelet: "주먹을 위로 · 주황 링(+)에 손목을 맞추세요",
-  earring: "전면 카메라 · 귀를 가이드에 맞춘 뒤 3초간 유지",
-  necklace: "전면 · 얼굴·목을 가이드 중심에 맞추고 3초 유지",
+  ring: "오른손 폰 · 왼손 비스듬히 · 아래에서 손가락 선택",
+  bracelet: "오른손 폰 · 왼팔 비스듬히 · 주먹↑ 손목(+)",
+  earring: "한손 셀카 · 살짝 기울여 귀를 가이드에",
+  necklace: "한손 셀카 · 얼굴·목을 가이드에 맞추고 3초",
 };
 
 const GUIDE_CAPTION = {
-  ring: "왼손 손등 · 약지(+)",
-  bracelet: "손↑ · 손목(+) · 팔뚝↓",
-  earring: "오른쪽 귀(+)",
-  necklace: "얼굴·목 · 가이드 중심 · 3초",
+  ring: "왼손 비스듬 · 약지(+)",
+  bracelet: "왼팔 비스듬 · 주먹↑ · 손목(+)",
+  earring: "살짝 기울여 · 귀(+)",
+  necklace: "한손 셀카 · 얼굴·목(+)",
 };
 
 const FINGER_LABEL = {
