@@ -14,6 +14,7 @@ import { estimateLightingFromVideo } from "./LightingEstimator.js";
 import { fitBracelet } from "./BraceletFitter3D.js";
 import { fitRing } from "./RingFitter3D.js";
 import { fitNecklaceWithChain, syncNecklaceChainMesh } from "./NecklaceChain.js";
+import { fitEarring } from "./EarringFitter3D.js";
 import { EarringPhysics } from "./EarringPhysics.js";
 
 const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
@@ -389,17 +390,24 @@ export class JewelryARRenderer {
         );
       }
     } else if (mode === "earring") {
-      const pose = this.earringPhysics.update(anchor, this.meta || {});
+      const side = extras.earSide || anchor.side || "right";
+      fit = fitEarring(anchor, this.meta || {}, side);
+      if (fit?.positionOffset) {
+        const [ox, oy] = fit.positionOffset;
+        if (ox || oy) {
+          const shifted = this.normalizedToWorld(c.x + (ox || 0) * 0.02, c.y + (oy || 0) * 0.02, depth);
+          this.jewelryRoot.position.copy(shifted);
+        }
+      }
+      const pose = this.earringPhysics.update(anchor, {
+        ...(this.meta || {}),
+        swingEnabled: fit?.swingEnabled,
+      });
       if (pose && this.jewelry) {
         this.jewelry.rotation.x = pose.angleX;
         this.jewelry.rotation.z = pose.angleZ;
       }
-      if ((anchor.visibility ?? 1) < 0.35) {
-        this.jewelryRoot.visible = false;
-      } else {
-        this.jewelryRoot.visible = !this.debugFlags.jewelryOnly ? true : true;
-        this.jewelryRoot.visible = true;
-      }
+      this.jewelryRoot.visible = (anchor.visibility ?? 1) >= 0.35;
     }
 
     const baseScale =
@@ -409,7 +417,7 @@ export class JewelryARRenderer {
           ? Math.max(0.02, (fit?.fittedRadius || anchor.radiusEstimate || 0.02) * 2.4)
           : mode === "necklace"
             ? Math.max(0.08, (anchor.scale || anchor.shoulderWidth || 0.25) * 0.55)
-            : Math.max(0.03, (anchor.earScale || anchor.scale || 0.08) * 1.1);
+            : Math.max(0.03, (fit?.productScale || 1) * (anchor.earScale || anchor.scale || 0.08) * 1.1);
 
     const [lo, hi] = this.meta?.allowedScaleRange || [0.94, 1.06];
     const metaScale = this.meta?.defaultScale || 1;
