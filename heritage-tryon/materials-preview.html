@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>주얼리 재질 프리셋 프리뷰</title>
+  <style>
+    body { margin: 0; font-family: Pretendard, "Noto Sans KR", sans-serif; background: #111; color: #eee; }
+    header { padding: 16px; border-bottom: 1px solid #333; }
+    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px; }
+    .card { background: #1a1a1a; border-radius: 12px; overflow: hidden; }
+    canvas { width: 100%; height: 180px; display: block; background: #0a0a0a; }
+    .label { padding: 8px 10px; font-size: 12px; }
+    .note { padding: 0 16px 24px; font-size: 13px; color: #aaa; max-width: 70ch; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>재질 프리셋 프리뷰</h1>
+    <p>스튜디오와 동일한 Three.js MeshPhysicalMaterial / ACESFilmicToneMapping 설정을 사용합니다.</p>
+  </header>
+  <div id="grid"></div>
+  <p class="note" id="gemNote"></p>
+  <script type="module">
+    import {
+      MATERIAL_PRESETS,
+      materialParamsFor,
+      GEMSTONE_TRADEOFF_KO,
+    } from "./src/services/ar/MaterialPresets.js";
+
+    const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
+    document.getElementById("gemNote").textContent = GEMSTONE_TRADEOFF_KO;
+    const grid = document.getElementById("grid");
+
+    for (const [name, _] of Object.entries(MATERIAL_PRESETS)) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const canvas = document.createElement("canvas");
+      const label = document.createElement("div");
+      label.className = "label";
+      label.textContent = name;
+      card.append(canvas, label);
+      grid.appendChild(card);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+      renderer.setSize(220, 180, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 220 / 180, 0.1, 20);
+      camera.position.set(0, 0.2, 2.2);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+      const key = new THREE.DirectionalLight(0xfff2dd, 1.2);
+      key.position.set(1, 1.4, 1.2);
+      scene.add(key);
+      const p = materialParamsFor(name, "save");
+      renderer.toneMappingExposure = p.exposure ?? 1.05;
+      const geo = new THREE.SphereGeometry(0.55, 48, 32);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: p.color,
+        metalness: p.metalness ?? 0.9,
+        roughness: p.roughness ?? 0.25,
+        clearcoat: p.clearcoat ?? 0.4,
+        clearcoatRoughness: p.clearcoatRoughness ?? 0.2,
+        envMapIntensity: p.envMapIntensity ?? 1,
+        transmission: p.transmission ?? 0,
+        ior: p.ior ?? 1.5,
+        thickness: p.thickness ?? 0,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+      const tick = () => {
+        mesh.rotation.y += 0.01;
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      };
+      tick();
+    }
+  </script>
+</body>
+</html>
