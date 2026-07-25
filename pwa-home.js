@@ -62,12 +62,12 @@
   };
 
   const MENUS = [
+    { go: "discover", label: "발견", ico: "portfolio" },
     { go: "portfolio", label: "전체", ico: "portfolio" },
     { go: "shipping", label: "출고", ico: "shipping" },
-    { go: "reviews", label: "후기", ico: "reviews" },
     { go: "gold", label: "금시세", ico: "gold" },
     { go: "search", label: "AI검색", ico: "search" },
-    { go: "notices", label: "공지", ico: "notices" },
+    { go: "reviews", label: "후기", ico: "reviews" },
   ];
 
   const assetUrl = (value) => {
@@ -92,6 +92,11 @@
 
   function goRoute(key) {
     if (key === "portfolio") return goPortfolio("ALL");
+    if (key === "discover") {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `./discover.html${q}`;
+      return;
+    }
     if (key === "search") return void (location.href = "./search.html");
     if (key === "gold") return void (location.href = "./heritage-gold/");
     if (key === "reviews") return void (location.href = "./landing.html?open=reviews");
@@ -132,6 +137,10 @@
   }
 
   function pushRecent(item) {
+    if (window.HxStore?.pushRecent) {
+      window.HxStore.pushRecent(item);
+      return;
+    }
     if (!item || !item.id) return;
     const id = String(item.id);
     const next = [{ id, cover: item.cover || item.image || "", title: item.title || "", category: item.category || "" }];
@@ -499,6 +508,11 @@
         `</button>`
     ).join("");
     host.append(services);
+
+    // Lifestyle teasers (lazy module)
+    if (window.HxDiscover?.mountHomeTeasers) {
+      window.HxDiscover.mountHomeTeasers(host).catch(() => {});
+    }
 
     // —— Today's drop countdown ——
     const dropBar = document.createElement("section");
@@ -879,10 +893,11 @@
     secPf.innerHTML =
       `<div class="pwa-sec__head">` +
       `<div><p class="pwa-sec__eyebrow">FOR YOU</p><h2>추천 작품</h2></div>` +
-      `<button type="button" data-go="portfolio">전체</button>` +
+      `<button type="button" data-go="discover">디스커버</button>` +
       `</div>`;
     const rail = document.createElement("div");
     rail.className = "pwa-rail";
+    rail.id = "pwaForYouRail";
     if (!fresh.length) rail.innerHTML = `<p class="pwa-empty">작품을 불러오는 중…</p>`;
     else fresh.forEach((item) => rail.append(cardButton(item, false)));
     secPf.append(rail);

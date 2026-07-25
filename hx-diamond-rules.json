@@ -1,0 +1,30 @@
+{
+  "disclaimer": "참고용 내부 규칙입니다. 실시간 시세·감정가가 아닙니다.",
+  "updated": "2026-07-26",
+  "shapes": {
+    "round": { "label": "라운드", "aspect": 1, "factor": 1 },
+    "oval": { "label": "오벌", "aspect": 1.35, "factor": 0.92 },
+    "emerald": { "label": "에메랄드", "aspect": 1.45, "factor": 0.88 },
+    "cushion": { "label": "쿠션", "aspect": 1.05, "factor": 0.95 },
+    "pear": { "label": "페어", "aspect": 1.55, "factor": 0.9 },
+    "marquise": { "label": "마퀴즈", "aspect": 2, "factor": 0.86 },
+    "princess": { "label": "프린세스", "aspect": 1, "factor": 0.94 }
+  },
+  "roundMmByCarat": {
+    "0.30": 4.2,
+    "0.50": 5.2,
+    "0.70": 5.8,
+    "1.00": 6.5,
+    "1.50": 7.4,
+    "2.00": 8.2,
+    "3.00": 9.4
+  },
+  "budgetBands": [
+    { "max": 1500000, "naturalCt": [0.2, 0.35], "labCt": [0.5, 0.9], "note": "센터 스톤보다 세팅·디자인을 우선해도 좋은 구간" },
+    { "max": 3500000, "naturalCt": [0.35, 0.6], "labCt": [0.9, 1.5], "note": "데일리·약혼 입문 구간으로 많이 찾는 범위" },
+    { "max": 7000000, "naturalCt": [0.6, 1.0], "labCt": [1.5, 2.5], "note": "캐럿과 품질의 균형을 맞추기 좋은 구간" },
+    { "max": 15000000, "naturalCt": [1.0, 1.7], "labCt": [2.5, 4.0], "note": "센터 스톤 존재감이 분명해지는 구간" },
+    { "max": 999999999, "naturalCt": [1.5, 3.0], "labCt": [3.5, 6.0], "note": "대형 스톤·커스텀 세팅 상담이 유리한 구간" }
+  ],
+  "settingShare": 0.28
+}

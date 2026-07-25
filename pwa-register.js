@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260726-pwa18";
-  const APP_VERSION = "v1.7.1";
+  const APP_BUILD = "20260726-pwa19";
+  const APP_VERSION = "v1.8.0";
   const RELEASE_NOTES = [
-    "포트폴리오: 오버레이 대신 페이지 전환(무신사·KREAM형)",
-    "포폴 목록 로딩 멈춤 수정(조회수 API 블로킹 제거)",
-    "업데이트 안내·최근본·위시·드롭 타이머",
+    "Discover 허브: 취향퀴즈·For You·에디트·비교·다이아·선물·Vault",
+    "하단 탭 「발견」추가 · 포폴은 페이지 전환 유지",
+    "로컬 취향·최근본·위시 기반 개인화(AI 추천 아님)",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

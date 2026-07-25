@@ -543,6 +543,19 @@
 
   async function openDetail(item) {
     state.current = item;
+    try {
+      if (window.HxStore?.pushRecent) {
+        window.HxStore.pushRecent(item);
+      } else {
+        const key = "hx.pwa.recent";
+        const prev = JSON.parse(localStorage.getItem(key) || "[]");
+        const id = String(item.id);
+        const next = [
+          { id, cover: item.cover || item.image || "", title: item.title || "", category: item.category || "" },
+        ].concat((Array.isArray(prev) ? prev : []).filter((x) => x && String(x.id) !== id));
+        localStorage.setItem(key, JSON.stringify(next.slice(0, 40)));
+      }
+    } catch (_) {}
     let viewCount = Number(item.viewCount) || 0;
     if (window.GongbangBoardMeta?.bumpView) {
       viewCount = await window.GongbangBoardMeta.bumpView(BOARD, item.id);

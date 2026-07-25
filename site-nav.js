@@ -79,6 +79,9 @@
   function isPortfolioPage() {
     return /\/portfolio\.html$/i.test(location.pathname);
   }
+  function isDiscoverPage() {
+    return /\/discover\.html$/i.test(location.pathname);
+  }
   function isStandalonePublicHome() {
     const path = location.pathname.replace(/\/+$/, "") || "/";
     return path === "/" || /\/index\.html$/i.test(path);
@@ -129,6 +132,7 @@
   function detectActivePanel() {
     if (isMyPage()) return "mypage";
     if (isPortfolioPage()) return "portfolio";
+    if (isDiscoverPage()) return "discover";
     const portfolio = document.getElementById("portfolioPanel");
     const reviews = document.getElementById("reviews");
     const shipping = document.getElementById("shippingPanel");
@@ -138,7 +142,7 @@
     if (shipping && !shipping.hidden) return "shipping";
     if (notices && !notices.hidden) return "home";
     const open = new URLSearchParams(location.search).get("open");
-    if (open === "portfolio" || open === "reviews" || open === "shipping") return open;
+    if (open === "portfolio" || open === "reviews" || open === "shipping" || open === "discover") return open;
     return "home";
   }
   function keepAppParam(url) {
@@ -221,6 +225,14 @@
 
     // PWA / app shell: page switch like Musinsa·KREAM (no overlay "new window")
     if (isPwaMode() || document.documentElement.classList.contains("is-pwa")) {
+      if (name === "discover") {
+        if (isDiscoverPage()) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+        location.href = keepAppParam("/discover.html");
+        return;
+      }
       if (name === "portfolio") {
         if (isPortfolioPage()) {
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -402,7 +414,7 @@
     nav.innerHTML =
       `<ul class="gb-bottom-nav__bar">` +
       navItem("portfolio", "포트폴리오", ICONS.portfolio) +
-      navItem("reviews", "리얼후기", ICONS.reviews) +
+      navItem("discover", "발견", ICONS.reviews) +
       navItem("home", "홈", ICONS.home, true) +
       navItem("shipping", "출고확인", ICONS.shipping) +
       navItem("mypage", "마이", ICONS.mypage) +
