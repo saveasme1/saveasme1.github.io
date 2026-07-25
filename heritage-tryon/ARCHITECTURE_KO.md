@@ -6,7 +6,7 @@
 |------|------|------|------|------|
 | bracelet | Hand (+ Pose wrist fallback) | `WristAnchorEstimator.estimateWristAnchor3D` | `fitBracelet` | `JewelryARRenderer` |
 | ring | Hand | `FingerAnchorEstimator.estimateFingerAnchor3D` | `fitRing` | 동일 |
-| necklace | Face + Pose | `NeckAnchorEstimator.estimateNeckAnchor3D` | `fitNecklaceWithChain` | 동일 + 체인 Tube |
+| necklace | Pose (+ Face 보조, `align.js`) | `NeckAnchorEstimator.estimateNeckAnchor3D` | `fitNecklaceWithChain` (`NecklaceFitter3D` 기반) | 동일 + 체인 Tube |
 | earring | Face | `EarAnchorEstimator.estimateEarAnchor3D` | `fitEarring` + `EarringPhysics` | 동일 |
 
 진입점: `src/studio.js` → `alignTick` → `evaluateAlignment` (`align.js`) → smoother → `GuideOverlay` → `JewelryARRenderer.updateFromAnchor` / `render`
