@@ -1,9 +1,9 @@
-(() => {
+﻿(() => {
   "use strict";
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260726-tryon42";
+  const TRYON_BUST = "20260726-tryon43";
   let overlay = null;
   let frame = null;
   let overlayOpen = false;
@@ -17,8 +17,8 @@
     overlay.className = "heritage-tryon-overlay";
     overlay.hidden = true;
     overlay.innerHTML = `
-      <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="착용해보기">
-        <iframe class="heritage-tryon-frame" title="착용해보기" allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>
+      <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="李⑹슜?대낫湲?>
+        <iframe class="heritage-tryon-frame" title="李⑹슜?대낫湲? allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>
       </div>`;
     document.body.append(overlay);
     frame = overlay.querySelector("iframe");
