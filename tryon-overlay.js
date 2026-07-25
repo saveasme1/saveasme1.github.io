@@ -1,9 +1,9 @@
-﻿(() => {
+(() => {
   "use strict";
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260726-tryon44b";
+  const TRYON_BUST = "20260726-tryon44c";
   let overlay = null;
   let frame = null;
   let overlayOpen = false;
@@ -16,10 +16,11 @@
     overlay.id = "heritageTryOnOverlay";
     overlay.className = "heritage-tryon-overlay";
     overlay.hidden = true;
-    overlay.innerHTML = `
-      <div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="李⑹슜?대낫湲?>
-        <iframe class="heritage-tryon-frame" title="李⑹슜?대낫湲? allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>
-      </div>`;
+    // ASCII labels only — broken encoding must never destroy attribute quotes.
+    overlay.innerHTML =
+      '<div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="Try-on">' +
+      '<iframe class="heritage-tryon-frame" title="Try-on" allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>' +
+      "</div>";
     document.body.append(overlay);
     frame = overlay.querySelector("iframe");
     overlay.addEventListener("click", (event) => {
@@ -30,6 +31,10 @@
 
   function openTryOn(payload = {}) {
     ensureOverlay();
+    if (!frame) {
+      console.error("heritage-tryon: iframe missing");
+      return;
+    }
     const params = new URLSearchParams();
     params.set("embed", "1");
     params.set("v", TRYON_BUST);
@@ -91,7 +96,6 @@
       ignorePop = false;
       return;
     }
-    // Android/system back: close camera first, then overlay.
     if (cameraOpen) {
       cameraOpen = false;
       postToFrame({ type: "heritage-tryon-close-camera" });
