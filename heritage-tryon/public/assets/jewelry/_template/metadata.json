@@ -1,0 +1,23 @@
+{
+  "productId": "_template",
+  "type": "rigid_bangle",
+  "model": "model.glb",
+  "unit": "mm",
+  "innerDiameterMm": 58,
+  "outerDiameterMm": 64,
+  "widthMm": 7,
+  "thicknessMm": 3,
+  "defaultScale": 1,
+  "rotationOffset": [0, 0, 0],
+  "positionOffset": [0, 0, 0],
+  "allowedScaleRange": [0.96, 1.04],
+  "deformationPolicy": "none",
+  "preferredOrientation": "dorsum",
+  "materialPreset": "yellow-gold-polished",
+  "occlusionMode": "wrist-ellipse",
+  "lod": {
+    "high": "model.glb",
+    "medium": "model.glb",
+    "low": "model.glb"
+  }
+}
