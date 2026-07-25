@@ -1,0 +1,43 @@
+{
+  "avgFps": 26.4,
+  "minFps": 22,
+  "p95FrameMs": 38.2,
+  "avgHandMs": 12.1,
+  "avgFaceMs": null,
+  "avgPoseMs": 4.2,
+  "avgAnchorMs": 0.8,
+  "avgSmoothMs": 0.3,
+  "avgRenderMs": 7.5,
+  "avgSegMs": null,
+  "avgProjectionErrorPx": 6.2,
+  "maxProjectionErrorPx": 11.0,
+  "trackingLossCount": 2,
+  "quatFlipRejectCount": 0,
+  "sampleCount": 40,
+  "windowMs": 45000,
+  "wearType": "bracelet",
+  "itemId": "fixture-synthetic",
+  "assetState": "validation_glb",
+  "exportedAt": "2026-07-26T00:00:00.000Z",
+  "meta": {
+    "browser": "SyntheticFixture/1.0",
+    "dpr": 2
+  },
+  "last": {
+    "mode": "bracelet",
+    "tier": "MEDIUM",
+    "cameraW": 1280,
+    "cameraH": 720,
+    "assetState": "validation_glb"
+  },
+  "saveConsistency": {
+    "positionDeltaNorm": 0.008
+  },
+  "glInfo": {
+    "vendor": "Synthetic",
+    "renderer": "FixtureGPU",
+    "maxTextureSize": 4096,
+    "webgl2": true
+  },
+  "_note": "PARSER_VALIDATION_ONLY — not a real-device measurement"
+}
