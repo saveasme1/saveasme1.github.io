@@ -1,16 +1,18 @@
-# 최종 상태 (tryon44)
+# 최종 상태 (tryon44b)
 
-작성일: 2026-07-26 · 캐시 버스트: `20260726-tryon44`
+작성일: 2026-07-26 · 캐시 버스트: `20260726-tryon44b`
 
 ## 구현된 것 (코드·테스트로 확인)
 
 - 4모드 추적·앵커·피팅·Three.js 라이브 루프 (`src/studio.js` `alignTick`)
 - AssetResolver 생산 안전 분기 (`src/services/ar/AssetResolver.js`)
-- JewelryARRenderer에 TorusGeometry 없음 (`npm test` 확인)
+- JewelryARRenderer에 `new TorusGeometry` / `new THREE.TorusGeometry` 없음
+- `JewelryARRenderer.updateFromAnchor`에서 `fitBracelet` / `fitRing` / `fitNecklaceWithChain` / `fitEarring` 호출
 - 고해상도 저장 분기 (`composeHighResTryOn` / `HighResCompose.js`)
-- 고객 가이드: 추적 타원/링/목선/귀 마커 + 메시지 1개
+- 고객 가이드: 추적 타원/링/목선/귀 마커 + 메시지 1개 (`GuideOverlay.js`)
 - 디버그 격리 `?arDebug=1`
 - 내부 QA: `qa.html?arQa=1`
+- `studio.html` UTF-8 한국어 UI 복구 + AR 모듈 importmap 캐시 버스트
 - 스모크 테스트 22개 PASS
 - 자산 검증 ALL OK (fallback webp WARN만 · 생산 차단 아님)
 - 합성 fixture로 `analyze_debug_report.py` 파서 동작 확인 (**실기기 성능 아님**)
@@ -30,11 +32,11 @@ npm test
 ## 배포
 
 명령: `python _deploy44.py`  
-결과: `LIVE OK` (2026-07-26)  
+캐시: `20260726-tryon44b`  
 확인 URL:
-- https://hand-made.kr/heritage-tryon/studio.html → `tryon44` 포함
-- https://hand-made.kr/heritage-tryon/qa.html → `arQa` 게이트
-- https://hand-made.kr/tryon-overlay.js → `TRYON_BUST = "20260726-tryon44"`
+- https://hand-made.kr/heritage-tryon/studio.html
+- https://hand-made.kr/heritage-tryon/qa.html?arQa=1
+- https://hand-made.kr/tryon-overlay.js
 
 ## 외부 입력이 있어야 검증 가능한 항목
 
