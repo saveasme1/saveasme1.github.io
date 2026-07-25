@@ -40,6 +40,45 @@
   <link rel="stylesheet" href="pwa-app.css?v=20260725-pwa7">
 </head>
 <body>
+  <script>
+    (function () {
+      var KEY = 'hx.pwa.mojibakeRecover';
+      function isBroken(sample) {
+        if (!sample) return false;
+        if (sample.indexOf(String.fromCharCode(0xfffd)) >= 0) return true;
+        if (/br>/.test(sample)) return true;
+        if (sample.length > 8 && !/[\uAC00-\uD7A3]/.test(sample)) return true;
+        return false;
+      }
+      function run() {
+        if (sessionStorage.getItem(KEY) === '1') return;
+        var title = document.querySelector('.hero-title');
+        var sample = ((title && title.textContent) || '') + ' ' + (document.title || '');
+        if (!isBroken(sample)) return;
+        sessionStorage.setItem(KEY, '1');
+        var done = function () {
+          var u = new URL(location.href);
+          u.searchParams.set('_fix', String(Date.now()));
+          location.replace(u.href);
+        };
+        var tasks = [];
+        if (window.caches) {
+          tasks.push(caches.keys().then(function (ks) {
+            return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+        if (navigator.serviceWorker) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        Promise.all(tasks).then(done).catch(done);
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+      else run();
+    })();
+  </script>
+
   <div class="atmosphere" aria-hidden="true"></div>
   <main class="mp-shell">
     <header class="mp-head">
