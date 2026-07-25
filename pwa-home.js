@@ -443,22 +443,80 @@
     ).join("");
     host.append(services);
 
-    // —— AI Search mini (above gold only — no category chips) ——
+    // —— Live pulse (KREAM/Musinsa activity feel) ——
+    const pulse = document.createElement("div");
+    pulse.className = "pwa-pulse";
+    const pulseLines = [];
+    shipItems.slice(0, 4).forEach((s) => {
+      const t = String(s.title || "").replace(/\s+/g, " ").trim().slice(0, 28);
+      if (t) pulseLines.push(`출고 · ${t}`);
+    });
+    reviewItems.slice(0, 3).forEach((r) => {
+      const t = String(r.title || "후기").slice(0, 24);
+      pulseLines.push(`후기 · ${t}`);
+    });
+    if (!pulseLines.length) {
+      pulseLines.push("본 헤리티지 · 주문제작 아카이브가 업데이트 중입니다");
+    }
+    pulse.innerHTML =
+      `<span class="pwa-pulse__dot" aria-hidden="true"></span>` +
+      `<div class="pwa-pulse__track"><div class="pwa-pulse__move">${pulseLines
+        .concat(pulseLines)
+        .map((t) => `<span>${t}</span>`)
+        .join("")}</div></div>`;
+    host.append(pulse);
+
+    // —— Story rings ——
+    const stories = document.createElement("section");
+    stories.className = "pwa-stories";
+    stories.setAttribute("aria-label", "스타일 스토리");
+    const storyItems = [
+      { src: MEDIA.look[0].src, label: "NEW", go: "portfolio" },
+      { src: MEDIA.look[1].src, label: "WEAR", go: "portfolio" },
+      { src: MEDIA.look[2].src, label: "GOLD", go: "gold" },
+      { src: MEDIA.look[4].src, label: "AI", go: "search" },
+      { src: MEDIA.look[5].src, label: "OUT", go: "shipping" },
+      { src: MEDIA.look[3].src, label: "REAL", go: "reviews" },
+    ];
+    storyItems.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pwa-stories__item" + (i === 0 ? " is-new" : "");
+      b.dataset.go = s.go;
+      b.innerHTML =
+        `<span class="pwa-stories__ring"><img src="${assetUrl(s.src)}" alt="" loading="lazy"></span>` +
+        `<span class="pwa-stories__lab">${s.label}</span>`;
+      protect(b.querySelector("img"));
+      stories.append(b);
+    });
+    host.append(stories);
+
+    // —— AI Search (refined equal CTAs) ——
     const aiSec = document.createElement("section");
     aiSec.className = "pwa-aiseek";
     aiSec.innerHTML =
+      `<div class="pwa-aiseek__panel">` +
       `<div class="pwa-aiseek__head">` +
-      `<div><p class="pwa-sec__eyebrow">AI SEARCH</p><h2>사진으로 찾기</h2></div>` +
-      `<a href="./search.html">전체</a>` +
+      `<div><p class="pwa-sec__eyebrow">AI SEARCH · BETA</p><h2>사진으로 찾기</h2></div>` +
+      `<a href="./search.html">더보기</a>` +
       `</div>` +
       `<p class="pwa-aiseek__status" id="pwaAiStatus">엔진 확인 중…</p>` +
+      `<div class="pwa-aiseek__drop">` +
+      `<p>비슷한 주얼리를 찾아드릴게요</p>` +
       `<div class="pwa-aiseek__actions">` +
-      `<label class="pwa-aiseek__btn"><input type="file" accept="image/*" hidden id="pwaAiAlbum"><span>앨범</span></label>` +
-      `<label class="pwa-aiseek__btn is-cam"><input type="file" accept="image/*" capture="environment" hidden id="pwaAiCam"><span>카메라</span></label>` +
-      `<button type="button" class="pwa-aiseek__btn is-ghost" data-go="search">상세검색</button>` +
-      `</div>` +
+      `<label class="pwa-aiseek__btn"><input type="file" accept="image/*" hidden id="pwaAiAlbum">` +
+      `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="10.2" r="1.4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m7.5 16.5 3.2-3.4 2.4 2.2 3.4-4.1 3 5.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` +
+      `<span>앨범</span></label>` +
+      `<label class="pwa-aiseek__btn"><input type="file" accept="image/*" capture="environment" hidden id="pwaAiCam">` +
+      `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8.5h2.2l1.2-2h8.2l1.2 2H19.5A1.5 1.5 0 0 1 21 10v7.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5V10a1.5 1.5 0 0 1 1.5-1.5Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>` +
+      `<span>카메라</span></label>` +
+      `<button type="button" class="pwa-aiseek__btn" data-go="search">` +
+      `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m16.2 16.2 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>` +
+      `<span>상세</span></button>` +
+      `</div></div>` +
       `<div class="pwa-aiseek__rail" id="pwaAiRail" hidden></div>` +
-      `<div class="pwa-aiseek__loading" id="pwaAiLoading" hidden><i></i><span>비슷한 작품 찾는 중…</span></div>`;
+      `<div class="pwa-aiseek__loading" id="pwaAiLoading" hidden><i></i><span>비슷한 작품 찾는 중…</span></div>` +
+      `</div>`;
     host.append(aiSec);
 
     const aiStatus = aiSec.querySelector("#pwaAiStatus");
@@ -471,12 +529,12 @@
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error("offline");
         if (!data.indexReady) {
-          if (aiStatus) aiStatus.textContent = "AI 인덱스 준비 중 · 잠시 후 다시 시도";
+          if (aiStatus) aiStatus.textContent = "인덱스 준비 중 · 잠시 후 다시 시도해 주세요";
           return;
         }
-        if (aiStatus) aiStatus.textContent = "앨범·카메라로 비슷한 작품 검색 · BETA";
+        if (aiStatus) aiStatus.textContent = "앨범 또는 카메라로 바로 검색할 수 있어요";
       } catch (_) {
-        if (aiStatus) aiStatus.textContent = "상세검색에서 이용하거나 잠시 후 다시 시도";
+        if (aiStatus) aiStatus.textContent = "상세 검색에서 이용하거나 잠시 후 다시 시도";
       }
     }
     checkAiHealth();
@@ -527,7 +585,7 @@
           });
           aiRail.append(b);
         });
-        if (aiStatus) aiStatus.textContent = `${rows.length}건 찾음 · BETA`;
+        if (aiStatus) aiStatus.textContent = `${rows.length}건 매칭 · BETA`;
       } catch (_) {
         if (aiStatus) aiStatus.textContent = "검색 실패 · 상세검색을 이용해 주세요";
         aiRail.hidden = true;
@@ -547,7 +605,7 @@
       e.target.value = "";
     });
 
-    // —— Gold market mini (live + cache + units) ——
+    // —— Gold market (KREAM-clean number UI) ——
     const market = document.createElement("section");
     market.className = "pwa-market";
     market.innerHTML =
@@ -557,23 +615,26 @@
       `</div>` +
       `<div class="pwa-market__card">` +
       `<div class="pwa-market__top">` +
-      `<span class="pwa-market__live" id="pwaGoldLive">LIVE</span>` +
+      `<span class="pwa-market__live" id="pwaGoldLive"><i></i>LIVE</span>` +
       `<button type="button" class="pwa-market__refresh" id="pwaGoldRefresh" aria-label="새로고침">↻</button>` +
       `</div>` +
-      `<div class="pwa-market__units" id="pwaGoldUnits">` +
+      `<div class="pwa-market__units" id="pwaGoldUnits" role="tablist">` +
       `<button type="button" data-unit="don" class="is-on">1돈</button>` +
       `<button type="button" data-unit="g">1g</button>` +
       `<button type="button" data-unit="k14">14K</button>` +
       `<button type="button" data-unit="k18">18K</button>` +
       `</div>` +
-      `<strong class="pwa-market__price" id="pwaGoldPrice">불러오는 중</strong>` +
-      `<p class="pwa-market__sub" id="pwaGoldSub">국제 시세 기준 · 참고용</p>` +
+      `<div class="pwa-market__pricewrap">` +
+      `<strong class="pwa-market__price" id="pwaGoldPrice">—</strong>` +
+      `<span class="pwa-market__won">원</span>` +
+      `</div>` +
+      `<p class="pwa-market__sub" id="pwaGoldSub">순금 1돈 · 3.75g · 참고용</p>` +
       `<svg class="pwa-market__spark" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">` +
-      `<path id="pwaGoldSpark" fill="none" stroke="currentColor" stroke-width="1.6"></path>` +
+      `<path id="pwaGoldSpark" fill="none" stroke="currentColor" stroke-width="1.5"></path>` +
       `</svg>` +
       `<div class="pwa-market__row">` +
       `<span id="pwaGoldMeta">시세 확인 중</span>` +
-      `<a href="./heritage-gold/">시세 페이지 →</a>` +
+      `<a href="./heritage-gold/">시세 페이지</a>` +
       `</div>` +
       `</div>`;
     host.append(market);
@@ -589,18 +650,18 @@
       const sparkEl = document.getElementById("pwaGoldSpark");
       if (!priceEl) return;
       if (!info) {
-        priceEl.textContent = "시세 불러오는 중";
-        if (subEl) subEl.textContent = "잠시만 기다려 주세요";
+        priceEl.textContent = "—";
+        if (subEl) subEl.textContent = "시세를 불러오는 중";
         return;
       }
       const map = {
-        don: { v: info.don, label: "순금 1돈 · 3.75g" },
-        g: { v: info.perG, label: "순금 1g" },
-        k14: { v: info.don * 0.585, label: "14K 환산 · 1돈 금함량" },
-        k18: { v: info.don * 0.75, label: "18K 환산 · 1돈 금함량" },
+        don: { v: info.don, label: "순금 1돈 · 3.75g · 참고용" },
+        g: { v: info.perG, label: "순금 1g · 참고용" },
+        k14: { v: info.don * 0.585, label: "14K 함량 환산 · 1돈 기준" },
+        k18: { v: info.don * 0.75, label: "18K 함량 환산 · 1돈 기준" },
       };
       const cur = map[goldUnit] || map.don;
-      priceEl.textContent = won(cur.v);
+      priceEl.textContent = Math.round(cur.v).toLocaleString("ko-KR");
       if (subEl) subEl.textContent = cur.label;
       if (metaEl) {
         const t = new Date(info.at || Date.now());
@@ -608,10 +669,10 @@
         metaEl.textContent = `${src} · ${t.toLocaleTimeString("ko-KR", {
           hour: "2-digit",
           minute: "2-digit",
-        })}`;
+        })} 기준`;
       }
       if (liveEl) {
-        liveEl.textContent = info.source === "cache" ? "CACHE" : "LIVE";
+        liveEl.innerHTML = info.source === "cache" ? "<i></i>CACHE" : "<i></i>LIVE";
         liveEl.classList.toggle("is-cache", info.source === "cache");
       }
       if (sparkEl) {
@@ -628,7 +689,7 @@
 
     async function refreshGold() {
       const liveEl = document.getElementById("pwaGoldLive");
-      if (liveEl) liveEl.textContent = "…";
+      if (liveEl) liveEl.innerHTML = "<i></i>…";
       goldInfo = await fetchGoldDon();
       paintGold(goldInfo);
     }
@@ -687,6 +748,39 @@
     else fresh.forEach((item) => rail.append(cardButton(item, false)));
     secPf.append(rail);
     host.append(secPf);
+
+    // HOT ranking (Musinsa chart vibe)
+    const rankSec = document.createElement("section");
+    rankSec.className = "pwa-sec";
+    rankSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">CHART</p><h2>지금 핫한 순위</h2></div>` +
+      `<button type="button" data-go="portfolio">전체</button>` +
+      `</div>`;
+    const rankList = document.createElement("div");
+    rankList.className = "pwa-rank";
+    const ranked = items.slice(0, 5);
+    if (!ranked.length) {
+      rankList.innerHTML = `<p class="pwa-empty">순위 준비 중</p>`;
+    } else {
+      ranked.forEach((item, i) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "pwa-rank__row";
+        const cat = item.category || "";
+        const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
+        row.innerHTML =
+          `<span class="pwa-rank__n">${i + 1}</span>` +
+          `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
+          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"}</i></span>` +
+          `<span class="pwa-rank__tag">${i < 2 ? "HOT" : "UP"}</span>`;
+        protect(row.querySelector("img"));
+        row.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
+        rankList.append(row);
+      });
+    }
+    rankSec.append(rankList);
+    host.append(rankSec);
 
     // 2-col drop (29CM / Musinsa product wall)
     const drop = document.createElement("section");

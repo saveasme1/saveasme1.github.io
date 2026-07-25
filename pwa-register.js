@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa15";
-  const APP_VERSION = "v1.6.1";
+  const APP_BUILD = "20260725-pwa16";
+  const APP_VERSION = "v1.6.2";
   const RELEASE_NOTES = [
-    "사진으로 찾기를 금시세 바로 위로 이동",
-    "AI 섹션 중복 카테고리 칩 제거",
-    "금시세 API 교체(기존 403) · LIVE 시세 복구",
+    "금시세 숫자 폰트·세그먼트 UI 정리",
+    "AI 검색 버튼 동일 스타일·드롭존 리디자인",
+    "실시간 피드·스토리 링·HOT 순위 추가",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
