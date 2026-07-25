@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>AR QA · 내부 전용</title>
+  <base href="./" />
+  <style>
+    :root { --bg:#0f0f10; --ink:#f2f2f2; --line:#333; --ok:#2bb673; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Pretendard, "Noto Sans KR", sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:14px 16px; border-bottom:1px solid var(--line); }
+    header h1 { margin:0; font-size:16px; }
+    header p { margin:6px 0 0; font-size:12px; color:#aaa; }
+    .gate { padding:40px 20px; max-width:480px; margin:0 auto; }
+    .gate code { background:#222; padding:2px 6px; border-radius:4px; }
+    .tools { display:flex; flex-wrap:wrap; gap:8px; padding:12px; border-bottom:1px solid var(--line); }
+    .tools button, .tools a, .tools select {
+      appearance:none; font:inherit; font-size:12px; font-weight:700;
+      min-height:44px; padding:8px 12px; border-radius:10px; border:1px solid #444;
+      background:#1c1c1e; color:#fff; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center;
+    }
+    .tools button.is-on { border-color:var(--ok); color:#b8f5c8; }
+    iframe { width:100%; height:calc(100dvh - 120px); border:0; background:#000; }
+    .denied { display:none; }
+  </style>
+</head>
+<body>
+  <div id="gate" class="gate">
+    <h1>내부 QA 게이트</h1>
+    <p>이 페이지는 고객 네비게이션에 노출되지 않습니다. 아래 쿼리로만 진입하세요.</p>
+    <p><code>qa.html?arQa=1</code></p>
+    <p>선택: <code>&amp;arDebug=1</code> · <code>&amp;arValidation=1</code> · <code>&amp;repAssets=1</code> · <code>&amp;type=bracelet|ring|necklace|earring</code></p>
+  </div>
+
+  <div id="app" class="denied">
+    <header>
+      <h1>Heritage Try-on · QA</h1>
+      <p>스튜디오 iframe · 검증 자산은 arValidation/repAssets 플래그 없이 로드되지 않습니다.</p>
+    </header>
+    <div class="tools">
+      <select id="modeSel" aria-label="착용 모드">
+        <option value="bracelet">팔찌</option>
+        <option value="ring">반지</option>
+        <option value="necklace">목걸이</option>
+        <option value="earring">귀걸이</option>
+      </select>
+      <button type="button" id="btnReload">스튜디오 다시 로드</button>
+      <button type="button" id="btnDebug" class="is-on">arDebug</button>
+      <button type="button" id="btnVal">arValidation</button>
+      <button type="button" id="btnRep">repAssets</button>
+      <a id="openStudio" href="./studio.html?arDebug=1" target="_blank" rel="noopener">새 탭</a>
+      <a href="./materials-preview.html" target="_blank" rel="noopener">재질 프리뷰</a>
+    </div>
+    <iframe id="frame" title="tryon-qa" allow="camera *; microphone *; fullscreen *; autoplay *"></iframe>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    if (params.get("arQa") !== "1") {
+      // stay on gate
+    } else {
+      document.getElementById("gate").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      const state = {
+        debug: params.get("arDebug") !== "0",
+        validation: params.get("arValidation") === "1",
+        rep: params.get("repAssets") === "1",
+        type: params.get("type") || "bracelet",
+      };
+      const modeSel = document.getElementById("modeSel");
+      modeSel.value = state.type;
+      const titles = { bracelet: "팔찌", ring: "반지", necklace: "목걸이", earring: "귀걸이" };
+
+      function buildUrl() {
+        const q = new URLSearchParams();
+        q.set("embed", "1");
+        q.set("id", state.rep ? `rep-${state.type}` : "portfolio-item");
+        q.set("title", `QA ${titles[state.type] || state.type}`);
+        q.set("category", state.type);
+        if (state.debug) q.set("arDebug", "1");
+        if (state.validation) q.set("arValidation", "1");
+        if (state.rep) q.set("repAssets", "1");
+        q.set("v", "20260726-tryon44");
+        return `./studio.html?${q.toString()}`;
+      }
+
+      function sync() {
+        document.getElementById("btnDebug").classList.toggle("is-on", state.debug);
+        document.getElementById("btnVal").classList.toggle("is-on", state.validation);
+        document.getElementById("btnRep").classList.toggle("is-on", state.rep);
+        const url = buildUrl();
+        document.getElementById("frame").src = url;
+        document.getElementById("openStudio").href = url.replace("embed=1&", "");
+      }
+
+      modeSel.addEventListener("change", () => { state.type = modeSel.value; sync(); });
+      document.getElementById("btnReload").addEventListener("click", sync);
+      document.getElementById("btnDebug").addEventListener("click", () => { state.debug = !state.debug; sync(); });
+      document.getElementById("btnVal").addEventListener("click", () => { state.validation = !state.validation; sync(); });
+      document.getElementById("btnRep").addEventListener("click", () => { state.rep = !state.rep; sync(); });
+      sync();
+    }
+  </script>
+</body>
+</html>
