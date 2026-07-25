@@ -17,6 +17,7 @@ export function fitBracelet(anchor, meta = {}) {
     fittedRadiusY,
     productScale: scale,
     sizeFit,
+    fitWarning: !sizeFit,
     deformationPolicy: meta.deformationPolicy || "none",
   };
 }
