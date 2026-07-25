@@ -1,5 +1,5 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260725-pwa16";
+const CACHE_VERSION = "hx-pwa-v20260726-pwa17";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -13,7 +13,6 @@ const PRECACHE = [
   "./search.html",
   "./offline.html",
   "./manifest.webmanifest",
-  "./app-build.json",
   "./sw.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -269,6 +268,16 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => matchIgnoringSearch(req).then((hit) => hit || offlineShell()))
+    );
+    return;
+  }
+
+  // Always network for build manifest — never serve stale update info
+  if (/\/app-build\.json$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })
+        .then((res) => res)
+        .catch(() => matchIgnoringSearch(req))
     );
     return;
   }

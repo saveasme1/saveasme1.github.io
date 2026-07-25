@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa16";
-  const APP_VERSION = "v1.6.2";
+  const APP_BUILD = "20260726-pwa17";
+  const APP_VERSION = "v1.7.0";
   const RELEASE_NOTES = [
-    "금시세 숫자 폰트·세그먼트 UI 정리",
-    "AI 검색 버튼 동일 스타일·드롭존 리디자인",
-    "실시간 피드·스토리 링·HOT 순위 추가",
+    "업데이트 안내 강제 표시(캐시·스누즈 이슈 수정)",
+    "최근 본 작품 · 위시리스트 · 오늘의 드롭 타이머",
+    "금시세·AI UI 정리 + 실시간피드·스토리·HOT순위",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -377,36 +377,64 @@
     finish();
   }
 
-  function promptUpdateAvailable(extraNotes) {
+  function promptUpdateAvailable(extraNotes, force) {
     if (updateOffered) return;
-    const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
-    // Snooze only 30 min — UI updates must still surface soon
-    if (Date.now() - snooze < 1000 * 60 * 30) return;
+    if (force) {
+      try {
+        localStorage.removeItem(UPDATE_SNOOZE_KEY);
+      } catch (_) {}
+    } else {
+      const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
+      if (Date.now() - snooze < 1000 * 60 * 5) return;
+    }
     updateOffered = true;
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
-      body: "디자인·기능 업데이트입니다. 새 콘텐츠가 없어도 적용하면 화면이 달라집니다.",
+      body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
       notes,
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
       onSecondary: () => {
         localStorage.setItem(UPDATE_SNOOZE_KEY, String(Date.now()));
+        showUpdateChip();
       },
     });
   }
 
+  function showUpdateChip() {
+    ensureBannerStyles();
+    let chip = document.getElementById("pwaUpdateChip");
+    if (!chip) {
+      chip = document.createElement("button");
+      chip.id = "pwaUpdateChip";
+      chip.type = "button";
+      chip.textContent = "업데이트 있음";
+      chip.style.cssText =
+        "position:fixed;right:14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:100001;" +
+        "border:0;border-radius:999px;padding:12px 16px;font-size:13px;font-weight:800;" +
+        "background:linear-gradient(145deg,#f0d09a,#e8b86d);color:#161513;" +
+        "box-shadow:0 10px 28px rgba(0,0,0,.35);cursor:pointer;" +
+        "font-family:Pretendard,SUIT,sans-serif;";
+      chip.addEventListener("click", () => {
+        updateOffered = false;
+        localStorage.removeItem(UPDATE_SNOOZE_KEY);
+        promptUpdateAvailable(RELEASE_NOTES, true);
+      });
+      document.documentElement.appendChild(chip);
+    }
+    chip.hidden = false;
+  }
+
   function noteBuildActivated() {
-    // First install only — never mark a new build as done before user taps 업데이트
     const activated = localStorage.getItem(ACTIVATED_KEY);
     if (!activated) {
       const legacy = localStorage.getItem(BUILD_KEY) || "";
       if (legacy && legacy !== APP_BUILD) {
-        // Returning user from older builds — keep legacy as "accepted" so remote check prompts
         localStorage.setItem(ACTIVATED_KEY, legacy);
-        promptUpdateAvailable(RELEASE_NOTES);
+        promptUpdateAvailable(RELEASE_NOTES, true);
         return;
       }
       localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
@@ -417,30 +445,46 @@
       localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
       localStorage.setItem(BUILD_KEY, APP_BUILD);
       showStatus("ready", "업데이트 완료 · 최신 버전입니다");
-    } else if (activated !== APP_BUILD) {
-      promptUpdateAvailable(RELEASE_NOTES);
+      const chip = document.getElementById("pwaUpdateChip");
+      if (chip) chip.hidden = true;
+      return;
+    }
+    if (activated !== APP_BUILD) {
+      promptUpdateAvailable(RELEASE_NOTES, true);
     }
   }
 
   async function checkRemoteBuild() {
     try {
-      const res = await fetch(`./app-build.json?t=${Date.now()}`, { cache: "no-store" });
+      const url = new URL(`./app-build.json`, location.href);
+      url.searchParams.set("t", String(Date.now()));
+      url.searchParams.set("b", APP_BUILD);
+      const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
       const remoteBuild = String(data.build || "");
       if (!remoteBuild) return;
-      const activated = localStorage.getItem(ACTIVATED_KEY) || "";
-      // Network says newer (or different) than what user last accepted
+      const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
       if (activated && activated !== remoteBuild) {
-        promptUpdateAvailable(data.notes);
+        promptUpdateAvailable(data.notes, true);
+        return;
       }
-      // Script already newer than last activated (HTML/JS query bumped)
       if (activated && activated !== APP_BUILD) {
-        promptUpdateAvailable(RELEASE_NOTES);
+        promptUpdateAvailable(RELEASE_NOTES, true);
       }
     } catch (_) {}
   }
+
+  // Boot ASAP: if local build marker already mismatches running script, force dialog
+  try {
+    const marked = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
+    if (marked && marked !== APP_BUILD) {
+      const kick = () => promptUpdateAvailable(RELEASE_NOTES, true);
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", kick);
+      else setTimeout(kick, 50);
+    }
+  } catch (_) {}
 
   function syncOnlineState() {
     if (!navigator.onLine) showStatus("offline");
@@ -484,13 +528,12 @@
         const offerUpdate = (worker) => {
           if (!worker) return;
           if (!navigator.serviceWorker.controller) {
-            // First SW install — mark activated, no dialog
             localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
             localStorage.setItem(BUILD_KEY, APP_BUILD);
             return;
           }
           pendingWorker = worker;
-          promptUpdateAvailable();
+          promptUpdateAvailable(RELEASE_NOTES, true);
         };
 
         const trackWorker = (worker) => {
@@ -515,6 +558,11 @@
         await navigator.serviceWorker.ready;
         noteBuildActivated();
         await checkRemoteBuild();
+        // Second pass — Pages CDN can lag a few seconds
+        setTimeout(() => {
+          updateOffered = false;
+          checkRemoteBuild();
+        }, 2500);
       })
       .catch(() => {
         checkRemoteBuild();

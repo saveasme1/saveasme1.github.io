@@ -112,6 +112,47 @@
     return host;
   }
 
+  const RECENT_KEY = "hx.pwa.recent";
+  const WISH_KEY = "hx.pwa.wish";
+
+  function loadIdList(key) {
+    try {
+      const list = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveIdList(key, list) {
+    try {
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 40)));
+    } catch (_) {}
+  }
+
+  function pushRecent(item) {
+    if (!item || !item.id) return;
+    const id = String(item.id);
+    const next = [{ id, cover: item.cover || item.image || "", title: item.title || "", category: item.category || "" }];
+    loadIdList(RECENT_KEY)
+      .filter((x) => x && x.id !== id)
+      .forEach((x) => next.push(x));
+    saveIdList(RECENT_KEY, next);
+  }
+
+  function isWished(id) {
+    return loadIdList(WISH_KEY).includes(String(id));
+  }
+
+  function toggleWish(id, btn) {
+    const sid = String(id);
+    let list = loadIdList(WISH_KEY).map(String);
+    if (list.includes(sid)) list = list.filter((x) => x !== sid);
+    else list.unshift(sid);
+    saveIdList(WISH_KEY, list);
+    if (btn) btn.classList.toggle("is-on", list.includes(sid));
+  }
+
   function protect(img) {
     if (window.GongbangProtectImage && img) window.GongbangProtectImage(img);
   }
@@ -122,6 +163,7 @@
     btn.className = compact ? "pwa-peek__card" : "pwa-card";
     const cat = item.category || "";
     const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
+    const id = item.id || "";
     if (compact) {
       btn.innerHTML =
         `<span class="pwa-peek__thumb"><img alt="" loading="lazy" decoding="async" src="${assetUrl(
@@ -131,13 +173,27 @@
       btn.innerHTML =
         `<span class="pwa-card__thumb">` +
         (cat ? `<span class="pwa-card__cat">${cat}</span>` : "") +
+        (id
+          ? `<span class="pwa-card__wish${isWished(id) ? " is-on" : ""}" data-wish="${id}" aria-label="위시">♥</span>`
+          : "") +
         `<img alt="" loading="lazy" decoding="async" src="${assetUrl(item.cover || item.image)}">` +
         `</span>` +
         `<span class="pwa-card__brand">${cat || "HERITAGE"}</span>` +
         `<span class="pwa-card__name">${title}</span>`;
+      const wish = btn.querySelector("[data-wish]");
+      if (wish) {
+        wish.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWish(id, wish);
+        });
+      }
     }
     protect(btn.querySelector("img"));
-    btn.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
+    btn.addEventListener("click", () => {
+      pushRecent(item);
+      goPortfolio(cat || "ALL", item.id);
+    });
     return btn;
   }
 
@@ -443,6 +499,40 @@
     ).join("");
     host.append(services);
 
+    // —— Today's drop countdown ——
+    const dropBar = document.createElement("section");
+    dropBar.className = "pwa-dropbar";
+    dropBar.innerHTML =
+      `<div class="pwa-dropbar__left">` +
+      `<p class="pwa-sec__eyebrow">TODAY DROP</p>` +
+      `<strong>아카이브 마감까지</strong>` +
+      `</div>` +
+      `<div class="pwa-dropbar__clock" id="pwaDropClock" aria-live="polite">` +
+      `<span data-h>--</span><i>:</i><span data-m>--</span><i>:</i><span data-s>--</span>` +
+      `</div>` +
+      `<button type="button" class="pwa-dropbar__go" data-go="portfolio">보기</button>`;
+    host.append(dropBar);
+
+    function tickDropClock() {
+      const now = new Date();
+      const end = new Date(now);
+      end.setHours(21, 0, 0, 0);
+      if (now >= end) end.setDate(end.getDate() + 1);
+      let sec = Math.max(0, Math.floor((end - now) / 1000));
+      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+      sec %= 3600;
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      const clock = dropBar.querySelector("#pwaDropClock");
+      if (!clock) return;
+      const spans = clock.querySelectorAll("span");
+      if (spans[0]) spans[0].textContent = h;
+      if (spans[1]) spans[1].textContent = m;
+      if (spans[2]) spans[2].textContent = s;
+    }
+    tickDropClock();
+    setInterval(tickDropClock, 1000);
+
     // —— Live pulse (KREAM/Musinsa activity feel) ——
     const pulse = document.createElement("div");
     pulse.className = "pwa-pulse";
@@ -733,6 +823,54 @@
     });
     look.append(lookRail);
     host.append(look);
+
+    // Recent viewed
+    const recentRaw = loadIdList(RECENT_KEY);
+    const recentItems = recentRaw
+      .map((r) => {
+        const id = String(r && r.id != null ? r.id : r || "");
+        const hit = items.find((x) => String(x.id) === id);
+        if (hit) return hit;
+        if (r && r.cover) return { id, cover: r.cover, title: r.title || "", category: r.category || "" };
+        return null;
+      })
+      .filter(Boolean)
+      .slice(0, 12);
+    if (recentItems.length) {
+      const recentSec = document.createElement("section");
+      recentSec.className = "pwa-sec";
+      recentSec.innerHTML =
+        `<div class="pwa-sec__head">` +
+        `<div><p class="pwa-sec__eyebrow">RECENT</p><h2>최근 본 작품</h2></div>` +
+        `<button type="button" data-go="portfolio">전체</button>` +
+        `</div>`;
+      const recentRail = document.createElement("div");
+      recentRail.className = "pwa-rail";
+      recentItems.forEach((item) => recentRail.append(cardButton(item, false)));
+      recentSec.append(recentRail);
+      host.append(recentSec);
+    }
+
+    // Wishlist
+    const wishIds = loadIdList(WISH_KEY).map(String);
+    const wishItems = wishIds
+      .map((id) => items.find((x) => String(x.id) === id))
+      .filter(Boolean)
+      .slice(0, 12);
+    if (wishItems.length) {
+      const wishSec = document.createElement("section");
+      wishSec.className = "pwa-sec";
+      wishSec.innerHTML =
+        `<div class="pwa-sec__head">` +
+        `<div><p class="pwa-sec__eyebrow">WISH</p><h2>위시리스트</h2></div>` +
+        `<button type="button" data-go="portfolio">전체</button>` +
+        `</div>`;
+      const wishRail = document.createElement("div");
+      wishRail.className = "pwa-rail";
+      wishItems.forEach((item) => wishRail.append(cardButton(item, false)));
+      wishSec.append(wishRail);
+      host.append(wishSec);
+    }
 
     // For you rail
     const secPf = document.createElement("section");

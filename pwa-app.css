@@ -1278,6 +1278,81 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
 }
 
+.pwa-card__wish {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(18, 16, 14, 0.45);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.pwa-card__wish.is-on {
+  color: #f0c27a;
+}
+
+/* Today drop countdown */
+.pwa-dropbar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 16px 18px;
+  padding: 14px 14px 14px 16px;
+  background: linear-gradient(120deg, rgba(240, 208, 154, 0.14), rgba(28, 26, 24, 0.92) 42%, #141210);
+  border: 1px solid rgba(240, 208, 154, 0.22);
+}
+
+.pwa-dropbar__left .pwa-sec__eyebrow {
+  margin: 0 0 2px;
+}
+
+.pwa-dropbar__left strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.pwa-dropbar__clock {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: "Pretendard", "SUIT", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.04em;
+  color: #f0d09a;
+}
+
+.pwa-dropbar__clock i {
+  font-style: normal;
+  opacity: 0.55;
+  padding: 0 1px;
+}
+
+.pwa-dropbar__go {
+  border: 0;
+  background: #f0d09a;
+  color: #161513;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
 .pwa-card__name {
   margin-top: 4px;
   font-size: 13px;
