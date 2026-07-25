@@ -1,0 +1,33 @@
+{
+  "productId": "validation-ring",
+  "type": "rigid_ring",
+  "model": "model.glb",
+  "unit": "mm",
+  "innerDiameterMm": 17,
+  "outerDiameterMm": 19,
+  "widthMm": 3,
+  "defaultScale": 1,
+  "rotationOffset": [
+    90,
+    0,
+    0
+  ],
+  "positionOffset": [
+    0,
+    0,
+    0
+  ],
+  "allowedScaleRange": [
+    0.96,
+    1.04
+  ],
+  "deformationPolicy": "none",
+  "materialPreset": "yellow-gold-polished",
+  "occlusionMode": "finger-ellipse",
+  "validationAsset": true,
+  "lod": {
+    "high": "model.glb",
+    "medium": "model.glb",
+    "low": "model.glb"
+  }
+}
