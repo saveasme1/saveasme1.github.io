@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa13";
-  const APP_VERSION = "v1.5.2";
+  const APP_BUILD = "20260725-pwa14";
+  const APP_VERSION = "v1.6.0";
   const RELEASE_NOTES = [
-    "브랜드 스토리 섹션 제거",
-    "무신사·29CM·KREAM·아몬즈 톤 홈 리뉴얼",
-    "상단 AI 검색바 · 금시세 티커 · 2열 드롭 그리드",
-    "카테고리 펼침·착용컷·출고·후기 유지",
+    "메인 AI 검색: 앨범·카메라·카테고리칩·결과 레일 동작",
+    "메인 금시세: LIVE/캐시, 1돈·1g·14K·18K, 스파크라인",
+    "금시세 상세 페이지도 동일 유닛·새로고침 강화",
+    "준비중 플레이스홀더 제거",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

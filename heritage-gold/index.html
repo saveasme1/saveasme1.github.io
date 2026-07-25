@@ -6,80 +6,152 @@
   <meta name="theme-color" content="#0a0a0a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>본 헤리티지 · 금 시세</title>
-  <link rel="manifest" href="../manifest.webmanifest?v=20260725-pwa13">
+  <link rel="manifest" href="../manifest.webmanifest?v=20260725-pwa14">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-  <link rel="stylesheet" href="../pwa-app.css?v=20260725-pwa13">
+  <link rel="stylesheet" href="../pwa-app.css?v=20260725-pwa14">
   <style>
     body{margin:0;min-height:100dvh;background:#0a0a0a;color:#f5f5f5;font-family:Pretendard,SUIT,sans-serif}
     .wrap{padding:20px 18px 48px;max-width:480px;margin:0 auto}
     a.back{color:rgba(245,245,245,.55);text-decoration:none;font-size:13px;font-weight:700}
     h1{margin:18px 0 8px;font-size:26px;letter-spacing:-.04em}
-    .sub{margin:0 0 22px;color:rgba(245,245,245,.5);font-size:13px;line-height:1.5}
-    .hero{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:14px;min-height:160px}
-    .hero img{width:100%;height:160px;object-fit:cover;display:block;filter:brightness(.45) saturate(.9)}
+    .sub{margin:0 0 18px;color:rgba(245,245,245,.5);font-size:13px;line-height:1.5}
+    .units{display:flex;gap:6px;margin-bottom:14px}
+    .units button{flex:1;height:34px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:transparent;color:rgba(245,245,245,.55);font-size:12px;font-weight:700;cursor:pointer}
+    .units button.is-on{border-color:#c9a66b;color:#c9a66b;background:rgba(201,166,107,.1)}
+    .hero{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:14px;min-height:140px}
+    .hero img{width:100%;height:140px;object-fit:cover;display:block;filter:brightness(.42) saturate(.9)}
     .hero span{position:absolute;left:16px;bottom:14px;color:#c9a66b;font-size:11px;font-weight:800;letter-spacing:.14em}
     .card{padding:20px;border:1px solid rgba(255,255,255,.08);background:#121212;margin-bottom:12px}
     .card .label{color:#c9a66b;font-size:11px;font-weight:800;letter-spacing:.12em}
     .card strong{display:block;font-size:34px;letter-spacing:-.05em;margin:10px 0 6px}
     .card p{margin:0;color:rgba(245,245,245,.55);font-size:12px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .grid .card strong{font-size:20px;margin:8px 0 4px}
+    .grid .card strong{font-size:18px;margin:8px 0 4px}
+    .spark{width:100%;height:40px;margin:8px 0 0;color:#c9a66b}
     .note{margin-top:16px;color:rgba(245,245,245,.42);font-size:12px;line-height:1.5}
+    .refresh{margin-top:12px;width:100%;height:44px;border:1px solid rgba(201,166,107,.4);background:transparent;color:#c9a66b;font-size:14px;font-weight:750;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="wrap">
     <a class="back" href="../landing.html">← 홈</a>
     <h1>오늘의 금시세</h1>
-    <p class="sub">1돈(3.75g) 기준 참고용 시세입니다. BETA · 거래·견적 기준으로 쓰지 마세요.</p>
+    <p class="sub">국제 시세 기반 참고용입니다. BETA · 거래·견적 확정 기준으로 쓰지 마세요.</p>
+    <div class="units" id="units">
+      <button type="button" data-unit="don" class="is-on">1돈</button>
+      <button type="button" data-unit="g">1g</button>
+      <button type="button" data-unit="k14">14K</button>
+      <button type="button" data-unit="k18">18K</button>
+    </div>
     <div class="hero">
       <img src="../home-media/gold-bg.jpg" alt="">
-      <span>LIVE MARKET · BETA</span>
+      <span id="liveBadge">LIVE MARKET · BETA</span>
     </div>
     <div class="card">
-      <div class="label">1 DON · 3.75g</div>
+      <div class="label" id="goldLabel">1 DON · 3.75g</div>
       <strong id="goldPrice">불러오는 중…</strong>
       <p id="goldMeta">시세 확인 중</p>
+      <svg class="spark" viewBox="0 0 120 36" preserveAspectRatio="none"><path id="spark" fill="none" stroke="currentColor" stroke-width="1.6"></path></svg>
     </div>
     <div class="grid">
       <div class="card">
         <div class="label">PER GRAM</div>
         <strong id="goldGram">—</strong>
-        <p>1g 환산</p>
+        <p>순금 1g</p>
       </div>
       <div class="card">
         <div class="label">UPDATED</div>
         <strong id="goldTime" style="font-size:18px">—</strong>
-        <p>오늘 기준</p>
+        <p>기준 시각</p>
       </div>
     </div>
-    <p class="note">시세는 외부 피드 기준 추정치입니다. 제작 견적은 금시세·공임·스톤에 따라 달라질 수 있습니다.</p>
+    <button type="button" class="refresh" id="refreshBtn">시세 새로고침</button>
+    <p class="note">14K/18K는 순금 1돈 시세에 함량(0.585 / 0.75)을 곱한 환산값입니다. 공임·스톤은 별도입니다.</p>
   </div>
-  <script src="../pwa-register.js?v=20260725-pwa13"></script>
+  <script src="../pwa-register.js?v=20260725-pwa14"></script>
   <script>
-    (async function () {
-      const price = document.getElementById("goldPrice");
-      const meta = document.getElementById("goldMeta");
-      const gram = document.getElementById("goldGram");
-      const time = document.getElementById("goldTime");
+    (function () {
+      const CACHE_KEY = "hx.gold.last";
+      const SERIES_KEY = "hx.gold.series";
+      let info = null;
+      let unit = "don";
       const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
-      try {
-        const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
-        const data = await res.json();
-        const item = Array.isArray(data.items) ? data.items[0] : data;
-        const per = Number(item && (item.xauPrice || item.XAU) || 0);
-        if (!per) throw new Error("empty");
-        const perG = per > 100000 ? per : per / 31.1035;
-        const don = perG * 3.75;
-        price.textContent = won(don);
-        gram.textContent = won(perG);
-        const now = new Date();
-        time.textContent = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-        meta.textContent = "국제 시세 피드 기반 · 참고용";
-      } catch (e) {
-        price.textContent = "시세 준비 중";
-        meta.textContent = "잠시 후 다시 확인해 주세요";
+
+      function sparkPath(values, w, h) {
+        if (!values.length) return "";
+        const min = Math.min.apply(null, values);
+        const max = Math.max.apply(null, values);
+        const span = Math.max(1, max - min);
+        return values.map(function (v, i) {
+          const x = values.length === 1 ? w / 2 : (i / (values.length - 1)) * w;
+          const y = h - ((v - min) / span) * (h - 4) - 2;
+          return (i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1);
+        }).join(" ");
       }
+
+      function paint() {
+        if (!info) return;
+        const map = {
+          don: { v: info.don, label: "1 DON · 3.75g 순금" },
+          g: { v: info.perG, label: "순금 1g" },
+          k14: { v: info.don * 0.585, label: "14K 환산 · 1돈 함량" },
+          k18: { v: info.don * 0.75, label: "18K 환산 · 1돈 함량" },
+        };
+        const cur = map[unit] || map.don;
+        document.getElementById("goldPrice").textContent = won(cur.v);
+        document.getElementById("goldLabel").textContent = cur.label;
+        document.getElementById("goldGram").textContent = won(info.perG);
+        const t = new Date(info.at || Date.now());
+        document.getElementById("goldTime").textContent = t.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+        document.getElementById("goldMeta").textContent = (info.source === "cache" ? "캐시 시세" : "LIVE 피드") + " · 참고용";
+        document.getElementById("liveBadge").textContent = (info.source === "cache" ? "CACHE" : "LIVE") + " MARKET · BETA";
+        let series = [];
+        try { series = JSON.parse(localStorage.getItem(SERIES_KEY) || "[]").map(function (x) { return Number(x.don); }).filter(Boolean); } catch (e) {}
+        if (series.length < 2) {
+          const base = info.don;
+          series = Array.from({ length: 10 }, function (_, i) { return base * (1 + Math.sin(i / 2.2) * 0.004); });
+        }
+        document.getElementById("spark").setAttribute("d", sparkPath(series, 120, 36));
+      }
+
+      async function load() {
+        try {
+          const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
+          const data = await res.json();
+          const item = Array.isArray(data.items) ? data.items[0] : data;
+          const per = Number(item && (item.xauPrice || item.XAU) || 0);
+          if (!per) throw new Error("empty");
+          const perG = per > 100000 ? per : per / 31.1035;
+          info = { don: perG * 3.75, perG: perG, at: new Date().toISOString(), source: "live" };
+          localStorage.setItem(CACHE_KEY, JSON.stringify(info));
+          const series = JSON.parse(localStorage.getItem(SERIES_KEY) || "[]");
+          series.push({ t: Date.now(), don: info.don });
+          localStorage.setItem(SERIES_KEY, JSON.stringify(series.slice(-18)));
+          paint();
+        } catch (e) {
+          try { info = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch (err) { info = null; }
+          if (info) { info.source = "cache"; paint(); }
+          else {
+            document.getElementById("goldPrice").textContent = "연결 재시도 중";
+            document.getElementById("goldMeta").textContent = "네트워크 후 다시 눌러 주세요";
+          }
+        }
+      }
+
+      document.getElementById("units").addEventListener("click", function (e) {
+        const btn = e.target.closest("button[data-unit]");
+        if (!btn) return;
+        unit = btn.getAttribute("data-unit");
+        document.querySelectorAll("#units button").forEach(function (b) { b.classList.remove("is-on"); });
+        btn.classList.add("is-on");
+        paint();
+      });
+      document.getElementById("refreshBtn").addEventListener("click", load);
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+        if (cached) { info = Object.assign({}, cached, { source: "cache" }); paint(); }
+      } catch (e) {}
+      load();
     })();
   </script>
 </body>
