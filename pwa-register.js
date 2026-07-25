@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260726-pwa17";
-  const APP_VERSION = "v1.7.0";
+  const APP_BUILD = "20260726-pwa18";
+  const APP_VERSION = "v1.7.1";
   const RELEASE_NOTES = [
-    "업데이트 안내 강제 표시(캐시·스누즈 이슈 수정)",
-    "최근 본 작품 · 위시리스트 · 오늘의 드롭 타이머",
-    "금시세·AI UI 정리 + 실시간피드·스토리·HOT순위",
+    "포트폴리오: 오버레이 대신 페이지 전환(무신사·KREAM형)",
+    "포폴 목록 로딩 멈춤 수정(조회수 API 블로킹 제거)",
+    "업데이트 안내·최근본·위시·드롭 타이머",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

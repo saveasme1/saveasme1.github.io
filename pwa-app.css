@@ -1731,6 +1731,42 @@ html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home.is-active .gb-bott
 }
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home { color:rgba(22,21,19,.4) !important; }
 html.is-pwa img[data-pwa-fallback="1"] { object-fit:cover; background:#1a1a1a; }
+
+/* Portfolio page — commerce catalog (same-tab, no overlay sheet) */
+html.is-pwa body.pf-body {
+  background: #f7f5f2;
+  color: #161513;
+}
+html.is-pwa body.pf-body .pf-glow {
+  display: none;
+}
+html.is-pwa body.pf-body .pf-shell {
+  padding-top: 8px;
+  padding-bottom: calc(var(--pwa-tab-h) + var(--pwa-tab-safe) + 20px);
+}
+html.is-pwa body.pf-body .pf-hero {
+  padding: 12px 16px 6px;
+  text-align: left;
+}
+html.is-pwa body.pf-body .pf-brand {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: #9a8160;
+}
+html.is-pwa body.pf-body .pf-title {
+  margin: 4px 0 0;
+  font-size: clamp(26px, 7vw, 34px);
+  letter-spacing: -0.04em;
+}
+html.is-pwa body.pf-body .pf-lead {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #7a7670;
+  max-width: 34em;
+}
+html.is-pwa body.pf-body .pf-deck {
+  margin-top: 8px;
+}
 @keyframes pwaRise {
   from { opacity:0; transform:translateY(8px); }
   to { opacity:1; transform:none; }

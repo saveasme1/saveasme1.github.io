@@ -83,6 +83,7 @@
 
   function goPortfolio(cat, id) {
     const parts = [];
+    if (/[?&]app=1(?:&|$)/.test(location.search)) parts.push("app=1");
     if (cat && cat !== "ALL") parts.push(`cat=${encodeURIComponent(cat)}`);
     if (id) parts.push(`id=${encodeURIComponent(id)}`);
     const q = parts.length ? `?${parts.join("&")}` : "";

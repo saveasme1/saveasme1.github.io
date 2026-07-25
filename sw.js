@@ -1,5 +1,5 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260726-pwa17";
+const CACHE_VERSION = "hx-pwa-v20260726-pwa18";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -277,6 +277,24 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(req, { cache: "no-store" })
         .then((res) => res)
+        .catch(() => matchIgnoringSearch(req))
+    );
+    return;
+  }
+
+  // Portfolio catalog — prefer fresh JSON, fall back to cache offline
+  if (/\/portfolio-data\.json$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_VERSION).then((c) => {
+              c.put(url.origin + url.pathname, copy);
+            });
+          }
+          return res;
+        })
         .catch(() => matchIgnoringSearch(req))
     );
     return;

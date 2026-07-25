@@ -195,7 +195,7 @@
   }
 
   function filteredItems() {
-    const query = (els.search.value || "").trim().toLowerCase();
+    const query = ((els.search && els.search.value) || "").trim().toLowerCase();
     return state.items.filter((item) => {
       if (state.category !== "ALL" && item.category !== state.category) return false;
       if (!query) return true;
@@ -259,6 +259,7 @@
   }
 
   function renderCats() {
+    if (!els.cats) return;
     els.cats.replaceChildren();
     ["ALL", ...state.categories].forEach((cat) => {
       const button = document.createElement("button");
@@ -292,6 +293,7 @@
   }
 
   function renderPager(total) {
+    if (!els.pager) return;
     els.pager.replaceChildren();
     const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     state.page = Math.min(state.page, pages);
@@ -318,16 +320,19 @@
   }
 
   function renderList() {
+    if (!els.grid) return;
     const filtered = filteredItems();
     const pageItems = filtered.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
-    const query = (els.search.value || "").trim();
+    const query = ((els.search && els.search.value) || "").trim();
     const label = query || state.category !== "ALL"
       ? `${filtered.length.toLocaleString("ko-KR")} works`
       : `${state.items.length.toLocaleString("ko-KR")} works`;
     if (els.count) els.count.textContent = label;
-    els.status.textContent = query || state.category !== "ALL"
-      ? `필터 결과 ${filtered.length.toLocaleString("ko-KR")}개 · ${state.page}페이지`
-      : `전체 ${state.items.length.toLocaleString("ko-KR")}개 · 사진을 눌러 추가 컷을 확인하세요`;
+    if (els.status) {
+      els.status.textContent = query || state.category !== "ALL"
+        ? `필터 결과 ${filtered.length.toLocaleString("ko-KR")}개 · ${state.page}페이지`
+        : `전체 ${state.items.length.toLocaleString("ko-KR")}개 · 사진을 눌러 추가 컷을 확인하세요`;
+    }
     renderPager(filtered.length);
     els.grid.replaceChildren();
 
@@ -614,9 +619,14 @@
   async function loadViews(items) {
     if (!window.GongbangBoardMeta?.fetchViews || !items.length) return;
     const ids = items.map((item) => item.id);
-    for (let i = 0; i < ids.length; i += 200) {
+    // Only hydrate first pages — never block the grid on full catalog views
+    const limit = Math.min(ids.length, PAGE_SIZE * 3);
+    for (let i = 0; i < limit; i += 200) {
       const chunk = ids.slice(i, i + 200);
-      const views = await window.GongbangBoardMeta.fetchViews(BOARD, chunk);
+      const views = await Promise.race([
+        window.GongbangBoardMeta.fetchViews(BOARD, chunk),
+        new Promise((resolve) => setTimeout(() => resolve({}), 2500)),
+      ]);
       chunk.forEach((id) => {
         const item = items.find((row) => String(row.id) === String(id));
         if (item) item.viewCount = Number(views[String(id)]) || 0;
@@ -625,7 +635,7 @@
   }
 
   async function loadData() {
-    els.status.textContent = "불러오는 중…";
+    if (els.status) els.status.textContent = "불러오는 중…";
     try {
       const response = await fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("포트폴리오 데이터를 불러오지 못했습니다.");
@@ -636,7 +646,6 @@
       state.items = (payload.items || [])
         .slice()
         .sort((a, b) => Date.parse(publishedAt(b) || 0) - Date.parse(publishedAt(a) || 0));
-      await loadViews(state.items);
       state.loaded = true;
       try {
         const params = new URLSearchParams(location.search);
@@ -646,15 +655,23 @@
         }
         sessionStorage.removeItem("hx.portfolio.cat");
       } catch (_) {}
+      // Paint list first — views API must never stall the catalog
       renderCats();
       renderList();
+      loadViews(state.items)
+        .then(() => {
+          if (state.opened || !els.panel) renderList();
+        })
+        .catch(() => {});
     } catch (error) {
-      els.status.textContent = error.message || "불러오기 실패";
-      els.grid.replaceChildren();
-      const empty = document.createElement("p");
-      empty.className = "pf-empty";
-      empty.textContent = "포트폴리오를 불러오지 못했습니다.";
-      els.grid.append(empty);
+      if (els.status) els.status.textContent = error.message || "불러오기 실패";
+      if (els.grid) {
+        els.grid.replaceChildren();
+        const empty = document.createElement("p");
+        empty.className = "pf-empty";
+        empty.textContent = "포트폴리오를 불러오지 못했습니다.";
+        els.grid.append(empty);
+      }
     }
   }
 
@@ -740,6 +757,24 @@
   }
   async function openFromQuery() {
     const params = new URLSearchParams(location.search);
+    // App shell: portfolio is its own page, not an overlay panel
+    const isApp =
+      document.documentElement.classList.contains("is-pwa") ||
+      /[?&]app=1(?:&|$)/.test(location.search) ||
+      (window.matchMedia &&
+        (window.matchMedia("(display-mode: standalone)").matches ||
+          window.matchMedia("(display-mode: fullscreen)").matches ||
+          window.matchMedia("(display-mode: minimal-ui)").matches)) ||
+      window.navigator.standalone === true;
+    if (isApp && els.panel && params.get("open") === "portfolio") {
+      const q = new URLSearchParams();
+      if (params.get("app") === "1") q.set("app", "1");
+      if (params.get("id")) q.set("id", params.get("id"));
+      if (params.get("cat")) q.set("cat", params.get("cat"));
+      const qs = q.toString();
+      location.replace(`./portfolio.html${qs ? `?${qs}` : ""}`);
+      return;
+    }
     if (params.get("open") !== "portfolio" || !els.panel) return;
     openPortfolioPanel();
     const itemId = params.get("id");
@@ -755,4 +790,17 @@
     if (item) await openDetail(item);
   }
   openFromQuery();
+
+  // Deep-link detail on portfolio.html?id=
+  (async () => {
+    if (els.panel) return;
+    const itemId = new URLSearchParams(location.search).get("id");
+    if (!itemId) return;
+    const started = Date.now();
+    while (!state.loaded && Date.now() - started < 15000) {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    const item = state.items.find((row) => String(row.id) === String(itemId));
+    if (item) await openDetail(item);
+  })();
 })();

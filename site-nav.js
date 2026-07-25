@@ -141,6 +141,20 @@
     if (open === "portfolio" || open === "reviews" || open === "shipping") return open;
     return "home";
   }
+  function keepAppParam(url) {
+    try {
+      const next = new URL(url, location.href);
+      if (/[?&]app=1(?:&|$)/.test(location.search) || document.documentElement.classList.contains("is-pwa")) {
+        if (!next.searchParams.has("app") && /[?&]app=1(?:&|$)/.test(location.search)) {
+          next.searchParams.set("app", "1");
+        }
+      }
+      return next.pathname + next.search + next.hash;
+    } catch (_) {
+      return url;
+    }
+  }
+
   function goHome() {
     if (isLandingPage()) {
       if (typeof window.closeGongbangPortfolioPanel === "function") {
@@ -159,7 +173,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    location.href = HOME;
+    location.href = keepAppParam(HOME);
   }
   function openMyPage() {
     setActiveNav("mypage");
@@ -204,6 +218,29 @@
       openMyPage();
       return;
     }
+
+    // PWA / app shell: page switch like Musinsa·KREAM (no overlay "new window")
+    if (isPwaMode() || document.documentElement.classList.contains("is-pwa")) {
+      if (name === "portfolio") {
+        if (isPortfolioPage()) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+        location.href = keepAppParam("/portfolio.html");
+        return;
+      }
+      if (name === "reviews") {
+        location.href = keepAppParam(`${HOME}?open=reviews`);
+        return;
+      }
+      if (name === "shipping") {
+        location.href = keepAppParam(`${HOME}?open=shipping`);
+        return;
+      }
+      location.href = keepAppParam(HOME);
+      return;
+    }
+
     if (isLandingPage()) {
       if (name === "portfolio" && typeof window.openGongbangPortfolioPanel === "function") {
         window.openGongbangPortfolioPanel();
