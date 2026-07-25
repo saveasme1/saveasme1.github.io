@@ -8,8 +8,10 @@ import {
   GuideStateEngine,
   TrackingSmoother,
   JewelryARRenderer,
-  resolveArProductId,
   composeHighResTryOn,
+  PerfHarness,
+  HAIR_OCCLUSION_DECISION,
+  probeHairSegmenterCost,
 } from "./services/ar/index.js";
 
 const params = new URLSearchParams(location.search);
@@ -49,9 +51,12 @@ const state = {
   arRenderer: null,
   arReady: false,
   arHasGlb: false,
+  assetState: null,
+  _arLoadKey: null,
   lastLandmarks: null,
   lastSecondaryAnchor: null,
   captureExtras: null,
+  perfHarness: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -659,6 +664,44 @@ function ensureArGuide() {
   }
   if (!state.guideState) state.guideState = new GuideStateEngine();
   if (!state.smoother) state.smoother = new TrackingSmoother();
+  if (!state.perfHarness) state.perfHarness = new PerfHarness(45000);
+  if (AR_DEBUG) ensureDebugPanel();
+}
+
+function ensureDebugPanel() {
+  if ($("arDebugPanel")) return;
+  const panel = document.createElement("div");
+  panel.id = "arDebugPanel";
+  panel.className = "ar-debug-panel";
+  panel.innerHTML = `
+    <button type="button" id="exportDebugReport" class="ar-debug-btn">디버그 리포트 내보내기</button>
+    <label class="ar-debug-check"><input type="checkbox" id="dbgShowOcc" /> occluder</label>
+    <label class="ar-debug-check"><input type="checkbox" id="dbgNoOcc" /> disable occlusion</label>
+    <label class="ar-debug-check"><input type="checkbox" id="dbgJewelryOnly" /> jewelry only</label>
+  `;
+  document.body.appendChild(panel);
+  $("exportDebugReport")?.addEventListener("click", () => {
+    state.perfHarness?.download(`heritage-ar-debug-${Date.now()}.json`, {
+      hairDecision: HAIR_OCCLUSION_DECISION,
+      assetState: state.assetState,
+      itemId: state.item.id,
+      wearType: state.wearType,
+      saveConsistency: state.arRenderer?.getDebugStats?.()?.saveConsistency,
+    });
+  });
+  const syncFlags = () => {
+    state.arRenderer?.setDebugFlags({
+      showOccluder: Boolean($("dbgShowOcc")?.checked),
+      disableOcclusion: Boolean($("dbgNoOcc")?.checked),
+      jewelryOnly: Boolean($("dbgJewelryOnly")?.checked),
+    });
+  };
+  $("dbgShowOcc")?.addEventListener("change", syncFlags);
+  $("dbgNoOcc")?.addEventListener("change", syncFlags);
+  $("dbgJewelryOnly")?.addEventListener("change", syncFlags);
+  if (params.get("probeHair") === "1") {
+    probeHairSegmenterCost().then((r) => console.info("[hair-probe]", r));
+  }
 }
 
 async function ensureArRenderer(type) {
@@ -671,9 +714,20 @@ async function ensureArRenderer(type) {
     state.arReady = await state.arRenderer.init();
   }
   if (!state.arReady) return null;
-  const productId = resolveArProductId(state.item.id, type);
-  if (state.arRenderer.productId !== productId || state.arRenderer.mode !== type) {
-    state.arHasGlb = await state.arRenderer.loadProduct(productId, type);
+
+  const allowValidation = AR_DEBUG && params.get("arValidation") === "1";
+  const allowRepresentative = AR_DEBUG && params.get("repAssets") === "1";
+  const forceValidation = allowValidation && params.get("forceValidation") === "1";
+  const key = `${state.item.id}|${type}|${allowValidation}|${allowRepresentative}|${forceValidation}`;
+  if (state._arLoadKey !== key) {
+    const result = await state.arRenderer.loadProductForSku(state.item.id, type, {
+      allowValidation,
+      allowRepresentative,
+      forceValidation,
+    });
+    state.arHasGlb = Boolean(result.ok);
+    state.assetState = result.state;
+    state._arLoadKey = key;
     if (type === "earring" && state.arHasGlb) {
       await state.arRenderer.ensurePairClone();
     }
@@ -730,12 +784,42 @@ async function alignTick() {
       // Production Three.js loop — every frame when GLB available
       const renderer = await ensureArRenderer(type);
       if (renderer?.hasGlb && anchor && (result.score || 0) >= 0.45) {
+        const tRender0 = performance.now();
         renderer.applyLighting(video);
         renderer.updateFromAnchor(type, anchor, { secondaryAnchor: secondary });
         renderer.render();
-        if (AR_DEBUG) state.guideOverlay.setDebugHud(renderer.getDebugStats());
+        const stats = renderer.getDebugStats();
+        if (AR_DEBUG) {
+          state.guideOverlay.setDebugHud(stats);
+          state.perfHarness?.noteFrame({
+            fps: stats.fps,
+            frameMs: performance.now() - tRender0 + (result._inferMs || 0),
+            renderMs: stats.renderMs,
+            handMs: result._handMs,
+            faceMs: result._faceMs,
+            poseMs: result._poseMs,
+            anchorMs: result._anchorMs,
+            projectionErrorPx: stats.projectionError?.pxError,
+            tier: stats.tier,
+            assetState: stats.assetState,
+            mode: type,
+            cameraW: video.videoWidth,
+            cameraH: video.videoHeight,
+            trackingLoss: !result.ok && (result.score || 0) < 0.3,
+          });
+        }
       } else if (renderer) {
         renderer.clearFrame();
+        if (AR_DEBUG) {
+          state.perfHarness?.noteFrame({
+            fps: 0,
+            assetState: state.assetState,
+            mode: type,
+            trackingLoss: true,
+            cameraW: video.videoWidth,
+            cameraH: video.videoHeight,
+          });
+        }
       }
 
       const lockMin = type === "bracelet" || type === "ring" || type === "necklace" || type === "earring" ? 0.65 : 0.86;
@@ -1069,15 +1153,21 @@ async function runMergeTryOn() {
 
     setMergeProgress(82);
 
-    // Ensure AR renderer has GLB for high-res save (may still be loaded from live session)
-    const productId = resolveArProductId(state.item.id, useType);
+    // Ensure AR renderer for high-res save — AssetResolver, no silent validation
+    const allowValidation = AR_DEBUG && params.get("arValidation") === "1";
+    const allowRepresentative = AR_DEBUG && params.get("repAssets") === "1";
     if (!state.arRenderer) {
       const mount = $("cameraGuide") || document.body;
       state.arRenderer = new JewelryARRenderer(mount, { debug: AR_DEBUG });
       state.arReady = await state.arRenderer.init();
     }
-    if (state.arReady && (!state.arRenderer.hasGlb || state.arRenderer.productId !== productId)) {
-      state.arHasGlb = await state.arRenderer.loadProduct(productId, useType);
+    if (state.arReady) {
+      const result = await state.arRenderer.loadProductForSku(state.item.id, useType, {
+        allowValidation,
+        allowRepresentative,
+      });
+      state.arHasGlb = Boolean(result.ok);
+      state.assetState = result.state;
     }
 
     const bodyCanvas =
