@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>본 헤리티지 · 금 시세</title>
+  <link rel="manifest" href="../manifest.webmanifest?v=20260725-pwa9">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../pwa-app.css?v=20260725-pwa9">
+  <style>
+    body{margin:0;min-height:100dvh;background:#0a0a0a;color:#f5f5f5;font-family:Pretendard,SUIT,sans-serif}
+    .wrap{padding:20px 18px 40px;max-width:480px;margin:0 auto}
+    a.back{color:rgba(245,245,245,.55);text-decoration:none;font-size:13px;font-weight:700}
+    h1{margin:18px 0 8px;font-size:26px;letter-spacing:-.04em}
+    .sub{margin:0 0 22px;color:rgba(245,245,245,.5);font-size:13px;line-height:1.5}
+    .card{padding:20px;border:1px solid rgba(255,255,255,.08);background:#121212}
+    .card strong{display:block;font-size:34px;letter-spacing:-.05em;margin:10px 0}
+    .card p{margin:0;color:rgba(245,245,245,.55);font-size:12px}
+    .note{margin-top:16px;color:rgba(245,245,245,.42);font-size:12px;line-height:1.5}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="../landing.html">← 홈</a>
+    <h1>금 시세</h1>
+    <p class="sub">1돈(3.75g) 기준 참고용 시세입니다. BETA · 거래 기준으로 쓰지 마세요.</p>
+    <div class="card">
+      <span style="color:#c9a66b;font-size:11px;font-weight:800;letter-spacing:.12em">1 DON</span>
+      <strong id="goldPrice">불러오는 중…</strong>
+      <p id="goldMeta">시세 확인 중</p>
+    </div>
+    <p class="note">시세는 외부 피드 기준 추정치입니다. 자세한 비교·상품 시세는 추후 고도화됩니다.</p>
+  </div>
+  <script src="../pwa-register.js?v=20260725-pwa9"></script>
+  <script>
+    (async function () {
+      const price = document.getElementById("goldPrice");
+      const meta = document.getElementById("goldMeta");
+      try {
+        const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
+        const data = await res.json();
+        const item = Array.isArray(data.items) ? data.items[0] : data;
+        const per = Number(item && (item.xauPrice || item.XAU) || 0);
+        if (!per) throw new Error("empty");
+        const don = per > 100000 ? per * 3.75 : (per / 31.1035) * 3.75;
+        price.textContent = Math.round(don).toLocaleString("ko-KR") + "원";
+        meta.textContent = "오늘 기준 · 참고용";
+      } catch (e) {
+        price.textContent = "시세 준비 중";
+        meta.textContent = "잠시 후 다시 확인해 주세요";
+      }
+    })();
+  </script>
+</body>
+</html>

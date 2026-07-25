@@ -638,6 +638,14 @@
         .sort((a, b) => Date.parse(publishedAt(b) || 0) - Date.parse(publishedAt(a) || 0));
       await loadViews(state.items);
       state.loaded = true;
+      try {
+        const params = new URLSearchParams(location.search);
+        const cat = params.get("cat") || sessionStorage.getItem("hx.portfolio.cat") || "";
+        if (cat === "ALL" || (cat && state.categories.includes(cat))) {
+          state.category = cat;
+        }
+        sessionStorage.removeItem("hx.portfolio.cat");
+      } catch (_) {}
       renderCats();
       renderList();
     } catch (error) {

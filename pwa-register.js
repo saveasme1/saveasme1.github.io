@@ -1,7 +1,14 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa8";
+  const APP_BUILD = "20260725-pwa9";
+  const APP_VERSION = "v1.3.0";
+  const RELEASE_NOTES = [
+    "앱 홈 레이아웃 개선 (Portfolio · 금시세 · AI검색)",
+    "카테고리 표기를 C·B 등 기존 코드로 통일",
+    "메인 메뉴 6종 노출 및 페이지 이동 개선",
+    "하단 탭 활성/비활성 가독성 수정",
+  ];
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";
   const BANNER_ID = "pwaStatusBanner";
@@ -274,7 +281,7 @@
     if (el) el.hidden = true;
   }
 
-  function showDialog({ eyebrow, title, body, primaryLabel, secondaryLabel, onPrimary, onSecondary }) {
+  function showDialog({ eyebrow, title, body, notes, primaryLabel, secondaryLabel, onPrimary, onSecondary }) {
     ensureBannerStyles();
     let wrap = document.getElementById(DIALOG_ID);
     if (!wrap) {
@@ -287,15 +294,38 @@
         '<p class="pwa-dlg__eyebrow"></p>' +
         '<h2 class="pwa-dlg__title"></h2>' +
         '<p class="pwa-dlg__body"></p>' +
+        '<ul class="pwa-dlg__notes" hidden></ul>' +
         '<div class="pwa-dlg__actions">' +
         '<button type="button" class="pwa-dlg__secondary"></button>' +
         '<button type="button" class="pwa-dlg__primary is-primary"></button>' +
         "</div></div>";
       document.documentElement.appendChild(wrap);
+      if (!document.getElementById("pwaDlgNotesStyle")) {
+        const st = document.createElement("style");
+        st.id = "pwaDlgNotesStyle";
+        st.textContent =
+          ".pwa-dlg__notes{margin:12px 0 0;padding:0 0 0 18px;color:rgba(246,243,238,.72);font-size:12px;line-height:1.55}" +
+          ".pwa-dlg__notes li{margin:0 0 4px}";
+        document.head.appendChild(st);
+      }
     }
     wrap.querySelector(".pwa-dlg__eyebrow").textContent = eyebrow || "본 헤리티지 앱";
     wrap.querySelector(".pwa-dlg__title").textContent = title || "";
     wrap.querySelector(".pwa-dlg__body").textContent = body || "";
+    const notesEl = wrap.querySelector(".pwa-dlg__notes");
+    if (notesEl) {
+      notesEl.replaceChildren();
+      if (Array.isArray(notes) && notes.length) {
+        notes.forEach((line) => {
+          const li = document.createElement("li");
+          li.textContent = line;
+          notesEl.append(li);
+        });
+        notesEl.hidden = false;
+      } else {
+        notesEl.hidden = true;
+      }
+    }
     const secondary = wrap.querySelector(".pwa-dlg__secondary");
     const primary = wrap.querySelector(".pwa-dlg__primary");
     secondary.textContent = secondaryLabel || "닫기";
@@ -326,15 +356,13 @@
 
   function promptUpdateAvailable() {
     showDialog({
-      eyebrow: "UPDATE",
+      eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
-      body: "업데이트를 적용할까요? 「나중에」를 누르면 지금 화면은 그대로 유지됩니다.",
+      body: "아래 변경 사항을 적용할까요? 「나중에」를 누르면 지금 화면은 그대로입니다.",
+      notes: RELEASE_NOTES,
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
-      onSecondary: () => {
-        // Keep waiting worker — do NOT skipWaiting, do NOT reload
-      },
     });
   }
 
@@ -344,9 +372,10 @@
     if (now - last < 1000 * 60 * 60 * 12) return;
     localStorage.setItem(FRESH_KEY, String(now));
     showDialog({
-      eyebrow: "UP TO DATE",
+      eyebrow: `UP TO DATE ${APP_VERSION}`,
       title: "최신 버전입니다",
       body: "현재 앱이 최신 상태입니다. 화면만 다시 불러올까요?",
+      notes: RELEASE_NOTES,
       secondaryLabel: "닫기",
       primaryLabel: "새로고침",
       onPrimary: () => {
