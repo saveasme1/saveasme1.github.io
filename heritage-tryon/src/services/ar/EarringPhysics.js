@@ -38,7 +38,9 @@ export class EarringPhysics {
    */
   update(anchor, meta = {}, now = performance.now()) {
     const type = meta.type || "drop";
-    if (!meta.swingEnabled && !SWING_TYPES.has(type)) {
+    const typeAllowsSwing = SWING_TYPES.has(type);
+    const enabled = meta.swingEnabled != null ? Boolean(meta.swingEnabled) : typeAllowsSwing;
+    if (!enabled) {
       this.angleX = 0;
       this.angleZ = 0;
       this.velX = 0;
