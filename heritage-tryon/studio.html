@@ -1,29 +1,41 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>?ㅻ━?곗? 쨌 李⑹슜?대낫湲?/title>
+  <title>헤리티지 · 착용해보기</title>
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260726-tryon44" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260726-tryon44b" />
+  <script type="importmap">
+  {
+    "imports": {
+      "./src/services/ar/index.js": "./src/services/ar/index.js?v=20260726-tryon44b",
+      "./src/services/ar/JewelryARRenderer.js": "./src/services/ar/JewelryARRenderer.js?v=20260726-tryon44b",
+      "./src/services/ar/EarringFitter3D.js": "./src/services/ar/EarringFitter3D.js?v=20260726-tryon44b",
+      "./src/services/ar/EarringPhysics.js": "./src/services/ar/EarringPhysics.js?v=20260726-tryon44b",
+      "./src/services/ar/AssetResolver.js": "./src/services/ar/AssetResolver.js?v=20260726-tryon44b",
+      "./src/services/ar/HighResCompose.js": "./src/services/ar/HighResCompose.js?v=20260726-tryon44b"
+    }
+  }
+  </script>
 </head>
 <body class="studio-body">
   <div class="studio-shell">
     <header class="studio-header">
-      <button type="button" id="closeStudio" class="icon-btn">?リ린</button>
+      <button type="button" id="closeStudio" class="icon-btn" aria-label="닫기">닫기</button>
       <div class="header-copy">
-        <p class="eyebrow">李⑹슜?대낫湲?/p>
-        <h1 id="productTitle">?쒗뭹</h1>
+        <p class="eyebrow">착용해보기</p>
+        <h1 id="productTitle">제품</h1>
       </div>
       <span id="productCat" class="chip is-hidden"></span>
     </header>
 
     <main id="studioStage" class="studio-stage mode-split">
       <section id="panelProduct" class="panel panel-product">
-        <div class="panel-head"><h2>?좏깮 ?쒗뭹</h2></div>
+        <div class="panel-head"><h2>선택 제품</h2></div>
         <div class="panel-frame">
           <img id="productImage" class="is-hidden" alt="" decoding="async" />
           <div id="productSkeleton" class="skeleton" aria-hidden="true"></div>
@@ -32,43 +44,43 @@
 
       <section id="panelCapture" class="panel panel-capture">
         <div class="panel-head">
-          <h2>???ъ쭊</h2>
-          <span id="wearTypeChip" class="wear-chip">?먮룞</span>
+          <h2>내 사진</h2>
+          <span id="wearTypeChip" class="wear-chip">자동</span>
         </div>
         <div class="panel-frame capture-frame" id="captureFrame">
           <img id="bodyPreview" class="is-hidden" alt="" />
           <div id="captureEmpty" class="empty-state">
-            <strong>?ъ쭊 以鍮?/strong>
-            <span>珥ъ쁺???꾨Ⅴ硫??쒗뭹??留욌뒗 媛?대뱶 移대찓?쇨? ?대┰?덈떎.</span>
+            <strong>사진 준비</strong>
+            <span>촬영을 누르면 제품에 맞는 가이드 카메라가 열립니다.</span>
           </div>
         </div>
         <div class="capture-toolbar">
-          <button type="button" id="openCamera" class="btn btn-accent">珥ъ쁺</button>
-          <label class="btn btn-ghost file-btn">?낅줈??
+          <button type="button" id="openCamera" class="btn btn-accent">촬영</button>
+          <label class="btn btn-ghost file-btn">업로드
             <input id="fileInput" type="file" accept="image/*" hidden />
           </label>
         </div>
       </section>
 
       <section id="panelResult" class="panel panel-result is-hidden">
-        <div class="panel-head"><h2>李⑹슜 誘몃━蹂닿린</h2></div>
+        <div class="panel-head"><h2>착용 미리보기</h2></div>
         <div class="panel-frame result-frame"><canvas id="resultCanvas"></canvas></div>
         <div class="result-toolbar">
-          <button type="button" id="downloadBtn" class="btn btn-accent">???/button>
-          <button type="button" id="resetBtn" class="btn">珥덇린??/button>
+          <button type="button" id="downloadBtn" class="btn btn-accent">저장</button>
+          <button type="button" id="resetBtn" class="btn">초기화</button>
         </div>
       </section>
     </main>
 
     <footer class="studio-footer">
-      <p id="status" class="status" role="status">?쒗뭹 ?대?吏瑜?遺덈윭?ㅻ뒗 以묅?/p>
-      <button type="button" id="mergeTryOn" class="cta" disabled>李⑹슜?대낫湲?/button>
+      <p id="status" class="status" role="status">제품 이미지를 불러오는 중…</p>
+      <button type="button" id="mergeTryOn" class="cta" disabled>착용해보기</button>
     </footer>
   </div>
 
   <div id="mergeProgress" class="merge-progress is-hidden" hidden aria-live="polite">
     <div class="merge-progress-card">
-      <p class="merge-progress-label">李⑹슜 ?⑹꽦 以?/p>
+      <p class="merge-progress-label">착용 합성 중</p>
       <div class="merge-progress-track" aria-hidden="true">
         <div id="mergeProgressFill" class="merge-progress-fill"></div>
       </div>
@@ -78,19 +90,19 @@
 
   <div id="cameraSheet" class="camera-sheet is-hidden" hidden>
     <div class="camera-top">
-      <button type="button" id="closeCamera" class="icon-btn camera-close" aria-label="移대찓???リ린">?リ린</button>
-      <p id="cameraHint" class="camera-hint">?먯쓣 ?붾㈃??蹂댁뿬二쇱꽭??/p>
+      <button type="button" id="closeCamera" class="icon-btn camera-close" aria-label="카메라 닫기">닫기</button>
+      <p id="cameraHint" class="camera-hint">손을 화면에 보여주세요</p>
     </div>
     <div id="earSideBar" class="ear-side-bar is-hidden" hidden>
-      <button type="button" class="ear-side-btn is-active" data-ear="right">?ㅻⅨ履?洹</button>
-      <button type="button" class="ear-side-btn" data-ear="left">?쇱そ 洹</button>
+      <button type="button" class="ear-side-btn is-active" data-ear="right">오른쪽 귀</button>
+      <button type="button" class="ear-side-btn" data-ear="left">왼쪽 귀</button>
     </div>
-    <button type="button" id="fingerChangeBtn" class="finger-change is-hidden" hidden aria-expanded="false">?쎌? 蹂寃?/button>
+    <button type="button" id="fingerChangeBtn" class="finger-change is-hidden" hidden aria-expanded="false">손가락 변경</button>
     <div id="fingerBar" class="finger-bar is-hidden" hidden>
-      <button type="button" class="finger-btn" data-finger="index" aria-label="寃吏">寃吏</button>
-      <button type="button" class="finger-btn" data-finger="middle" aria-label="以묒?">以묒?</button>
-      <button type="button" class="finger-btn is-active" data-finger="ring" aria-label="?쎌?">?쎌?</button>
-      <button type="button" class="finger-btn" data-finger="pinky" aria-label="?뚯?">?뚯?</button>
+      <button type="button" class="finger-btn" data-finger="index" aria-label="검지">검지</button>
+      <button type="button" class="finger-btn" data-finger="middle" aria-label="중지">중지</button>
+      <button type="button" class="finger-btn is-active" data-finger="ring" aria-label="약지">약지</button>
+      <button type="button" class="finger-btn" data-finger="pinky" aria-label="새끼">새끼</button>
     </div>
     <div class="camera-stage">
       <div class="camera-viewport">
@@ -103,7 +115,7 @@
           <img class="guide-art" data-for="earring" data-ear-side="right" src="./public/guides/ear-right.png?v=38" alt="" />
           <img class="guide-art" data-for="earring" data-ear-side="left" src="./public/guides/ear-left.png?v=38" alt="" />
           <img class="guide-art" data-for="necklace" src="./public/guides/necklace.png?v=38" alt="" />
-          <p id="guideCaption" class="guide-caption">?붿컡 李⑹슜</p>
+          <p id="guideCaption" class="guide-caption">손목 착용</p>
           <div id="holdCountdown" class="hold-countdown is-hidden" hidden aria-live="polite">
             <svg class="hold-ring" viewBox="0 0 40 40" aria-hidden="true">
               <circle class="hold-ring-bg" cx="20" cy="20" r="18" />
@@ -114,16 +126,16 @@
           <p id="alignAlert" class="align-alert is-hidden" role="status" aria-live="polite"></p>
         </div>
       </div>
-      <!-- 移대찓???곸뿭 異뺤냼 ?놁씠 醫뙿룹슦 ?ㅻ쾭?덉씠 -->
+      <!-- 카메라 영역 축소 없이 좌우 오버레이 -->
       <div id="zoomSideLeft" class="zoom-side zoom-side-left is-hidden" hidden>
-        <button type="button" id="zoomOut" class="zoom-btn" aria-label="異뺤냼">??/button>
+        <button type="button" id="zoomOut" class="zoom-btn" aria-label="축소">−</button>
         <div class="pinch-anim pinch-out" aria-hidden="true">
           <span class="pinch-finger pinch-a"></span>
           <span class="pinch-finger pinch-b"></span>
         </div>
       </div>
       <div id="zoomSideRight" class="zoom-side zoom-side-right is-hidden" hidden>
-        <button type="button" id="zoomIn" class="zoom-btn" aria-label="?뺣?">+</button>
+        <button type="button" id="zoomIn" class="zoom-btn" aria-label="확대">+</button>
         <div class="pinch-anim pinch-in" aria-hidden="true">
           <span class="pinch-finger pinch-a"></span>
           <span class="pinch-finger pinch-b"></span>
@@ -131,11 +143,11 @@
       </div>
     </div>
     <div class="camera-bottom">
-      <button type="button" id="shutterBtn" class="shutter" aria-label="珥ъ쁺"></button>
-      <p id="cameraSub" class="camera-sub">?뺣젹?섎㈃ ??1珥????먮룞 珥ъ쁺 쨌 吏곸젒 ?뚮윭???⑸땲??/p>
+      <button type="button" id="shutterBtn" class="shutter" aria-label="촬영"></button>
+      <p id="cameraSub" class="camera-sub">정렬되면 약 1초 후 자동 촬영 · 직접 눌러도 됩니다</p>
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260726-tryon44"></script>
+  <script type="module" src="./src/studio.js?v=20260726-tryon44b"></script>
 </body>
 </html>
