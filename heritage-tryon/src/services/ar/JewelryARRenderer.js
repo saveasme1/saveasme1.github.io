@@ -6,12 +6,15 @@
  * - High-resolution still re-render for save
  */
 import { createWristOccluder, createFingerOccluder } from "./OcclusionManager.js";
-import { resolveModelUrl, tryLoadGltf, loadJewelryMeta } from "./JewelryAssetLoader.js";
+import { tryLoadGltf } from "./JewelryAssetLoader.js";
+import { resolveJewelryAsset, ASSET_STATES } from "./AssetResolver.js";
 import { detectQualityTier, QualityManager } from "./QualityManager.js";
 import { applyMaterialPreset } from "./MaterialPresets.js";
 import { estimateLightingFromVideo } from "./LightingEstimator.js";
 import { fitBracelet } from "./BraceletFitter3D.js";
 import { fitRing } from "./RingFitter3D.js";
+import { fitNecklaceWithChain, syncNecklaceChainMesh } from "./NecklaceChain.js";
+import { EarringPhysics } from "./EarringPhysics.js";
 
 const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
@@ -46,8 +49,19 @@ export class JewelryARRenderer {
     this.meta = null;
     this.mode = "bracelet";
     this.hasGlb = false;
+    this.assetState = ASSET_STATES.UNAVAILABLE;
+    this.assetReason = "";
     this.quality = new QualityManager();
     this.tier = this.quality.tier;
+    this.earringPhysics = new EarringPhysics();
+    this.chainGroup = null;
+    this.debugFlags = {
+      showOccluder: false,
+      jewelryOnly: false,
+      disableOcclusion: false,
+    };
+    this._livePivotNorm = null;
+    this._saveConsistency = null;
 
     this._ready = false;
     this._disposed = false;
@@ -140,45 +154,93 @@ export class JewelryARRenderer {
   }
 
   /**
-   * Load product GLB. Returns false if GLB missing → caller must use 2.5D.
-   * Never fabricates a torus as the product.
+   * Resolve asset via AssetResolver then load GLB.
+   * Returns { ok, state, reason }. Never uses torus. Never leaks validation into production.
    */
-  async loadProduct(productId, mode = "bracelet") {
+  async loadProductForSku(itemId, mode = "bracelet", resolveOpts = {}) {
     this.mode = mode;
-    this.productId = productId;
     const t0 = performance.now();
     if (!this._ready) await this.init();
     if (!this._ready) {
       this.hasGlb = false;
-      return false;
+      this.assetState = ASSET_STATES.UNAVAILABLE;
+      return { ok: false, state: this.assetState, reason: "webgl_init_failed" };
     }
 
+    const resolution = await resolveJewelryAsset({
+      itemId,
+      wearType: mode,
+      allowValidation: Boolean(resolveOpts.allowValidation),
+      allowRepresentative: Boolean(resolveOpts.allowRepresentative),
+      forceValidation: Boolean(resolveOpts.forceValidation),
+      tier: this.tier === "HIGH" ? "high" : this.tier === "LOW" || this.tier === "FALLBACK" ? "low" : "medium",
+    });
+
+    this.assetState = resolution.state;
+    this.assetReason = resolution.reason;
+    this.productId = resolution.productId;
+    this.meta = resolution.meta;
     this._clearJewelry();
-    this.meta = (await loadJewelryMeta(productId)) || null;
-    if (!this.meta) {
+    this._clearChain();
+
+    if (
+      resolution.state === ASSET_STATES.FALLBACK_25D ||
+      resolution.state === ASSET_STATES.UNAVAILABLE ||
+      !resolution.modelUrl
+    ) {
       this.hasGlb = false;
-      return false;
+      this._glbLoadMs = performance.now() - t0;
+      return { ok: false, state: resolution.state, reason: resolution.reason };
     }
 
     const THREE = this.THREE;
-    const lod = this.tier === "HIGH" ? "high" : this.tier === "LOW" || this.tier === "FALLBACK" ? "low" : "medium";
-    const url = resolveModelUrl(productId, this.meta, lod);
-    const root = url ? await tryLoadGltf(THREE, url) : null;
+    const root = await tryLoadGltf(THREE, resolution.modelUrl);
     this._glbLoadMs = performance.now() - t0;
-
     if (!root) {
       this.hasGlb = false;
-      return false;
+      this.assetState = ASSET_STATES.FALLBACK_25D;
+      this.assetReason = `${resolution.reason}|gltf_parse_failed`;
+      return { ok: false, state: this.assetState, reason: this.assetReason };
     }
 
-    applyMaterialPreset(THREE, root, this.meta.materialPreset || "yellow-gold-polished");
+    applyMaterialPreset(THREE, root, this.meta.materialPreset || "yellow-gold-polished", "live");
     this._applyMetaOffsets(root, this.meta);
     this.jewelry = root;
     this.jewelryRoot.add(root);
     this._triangleCount = this._countTriangles(root);
     this._ensureOccluder(mode);
+    if (mode === "necklace") {
+      this.chainGroup = new THREE.Group();
+      this.scene.add(this.chainGroup);
+    }
+    this.earringPhysics.reset();
     this.hasGlb = true;
-    return true;
+    return { ok: true, state: resolution.state, reason: resolution.reason };
+  }
+
+  /** @deprecated use loadProductForSku — kept for call-site migration */
+  async loadProduct(productId, mode = "bracelet") {
+    const r = await this.loadProductForSku(productId, mode, {
+      allowValidation: isValidationAllowedDefault(),
+      allowRepresentative: false,
+    });
+    return r.ok;
+  }
+
+  setDebugFlags(flags = {}) {
+    Object.assign(this.debugFlags, flags);
+    if (this.occluder?.material) {
+      // wireframe-ish visibility when showOccluder
+      this.occluder.material.colorWrite = Boolean(this.debugFlags.showOccluder);
+    }
+  }
+
+  _clearChain() {
+    if (this.chainGroup) {
+      this.scene.remove(this.chainGroup);
+      this._disposeObject(this.chainGroup);
+      this.chainGroup = null;
+    }
   }
 
   _applyMetaOffsets(root, meta) {
@@ -309,6 +371,36 @@ export class JewelryARRenderer {
     let fit = null;
     if (mode === "bracelet") fit = fitBracelet(anchor, this.meta || {});
     else if (mode === "ring") fit = fitRing(anchor, this.meta || {});
+    else if (mode === "necklace") {
+      fit = fitNecklaceWithChain(anchor, this.meta || {}, this.tier);
+      if (fit?.pendant?.center2D) {
+        const pc = fit.pendant.center2D;
+        const pw = this.normalizedToWorld(pc.x, pc.y, depth);
+        this.jewelryRoot.position.copy(pw);
+      }
+      if (this.chainGroup && fit) {
+        const mat = this.jewelry?.children?.[0]?.material;
+        syncNecklaceChainMesh(
+          this.THREE,
+          this.chainGroup,
+          fit,
+          (x, y, d) => this.normalizedToWorld(x, y, d),
+          { radius: 0.006 * (fit.productScale || 1), material: mat }
+        );
+      }
+    } else if (mode === "earring") {
+      const pose = this.earringPhysics.update(anchor, this.meta || {});
+      if (pose && this.jewelry) {
+        this.jewelry.rotation.x = pose.angleX;
+        this.jewelry.rotation.z = pose.angleZ;
+      }
+      if ((anchor.visibility ?? 1) < 0.35) {
+        this.jewelryRoot.visible = false;
+      } else {
+        this.jewelryRoot.visible = !this.debugFlags.jewelryOnly ? true : true;
+        this.jewelryRoot.visible = true;
+      }
+    }
 
     const baseScale =
       mode === "bracelet"
@@ -327,13 +419,17 @@ export class JewelryARRenderer {
     s = Math.min(ref * hi, Math.max(ref * lo, s));
     this.jewelryRoot.scale.setScalar(s);
 
-    // projection error for debug
+    // projection error for debug (viewport-normalized → approximate px using mount width)
     const projected = this.worldToNormalized(this.jewelryRoot.position);
+    const box = this.mount.getBoundingClientRect();
+    const errNorm = Math.hypot(projected.x - c.x, projected.y - c.y);
     this._projectionError = {
       target: { x: c.x, y: c.y },
       projected,
-      pxError: Math.hypot(projected.x - c.x, projected.y - c.y),
+      pxError: errNorm * box.width,
+      normError: errNorm,
     };
+    this._livePivotNorm = { ...projected, scale: s };
 
     this._syncOccluder(mode, anchor, world, s);
     this._syncContactShadow(world, s, mode);
@@ -398,20 +494,29 @@ export class JewelryARRenderer {
     r.autoClear = false;
     r.clear(true, true, true);
 
-    // Pass 1: depth-only occluder
+    const disableOcc = this.debugFlags.disableOcclusion;
     if (this.occluder) {
+      this.occluder.material.colorWrite = Boolean(this.debugFlags.showOccluder);
+      this.occluder.visible = !disableOcc || this.debugFlags.showOccluder;
+    }
+
+    // Pass 1: depth-only occluder
+    if (this.occluder && !disableOcc) {
       const wasJewelry = this.jewelryRoot.visible;
       const wasShadow = this.contactShadow?.visible;
+      const wasChain = this.chainGroup?.visible;
       this.jewelryRoot.visible = false;
       if (this.contactShadow) this.contactShadow.visible = false;
+      if (this.chainGroup) this.chainGroup.visible = false;
       this.occluder.visible = true;
       r.render(this.scene, this.camera);
       this.jewelryRoot.visible = wasJewelry;
       if (this.contactShadow) this.contactShadow.visible = wasShadow;
+      if (this.chainGroup) this.chainGroup.visible = wasChain !== false;
     }
 
-    // Pass 2: jewelry + soft shadow (occluder still writes depth)
-    if (this.occluder) this.occluder.visible = true;
+    // Pass 2: jewelry + soft shadow
+    if (this.debugFlags.jewelryOnly && this.occluder) this.occluder.visible = false;
     r.render(this.scene, this.camera);
 
     this._renderMs = performance.now() - t0;
@@ -440,8 +545,11 @@ export class JewelryARRenderer {
       triangles: this._triangleCount,
       tier: this.tier,
       hasGlb: this.hasGlb,
+      assetState: this.assetState,
+      assetReason: this.assetReason,
       productId: this.productId,
       projectionError: this._projectionError,
+      saveConsistency: this._saveConsistency,
       lighting: this._lastLighting,
       mode: this.mode,
     };
@@ -449,7 +557,6 @@ export class JewelryARRenderer {
 
   /**
    * High-resolution transparent jewelry layer for save composite.
-   * @returns {HTMLCanvasElement|null}
    */
   renderStillLayer(width, height, mode, anchor, extras = {}) {
     if (!this._ready || !this.hasGlb || !anchor) return null;
@@ -459,19 +566,37 @@ export class JewelryARRenderer {
     const prevPr = this.renderer.getPixelRatio();
     const pr = Math.min(2, window.devicePixelRatio || 1);
 
+    if (mode === "earring") this.earringPhysics.freeze();
+    if (this.jewelry && this.meta) {
+      applyMaterialPreset(THREE, this.jewelry, this.meta.materialPreset || "yellow-gold-polished", "save");
+    }
+
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
 
+    const livePivot = this._livePivotNorm ? { ...this._livePivotNorm } : null;
     this.updateFromAnchor(mode, anchor, extras);
     this.render();
+    const savePivot = this.worldToNormalized(this.jewelryRoot.position);
+    this._saveConsistency = {
+      livePivot,
+      savePivot,
+      positionDeltaNorm: livePivot
+        ? Math.hypot(savePivot.x - livePivot.x, savePivot.y - livePivot.y)
+        : null,
+      scaleDelta: livePivot ? Math.abs((this.jewelryRoot.scale.x || 1) - (livePivot.scale || 1)) : null,
+    };
 
     const snap = document.createElement("canvas");
     snap.width = width;
     snap.height = height;
     snap.getContext("2d").drawImage(this.canvas, 0, 0, width, height);
 
+    if (this.jewelry && this.meta) {
+      applyMaterialPreset(THREE, this.jewelry, this.meta.materialPreset || "yellow-gold-polished", "live");
+    }
     this.renderer.setPixelRatio(prevPr);
     this.renderer.setSize(prevSize.x, prevSize.y, false);
     this.camera.aspect = prevSize.x / Math.max(1, prevSize.y);
@@ -503,6 +628,7 @@ export class JewelryARRenderer {
   dispose() {
     this._disposed = true;
     this._clearJewelry();
+    this._clearChain();
     if (this.occluder) {
       this.scene?.remove(this.occluder);
       this._disposeObject(this.occluder);
@@ -522,13 +648,20 @@ export class JewelryARRenderer {
   }
 }
 
-/** Resolve which validation/product id to load for a wear type. */
+function isValidationAllowedDefault() {
+  try {
+    const p = new URLSearchParams(location.search);
+    return p.get("arDebug") === "1" && p.get("arValidation") === "1";
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * @deprecated Prefer loadProductForSku + AssetResolver.
+ * Returns SKU id only — does NOT map production items to validation GLBs.
+ */
 export function resolveArProductId(itemId, wearType) {
-  const fallback = {
-    bracelet: "validation-bracelet",
-    ring: "validation-ring",
-    necklace: "validation-necklace",
-    earring: "validation-earring",
-  };
-  return fallback[wearType] || itemId || fallback.bracelet;
+  if (itemId && itemId !== "portfolio-item") return itemId;
+  return itemId || `unresolved-${wearType}`;
 }
