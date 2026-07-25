@@ -8,7 +8,7 @@
   <base href="./" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  <link rel="stylesheet" href="./public/studio.css?v=20260725-tryon40" />
+  <link rel="stylesheet" href="./public/studio.css?v=20260725-tryon41" />
 </head>
 <body class="studio-body">
   <div class="studio-shell">
@@ -78,18 +78,19 @@
 
   <div id="cameraSheet" class="camera-sheet is-hidden" hidden>
     <div class="camera-top">
-      <button type="button" id="closeCamera" class="icon-btn camera-close">닫기</button>
-      <p id="cameraHint" class="camera-hint">가이드에 맞춰 주세요</p>
+      <button type="button" id="closeCamera" class="icon-btn camera-close" aria-label="카메라 닫기">닫기</button>
+      <p id="cameraHint" class="camera-hint">손을 화면에 보여주세요</p>
     </div>
     <div id="earSideBar" class="ear-side-bar is-hidden" hidden>
       <button type="button" class="ear-side-btn is-active" data-ear="right">오른쪽 귀</button>
       <button type="button" class="ear-side-btn" data-ear="left">왼쪽 귀</button>
     </div>
+    <button type="button" id="fingerChangeBtn" class="finger-change is-hidden" hidden aria-expanded="false">약지 변경</button>
     <div id="fingerBar" class="finger-bar is-hidden" hidden>
-      <button type="button" class="finger-btn" data-finger="index">검지</button>
-      <button type="button" class="finger-btn" data-finger="middle">중지</button>
-      <button type="button" class="finger-btn is-active" data-finger="ring">약지</button>
-      <button type="button" class="finger-btn" data-finger="pinky">소지</button>
+      <button type="button" class="finger-btn" data-finger="index" aria-label="검지">검지</button>
+      <button type="button" class="finger-btn" data-finger="middle" aria-label="중지">중지</button>
+      <button type="button" class="finger-btn is-active" data-finger="ring" aria-label="약지">약지</button>
+      <button type="button" class="finger-btn" data-finger="pinky" aria-label="소지">소지</button>
     </div>
     <div class="camera-stage">
       <div class="camera-viewport">
@@ -102,7 +103,7 @@
           <img class="guide-art" data-for="earring" data-ear-side="right" src="./public/guides/ear-right.png?v=38" alt="" />
           <img class="guide-art" data-for="earring" data-ear-side="left" src="./public/guides/ear-left.png?v=38" alt="" />
           <img class="guide-art" data-for="necklace" src="./public/guides/necklace.png?v=38" alt="" />
-          <p id="guideCaption" class="guide-caption">손↑ · 손목(+) · 팔뚝↓</p>
+          <p id="guideCaption" class="guide-caption">팔찌 착용</p>
           <div id="holdCountdown" class="hold-countdown is-hidden" hidden aria-live="polite">
             <svg class="hold-ring" viewBox="0 0 40 40" aria-hidden="true">
               <circle class="hold-ring-bg" cx="20" cy="20" r="18" />
@@ -131,10 +132,10 @@
     </div>
     <div class="camera-bottom">
       <button type="button" id="shutterBtn" class="shutter" aria-label="촬영"></button>
-      <p id="cameraSub" class="camera-sub">가이드에 맞춘 뒤 3초간 유지하면 자동 촬영됩니다 · 직접 눌러도 됩니다</p>
+      <p id="cameraSub" class="camera-sub">정렬되면 약 1초 후 자동 촬영 · 직접 눌러도 됩니다</p>
     </div>
   </div>
 
-  <script type="module" src="./src/studio.js?v=20260725-tryon40"></script>
+  <script type="module" src="./src/studio.js?v=20260725-tryon41"></script>
 </body>
 </html>
