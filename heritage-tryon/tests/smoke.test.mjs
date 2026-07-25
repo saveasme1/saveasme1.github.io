@@ -197,6 +197,9 @@ describe("Fitters", () => {
     const ear = estimateEarAnchor3D(fakeFace(), "left");
     const f = fitEarring(ear, { type: "drop" }, "left");
     assert.equal(typeof f.sizeFit, "boolean");
+    assert.equal(f.swingEnabled, true);
+    const stud = fitEarring(ear, { type: "stud" }, "left");
+    assert.equal(stud.swingEnabled, false);
   });
 });
 
