@@ -318,9 +318,41 @@ html, body { margin: 0; min-height: 100%; }
 }
 .align-alert.is-hidden { display: none !important; }
 .camera-guide[data-type="bracelet"] .guide-art[data-for="bracelet"],
-.camera-guide[data-type="ring"] .guide-art[data-for="ring"],
+.camera-guide[data-type="ring"] .guide-art[data-for="ring"] {
+  display: none !important;
+}
 .camera-guide[data-type="necklace"] .guide-art[data-for="necklace"] {
   display: block;
+}
+/* Live AR guide canvas — tracks wrist/finger anchors */
+.ar-guide-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.ar-three-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.camera-guide[data-type="bracelet"] .guide-dim,
+.camera-guide[data-type="ring"] .guide-dim {
+  background: rgba(0, 0, 0, 0.08);
+}
+.camera-guide[data-type="bracelet"] .guide-caption,
+.camera-guide[data-type="ring"] .guide-caption {
+  bottom: auto;
+  top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,0.88);
 }
 /* 목걸이 가이드: 가까이 찍어도 들어가도록 크게 */
 .camera-guide[data-type="necklace"] .guide-art[data-for="necklace"] {
@@ -502,13 +534,34 @@ html, body { margin: 0; min-height: 100%; }
 }
 .finger-bar {
   flex: 0 0 auto;
-  display: grid;
+  display: none;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   padding: 0 12px 8px;
 }
+.finger-bar.is-expanded {
+  display: grid;
+}
 .finger-bar.is-hidden,
 .finger-bar[hidden] { display: none !important; }
+.finger-change {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  flex: 0 0 auto;
+  margin: 0 12px 6px;
+  align-self: flex-start;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(0,0,0,0.28);
+  color: rgba(255,255,255,0.92);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 36px;
+}
+.finger-change.is-hidden,
+.finger-change[hidden] { display: none !important; }
 .finger-btn {
   appearance: none;
   font: inherit;
@@ -517,9 +570,10 @@ html, body { margin: 0; min-height: 100%; }
   background: rgba(255,255,255,0.08);
   color: #fff;
   border-radius: 10px;
-  padding: 10px 4px;
+  padding: 8px 4px;
   font-size: 12px;
   font-weight: 700;
+  min-height: 44px;
 }
 .finger-btn.is-active {
   background: rgba(255,130,54,0.28);
@@ -552,17 +606,30 @@ html, body { margin: 0; min-height: 100%; }
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 4px solid #fff;
-  background: #ff8236;
-  box-shadow: 0 0 0 4px rgba(255,130,54,0.25);
+  border: 3px solid rgba(255,255,255,0.92);
+  background:
+    conic-gradient(
+      from -90deg,
+      rgba(255, 210, 160, 0.95) calc(var(--shutter-progress, 0) * 1turn),
+      transparent 0
+    ),
+    radial-gradient(circle at center, #ff8236 0 58%, transparent 59%);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.2);
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  opacity: 0.95;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
 }
 .shutter:active { transform: scale(0.96); }
 .camera-sheet.is-align-ok .shutter {
-  background: #2bb673;
-  box-shadow: 0 0 0 6px rgba(43, 182, 115, 0.35);
-  animation: shutterReady 1s ease-in-out infinite;
+  background:
+    conic-gradient(
+      from -90deg,
+      rgba(180, 255, 210, 0.95) calc(var(--shutter-progress, 0) * 1turn),
+      transparent 0
+    ),
+    radial-gradient(circle at center, #2bb673 0 58%, transparent 59%);
+  box-shadow: 0 0 0 4px rgba(43, 182, 115, 0.28);
+  animation: none;
 }
 @keyframes shutterReady {
   0%, 100% { transform: scale(1); }
