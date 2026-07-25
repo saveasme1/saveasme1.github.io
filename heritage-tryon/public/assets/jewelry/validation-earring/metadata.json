@@ -1,0 +1,30 @@
+{
+  "productId": "validation-earring",
+  "type": "drop",
+  "model": "model.glb",
+  "unit": "mm",
+  "widthMm": 12,
+  "heightMm": 35,
+  "depthMm": 4,
+  "attachmentPoint": [
+    0,
+    14,
+    0
+  ],
+  "defaultScale": 1,
+  "allowedScaleRange": [
+    0.95,
+    1.05
+  ],
+  "deformationPolicy": "none",
+  "materialPreset": "white-gold-polished",
+  "occlusionMode": "face-ear",
+  "gravityEnabled": true,
+  "pairMode": true,
+  "validationAsset": true,
+  "lod": {
+    "high": "model.glb",
+    "medium": "model.glb",
+    "low": "model.glb"
+  }
+}
