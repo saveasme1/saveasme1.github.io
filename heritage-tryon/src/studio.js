@@ -7,6 +7,9 @@ import {
   GuideOverlay,
   GuideStateEngine,
   TrackingSmoother,
+  JewelryARRenderer,
+  resolveArProductId,
+  composeHighResTryOn,
 } from "./services/ar/index.js";
 
 const params = new URLSearchParams(location.search);
@@ -43,7 +46,12 @@ const state = {
   guideOverlay: null,
   guideState: null,
   smoother: null,
+  arRenderer: null,
+  arReady: false,
+  arHasGlb: false,
   lastLandmarks: null,
+  lastSecondaryAnchor: null,
+  captureExtras: null,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -532,8 +540,8 @@ function applyAlignUi(result, holdInfo = null) {
 
 /** KYC-style hold after alignment ok — shorter for AR UX. */
 const HOLD_MS = {
-  necklace: 1200,
-  earring: 1200,
+  necklace: 1000,
+  earring: 1000,
   ring: 1000,
   bracelet: 1000,
 };
@@ -653,6 +661,27 @@ function ensureArGuide() {
   if (!state.smoother) state.smoother = new TrackingSmoother();
 }
 
+async function ensureArRenderer(type) {
+  const root = $("cameraGuide");
+  if (!root) return null;
+  if (!state.arRenderer) {
+    state.arRenderer = new JewelryARRenderer(root, { debug: AR_DEBUG });
+  }
+  if (!state.arReady) {
+    state.arReady = await state.arRenderer.init();
+  }
+  if (!state.arReady) return null;
+  const productId = resolveArProductId(state.item.id, type);
+  if (state.arRenderer.productId !== productId || state.arRenderer.mode !== type) {
+    state.arHasGlb = await state.arRenderer.loadProduct(productId, type);
+    if (type === "earring" && state.arHasGlb) {
+      await state.arRenderer.ensurePairClone();
+    }
+  }
+  state.arRenderer.setVisible(state.arHasGlb);
+  return state.arRenderer;
+}
+
 async function alignTick() {
   if (!state.cameraOpen || state.capturing) return;
   const video = $("cameraVideo");
@@ -666,13 +695,20 @@ async function alignTick() {
     });
     if (result) {
       let anchor = result.anchor3D || result.placement;
+      let secondary = result.secondaryAnchor || null;
       if (type === "bracelet" && anchor) {
         anchor = state.smoother.smoothWrist(anchor) || anchor;
       } else if (type === "ring" && anchor) {
         anchor = state.smoother.smoothFinger(anchor) || anchor;
+      } else if (type === "necklace" && anchor) {
+        anchor = state.smoother.smoothGeneric("neck", anchor) || anchor;
+      } else if (type === "earring" && anchor) {
+        anchor = state.smoother.smoothGeneric("ear", anchor) || anchor;
+        if (secondary) secondary = state.smoother.smoothGeneric("ear2", secondary) || secondary;
       }
       if (anchor && ((result.score || 0) >= 0.5 || result.ok)) {
         state.lastPlacement = anchor;
+        state.lastSecondaryAnchor = secondary;
       }
       state.lastLandmarks = result.landmarks || null;
 
@@ -681,22 +717,32 @@ async function alignTick() {
         palmFacing: false,
       });
       const msg = state.guideState.message(status === "stable" && result.ok ? "stable" : status);
-      if (type === "bracelet" || type === "ring") {
-        state.guideOverlay.draw(
-          type,
-          anchor,
-          result.ok || status === "stable" ? "stable" : status,
-          AR_DEBUG ? result.landmarks : null
-        );
-      } else {
-        state.guideOverlay?.clear();
+
+      // Live guide for all four modes
+      state.guideOverlay.draw(
+        type,
+        anchor,
+        result.ok || status === "stable" ? "stable" : status,
+        AR_DEBUG ? result.landmarks : null,
+        { secondary, curvePoints: anchor?.curvePoints }
+      );
+
+      // Production Three.js loop — every frame when GLB available
+      const renderer = await ensureArRenderer(type);
+      if (renderer?.hasGlb && anchor && (result.score || 0) >= 0.45) {
+        renderer.applyLighting(video);
+        renderer.updateFromAnchor(type, anchor, { secondaryAnchor: secondary });
+        renderer.render();
+        if (AR_DEBUG) state.guideOverlay.setDebugHud(renderer.getDebugStats());
+      } else if (renderer) {
+        renderer.clearFrame();
       }
 
-      const lockMin = type === "bracelet" || type === "ring" ? 0.65 : 0.86;
+      const lockMin = type === "bracelet" || type === "ring" || type === "necklace" || type === "earring" ? 0.65 : 0.86;
       const locked = Boolean(result.ok) && (result.score || 0) >= lockMin;
       const need = HOLD_MS[type] || 1000;
-      const warmFrames = type === "bracelet" || type === "ring" ? 4 : 12;
-      const fireFrames = type === "bracelet" || type === "ring" ? 10 : 24;
+      const warmFrames = type === "bracelet" || type === "ring" || type === "necklace" || type === "earring" ? 4 : 12;
+      const fireFrames = type === "bracelet" || type === "ring" || type === "necklace" || type === "earring" ? 10 : 24;
       if (locked) {
         state.goodStreak += 1;
         if (state.goodStreak < warmFrames) {
@@ -715,10 +761,7 @@ async function alignTick() {
       } else {
         state.goodStreak = 0;
         state.goodSince = 0;
-        applyAlignUi(
-          { ...result, ok: false, message: msg },
-          null
-        );
+        applyAlignUi({ ...result, ok: false, message: msg }, null);
       }
     }
   } catch (err) {
@@ -742,6 +785,10 @@ function closeCameraSheet({ fromHistory = false } = {}) {
   stopCamera();
   state.guideOverlay?.clear();
   state.smoother?.reset?.();
+  if (state.arRenderer) {
+    state.arRenderer.clearFrame();
+    state.arRenderer.setVisible(false);
+  }
   const sheet = $("cameraSheet");
   if (sheet) {
     sheet.hidden = true;
@@ -846,11 +893,18 @@ function shutterCapture() {
   }
   state.capturing = true;
   stopAlignLoop();
-  // Freeze last good placement from live align (still-image redetect often fails)
+  // Freeze last good placement from live align for all jewelry modes
+  const freezeTypes = ["ring", "bracelet", "necklace", "earring"];
   state.capturePlacement =
-    (state.wearType === "ring" || state.wearType === "bracelet") && state.lastPlacement
+    freezeTypes.includes(state.wearType) && state.lastPlacement
       ? { ...state.lastPlacement }
       : null;
+  state.captureExtras = {
+    secondaryAnchor: state.lastSecondaryAnchor ? { ...state.lastSecondaryAnchor } : null,
+    arHasGlb: state.arHasGlb,
+    productId: state.arRenderer?.productId || null,
+    mirror: usesFrontCamera(state.wearType),
+  };
 
   const front = usesFrontCamera(state.wearType);
   const z = Math.max(ZOOM_MIN, state.camZoom || 1);
@@ -987,6 +1041,18 @@ async function runMergeTryOn() {
         detection.allTargets?.ring ||
         detection.target ||
         fallbackTarget(state.bodyImage, "ring", { ringFinger: state.ringFinger });
+    } else if (useType === "necklace" || useType === "earring") {
+      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
+      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
+      const fromCapture = placementToPixels(state.capturePlacement, w, h);
+      target =
+        fromCapture ||
+        detection.allTargets?.[useType] ||
+        detection.target ||
+        fallbackTarget(state.bodyImage, useType, {
+          earSide: state.earSide,
+          ringFinger: state.ringFinger,
+        });
     } else if (!target) {
       target = fallbackTarget(state.bodyImage, useType, {
         earSide: state.earSide,
@@ -997,14 +1063,69 @@ async function runMergeTryOn() {
       ? !(state.capturePlacement || detection.allTargets?.bracelet || detection.target)
       : useType === "ring"
         ? !(state.capturePlacement || detection.allTargets?.ring || detection.target)
-        : !detection.target;
+        : useType === "necklace" || useType === "earring"
+          ? !(state.capturePlacement || detection.target)
+          : !detection.target;
 
     setMergeProgress(82);
-    const after = await withTimeout(
-      composeTryOn(state.bodyImage, jewelry.canvas, target, useType),
-      45000,
+
+    // Ensure AR renderer has GLB for high-res save (may still be loaded from live session)
+    const productId = resolveArProductId(state.item.id, useType);
+    if (!state.arRenderer) {
+      const mount = $("cameraGuide") || document.body;
+      state.arRenderer = new JewelryARRenderer(mount, { debug: AR_DEBUG });
+      state.arReady = await state.arRenderer.init();
+    }
+    if (state.arReady && (!state.arRenderer.hasGlb || state.arRenderer.productId !== productId)) {
+      state.arHasGlb = await state.arRenderer.loadProduct(productId, useType);
+    }
+
+    const bodyCanvas =
+      state.bodyImage instanceof HTMLCanvasElement
+        ? state.bodyImage
+        : (() => {
+            const c = document.createElement("canvas");
+            c.width = state.bodyImage.naturalWidth || state.bodyImage.width;
+            c.height = state.bodyImage.naturalHeight || state.bodyImage.height;
+            c.getContext("2d").drawImage(state.bodyImage, 0, 0);
+            return c;
+          })();
+
+    const anchorForSave = state.capturePlacement
+      ? state.capturePlacement
+      : target?.center
+        ? {
+            ...target,
+            center2D: {
+              x: target.center.x / Math.max(1, bodyCanvas.width),
+              y: target.center.y / Math.max(1, bodyCanvas.height),
+            },
+            center: {
+              x: target.center.x / Math.max(1, bodyCanvas.width),
+              y: target.center.y / Math.max(1, bodyCanvas.height),
+            },
+            radiusX: target.width ? target.width / bodyCanvas.width / 2.4 : 0.06,
+            radiusY: target.width ? (target.width / bodyCanvas.width / 2.4) * 0.7 : 0.04,
+            radiusEstimate: target.width ? target.width / bodyCanvas.width / 2 : 0.03,
+          }
+        : null;
+    const composed = await withTimeout(
+      composeHighResTryOn({
+        bodyCanvas,
+        jewelryCanvas: jewelry.canvas,
+        type: useType,
+        target,
+        arRenderer: state.arRenderer,
+        anchor: anchorForSave,
+        extras: {
+          secondaryAnchor: state.captureExtras?.secondaryAnchor || null,
+        },
+      }),
+      60000,
       "합성 시간 초과"
     );
+    const after = composed.canvas;
+    const composePath = composed.path;
     setMergeProgress(96);
     state.afterCanvas = after;
     const canvas = $("resultCanvas");
@@ -1017,8 +1138,10 @@ async function runMergeTryOn() {
     setStageMode("result");
     setStatus(
       usedFallback
-        ? "위치 인식이 어려워 가이드 기준으로 합성했습니다. 손·손목이 더 보이게 다시 촬영해 보세요."
-        : "착용 미리보기입니다. 저장하거나 초기화할 수 있습니다.",
+        ? "위치 인식이 어려워 가이드 기준으로 합성했습니다. 다시 촬영해 보세요."
+        : composePath === "glb-highres"
+          ? "3D 고해상도 착용 미리보기입니다. 저장하거나 초기화할 수 있습니다."
+          : "착용 미리보기입니다. 저장하거나 초기화할 수 있습니다.",
       "is-ok"
     );
   } catch (err) {
@@ -1047,6 +1170,12 @@ function download() {
 
 function closeStudio() {
   closeCameraSheet();
+  if (state.arRenderer) {
+    state.arRenderer.dispose();
+    state.arRenderer = null;
+    state.arReady = false;
+    state.arHasGlb = false;
+  }
   if (embedded && window.parent && window.parent !== window) {
     window.parent.postMessage({ type: "heritage-tryon-close" }, "*");
     return;
@@ -1120,6 +1249,22 @@ $("fingerChangeBtn")?.addEventListener("click", () => {
 });
 $("zoomIn")?.addEventListener("click", () => setCamZoom((state.camZoom || 1) + 0.15));
 $("zoomOut")?.addEventListener("click", () => setCamZoom((state.camZoom || 1) - 0.15));
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopAlignLoop();
+    state.arRenderer?.clearFrame();
+  } else if (state.cameraOpen && !state.capturing) {
+    startAlignLoop();
+  }
+});
+
+window.addEventListener("webglcontextlost", (e) => {
+  e.preventDefault();
+  console.warn("WebGL context lost");
+  state.arReady = false;
+  state.arHasGlb = false;
+}, true);
 
 setStageMode("split");
 applyWearTypeFromProduct();
