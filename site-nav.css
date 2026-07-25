@@ -458,7 +458,7 @@ body.has-gb-top-brand {
 
     justify-content: center;
 
-    gap: 2px;
+    gap: 0;
 
     width: 100%;
 
@@ -466,7 +466,7 @@ body.has-gb-top-brand {
 
     height: 100%;
 
-    padding: 4px 2px 3px;
+    padding: 0;
 
     border: 0;
 
@@ -484,6 +484,37 @@ body.has-gb-top-brand {
 
   }
 
+  .gb-bottom-nav__ico,
+  .gb-bottom-nav__fab {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 24px;
+
+    height: 24px;
+
+    margin: 0 0 3px;
+
+    flex: 0 0 24px;
+
+  }
+
+  .gb-bottom-nav__fab {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .gb-bottom-nav__fab .gb-bottom-nav__ico {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+  }
+
   .gb-bottom-nav__item svg {
 
     display: block;
@@ -496,7 +527,7 @@ body.has-gb-top-brand {
 
   }
 
-  .gb-bottom-nav__item span {
+  .gb-bottom-nav__label {
 
     display: block;
 
@@ -522,11 +553,17 @@ body.has-gb-top-brand {
 
   }
 
+  .gb-bottom-nav__item span {
+
+    /* legacy fallback if old markup remains */
+
+  }
+
   .gb-bottom-nav__item.is-home svg {
 
-    width: 22px;
+    width: 21px;
 
-    height: 22px;
+    height: 21px;
 
   }
 

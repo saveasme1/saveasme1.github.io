@@ -19,15 +19,32 @@
     if (document.body) document.body.classList.add("is-pwa");
   }
   const ICONS = {
-    portfolio: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h3.2c.4 0 .8.2 1 .5l.8 1.1c.2.3.6.5 1 .5h5A2.5 2.5 0 0 1 20 9.6v7.9A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10Z" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
-    reviews: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.2 5.7h11.6c.9 0 1.6.7 1.6 1.6v7c0 .9-.7 1.6-1.6 1.6H11l-3.7 2.9c-.4.3-1.1 0-1.1-.6v-2.3H6.2c-.9 0-1.6-.7-1.6-1.6v-7c0-.9.7-1.6 1.6-1.6z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9.2h6M9 12h4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
-    home: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.2 3.1 10.8c-.3.2-.1.7.3.7h1.5V20c0 .6.4 1 1 1h5.1v-6.2c0-.6.4-1 1-1h1.9c.6 0 1 .4 1 1V21h5.1c.6 0 1-.4 1-1v-8.5h1.5c.4 0 .6-.5.3-.7L12 3.2z" fill="currentColor"/></svg>`,
-    shipping: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 8.2 12 3.8l8.5 4.4v7.6L12 20.2 3.5 15.8V8.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 12.1 3.8 7.9M12 12.1l8.2-4.2M12 12.1V20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
-    mypage: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.2" r="3.3" stroke="currentColor" stroke-width="1.6"/><path d="M5.2 19.2c1.5-3.3 3.9-5 6.8-5s5.3 1.7 6.8 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+    portfolio: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="6.5" width="17" height="13" rx="2.2" stroke="currentColor" stroke-width="1.7"/><path d="M8 6.5V5.4A1.9 1.9 0 0 1 9.9 3.5h4.2A1.9 1.9 0 0 1 16 5.4v1.1" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 11h17" stroke="currentColor" stroke-width="1.7"/></svg>`,
+    reviews: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 5.5h13A2 2 0 0 1 20.5 7.5v7A2 2 0 0 1 18.5 16.5H12l-4.2 2.8c-.45.3-1.05-.05-1.05-.6v-2.2H5.5A2 2 0 0 1 3.5 14.5v-7A2 2 0 0 1 5.5 5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+    home: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 10.2 12 4.2l7.5 6V19a1.8 1.8 0 0 1-1.8 1.8h-3.9v-5.2a1.3 1.3 0 0 0-1.3-1.3h-2a1.3 1.3 0 0 0-1.3 1.3V20.8H6.3A1.8 1.8 0 0 1 4.5 19v-8.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
+    shipping: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.8 8.2 12 3.8l8.2 4.4v7.6L12 20.2 3.8 15.8V8.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 12.2 4.2 8M12 12.2l7.8-4.2M12 12.2V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+    mypage: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.2" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M5.4 19.2c1.4-3.1 3.7-4.7 6.6-4.7s5.2 1.6 6.6 4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
     authRegister: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="9.2" cy="8.2" r="3.1" stroke="currentColor" stroke-width="1.6"/><path d="M3.6 19c1.3-2.9 3.4-4.4 5.6-4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16.2 8.2v6.2M13.1 11.3h6.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     authLogin: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.2" r="3.3" stroke="currentColor" stroke-width="1.6"/><path d="M5.2 19.2c1.5-3.3 3.9-5 6.8-5s5.3 1.7 6.8 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
     authLogout: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 4.5H7.5A2.5 2.5 0 0 0 5 7v10a2.5 2.5 0 0 0 2.5 2.5H10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.5 12H20M17.2 8.8 20.4 12l-3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   };
+
+  function navItem(key, label, icon, home) {
+    if (home) {
+      return (
+        `<li><button type="button" class="gb-bottom-nav__item is-home" data-nav="${key}">` +
+        `<span class="gb-bottom-nav__fab" aria-hidden="true"><span class="gb-bottom-nav__ico">${icon}</span></span>` +
+        `<span class="gb-bottom-nav__label">${label}</span>` +
+        `</button></li>`
+      );
+    }
+    return (
+      `<li><button type="button" class="gb-bottom-nav__item" data-nav="${key}">` +
+      `<span class="gb-bottom-nav__ico" aria-hidden="true">${icon}</span>` +
+      `<span class="gb-bottom-nav__label">${label}</span>` +
+      `</button></li>`
+    );
+  }
   function ensureStylesheet() {
     if (document.querySelector('link[href*="site-nav.css"]')) return;
     const link = document.createElement("link");
@@ -345,14 +362,14 @@
     const nav = document.createElement("nav");
     nav.className = "gb-bottom-nav";
     nav.setAttribute("aria-label", "하단 메뉴");
-    nav.innerHTML = `
-      <ul class="gb-bottom-nav__bar">
-        <li><button type="button" class="gb-bottom-nav__item" data-nav="portfolio">${ICONS.portfolio}<span>포트폴리오</span></button></li>
-        <li><button type="button" class="gb-bottom-nav__item" data-nav="reviews">${ICONS.reviews}<span>리얼후기</span></button></li>
-        <li><button type="button" class="gb-bottom-nav__item is-home" data-nav="home">${ICONS.home}<span>HOME</span></button></li>
-        <li><button type="button" class="gb-bottom-nav__item" data-nav="shipping">${ICONS.shipping}<span>출고확인</span></button></li>
-        <li><button type="button" class="gb-bottom-nav__item" data-nav="mypage">${ICONS.mypage}<span>마이페이지</span></button></li>
-      </ul>`;
+    nav.innerHTML =
+      `<ul class="gb-bottom-nav__bar">` +
+      navItem("portfolio", "포트폴리오", ICONS.portfolio) +
+      navItem("reviews", "리얼후기", ICONS.reviews) +
+      navItem("home", "홈", ICONS.home, true) +
+      navItem("shipping", "출고확인", ICONS.shipping) +
+      navItem("mypage", "마이", ICONS.mypage) +
+      `</ul>`;
     document.body.appendChild(nav);
     document.body.classList.add("has-gb-bottom-nav");
     setActiveNav(detectActivePanel());

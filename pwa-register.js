@@ -1,11 +1,16 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa4";
+  const APP_BUILD = "20260725-pwa5";
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";
   const BANNER_ID = "pwaStatusBanner";
   const DIALOG_ID = "pwaUpdateDialog";
+
+  /** Only true after customer taps 「업데이트」 */
+  let userApprovedUpdate = false;
+  let pendingWorker = null;
+  let refreshing = false;
 
   const IMG_FALLBACK =
     "data:image/svg+xml;charset=utf-8," +
@@ -177,7 +182,7 @@
       '<div class="pwa-status__row">' +
       '<span class="pwa-status__dot" aria-hidden="true"></span>' +
       '<span class="pwa-status__text"></span>' +
-      '<button type="button" class="pwa-status__action" hidden>새로고침</button>' +
+      '<button type="button" class="pwa-status__action" hidden>확인</button>' +
       '<button type="button" class="pwa-status__close" aria-label="닫기">×</button>' +
       "</div>";
     document.documentElement.appendChild(el);
@@ -185,7 +190,7 @@
       el.hidden = true;
     });
     el.querySelector(".pwa-status__action").addEventListener("click", () => {
-      location.reload();
+      el.hidden = true;
     });
     return el;
   }
@@ -204,30 +209,30 @@
       el.hidden = false;
       return;
     }
+    // Progress ONLY after customer approved update
     if (state === "updating") {
+      if (!userApprovedUpdate) return;
       el.classList.add("is-updating");
       const pct =
         detail && detail.total
           ? ` ${Math.min(100, Math.round((detail.done / detail.total) * 100))}%`
           : "";
-      text.textContent = `앱 업데이트 중${pct} · 잠시만 기다려 주세요`;
+      text.textContent = `업데이트 적용 중${pct}`;
       el.hidden = false;
       return;
     }
     if (state === "ready" || state === "activated") {
+      if (!userApprovedUpdate && state === "activated") return;
       el.classList.add("is-ready");
-      text.textContent = detail || "앱 데이터 준비 완료";
+      text.textContent = detail || "준비 완료";
       el.hidden = false;
       clearTimeout(showStatus._t);
       showStatus._t = setTimeout(() => {
         if (!navigator.onLine) return;
         el.hidden = true;
-      }, 3800);
+      }, 3200);
     }
   }
-
-  let pendingWorker = null;
-  let refreshing = false;
 
   function closeDialog() {
     const el = document.getElementById(DIALOG_ID);
@@ -272,46 +277,45 @@
   }
 
   function applyUpdate() {
+    userApprovedUpdate = true;
     showStatus("updating", { done: 0, total: 1 });
-    if (pendingWorker) {
-      pendingWorker.postMessage({ type: "SKIP_WAITING" });
-    } else if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
+    const worker = pendingWorker;
+    if (worker) {
+      worker.postMessage({ type: "SKIP_WAITING" });
+    } else {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg && reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      });
     }
-    // If already active after skip, force reload shortly
-    setTimeout(() => {
-      if (!refreshing) location.reload();
-    }, 1200);
   }
 
   function promptUpdateAvailable() {
     showDialog({
-      eyebrow: "UPDATE AVAILABLE",
+      eyebrow: "UPDATE",
       title: "새 버전이 있습니다",
-      body: "앱 데이터와 화면이 최신으로 준비되었습니다. 지금 업데이트할까요?",
+      body: "업데이트를 적용할까요? 「나중에」를 누르면 지금 화면은 그대로 유지됩니다.",
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
+      onSecondary: () => {
+        // Keep waiting worker — do NOT skipWaiting, do NOT reload
+      },
     });
   }
 
   function promptAlreadyFresh() {
     const now = Date.now();
     const last = Number(localStorage.getItem(FRESH_KEY) || 0);
-    if (now - last < 1000 * 60 * 60 * 12) return; // once per 12h
+    if (now - last < 1000 * 60 * 60 * 12) return;
     localStorage.setItem(FRESH_KEY, String(now));
     showDialog({
       eyebrow: "UP TO DATE",
       title: "최신 버전입니다",
-      body: "현재 앱이 최신 상태입니다. 그래도 다시 확인·새로고침 할까요?",
+      body: "현재 앱이 최신 상태입니다. 화면만 다시 불러올까요?",
       secondaryLabel: "닫기",
       primaryLabel: "새로고침",
       onPrimary: () => {
-        if (navigator.serviceWorker?.getRegistration) {
-          navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).finally(() => {
-            location.reload();
-          });
-        } else location.reload();
+        location.reload();
       },
     });
   }
@@ -319,8 +323,8 @@
   function noteBuildActivated() {
     const prev = localStorage.getItem(BUILD_KEY);
     localStorage.setItem(BUILD_KEY, APP_BUILD);
-    if (prev && prev !== APP_BUILD) {
-      showStatus("ready", "업데이트 완료 · 최신 버전으로 준비되었습니다");
+    if (userApprovedUpdate && prev && prev !== APP_BUILD) {
+      showStatus("ready", "업데이트 완료 · 최신 버전입니다");
     }
   }
 
@@ -337,20 +341,22 @@
 
   if (!("serviceWorker" in navigator)) {
     syncOnlineState();
-    noteBuildActivated();
     return;
   }
 
   navigator.serviceWorker.addEventListener("message", (event) => {
     const data = event.data || {};
     if (data.type !== "PWA_STATUS") return;
-    if (data.state === "updating") showStatus("updating", data);
-    else if (data.state === "ready" || data.state === "activated") {
-      showStatus(data.state, data.state === "activated" ? "업데이트 적용 중…" : undefined);
+    // Never surface silent background install as forced update UI
+    if (data.state === "updating" || data.state === "ready" || data.state === "activated") {
+      if (!userApprovedUpdate) return;
+      showStatus(data.state, data);
     }
   });
 
+  // NEVER auto-reload. Only after customer approved update.
   navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!userApprovedUpdate) return;
     if (refreshing) return;
     refreshing = true;
     location.reload();
@@ -374,12 +380,8 @@
         const trackWorker = (worker) => {
           if (!worker) return;
           worker.addEventListener("statechange", () => {
-            if (worker.state === "installed") {
-              if (navigator.serviceWorker.controller) offerUpdate(worker);
-              else {
-                showStatus("ready");
-                noteBuildActivated();
-              }
+            if (worker.state === "installed" && navigator.serviceWorker.controller) {
+              offerUpdate(worker);
             }
           });
         };
@@ -387,10 +389,8 @@
         if (reg.waiting) offerUpdate(reg.waiting);
 
         reg.addEventListener("updatefound", () => {
-          const worker = reg.installing;
-          if (!worker) return;
-          showStatus("updating", { done: 0, total: 1 });
-          trackWorker(worker);
+          // Silent download only — no banner, no reload
+          trackWorker(reg.installing);
         });
 
         try {
@@ -400,7 +400,6 @@
         await navigator.serviceWorker.ready;
         noteBuildActivated();
 
-        // Give updatefound a moment to settle before "already fresh"
         await new Promise((r) => setTimeout(r, 900));
         if (!updateOffered && !reg.waiting && !reg.installing && navigator.onLine) {
           promptAlreadyFresh();
