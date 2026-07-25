@@ -27,7 +27,7 @@
   <meta name="twitter:title" content="본 헤리티지 앱 설치">
   <meta name="twitter:description" content="Windows · Mac · Android · iPhone에서 설치하는 링크입니다.">
   <meta name="twitter:image" content="https://hand-made.kr/icons/og-install-v20260725e.png">
-  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa11">
+  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa12">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="image_src" href="https://hand-made.kr/icons/og-install-v20260725e.png">
@@ -1595,7 +1595,7 @@
             Mac
           </span>
           <span class="os-shared">Windows · Mac 공용</span>
-        </div>
+      </div>
         <button type="button" class="btn btn-primary" id="pcInstallBtn">PC에 앱 설치</button>
         <div class="hint" id="pcInstallHint">Windows · Mac 공용 · Chrome / Edge 전용</div>
 
@@ -1635,7 +1635,7 @@
               <span class="win-bar__icon" aria-hidden="true"></span>
             </div>
             <p class="win-bar__label">주황 표시 = <b>작업 표시줄</b>에 고정된 본 헤리티지</p>
-          </div>
+    </div>
 
           <div class="pc-os-guide">
             <div class="pc-os-guide__head">
@@ -1686,8 +1686,8 @@
           <li>Chrome 또는 Edge로 이 페이지를 엽니다 (Safari X)</li>
           <li>위 <b>PC에 앱 설치</b>를 누르거나</li>
           <li>주소창 오른쪽 <b>설치</b> 아이콘 · 메뉴의 <b>앱 설치</b>를 선택하세요</li>
-        </ol>
-      </section>
+      </ol>
+    </section>
 
       <div class="panels-mobile">
       <section class="panel" id="panelAndroid">
@@ -1885,7 +1885,7 @@
             <p class="note">메뉴가 정상적으로 보이지 않으면 카카오톡 등 앱이 아니라 <b>브라우저에서 열기</b>로 연 뒤 다시 시도하세요.</p>
           </div>
         </div>
-      </section>
+    </section>
 
       <section class="panel" id="panelIos">
         <div class="panel__icon is-apple view-pc" aria-hidden="true">
@@ -1998,14 +1998,14 @@
             <p class="note">공유·추가가 정상적으로 보이지 않으면 앱 안이 아니라 <b>Safari</b>에서 다시 열어 주세요.</p>
           </div>
         </div>
-      </section>
+    </section>
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="pwa-register.js?v=20260725-pwa11"></script>
+  <script src="pwa-register.js?v=20260725-pwa12"></script>
   <script>
   (function () {
     var pageUrl = location.href.split("#")[0];
@@ -2036,7 +2036,7 @@
         isInApp
           ? "카카오톡 등 앱 안에서는 설치할 수 없습니다. Safari에서 열어 주세요."
           : "가장 빠른 방법: Safari 공유 → 홈 화면에 추가.";
-    } else {
+      } else {
       document.getElementById("lead").textContent =
         isInApp
           ? "카카오톡 등 앱 안에서는 설치할 수 없습니다. 브라우저에서 열어 주세요."
@@ -2068,9 +2068,9 @@
           "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
         setTimeout(function () {
           location.href =
-            "intent://" + hostPath +
-            "#Intent;scheme=https;package=com.sec.android.app.sbrowser;" +
-            "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
+          "intent://" + hostPath +
+          "#Intent;scheme=https;package=com.sec.android.app.sbrowser;" +
+          "S.browser_fallback_url=" + encodeURIComponent(pageUrl) + ";end";
         }, 900);
         showToast("브라우저로 이동 중…");
         return;
@@ -2214,7 +2214,7 @@
 
     if ("serviceWorker" in navigator && mode === "other" && !isStandalone) {
       navigator.serviceWorker.ready.then(function () {
-        setTimeout(function () {
+      setTimeout(function () {
           if (!deferredPrompt) {
             setPcHint("주소창 오른쪽 설치 아이콘, 또는 메뉴의 앱 설치를 이용하세요");
           }

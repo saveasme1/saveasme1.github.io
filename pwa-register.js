@@ -1,24 +1,28 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa11";
-  const APP_VERSION = "v1.4.1";
+  const APP_BUILD = "20260725-pwa12";
+  const APP_VERSION = "v1.5.0";
   const RELEASE_NOTES = [
-    "카테고리 폰트 볼드·자간·크기 정리 (가벼운 Syne)",
-    "카테고리 탭 시 상품이 좌→우로 펼쳐지는 미리보기",
-    "히어로·섹션 카피 한글+영문 믹스 (무신사 톤)",
-    "같은 카테고리 다시 누르면 포트폴리오 전체로 이동",
+    "UI·기획 업데이트도 반드시 업데이트 안내 표시",
+    "브랜드 스토리 · 착용 룩북 · 출고 샷 섹션 추가",
+    "오늘의 금시세·리얼후기 실데이터 카드 강화",
+    "카테고리 미리보기 펼침 유지",
   ];
   const BUILD_KEY = "hx.pwa.build";
+  const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
   const BANNER_ID = "pwaStatusBanner";
   const DIALOG_ID = "pwaUpdateDialog";
   const RECOVER_KEY = "hx.pwa.mojibakeRecover";
+  const UPDATE_SNOOZE_KEY = "hx.pwa.updateSnooze";
 
   /** Only true after customer taps 「업데이트」 */
   let userApprovedUpdate = false;
   let pendingWorker = null;
   let refreshing = false;
+  let updateOffered = false;
+  let remoteNotes = null;
 
   async function emergencyFixMojibake() {
     if (sessionStorage.getItem(RECOVER_KEY) === "1") return false;
@@ -344,52 +348,99 @@
   function applyUpdate() {
     userApprovedUpdate = true;
     showStatus("updating", { done: 0, total: 1 });
-    const worker = pendingWorker;
-    if (worker) {
-      worker.postMessage({ type: "SKIP_WAITING" });
-    } else {
-      navigator.serviceWorker.getRegistration().then((reg) => {
-        if (reg && reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      });
-    }
+    const finish = async () => {
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+      } catch (_) {}
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
+      localStorage.removeItem(UPDATE_SNOOZE_KEY);
+      const worker = pendingWorker;
+      if (worker) {
+        worker.postMessage({ type: "SKIP_WAITING" });
+      } else {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg && reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          else location.reload();
+        } catch (_) {
+          location.reload();
+        }
+      }
+      // If controllerchange doesn't fire quickly, still reload
+      setTimeout(() => {
+        if (!refreshing) location.reload();
+      }, 1200);
+    };
+    finish();
   }
 
-  function promptUpdateAvailable() {
+  function promptUpdateAvailable(extraNotes) {
+    if (updateOffered) return;
+    const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
+    // Snooze only 30 min — UI updates must still surface soon
+    if (Date.now() - snooze < 1000 * 60 * 30) return;
+    updateOffered = true;
+    const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
-      body: "아래 변경 사항을 적용할까요? 「나중에」를 누르면 지금 화면은 그대로입니다.",
-      notes: RELEASE_NOTES,
+      body: "디자인·기능 업데이트입니다. 새 콘텐츠가 없어도 적용하면 화면이 달라집니다.",
+      notes,
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
-    });
-  }
-
-  function promptAlreadyFresh() {
-    const now = Date.now();
-    const last = Number(localStorage.getItem(FRESH_KEY) || 0);
-    if (now - last < 1000 * 60 * 60 * 12) return;
-    localStorage.setItem(FRESH_KEY, String(now));
-    showDialog({
-      eyebrow: `UP TO DATE ${APP_VERSION}`,
-      title: "최신 버전입니다",
-      body: "현재 앱이 최신 상태입니다. 화면만 다시 불러올까요?",
-      notes: RELEASE_NOTES,
-      secondaryLabel: "닫기",
-      primaryLabel: "새로고침",
-      onPrimary: () => {
-        location.reload();
+      onSecondary: () => {
+        localStorage.setItem(UPDATE_SNOOZE_KEY, String(Date.now()));
       },
     });
   }
 
   function noteBuildActivated() {
-    const prev = localStorage.getItem(BUILD_KEY);
-    localStorage.setItem(BUILD_KEY, APP_BUILD);
-    if (userApprovedUpdate && prev && prev !== APP_BUILD) {
-      showStatus("ready", "업데이트 완료 · 최신 버전입니다");
+    // First install only — never mark a new build as done before user taps 업데이트
+    const activated = localStorage.getItem(ACTIVATED_KEY);
+    if (!activated) {
+      const legacy = localStorage.getItem(BUILD_KEY) || "";
+      if (legacy && legacy !== APP_BUILD) {
+        // Returning user from older builds — keep legacy as "accepted" so remote check prompts
+        localStorage.setItem(ACTIVATED_KEY, legacy);
+        promptUpdateAvailable(RELEASE_NOTES);
+        return;
+      }
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
+      return;
     }
+    if (userApprovedUpdate && activated !== APP_BUILD) {
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
+      showStatus("ready", "업데이트 완료 · 최신 버전입니다");
+    } else if (activated !== APP_BUILD) {
+      promptUpdateAvailable(RELEASE_NOTES);
+    }
+  }
+
+  async function checkRemoteBuild() {
+    try {
+      const res = await fetch(`./app-build.json?t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
+      const remoteBuild = String(data.build || "");
+      if (!remoteBuild) return;
+      const activated = localStorage.getItem(ACTIVATED_KEY) || "";
+      // Network says newer (or different) than what user last accepted
+      if (activated && activated !== remoteBuild) {
+        promptUpdateAvailable(data.notes);
+      }
+      // Script already newer than last activated (HTML/JS query bumped)
+      if (activated && activated !== APP_BUILD) {
+        promptUpdateAvailable(RELEASE_NOTES);
+      }
+    } catch (_) {}
   }
 
   function syncOnlineState() {
@@ -405,20 +456,19 @@
 
   if (!("serviceWorker" in navigator)) {
     syncOnlineState();
+    checkRemoteBuild();
     return;
   }
 
   navigator.serviceWorker.addEventListener("message", (event) => {
     const data = event.data || {};
     if (data.type !== "PWA_STATUS") return;
-    // Never surface silent background install as forced update UI
     if (data.state === "updating" || data.state === "ready" || data.state === "activated") {
       if (!userApprovedUpdate) return;
       showStatus(data.state, data);
     }
   });
 
-  // NEVER auto-reload. Only after customer approved update.
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!userApprovedUpdate) return;
     if (refreshing) return;
@@ -428,15 +478,18 @@
 
   const register = () => {
     const swUrl = new URL(`sw.js?v=${APP_BUILD}`, location.href).href;
-    let updateOffered = false;
 
     navigator.serviceWorker
       .register(swUrl, { scope: "./", updateViaCache: "none" })
       .then(async (reg) => {
         const offerUpdate = (worker) => {
-          if (!worker || updateOffered) return;
-          if (!navigator.serviceWorker.controller) return;
-          updateOffered = true;
+          if (!worker) return;
+          if (!navigator.serviceWorker.controller) {
+            // First SW install — mark activated, no dialog
+            localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+            localStorage.setItem(BUILD_KEY, APP_BUILD);
+            return;
+          }
           pendingWorker = worker;
           promptUpdateAvailable();
         };
@@ -453,7 +506,6 @@
         if (reg.waiting) offerUpdate(reg.waiting);
 
         reg.addEventListener("updatefound", () => {
-          // Silent download only — no banner, no reload
           trackWorker(reg.installing);
         });
 
@@ -463,13 +515,11 @@
 
         await navigator.serviceWorker.ready;
         noteBuildActivated();
-
-        await new Promise((r) => setTimeout(r, 900));
-        if (!updateOffered && !reg.waiting && !reg.installing && navigator.onLine) {
-          promptAlreadyFresh();
-        }
+        await checkRemoteBuild();
       })
-      .catch(() => {});
+      .catch(() => {
+        checkRemoteBuild();
+      });
   };
 
   if (document.readyState === "complete") register();

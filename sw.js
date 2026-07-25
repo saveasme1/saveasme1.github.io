@@ -1,5 +1,5 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260725-pwa11";
+const CACHE_VERSION = "hx-pwa-v20260725-pwa12";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -13,6 +13,7 @@ const PRECACHE = [
   "./search.html",
   "./offline.html",
   "./manifest.webmanifest",
+  "./app-build.json",
   "./sw.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -47,6 +48,17 @@ const PRECACHE = [
   "./portfolio-data.json",
   "./notices-data.json",
   "./reviews-data.json",
+  "./home-media/look-1.jpg",
+  "./home-media/look-2.jpg",
+  "./home-media/look-3.jpg",
+  "./home-media/look-4.jpg",
+  "./home-media/look-5.jpg",
+  "./home-media/look-6.jpg",
+  "./home-media/story-1.jpg",
+  "./home-media/story-2.jpg",
+  "./home-media/gold-bg.jpg",
+  "./home-media/atelier.jpg",
+  "./heritage-gold/",
 ];
 
 const CDN_PRECACHE = [
