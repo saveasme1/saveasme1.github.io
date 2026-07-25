@@ -1,13 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa14";
-  const APP_VERSION = "v1.6.0";
+  const APP_BUILD = "20260725-pwa15";
+  const APP_VERSION = "v1.6.1";
   const RELEASE_NOTES = [
-    "메인 AI 검색: 앨범·카메라·카테고리칩·결과 레일 동작",
-    "메인 금시세: LIVE/캐시, 1돈·1g·14K·18K, 스파크라인",
-    "금시세 상세 페이지도 동일 유닛·새로고침 강화",
-    "준비중 플레이스홀더 제거",
+    "사진으로 찾기를 금시세 바로 위로 이동",
+    "AI 섹션 중복 카테고리 칩 제거",
+    "금시세 API 교체(기존 403) · LIVE 시세 복구",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

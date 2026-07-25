@@ -202,18 +202,21 @@
   }
 
   async function fetchGoldDon() {
-    const parseAsg = (data) => {
-      const item = Array.isArray(data.items) ? data.items[0] : data;
-      const perGram = Number(item?.xauPrice || item?.XAU || 0);
-      if (!(perGram > 0)) return null;
-      const perG = perGram > 100000 ? perGram : perGram / 31.1035;
-      return { don: perG * 3.75, perG, at: new Date().toISOString(), source: "live" };
+    const fromPerOzKrw = (krwOz, source) => {
+      const oz = Number(krwOz);
+      if (!(oz > 0)) return null;
+      const perG = oz / 31.1035;
+      return { don: perG * 3.75, perG, at: new Date().toISOString(), source };
     };
 
+    // 1) XAU→KRW (CORS OK) — troy oz in KRW
     try {
-      const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
+      const res = await fetch("https://latest.currency-api.pages.dev/v1/currencies/xau.json", {
+        cache: "no-store",
+      });
       if (res.ok) {
-        const info = parseAsg(await res.json());
+        const data = await res.json();
+        const info = fromPerOzKrw(data?.xau?.krw, "live");
         if (info) {
           writeGoldCache(info);
           return info;
@@ -221,15 +224,39 @@
       }
     } catch (_) {}
 
-    // CORS-friendly mirror attempt via goldprice.org json
+    // 2) Gold USD/oz × USD→KRW
     try {
-      const res = await fetch("https://data-asg.goldprice.org/dbXRates/USD", { cache: "no-cache" });
+      const [gRes, fxRes] = await Promise.all([
+        fetch("https://api.gold-api.com/price/XAU", { cache: "no-store" }),
+        fetch("https://latest.currency-api.pages.dev/v1/currencies/usd.json", { cache: "no-store" }),
+      ]);
+      if (gRes.ok && fxRes.ok) {
+        const g = await gRes.json();
+        const fx = await fxRes.json();
+        const usdOz = Number(g?.price || 0);
+        const usdKrw = Number(fx?.usd?.krw || 0);
+        if (usdOz > 0 && usdKrw > 0) {
+          const info = fromPerOzKrw(usdOz * usdKrw, "live");
+          if (info) {
+            writeGoldCache(info);
+            return info;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 3) legacy feed (often 403 now)
+    try {
+      const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
       if (res.ok) {
         const data = await res.json();
         const item = Array.isArray(data.items) ? data.items[0] : data;
-        const usdOz = Number(item?.xauPrice || 0);
-        if (usdOz > 0) {
-          // rough KRW via cached ratio or skip
+        const perGram = Number(item?.xauPrice || item?.XAU || 0);
+        if (perGram > 0) {
+          const perG = perGram > 100000 ? perGram : perGram / 31.1035;
+          const info = { don: perG * 3.75, perG, at: new Date().toISOString(), source: "live" };
+          writeGoldCache(info);
+          return info;
         }
       }
     } catch (_) {}
@@ -313,154 +340,6 @@
 
     let activeCat = "ALL";
     host.innerHTML = "";
-
-    // —— AI Search mini (works on home) ——
-    const aiSec = document.createElement("section");
-    aiSec.className = "pwa-aiseek";
-    aiSec.innerHTML =
-      `<div class="pwa-aiseek__head">` +
-      `<div><p class="pwa-sec__eyebrow">AI SEARCH</p><h2>사진으로 찾기</h2></div>` +
-      `<a href="./search.html">전체</a>` +
-      `</div>` +
-      `<p class="pwa-aiseek__status" id="pwaAiStatus">엔진 확인 중…</p>` +
-      `<div class="pwa-aiseek__actions">` +
-      `<label class="pwa-aiseek__btn"><input type="file" accept="image/*" hidden id="pwaAiAlbum"><span>앨범</span></label>` +
-      `<label class="pwa-aiseek__btn is-cam"><input type="file" accept="image/*" capture="environment" hidden id="pwaAiCam"><span>카메라</span></label>` +
-      `<button type="button" class="pwa-aiseek__btn is-ghost" data-go="search">상세검색</button>` +
-      `</div>` +
-      `<div class="pwa-aiseek__chips" id="pwaAiChips"></div>` +
-      `<div class="pwa-aiseek__rail" id="pwaAiRail" hidden></div>` +
-      `<div class="pwa-aiseek__loading" id="pwaAiLoading" hidden><i></i><span>비슷한 작품 찾는 중…</span></div>`;
-    host.append(aiSec);
-
-    const aiStatus = aiSec.querySelector("#pwaAiStatus");
-    const aiRail = aiSec.querySelector("#pwaAiRail");
-    const aiLoading = aiSec.querySelector("#pwaAiLoading");
-    const aiChips = aiSec.querySelector("#pwaAiChips");
-
-    // Quick keyword chips → local portfolio filter (instant trendy UX)
-    ["ALL", ...cats.slice(0, 6)].forEach((code) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.textContent = code === "ALL" ? "추천" : code;
-      chip.addEventListener("click", () => {
-        aiChips.querySelectorAll("button").forEach((b) => b.classList.remove("is-on"));
-        chip.classList.add("is-on");
-        const list =
-          code === "ALL" ? items.slice(0, 8) : items.filter((x) => x.category === code).slice(0, 8);
-        renderAiLocal(list, code === "ALL" ? "추천 작품" : `${code} 카테고리`);
-      });
-      aiChips.append(chip);
-    });
-
-    function renderAiLocal(list, label) {
-      aiRail.hidden = false;
-      aiRail.innerHTML = "";
-      if (!list.length) {
-        aiRail.innerHTML = `<p class="pwa-aiseek__empty">결과 없음</p>`;
-        if (aiStatus) aiStatus.textContent = label;
-        return;
-      }
-      list.forEach((item) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "pwa-aiseek__card";
-        b.innerHTML =
-          `<img alt="" loading="lazy" src="${assetUrl(item.cover || item.image)}">` +
-          `<span>${String(item.title || "").replace(/^[A-Z&]+\s+/, "") || item.category || "작품"}</span>`;
-        protect(b.querySelector("img"));
-        b.addEventListener("click", () => goPortfolio(item.category || "ALL", item.id));
-        aiRail.append(b);
-      });
-      if (aiStatus) aiStatus.textContent = `${label} · ${list.length}건`;
-    }
-
-    // Seed with recommendations so it's never empty
-    renderAiLocal(items.slice(0, 8), "추천 작품");
-    aiChips.querySelector("button")?.classList.add("is-on");
-
-    async function checkAiHealth() {
-      try {
-        const res = await fetch(`${AI_API}/health`, { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error("offline");
-        if (!data.indexReady) {
-          if (aiStatus) aiStatus.textContent = "AI 인덱스 준비 중 · 카테고리로도 찾을 수 있어요";
-          return;
-        }
-        if (aiStatus) aiStatus.textContent = "사진 올리면 비슷한 작품 검색 · BETA";
-      } catch (_) {
-        if (aiStatus) aiStatus.textContent = "오프라인/API 대기 · 아래 카테고리로 바로 탐색";
-      }
-    }
-    checkAiHealth();
-
-    async function runAiSearch(file) {
-      if (!file) return;
-      if (file.size > 10 * 1024 * 1024) {
-        if (aiStatus) aiStatus.textContent = "이미지는 10MB 이하로 올려 주세요";
-        return;
-      }
-      aiLoading.hidden = false;
-      if (aiStatus) aiStatus.textContent = "이미지 분석 중…";
-      try {
-        const upload = await compressImageFile(file);
-        const body = new FormData();
-        body.append("file", upload, upload.name || "query.jpg");
-        const res = await fetch(`${AI_API}/search/image?limit=12`, { method: "POST", body });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || data.ok === false) throw new Error(data.detail || data.message || "fail");
-        const rows = data.results || [];
-        aiRail.hidden = false;
-        aiRail.innerHTML = "";
-        if (!rows.length) {
-          aiRail.innerHTML = `<p class="pwa-aiseek__empty">유사한 작품을 못 찾았어요 · 카테고리로 탐색해 보세요</p>`;
-          if (aiStatus) aiStatus.textContent = "검색 결과 없음";
-          return;
-        }
-        rows.slice(0, 10).forEach((row) => {
-          const id = row.product_id || row.id;
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = "pwa-aiseek__card";
-          const title = String(row.title || row.product_name || id || "")
-            .replace(/\b(Cartier|Bulgari|Bvlgari|Tiffany|Chanel|Hermes|Hermès)\b/gi, "")
-            .replace(/\s{2,}/g, " ")
-            .trim();
-          b.innerHTML =
-            `<img alt="" loading="lazy" src="${row.coverUrl || row.image_url || ""}">` +
-            `<span>${title || "결과"}</span>` +
-            `<em>${row.source_type === "web" ? "WEB" : "PF"}</em>`;
-          protect(b.querySelector("img"));
-          b.addEventListener("click", () => {
-            if (row.product_url) {
-              location.href = row.product_url;
-              return;
-            }
-            location.href = `./portfolio.html?id=${encodeURIComponent(id || "")}`;
-          });
-          aiRail.append(b);
-        });
-        if (aiStatus) aiStatus.textContent = `${rows.length}건 찾음 · BETA`;
-      } catch (_) {
-        if (aiStatus) aiStatus.textContent = "AI 검색 실패 · 카테고리/전체검색을 이용해 주세요";
-        // fallback: show local similar-by-category random
-        renderAiLocal(items.slice(0, 8), "추천으로 대체");
-      } finally {
-        aiLoading.hidden = true;
-      }
-    }
-
-    aiSec.querySelector("#pwaAiAlbum")?.addEventListener("change", (e) => {
-      const f = e.target.files?.[0];
-      if (f) runAiSearch(f);
-      e.target.value = "";
-    });
-    aiSec.querySelector("#pwaAiCam")?.addEventListener("change", (e) => {
-      const f = e.target.files?.[0];
-      if (f) runAiSearch(f);
-      e.target.value = "";
-    });
 
     // Hero banner — shorter commerce banner
     const hero = document.createElement("button");
@@ -564,6 +443,110 @@
     ).join("");
     host.append(services);
 
+    // —— AI Search mini (above gold only — no category chips) ——
+    const aiSec = document.createElement("section");
+    aiSec.className = "pwa-aiseek";
+    aiSec.innerHTML =
+      `<div class="pwa-aiseek__head">` +
+      `<div><p class="pwa-sec__eyebrow">AI SEARCH</p><h2>사진으로 찾기</h2></div>` +
+      `<a href="./search.html">전체</a>` +
+      `</div>` +
+      `<p class="pwa-aiseek__status" id="pwaAiStatus">엔진 확인 중…</p>` +
+      `<div class="pwa-aiseek__actions">` +
+      `<label class="pwa-aiseek__btn"><input type="file" accept="image/*" hidden id="pwaAiAlbum"><span>앨범</span></label>` +
+      `<label class="pwa-aiseek__btn is-cam"><input type="file" accept="image/*" capture="environment" hidden id="pwaAiCam"><span>카메라</span></label>` +
+      `<button type="button" class="pwa-aiseek__btn is-ghost" data-go="search">상세검색</button>` +
+      `</div>` +
+      `<div class="pwa-aiseek__rail" id="pwaAiRail" hidden></div>` +
+      `<div class="pwa-aiseek__loading" id="pwaAiLoading" hidden><i></i><span>비슷한 작품 찾는 중…</span></div>`;
+    host.append(aiSec);
+
+    const aiStatus = aiSec.querySelector("#pwaAiStatus");
+    const aiRail = aiSec.querySelector("#pwaAiRail");
+    const aiLoading = aiSec.querySelector("#pwaAiLoading");
+
+    async function checkAiHealth() {
+      try {
+        const res = await fetch(`${AI_API}/health`, { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error("offline");
+        if (!data.indexReady) {
+          if (aiStatus) aiStatus.textContent = "AI 인덱스 준비 중 · 잠시 후 다시 시도";
+          return;
+        }
+        if (aiStatus) aiStatus.textContent = "앨범·카메라로 비슷한 작품 검색 · BETA";
+      } catch (_) {
+        if (aiStatus) aiStatus.textContent = "상세검색에서 이용하거나 잠시 후 다시 시도";
+      }
+    }
+    checkAiHealth();
+
+    async function runAiSearch(file) {
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        if (aiStatus) aiStatus.textContent = "이미지는 10MB 이하로 올려 주세요";
+        return;
+      }
+      aiLoading.hidden = false;
+      if (aiStatus) aiStatus.textContent = "이미지 분석 중…";
+      try {
+        const upload = await compressImageFile(file);
+        const body = new FormData();
+        body.append("file", upload, upload.name || "query.jpg");
+        const res = await fetch(`${AI_API}/search/image?limit=12`, { method: "POST", body });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) throw new Error(data.detail || data.message || "fail");
+        const rows = data.results || [];
+        aiRail.hidden = false;
+        aiRail.innerHTML = "";
+        if (!rows.length) {
+          aiRail.innerHTML = `<p class="pwa-aiseek__empty">유사한 작품을 못 찾았어요</p>`;
+          if (aiStatus) aiStatus.textContent = "검색 결과 없음";
+          return;
+        }
+        rows.slice(0, 10).forEach((row) => {
+          const id = row.product_id || row.id;
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "pwa-aiseek__card";
+          const title = String(row.title || row.product_name || id || "")
+            .replace(/\b(Cartier|Bulgari|Bvlgari|Tiffany|Chanel|Hermes|Hermès)\b/gi, "")
+            .replace(/\s{2,}/g, " ")
+            .trim();
+          b.innerHTML =
+            `<img alt="" loading="lazy" src="${row.coverUrl || row.image_url || ""}">` +
+            `<span>${title || "결과"}</span>` +
+            `<em>${row.source_type === "web" ? "WEB" : "PF"}</em>`;
+          protect(b.querySelector("img"));
+          b.addEventListener("click", () => {
+            if (row.product_url) {
+              location.href = row.product_url;
+              return;
+            }
+            location.href = `./portfolio.html?id=${encodeURIComponent(id || "")}`;
+          });
+          aiRail.append(b);
+        });
+        if (aiStatus) aiStatus.textContent = `${rows.length}건 찾음 · BETA`;
+      } catch (_) {
+        if (aiStatus) aiStatus.textContent = "검색 실패 · 상세검색을 이용해 주세요";
+        aiRail.hidden = true;
+      } finally {
+        aiLoading.hidden = true;
+      }
+    }
+
+    aiSec.querySelector("#pwaAiAlbum")?.addEventListener("change", (e) => {
+      const f = e.target.files?.[0];
+      if (f) runAiSearch(f);
+      e.target.value = "";
+    });
+    aiSec.querySelector("#pwaAiCam")?.addEventListener("change", (e) => {
+      const f = e.target.files?.[0];
+      if (f) runAiSearch(f);
+      e.target.value = "";
+    });
+
     // —— Gold market mini (live + cache + units) ——
     const market = document.createElement("section");
     market.className = "pwa-market";
@@ -606,8 +589,8 @@
       const sparkEl = document.getElementById("pwaGoldSpark");
       if (!priceEl) return;
       if (!info) {
-        priceEl.textContent = "연결 재시도 중";
-        if (subEl) subEl.textContent = "네트워크 후 자동 갱신됩니다";
+        priceEl.textContent = "시세 불러오는 중";
+        if (subEl) subEl.textContent = "잠시만 기다려 주세요";
         return;
       }
       const map = {
@@ -634,7 +617,6 @@
       if (sparkEl) {
         let series = goldSeries();
         if (series.length < 2) {
-          // synthetic gentle wave around current for first-run visual
           const base = info.don;
           series = Array.from({ length: 10 }, (_, i) => base * (1 + Math.sin(i / 2.2) * 0.004));
         }
