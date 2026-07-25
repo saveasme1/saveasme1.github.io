@@ -1,0 +1,29 @@
+{
+  "productId": "validation-necklace",
+  "type": "pendant_necklace",
+  "model": "model.glb",
+  "unit": "mm",
+  "chainLengthMm": 420,
+  "pendantWidthMm": 14,
+  "pendantHeightMm": 20,
+  "dropMm": 38,
+  "defaultScale": 1,
+  "rotationOffset": [
+    0,
+    0,
+    0
+  ],
+  "allowedScaleRange": [
+    0.94,
+    1.06
+  ],
+  "deformationPolicy": "chain-path-only",
+  "materialPreset": "yellow-gold-polished",
+  "occlusionMode": "neck-chest",
+  "validationAsset": true,
+  "lod": {
+    "high": "model.glb",
+    "medium": "model.glb",
+    "low": "model.glb"
+  }
+}
