@@ -3,6 +3,9 @@
  * Poses assume phone held in the RIGHT hand → left arm / face slightly angled.
  */
 
+import { estimateWristAnchor3D } from "./ar/WristAnchorEstimator.js";
+import { estimateFingerAnchor3D } from "./ar/FingerAnchorEstimator.js";
+
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const ESM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
 
@@ -115,25 +118,29 @@ function scoreBracelet(lm) {
       ? (Math.atan2(pinkyMcp.y - indexMcp.y, pinkyMcp.x - indexMcp.x) * 180) / Math.PI
       : ang + 90;
   const frontAng = (Math.atan2(mid.y - wrist.y, mid.x - wrist.x) * 180) / Math.PI;
+  const anchor3D = estimateWristAnchor3D(lm, { handedness: "Left" });
+  const placement = anchor3D || {
+    kind: "bracelet",
+    center: {
+      x: wrist.x + ((wrist.x - mid.x) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
+      y: wrist.y + ((wrist.y - mid.y) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
+    },
+    width: Math.max(palmSpan * 1.4, handSize * 0.35, 0.14),
+    angle: planeAng,
+    frontAngle: frontAng,
+  };
   return {
     score,
     ok,
     far,
     message: far
-      ? "왼손 손등 · 주황 링(+)에 손목을 맞춰 주세요"
+      ? "손목을 화면 중앙에 맞춰주세요"
       : ok
-        ? "좋아요! 그대로 유지해 주세요"
-        : "왼손 손등 · 엄지→오른쪽 · 손목(+)",
-    placement: {
-      kind: "bracelet",
-      center: {
-        x: wrist.x + ((wrist.x - mid.x) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
-        y: wrist.y + ((wrist.y - mid.y) / (dist2(wrist.x, wrist.y, mid.x, mid.y) || 1)) * 0.05,
-      },
-      width: Math.max(palmSpan * 1.4, handSize * 0.35, 0.14),
-      angle: planeAng,
-      frontAngle: frontAng,
-    },
+        ? "좋습니다. 그대로 유지해주세요"
+        : "손등을 카메라로 향해주세요",
+    placement,
+    landmarks: lm,
+    anchor3D,
   };
 }
 
@@ -186,11 +193,11 @@ function scoreRing(lm, finger = "ring") {
     ok,
     far,
     message: far
-      ? `왼손 ${spec.label}가 가이드에서 벗어났습니다`
+      ? `${spec.label}를 화면에 맞춰주세요`
       : ok
-        ? "좋아요! 그대로 3초간 유지해 주세요"
-        : `왼손 비스듬히 · ${spec.label}(+)에 맞춰 주세요`,
-    placement: {
+        ? "좋습니다. 그대로 유지해주세요"
+        : `${spec.label}를 곧게 펴주세요`,
+    placement: estimateFingerAnchor3D(lm, finger) || {
       kind: "ring",
       finger,
       center: mid,
@@ -201,6 +208,8 @@ function scoreRing(lm, finger = "ring") {
       pip: { x: pip.x, y: pip.y },
       tip: { x: tip.x, y: tip.y },
     },
+    landmarks: lm,
+    anchor3D: estimateFingerAnchor3D(lm, finger),
   };
 }
 
