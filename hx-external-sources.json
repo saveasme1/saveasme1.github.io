@@ -89,6 +89,30 @@
       "enabled": true
     },
     {
+      "id": "wikimedia_commons",
+      "name": "Wikimedia Commons",
+      "type": "media",
+      "docs": "https://commons.wikimedia.org/wiki/Commons:API",
+      "baseUrl": "https://commons.wikimedia.org/w/api.php",
+      "authentication": "none",
+      "cacheTtlHours": 48,
+      "rightsFilterRequired": true,
+      "attributionRequired": true,
+      "commercialUse": "per_file_license",
+      "enabled": true
+    },
+    {
+      "id": "wikipedia_onthisday",
+      "name": "Wikipedia On This Day",
+      "type": "editorial",
+      "docs": "https://en.wikipedia.org/api/rest_v1/",
+      "baseUrl": "https://en.wikipedia.org/api/rest_v1/feed/onthisday",
+      "authentication": "none",
+      "cacheTtlHours": 24,
+      "attributionRequired": true,
+      "enabled": true
+    },
+    {
       "id": "currency_xau",
       "name": "Currency API / Gold",
       "type": "market",

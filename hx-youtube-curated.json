@@ -3,6 +3,15 @@
   "disclaimer": "공식 YouTube embed만 사용. 영상 파일 재호스팅 없음. Heritage 소유·보증 아님.",
   "videos": [
     {
+      "id": "yt-gia-cut",
+      "videoId": "nb0DKoRBiSc",
+      "title": "4Cs of Diamond Quality: Diamond Cut Grading by GIA",
+      "titleKo": "GIA · 다이아 컷 그레이딩",
+      "channel": "GIA (Gemological Institute of America)",
+      "topic": "learn",
+      "tags": ["diamond", "cut"]
+    },
+    {
       "id": "yt-gia-4min",
       "videoId": "tXdPlZPI9qM",
       "title": "How to Choose a Diamond: Four-Minute GIA Diamond Grading Guide",

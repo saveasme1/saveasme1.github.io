@@ -9,7 +9,6 @@
   }
 
   function openSheet(title, build) {
-    if (window.HxDiscover?.openSheet) return; // fallback below
     let sheet = document.getElementById("hxMediaSheet");
     if (!sheet) {
       sheet = el("div", "hx-sheet");
@@ -153,13 +152,23 @@
     let gem;
     let trends;
     let videos;
+    let metals;
+    let onView;
+    let otd;
+    let commons;
+    let motifs;
     try {
-      [feed, jod, gem, trends, videos] = await Promise.all([
+      [feed, jod, gem, trends, videos, metals, onView, otd, commons, motifs] = await Promise.all([
         window.HxContent.buildGlobalFeed(),
         window.HxContent.jewelOfTheDay(),
         window.HxContent.gemstoneDaily(),
         window.HxContent.trendSignals().catch(() => null),
         window.HxContent.fetchVideos().catch(() => []),
+        window.HxExtras?.fetchMetalsBoard?.().catch(() => null),
+        window.HxExtras?.fetchMetOnView?.(6).catch(() => []),
+        window.HxExtras?.fetchOnThisDayJewelry?.().catch(() => []),
+        window.HxExtras?.fetchCommonsJewellery?.(8).catch(() => []),
+        window.HxExtras?.fetchMotifCards?.().catch(() => []),
       ]);
     } catch (err) {
       root.innerHTML = `<p class="hx-empty">외부 피드를 불러오지 못했습니다. 캐시·네트워크를 확인해 주세요.</p>`;
@@ -234,6 +243,41 @@
     });
     root.append(chips);
 
+    // Metals board
+    if (metals?.metals?.length) {
+      const msec = sec("MARKET", "귀금속 보드", metals.disclaimer + " · " + metals.attribution);
+      const grid = el("div", "hx-metals");
+      metals.metals.forEach((m) => {
+        const card = el("div", "hx-metals__card");
+        card.innerHTML =
+          `<b>${m.code}</b>` +
+          `<strong>${Math.round(m.krwPerDon).toLocaleString("ko-KR")}</strong>` +
+          `<span>원 / 1돈 환산</span>` +
+          `<em>1g ${Math.round(m.krwPerG).toLocaleString("ko-KR")} · ${m.date}</em>`;
+        grid.append(card);
+      });
+      msec.append(grid);
+      const calc = el("div", "hx-field");
+      calc.style.padding = "0 16px 8px";
+      calc.innerHTML =
+        `<label>무게(g) × 선택 메탈</label>` +
+        `<div class="hx-row"><input id="hxMetalG" type="number" min="0.1" step="0.1" value="3.75" style="flex:1">` +
+        `<select id="hxMetalPick">${metals.metals
+          .map((m, i) => `<option value="${i}">${m.code}</option>`)
+          .join("")}</select>` +
+        `<button type="button" class="hx-btn" id="hxMetalGo">계산</button></div>` +
+        `<p id="hxMetalOut" class="hx-note"></p>`;
+      msec.append(calc);
+      calc.querySelector("#hxMetalGo").addEventListener("click", () => {
+        const g = Math.max(0, Number(calc.querySelector("#hxMetalG").value) || 0);
+        const m = metals.metals[Number(calc.querySelector("#hxMetalPick").value) || 0];
+        const v = g * m.krwPerG;
+        calc.querySelector("#hxMetalOut").textContent =
+          `${g}g · ${m.code} 재료 참고가 약 ${Math.round(v).toLocaleString("ko-KR")}원 (순도·수수료 미반영)`;
+      });
+      root.append(msec);
+    }
+
     // Jewel of the Day
     if (jod) {
       const jsec = sec("JEWEL OF THE DAY", "오늘의 주얼", "뮤지엄 Open Access에서 날짜 고정 선정");
@@ -255,6 +299,115 @@
       videos.forEach((v) => rail.append(cardVideo(v)));
       vsec.append(rail);
       root.append(vsec);
+    }
+
+    // On view @ The Met
+    if (onView?.length) {
+      const osec = sec("ON VIEW", "지금 전시 중 · The Met", "isOnView=true · Public Domain만 표시");
+      const rail = el("div", "hx-rail");
+      onView.forEach((item) => rail.append(cardMuseum(item)));
+      osec.append(rail);
+      root.append(osec);
+    }
+
+    // Timeline eras
+    if (window.HxExtras?.ERAS) {
+      const tsec = sec("TIMELINE", "주얼리 시대 탐색", "Met Collection API 연도 필터 · 날짜 조작 없음");
+      const eras = el("div", "hx-chips");
+      const eraHost = el("div", "hx-rail");
+      eraHost.style.minHeight = "120px";
+      const loadEra = async (id) => {
+        eraHost.innerHTML = `<p class="hx-empty">불러오는 중…</p>`;
+        try {
+          const { era, items } = await window.HxExtras.fetchEraSamples(id, 8);
+          eraHost.replaceChildren();
+          if (!items.length) {
+            eraHost.append(el("p", "hx-empty", `${era.ko} 공개 도메인 샘플이 부족합니다.`));
+            return;
+          }
+          items.forEach((item) => eraHost.append(cardMuseum(item)));
+        } catch (_) {
+          eraHost.innerHTML = `<p class="hx-empty">시대 피드를 불러오지 못했습니다.</p>`;
+        }
+      };
+      window.HxExtras.ERAS.forEach((era, idx) => {
+        const b = el("button", idx === 4 ? "is-on" : "", era.ko);
+        b.type = "button";
+        b.addEventListener("click", () => {
+          eras.querySelectorAll("button").forEach((x) => x.classList.remove("is-on"));
+          b.classList.add("is-on");
+          loadEra(era.id);
+        });
+        eras.append(b);
+      });
+      tsec.append(eras, eraHost);
+      root.append(tsec);
+      loadEra("victorian");
+    }
+
+    // Commons gallery
+    if (commons?.length) {
+      const csec = sec("COMMONS", "Wikimedia 주얼리 아카이브", "Category: Jewellery in the Metropolitan Museum of Art");
+      const rail = el("div", "hx-rail");
+      commons.forEach((item) => rail.append(cardMuseum(item)));
+      csec.append(rail);
+      root.append(csec);
+    }
+
+    // On this day
+    if (otd?.length) {
+      const dsec = sec("ON THIS DAY", "역사 속 오늘", "Wikipedia On This Day · 주얼리 키워드 필터");
+      const list = el("div", "hx-otd");
+      otd.slice(0, 5).forEach((item) => {
+        const b = el("button", "hx-otd__row");
+        b.type = "button";
+        b.innerHTML = `<b>${item.objectDate || ""}</b><span>${item.title}</span>`;
+        b.addEventListener("click", () => showDetail(item));
+        list.append(b);
+      });
+      dsec.append(list);
+      root.append(dsec);
+    }
+
+    // Motifs
+    if (motifs?.length) {
+      const msec = sec("MOTIF", "모티프 백과", "Wikipedia 요약 · 원문 링크 유지");
+      const rail = el("div", "hx-rail");
+      motifs.forEach((item) => {
+        const b = el("button", "hx-know");
+        b.type = "button";
+        b.innerHTML = `<b>${item.titleKo || item.title}</b><p>${(item.summaryKo || "").slice(0, 110)}</p>`;
+        b.addEventListener("click", () => showDetail(item));
+        rail.append(b);
+      });
+      msec.append(rail);
+      root.append(msec);
+    }
+
+    // Hallmark decoder
+    if (window.HxExtras?.HALLMARKS) {
+      const hsec = sec("HALLMARK", "홀마크 디코더", "참고용 · 국가별 실표기는 다를 수 있음");
+      const box = el("div", "");
+      box.style.padding = "0 16px";
+      box.innerHTML =
+        `<div class="hx-field"><label>각인 입력 (예: 750, 925, K18)</label>` +
+        `<div class="hx-row"><input id="hxHall" type="text" placeholder="750" style="flex:1">` +
+        `<button type="button" class="hx-btn" id="hxHallGo">해석</button></div></div>` +
+        `<div id="hxHallOut"></div>`;
+      hsec.append(box);
+      box.querySelector("#hxHallGo").addEventListener("click", () => {
+        const hits = window.HxExtras.decodeHallmark(box.querySelector("#hxHall").value);
+        const out = box.querySelector("#hxHallOut");
+        out.replaceChildren();
+        if (!hits.length) {
+          out.append(el("p", "hx-empty", "일치하는 코드를 못 찾았습니다. 750/585/925/K18 등을 시도해 보세요."));
+          return;
+        }
+        hits.forEach((h) => {
+          out.append(el("div", "hx-vault-card", `<strong>${h.code}</strong><p>${h.mean}<br>${h.region}</p>`));
+        });
+      });
+      root.append(hsec);
     }
 
     // Gemstone daily

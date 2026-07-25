@@ -885,24 +885,42 @@
     const app = /[?&]app=1(?:&|$)/.test(location.search) ? "&app=1" : "";
     strip.append(
       mk("Jewelry Today", "뮤지엄·영상·젬", `./discover.html`),
-      mk("취향 퀴즈", "30초 맞춤 피드", `./discover.html#quiz`),
-      mk("다이아 사이즈", "캐럿 시각화", `./discover.html#diamond`),
-      mk("My Jewelry", "재료 가치 참고", `./discover.html#vault`)
+      mk("귀금속 보드", "금·은·플래티넘", `./discover.html`),
+      mk("시대 타임라인", "빅토리안→아르데코", `./discover.html`),
+      mk("홀마크", "750·925 해석", `./discover.html`)
     );
-    // Fix discover URL with app param
     strip.children[0].onclick = () => {
       location.href = `./discover.html${app ? `?app=1` : ""}`;
     };
     strip.children[1].onclick = () => {
-      location.href = `./discover.html${app ? "?app=1" : ""}#quiz`;
+      location.href = `./discover.html${app ? "?app=1" : ""}`;
     };
     strip.children[2].onclick = () => {
-      location.href = `./discover.html${app ? "?app=1" : ""}#diamond`;
+      location.href = `./discover.html${app ? "?app=1" : ""}`;
     };
     strip.children[3].onclick = () => {
-      location.href = `./discover.html${app ? "?app=1" : ""}#vault`;
+      location.href = `./discover.html${app ? "?app=1" : ""}`;
     };
     host.append(strip);
+
+    // Live metals mini (external)
+    if (window.HxExtras?.fetchMetalsBoard) {
+      window.HxExtras.fetchMetalsBoard().then((board) => {
+        if (!board?.metals?.length) return;
+        const bar = document.createElement("div");
+        bar.className = "hx-metals";
+        bar.style.marginTop = "0";
+        board.metals.forEach((m) => {
+          const card = document.createElement("div");
+          card.className = "hx-metals__card";
+          card.innerHTML =
+            `<b>${m.code}</b><strong>${Math.round(m.krwPerDon).toLocaleString("ko-KR")}</strong>` +
+            `<span>원/돈 참고</span>`;
+          bar.append(card);
+        });
+        host.insertBefore(bar, strip.nextSibling);
+      }).catch(() => {});
+    }
 
     const daily = window.HxCatalog.dailyPick(catalog);
     if (daily) {

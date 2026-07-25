@@ -753,11 +753,75 @@ html.is-pwa {
   margin-bottom: 10px;
 }
 
-.hx-attr {
-  color: rgba(245, 245, 245, 0.5);
+.hx-metals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px 10px;
+}
+
+.hx-metals__card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #141414;
+  padding: 12px 10px;
+}
+
+.hx-metals__card b {
+  display: block;
+  color: var(--hx-gold, #c9a66b);
   font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.hx-metals__card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.hx-metals__card span,
+.hx-metals__card em {
+  display: block;
+  margin-top: 2px;
+  color: rgba(245, 245, 245, 0.45);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.hx-otd {
+  margin: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hx-otd__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: transparent;
+  color: inherit;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.hx-otd__row:last-child {
+  border-bottom: 0;
+}
+
+.hx-otd__row b {
+  color: var(--hx-gold, #c9a66b);
+  font-size: 12px;
+}
+
+.hx-otd__row span {
+  font-size: 12px;
   line-height: 1.4;
-  margin: 0 0 10px;
+  color: rgba(245, 245, 245, 0.78);
 }
 
 /* Home previews */

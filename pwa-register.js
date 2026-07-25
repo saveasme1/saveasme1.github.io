@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260726-pwa20";
-  const APP_VERSION = "v1.9.0";
+  const APP_BUILD = "20260726-pwa21";
+  const APP_VERSION = "v1.9.1";
   const RELEASE_NOTES = [
-    "Jewelry Today: Met·Cleveland·AIC 뮤지엄 실시간 피드",
-    "GIA YouTube 공식 embed · Gemstone Daily · Wiki 트렌드",
-    "Discover가 외부 콘텐츠 중심으로 전환",
+    "귀금속 보드·Met 전시중·시대 타임라인·Commons 아카이브",
+    "On This Day·모티프 백과·홀마크 디코더 추가",
+    "GIA 컷 영상 추가 · Jewelry Today 확장",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
