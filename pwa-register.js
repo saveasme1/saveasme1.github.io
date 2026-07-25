@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260726-pwa19";
-  const APP_VERSION = "v1.8.0";
+  const APP_BUILD = "20260726-pwa20";
+  const APP_VERSION = "v1.9.0";
   const RELEASE_NOTES = [
-    "Discover 허브: 취향퀴즈·For You·에디트·비교·다이아·선물·Vault",
-    "하단 탭 「발견」추가 · 포폴은 페이지 전환 유지",
-    "로컬 취향·최근본·위시 기반 개인화(AI 추천 아님)",
+    "Jewelry Today: Met·Cleveland·AIC 뮤지엄 실시간 피드",
+    "GIA YouTube 공식 embed · Gemstone Daily · Wiki 트렌드",
+    "Discover가 외부 콘텐츠 중심으로 전환",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

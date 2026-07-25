@@ -1,0 +1,33 @@
+{
+  "updated": "2026-07-26",
+  "disclaimer": "공식 YouTube embed만 사용. 영상 파일 재호스팅 없음. Heritage 소유·보증 아님.",
+  "videos": [
+    {
+      "id": "yt-gia-4min",
+      "videoId": "tXdPlZPI9qM",
+      "title": "How to Choose a Diamond: Four-Minute GIA Diamond Grading Guide",
+      "titleKo": "GIA · 다이아몬드 고르는 법 (4분)",
+      "channel": "GIA (Gemological Institute of America)",
+      "topic": "learn",
+      "tags": ["diamond", "4cs", "education"]
+    },
+    {
+      "id": "yt-gia-10min",
+      "videoId": "PafhSuJQb30",
+      "title": "How to Choose a Diamond: 10-Minute GIA Diamond Grading Guide",
+      "titleKo": "GIA · 다이아몬드 그레이딩 가이드 (10분)",
+      "channel": "GIA (Gemological Institute of America)",
+      "topic": "learn",
+      "tags": ["diamond", "4cs"]
+    },
+    {
+      "id": "yt-lost-wax-home",
+      "videoId": "VtDGF8HxlAI",
+      "title": "How to Create a Bezel Cup in Wax | Lost Wax Casting Jewelry at Home",
+      "titleKo": "로스트왁스 · 베젤 컵 왁스 카빙",
+      "channel": "Mitera Made Jewelry",
+      "topic": "craft",
+      "tags": ["casting", "wax", "craft"]
+    }
+  ]
+}

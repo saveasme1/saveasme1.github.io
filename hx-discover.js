@@ -809,10 +809,16 @@
   async function bootDiscoverPage() {
     const root = document.getElementById("hxDiscover");
     if (!root) return;
-    root.innerHTML = `<p class="hx-empty">디스커버 준비 중…</p>`;
+    root.innerHTML = `<p class="hx-empty">Jewelry Today 준비 중…</p>`;
     try {
+      if (window.HxToday?.renderToday) {
+        await window.HxToday.renderToday(root);
+      }
       await ensureData();
-      renderFeed();
+      const toolsWrap = document.createElement("div");
+      toolsWrap.id = "hxInternalTools";
+      root.append(toolsWrap);
+      renderInternalTools(toolsWrap);
       const hash = location.hash.replace("#", "");
       if (hash === "quiz") openQuiz();
       if (hash === "diamond") openDiamond();
@@ -820,8 +826,42 @@
       if (hash === "vault") openVault();
       if (hash === "compare") openCompare();
     } catch (err) {
-      root.innerHTML = `<p class="hx-empty">디스커버를 불러오지 못했습니다. 네트워크 후 다시 시도해 주세요.</p>`;
+      if (!root.querySelector(".hx-jod") && !root.querySelector(".hx-feed-grid")) {
+        root.innerHTML = `<p class="hx-empty">디스커버를 불러오지 못했습니다. 네트워크 후 다시 시도해 주세요.</p>`;
+      }
     }
+  }
+
+  function renderInternalTools(host) {
+    if (!host) return;
+    const head = document.createElement("div");
+    head.className = "hx-sec__head";
+    head.innerHTML = `<div><p class="hx-page__eyebrow">HERITAGE TOOLS</p><h2>유틸리티</h2></div>`;
+    host.append(head);
+    const tools = document.createElement("div");
+    tools.className = "hx-tools";
+    const toolDefs = [
+      { t: "퀴즈", s: "취향", fn: openQuiz },
+      { t: "다이아", s: "사이즈", fn: openDiamond },
+      { t: "예산", s: "가이드", fn: openBudget },
+      { t: "비교", s: "2–4", fn: openCompare },
+      { t: "선물", s: "찾기", fn: openGift },
+      { t: "가치", s: "Vault", fn: openVault },
+      { t: "사이즈", s: "가이드", fn: openSizes },
+      { t: "컬렉션", s: "폴더", fn: openCollections },
+    ];
+    toolDefs.forEach((def) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = `${def.t}<span>${def.s}</span>`;
+      b.addEventListener("click", def.fn);
+      tools.append(b);
+    });
+    host.append(tools);
+    const note = document.createElement("p");
+    note.className = "hx-note";
+    note.textContent = "아래는 내부 포트폴리오·로컬 유틸입니다. 위쪽 Jewelry Today가 외부 콘텐츠 중심입니다.";
+    host.append(note);
   }
 
   async function mountHomeTeasers(host) {
@@ -844,7 +884,7 @@
     };
     const app = /[?&]app=1(?:&|$)/.test(location.search) ? "&app=1" : "";
     strip.append(
-      mk("Discover", "취향·에디트·도구", `./discover.html?${app.replace(/^&/, "")}`.replace(/\?$/, "")),
+      mk("Jewelry Today", "뮤지엄·영상·젬", `./discover.html`),
       mk("취향 퀴즈", "30초 맞춤 피드", `./discover.html#quiz`),
       mk("다이아 사이즈", "캐럿 시각화", `./discover.html#diamond`),
       mk("My Jewelry", "재료 가치 참고", `./discover.html#vault`)
