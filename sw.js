@@ -1,6 +1,8 @@
-/* 본 헤리티지 PWA service worker — offline-first shell */
-const CACHE_VERSION = "hx-pwa-v20260725-offline2";
+/* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
+const CACHE_VERSION = "hx-pwa-v20260725-pwa3";
+const RUNTIME_CACHE = "hx-pwa-runtime-images-v1";
 const OFFLINE_FALLBACK = "./landing.html";
+const MAX_RUNTIME_IMAGES = 180;
 
 const PRECACHE = [
   "./",
@@ -8,6 +10,7 @@ const PRECACHE = [
   "./landing.html",
   "./mypage.html",
   "./portfolio.html",
+  "./search.html",
   "./offline.html",
   "./manifest.webmanifest",
   "./sw.js",
@@ -22,6 +25,7 @@ const PRECACHE = [
   "./boards.css",
   "./tryon-overlay.css",
   "./price-trend-panel.css",
+  "./search.css",
   "./site-nav.js",
   "./brand-codes.js",
   "./brand-codes.json",
@@ -34,6 +38,7 @@ const PRECACHE = [
   "./html-editor.js",
   "./time-kr.js",
   "./mypage.js",
+  "./search.js",
   "./pwa-register.js",
   "./tryon-overlay.js",
   "./shipping-data.json",
@@ -48,22 +53,56 @@ const CDN_PRECACHE = [
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js",
 ];
 
+function broadcast(message) {
+  self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    clients.forEach((client) => client.postMessage(message));
+  });
+}
+
 async function precacheAll() {
   const cache = await caches.open(CACHE_VERSION);
-  const urls = PRECACHE.concat(CDN_PRECACHE);
-  await Promise.all(
-    urls.map(async (url) => {
-      try {
-        const req = new Request(url, { cache: "reload", mode: "cors", credentials: "omit" });
-        const res = await fetch(req);
-        if (res && (res.ok || res.type === "opaque")) {
-          await cache.put(url, res);
+  let urls = PRECACHE.concat(CDN_PRECACHE);
+
+  // Cover thumbs for offline grid (seed only — details stay runtime-cached)
+  try {
+    const seedRes = await fetch("./portfolio-data.json", { cache: "reload" });
+    if (seedRes.ok) {
+      const data = await seedRes.json();
+      const covers = (data.items || [])
+        .map((item) => item && item.image)
+        .filter((src) => typeof src === "string" && src.length > 0)
+        .map((src) => (src.startsWith("http") ? src : "./" + src.replace(/^\.\//, "")));
+      // Cap to keep first install reasonable on mobile data
+      urls = urls.concat(covers.slice(0, 120));
+    }
+  } catch (_) {}
+
+  let done = 0;
+  broadcast({ type: "PWA_STATUS", state: "updating", total: urls.length, done: 0 });
+
+  for (const url of urls) {
+    try {
+      const req = new Request(url, { cache: "reload", mode: "cors", credentials: "omit" });
+      const res = await fetch(req);
+      if (res && (res.ok || res.type === "opaque")) {
+        await cache.put(url, res.clone());
+        try {
+          const u = new URL(url, self.location.href);
+          if (u.origin === self.location.origin) {
+            await cache.put(u.origin + u.pathname, res.clone());
+          }
+        } catch (_) {}
+        if (isImageRequest(req, new URL(url, self.location.href))) {
+          await putRuntimeImage(req, res);
         }
-      } catch (_) {
-        /* one miss must not abort the whole install */
       }
-    })
-  );
+    } catch (_) {}
+    done += 1;
+    if (done % 4 === 0 || done === urls.length) {
+      broadcast({ type: "PWA_STATUS", state: "updating", total: urls.length, done });
+    }
+  }
+  broadcast({ type: "PWA_STATUS", state: "ready", total: urls.length, done });
 }
 
 self.addEventListener("install", (event) => {
@@ -74,13 +113,28 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((k) => k !== CACHE_VERSION && k !== RUNTIME_CACHE)
+            .map((k) => caches.delete(k))
+        )
+      )
       .then(() => self.clients.claim())
+      .then(() => broadcast({ type: "PWA_STATUS", state: "activated" }))
   );
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  const data = event.data || {};
+  if (data.type === "SKIP_WAITING") self.skipWaiting();
+  if (data.type === "GET_STATUS") {
+    event.source &&
+      event.source.postMessage({
+        type: "PWA_STATUS",
+        state: navigator.onLine === false ? "offline" : "ready",
+      });
+  }
 });
 
 function isApiHost(hostname) {
@@ -91,16 +145,34 @@ function isCdnHost(hostname) {
   return /cdn\.jsdelivr\.net/i.test(hostname);
 }
 
+function isImageRequest(req, url) {
+  if (req.destination === "image") return true;
+  return /\.(png|jpe?g|webp|gif|svg|avif)(\?|$)/i.test(url.pathname);
+}
+
+function offlineImageResponse() {
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
+    '<rect width="640" height="640" fill="#2a2724"/>' +
+    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">오프라인</text>' +
+    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">아직 저장되지 않은 이미지</text>' +
+    "</svg>";
+  return new Response(svg, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 async function matchIgnoringSearch(request) {
   const direct = await caches.match(request);
   if (direct) return direct;
 
   const url = new URL(request.url);
-  if (url.search) {
-    const bare = url.origin + url.pathname;
-    const hit = await caches.match(bare);
-    if (hit) return hit;
-  }
+  const bare = url.origin + url.pathname;
+  const hitBare = await caches.match(bare);
+  if (hitBare) return hitBare;
 
   const cache = await caches.open(CACHE_VERSION);
   const keys = await cache.keys();
@@ -115,7 +187,26 @@ async function matchIgnoringSearch(request) {
       }
     } catch (_) {}
   }
+
+  if (isImageRequest(request, url)) {
+    const runtime = await caches.open(RUNTIME_CACHE);
+    const rHit = (await runtime.match(request)) || (await runtime.match(bare));
+    if (rHit) return rHit;
+  }
   return null;
+}
+
+async function putRuntimeImage(request, response) {
+  try {
+    const cache = await caches.open(RUNTIME_CACHE);
+    await cache.put(request, response.clone());
+    const url = new URL(request.url);
+    await cache.put(url.origin + url.pathname, response.clone());
+    const keys = await cache.keys();
+    if (keys.length > MAX_RUNTIME_IMAGES) {
+      await cache.delete(keys[0]);
+    }
+  } catch (_) {}
 }
 
 async function offlineShell() {
@@ -123,9 +214,8 @@ async function offlineShell() {
     (await caches.match(OFFLINE_FALLBACK)) ||
     (await caches.match("./landing.html")) ||
     (await caches.match("./offline.html")) ||
-    (await caches.match("./index.html")) ||
     new Response(
-      "<!doctype html><meta charset=utf-8><title>오프라인</title><body style='font-family:sans-serif;padding:24px'><h1>오프라인</h1><p>네트워크 연결 후 앱을 한 번 열어 주세요.</p></body>",
+      "<!doctype html><meta charset=utf-8><title>오프라인</title><body style='font-family:sans-serif;padding:24px;background:#161513;color:#fff'><h1>오프라인</h1><p>와이파이에서 앱을 한 번 열어 데이터를 준비해 주세요.</p></body>",
       { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
     )
   );
@@ -145,8 +235,7 @@ self.addEventListener("fetch", (event) => {
           const network = fetch(req)
             .then((res) => {
               if (res && res.ok) {
-                const copy = res.clone();
-                caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+                caches.open(CACHE_VERSION).then((c) => c.put(req, res.clone()));
               }
               return res;
             })
@@ -163,13 +252,9 @@ self.addEventListener("fetch", (event) => {
       fetch(req)
         .then((res) => {
           if (res && res.ok) {
-            const copy = res.clone();
             caches.open(CACHE_VERSION).then((c) => {
-              c.put(req, copy);
-              try {
-                const u = new URL(req.url);
-                c.put(u.origin + u.pathname, res.clone());
-              } catch (_) {}
+              c.put(req, res.clone());
+              c.put(url.origin + url.pathname, res.clone());
             });
           }
           return res;
@@ -179,24 +264,35 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const image = isImageRequest(req, url);
+
   event.respondWith(
     matchIgnoringSearch(req).then((cached) => {
       const network = fetch(req)
         .then((res) => {
           if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_VERSION).then((c) => {
-              c.put(req, copy);
-              try {
-                const u = new URL(req.url);
-                if (u.search) c.put(u.origin + u.pathname, res.clone());
-              } catch (_) {}
-            });
+            if (image) putRuntimeImage(req, res);
+            else {
+              caches.open(CACHE_VERSION).then((c) => {
+                c.put(req, res.clone());
+                if (url.search) c.put(url.origin + url.pathname, res.clone());
+              });
+            }
           }
           return res;
         })
-        .catch(() => cached);
-      return cached || network;
+        .catch(() => {
+          if (cached) return cached;
+          if (image) return offlineImageResponse();
+          return cached;
+        });
+
+      if (cached) {
+        // stale-while-revalidate for assets when online
+        network.catch(() => {});
+        return cached;
+      }
+      return network.then((res) => res || (image ? offlineImageResponse() : caches.match(OFFLINE_FALLBACK)));
     })
   );
 });
