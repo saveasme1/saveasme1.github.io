@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa9";
-  const APP_VERSION = "v1.3.0";
+  const APP_BUILD = "20260725-pwa10";
+  const APP_VERSION = "v1.4.0";
   const RELEASE_NOTES = [
-    "앱 홈 레이아웃 개선 (Portfolio · 금시세 · AI검색)",
-    "카테고리 표기를 C·B 등 기존 코드로 통일",
-    "메인 메뉴 6종 노출 및 페이지 이동 개선",
-    "하단 탭 활성/비활성 가독성 수정",
+    "카테고리 ALL·C·B를 브랜드 엣지 산세리프(Syne)로 재구성",
+    "히어로·대형 썸네일 탭 시 포트폴리오로 바로 이동",
+    "무신사/31CM 톤의 에디토리얼 홈·독(메뉴) 리디자인",
+    "포트폴리오 레일 썸네일 확대 및 타이포 강화",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";

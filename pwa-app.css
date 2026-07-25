@@ -94,13 +94,26 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   border-color: transparent;
 }
 
-/* —— Hero —— */
+/* —— Hero (full-bleed → portfolio) —— */
 .pwa-hero {
   position: relative;
-  height: min(62vh, 520px);
-  min-height: 360px;
+  display: block;
+  width: 100%;
+  height: min(68vh, 560px);
+  min-height: 380px;
+  margin: 0;
+  padding: 0;
+  border: 0;
   overflow: hidden;
   background: #111;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pwa-hero:active .pwa-hero__media img {
+  transform: scale(1.06);
 }
 
 .pwa-hero__media {
@@ -112,17 +125,18 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%;
-  transform: scale(1.02);
-  filter: saturate(0.92) contrast(1.05);
+  object-position: center 28%;
+  transform: scale(1.04);
+  filter: saturate(0.88) contrast(1.08) brightness(0.96);
+  transition: transform 0.7s var(--pwa-ease);
 }
 
 .pwa-hero__shade {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(10, 10, 10, 0.15) 0%, rgba(10, 10, 10, 0.2) 40%, rgba(10, 10, 10, 0.92) 100%),
-    linear-gradient(90deg, rgba(10, 10, 10, 0.55) 0%, transparent 55%);
+    linear-gradient(180deg, rgba(10, 10, 10, 0.08) 0%, rgba(10, 10, 10, 0.18) 38%, rgba(10, 10, 10, 0.94) 100%),
+    linear-gradient(90deg, rgba(10, 10, 10, 0.5) 0%, transparent 58%);
   pointer-events: none;
 }
 
@@ -130,54 +144,74 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   position: absolute;
   left: 20px;
   right: 20px;
-  bottom: 28px;
+  bottom: 32px;
   z-index: 1;
+  animation: pwaRise 0.7s var(--pwa-ease) both;
 }
 
 .pwa-hero__kicker {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: var(--pwa-gold);
+  font-family: Syne, Archivo, sans-serif;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
 }
 
 .pwa-hero__title {
   margin: 0;
-  font-family: SUIT, Pretendard, sans-serif;
-  font-size: clamp(28px, 8vw, 36px);
+  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
+  font-size: clamp(30px, 9vw, 42px);
   font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.045em;
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
 }
 
 .pwa-hero__cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 18px;
   padding: 0;
   border: 0;
   background: transparent;
   color: #fff;
-  font-size: 13px;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  cursor: pointer;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 .pwa-hero__cta::after {
   content: "";
-  width: 28px;
+  width: 36px;
   height: 1px;
   background: var(--pwa-gold);
 }
 
-/* —— Category chips —— */
+/* —— Typographic category index (brand edge sans) —— */
+.pwa-index {
+  padding: 22px 0 6px;
+  border-bottom: 1px solid var(--pwa-line);
+}
+
+.pwa-index__label {
+  padding: 0 16px 10px;
+  color: var(--pwa-dim);
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
 .pwa-cats {
   display: flex;
-  gap: 8px;
-  padding: 16px 16px 4px;
+  gap: 0;
+  padding: 0 8px 4px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -189,23 +223,116 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-cats button {
   flex: 0 0 auto;
-  height: 34px;
-  padding: 0 14px;
-  border: 1px solid var(--pwa-line);
-  border-radius: 999px;
+  min-width: 56px;
+  height: auto;
+  padding: 10px 14px 14px;
+  border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--pwa-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: clamp(22px, 6.2vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.pwa-cats button.is-on {
-  border-color: #fff;
-  background: #fff;
-  color: #111;
+.pwa-cats button span {
+  display: block;
+  position: relative;
+}
+
+.pwa-cats button::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  background: transparent;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s var(--pwa-ease), background 0.2s;
+}
+
+.pwa-cats button.is-on,
+.pwa-cats button:active {
+  color: #fff;
+}
+
+.pwa-cats button.is-on::after {
+  background: var(--pwa-gold);
+  transform: scaleX(1);
+}
+
+.pwa-cats button:active {
+  color: var(--pwa-gold);
+}
+
+/* —— Shortcut dock (31CM / Musinsa icon strip) —— */
+.pwa-dock {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 18px 6px 16px;
+  border-bottom: 1px solid var(--pwa-line);
+  list-style: none;
+}
+
+.pwa-dock button {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--pwa-ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pwa-dock__ico {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--pwa-line);
+  border-radius: 12px;
+  background: var(--pwa-elevated);
+}
+
+.pwa-dock__ico svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.pwa-dock__txt {
+  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--pwa-muted);
+  white-space: nowrap;
+}
+
+.pwa-dock button:active .pwa-dock__ico {
+  border-color: rgba(201, 166, 107, 0.55);
+  color: var(--pwa-gold);
+}
+
+@media (max-width: 360px) {
+  .pwa-dock {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 14px;
+  }
 }
 
 /* —— Section blocks —— */
@@ -223,9 +350,11 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-sec__head h2 {
   margin: 0;
-  font-size: 18px;
+  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
+  font-size: 20px;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
 }
 
 .pwa-sec__head button,
@@ -233,16 +362,19 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   border: 0;
   background: transparent;
   color: var(--pwa-dim);
-  font-size: 12px;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
 }
 
-/* Product rail */
+/* Product rail — larger editorial thumbs */
 .pwa-rail {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   padding: 0 16px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -255,9 +387,9 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-card {
-  flex: 0 0 42vw;
-  max-width: 180px;
-  min-width: 140px;
+  flex: 0 0 48vw;
+  max-width: 220px;
+  min-width: 156px;
   scroll-snap-align: start;
   border: 0;
   padding: 0;
@@ -265,6 +397,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   color: inherit;
   text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pwa-card__thumb {
@@ -272,7 +405,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background: #1a1a1a;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .pwa-card__thumb img {
@@ -280,22 +413,29 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.55s var(--pwa-ease);
+}
+
+.pwa-card:active .pwa-card__thumb img {
+  transform: scale(1.05);
 }
 
 .pwa-card__cat {
   position: absolute;
-  left: 8px;
-  top: 8px;
-  padding: 3px 7px;
-  background: rgba(0, 0, 0, 0.55);
+  left: 0;
+  top: 0;
+  padding: 8px 10px;
+  background: transparent;
   color: #fff;
-  font-size: 9px;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.04em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
 }
 
 .pwa-card__name {
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -310,8 +450,11 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   display: block;
   margin-top: 4px;
   color: var(--pwa-dim);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* 2-col drop grid */
@@ -437,9 +580,10 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 .pwa-notice__tag {
   flex: none;
   color: var(--pwa-gold);
+  font-family: Syne, Archivo, sans-serif;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
 .pwa-notice__text {
@@ -481,7 +625,11 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 .pwa-gold__unit { color:var(--pwa-dim); font-size:11px; font-weight:650; }
 .pwa-gold__price {
-  font-size:clamp(28px, 8vw, 34px); font-weight:800; letter-spacing:-.05em; line-height:1.1;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: clamp(28px, 8vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
 }
 .pwa-gold__row {
   display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -494,8 +642,8 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   padding:16px 18px; border:1px solid var(--pwa-line); background:#101010;
   color:inherit; text-align:left; cursor:pointer;
 }
-.pwa-ai__tag { color:var(--pwa-gold); font-size:10px; font-weight:800; letter-spacing:.14em; }
-.pwa-ai strong { font-size:15px; letter-spacing:-.03em; }
+.pwa-ai__tag { color:var(--pwa-gold); font-family:Syne,Archivo,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; }
+.pwa-ai strong { font-family:Syne,Archivo,sans-serif; font-size:16px; letter-spacing:-.04em; text-transform:uppercase; }
 .pwa-ai span:last-child { color:var(--pwa-dim); font-size:12px; }
 
 .pwa-review {

@@ -18,6 +18,23 @@
   document.documentElement.classList.add("is-pwa");
   if (document.body) document.body.classList.add("is-pwa");
 
+  // Brand-edge display face for category codes (Latin C/B/VCA)
+  if (!document.getElementById("pwaBrandFont")) {
+    const pre = document.createElement("link");
+    pre.rel = "preconnect";
+    pre.href = "https://fonts.googleapis.com";
+    const pre2 = document.createElement("link");
+    pre2.rel = "preconnect";
+    pre2.href = "https://fonts.gstatic.com";
+    pre2.crossOrigin = "anonymous";
+    const font = document.createElement("link");
+    font.id = "pwaBrandFont";
+    font.rel = "stylesheet";
+    font.href =
+      "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Archivo:wght@600;700;800&display=swap";
+    document.head.append(pre, pre2, font);
+  }
+
   const ICO = {
     portfolio:
       '<svg viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="13" rx="2.2" stroke-width="1.7"/><path d="M8 6.5V5.4A1.9 1.9 0 0 1 9.9 3.5h4.2A1.9 1.9 0 0 1 16 5.4v1.1M3.5 11h17" stroke-width="1.7"/></svg>',
@@ -34,12 +51,12 @@
   };
 
   const MENUS = [
-    { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
-    { go: "reviews", label: "리얼후기", ico: "reviews" },
-    { go: "shipping", label: "출고확인", ico: "shipping" },
-    { go: "notices", label: "공지사항", ico: "notices" },
-    { go: "search", label: "AI 검색", ico: "search" },
-    { go: "gold", label: "금 시세", ico: "gold" },
+    { go: "portfolio", label: "Portfolio", ico: "portfolio" },
+    { go: "reviews", label: "Review", ico: "reviews" },
+    { go: "shipping", label: "Shipping", ico: "shipping" },
+    { go: "notices", label: "Notice", ico: "notices" },
+    { go: "search", label: "AI Search", ico: "search" },
+    { go: "gold", label: "Gold", ico: "gold" },
   ];
 
   const assetUrl = (value) => {
@@ -59,30 +76,12 @@
   }
 
   function goRoute(key) {
-    if (key === "portfolio") {
-      goPortfolio("ALL");
-      return;
-    }
-    if (key === "search") {
-      location.href = "./search.html";
-      return;
-    }
-    if (key === "gold") {
-      location.href = "./heritage-gold/";
-      return;
-    }
-    if (key === "reviews") {
-      location.href = "./landing.html?open=reviews";
-      return;
-    }
-    if (key === "shipping") {
-      location.href = "./landing.html?open=shipping";
-      return;
-    }
-    if (key === "notices") {
-      location.href = "./landing.html?open=notices";
-      return;
-    }
+    if (key === "portfolio") return goPortfolio("ALL");
+    if (key === "search") return void (location.href = "./search.html");
+    if (key === "gold") return void (location.href = "./heritage-gold/");
+    if (key === "reviews") return void (location.href = "./landing.html?open=reviews");
+    if (key === "shipping") return void (location.href = "./landing.html?open=shipping");
+    if (key === "notices") return void (location.href = "./landing.html?open=notices");
   }
 
   function ensureHost() {
@@ -111,7 +110,7 @@
       `<img alt="" loading="lazy" decoding="async" src="${assetUrl(item.cover || item.image)}">` +
       `</span>` +
       `<span class="pwa-card__name">${title}</span>` +
-      `<span class="pwa-card__meta">${cat || "PORTFOLIO"}</span>`;
+      `<span class="pwa-card__meta">${cat || "PF"}</span>`;
     if (window.GongbangProtectImage) {
       const img = btn.querySelector("img");
       if (img) window.GongbangProtectImage(img);
@@ -135,81 +134,19 @@
   }
 
   async function fetchGoldDon() {
-    // 1돈 = 3.75g. Prefer KRW gold feed, fallback USD*FX.
     try {
-      const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", {
-        cache: "no-cache",
-      });
+      const res = await fetch("https://data-asg.goldprice.org/dbXRates/KRW", { cache: "no-cache" });
       if (res.ok) {
         const data = await res.json();
         const item = Array.isArray(data.items) ? data.items[0] : data;
         const perGram = Number(item?.xauPrice || item?.XAU || 0);
         if (perGram > 0) {
-          // feed often returns KRW per gram or per oz — detect by magnitude
           const don = perGram > 100000 ? perGram * 3.75 : (perGram / 31.1035) * 3.75;
-          return { don, source: "goldprice", at: new Date().toISOString() };
+          return { don, at: new Date().toISOString() };
         }
       }
     } catch (_) {}
-
-    try {
-      const res = await fetch(
-        (window.JEWELRY_PRICE_API || "https://app.0-1.co.kr/api/jewelry-price/v1").replace(/\/$/, "") +
-          "/health",
-        { cache: "no-cache" }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const usdKrw = Number(data?.fx?.rates?.USD || 0);
-        // approximate XAU USD/oz
-        let xauUsd = 0;
-        try {
-          const g = await fetch("https://api.gold-api.com/price/XAU", { cache: "no-cache" });
-          if (g.ok) {
-            const gj = await g.json();
-            xauUsd = Number(gj.price || gj.price_usd || 0);
-          }
-        } catch (_) {}
-        if (usdKrw > 0 && xauUsd > 0) {
-          const don = (xauUsd / 31.1035) * 3.75 * usdKrw;
-          return { don, source: "fx+spot", at: new Date().toISOString() };
-        }
-      }
-    } catch (_) {}
-
     return null;
-  }
-
-  function mountGoldSection(host) {
-    const sec = document.createElement("section");
-    sec.className = "pwa-sec pwa-sec--gold";
-    sec.innerHTML =
-      `<div class="pwa-sec__head"><h2>금 시세</h2><a href="./heritage-gold/">더보기</a></div>` +
-      `<button type="button" class="pwa-gold" data-go="gold" aria-label="금 시세 자세히">` +
-      `<div class="pwa-gold__top"><span class="pwa-gold__badge">BETA</span><span class="pwa-gold__unit">1돈 (3.75g) · 참고용</span></div>` +
-      `<strong class="pwa-gold__price" id="pwaGoldPrice">불러오는 중…</strong>` +
-      `<div class="pwa-gold__row"><span id="pwaGoldMeta">시세 확인 중</span><span class="pwa-gold__more">상세 보기 →</span></div>` +
-      `</button>`;
-    host.append(sec);
-
-    fetchGoldDon().then((info) => {
-      const price = document.getElementById("pwaGoldPrice");
-      const meta = document.getElementById("pwaGoldMeta");
-      if (!price) return;
-      if (!info) {
-        price.textContent = "시세 준비 중";
-        if (meta) meta.textContent = "더보기에서 확인하세요";
-        return;
-      }
-      price.textContent = won(info.don);
-      if (meta) {
-        const t = info.at ? new Date(info.at) : new Date();
-        meta.textContent = `오늘 ${t.toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })} 기준`;
-      }
-    });
   }
 
   async function boot() {
@@ -235,22 +172,26 @@
 
     const heroItem = items[0] || null;
     const heroSrc = heroItem ? assetUrl(heroItem.cover || heroItem.image) : "";
-    const fresh = items.slice(0, 12);
-    const reviewItems = (Array.isArray(reviews.items) ? reviews.items : []).slice(0, 6);
+    const fresh = items.slice(0, 14);
+    const reviewItems = (Array.isArray(reviews.items) ? reviews.items : []).slice(0, 5);
     const notice = (Array.isArray(notices.items) ? notices.items : [])[0];
 
     host.innerHTML = "";
 
-    const hero = document.createElement("section");
+    // Full-bleed hero → portfolio
+    const hero = document.createElement("button");
+    hero.type = "button";
     hero.className = "pwa-hero";
+    hero.dataset.go = "portfolio";
+    hero.setAttribute("aria-label", "포트폴리오 보기");
     hero.innerHTML =
       `<div class="pwa-hero__media">${
         heroSrc ? `<img src="${heroSrc}" alt="" decoding="async">` : ""
       }<div class="pwa-hero__shade"></div></div>` +
       `<div class="pwa-hero__copy">` +
       `<p class="pwa-hero__kicker">BON HERITAGE</p>` +
-      `<h1 class="pwa-hero__title">주문제작 주얼리<br>실사 아카이브</h1>` +
-      `<button type="button" class="pwa-hero__cta" data-go="portfolio">포트폴리오 보기</button>` +
+      `<h1 class="pwa-hero__title">Made to order<br>jewelry archive</h1>` +
+      `<span class="pwa-hero__cta">Shop portfolio</span>` +
       `</div>`;
     host.append(hero);
     if (window.GongbangProtectImage) {
@@ -258,36 +199,47 @@
       if (img) window.GongbangProtectImage(img);
     }
 
+    // Typographic category index
+    const catsWrap = document.createElement("section");
+    catsWrap.className = "pwa-index";
+    catsWrap.innerHTML = `<div class="pwa-index__label">CATEGORY</div>`;
     const catsEl = document.createElement("nav");
     catsEl.className = "pwa-cats";
     catsEl.setAttribute("aria-label", "카테고리");
     const allBtn = document.createElement("button");
     allBtn.type = "button";
-    allBtn.textContent = "ALL";
     allBtn.className = "is-on";
+    allBtn.innerHTML = `<span>ALL</span>`;
     allBtn.addEventListener("click", () => goPortfolio("ALL"));
     catsEl.append(allBtn);
     cats.forEach((code) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = String(code);
+      b.innerHTML = `<span>${String(code)}</span>`;
       b.addEventListener("click", () => goPortfolio(code));
       catsEl.append(b);
     });
-    host.append(catsEl);
+    catsWrap.append(catsEl);
+    host.append(catsWrap);
 
-    const services = document.createElement("div");
-    services.className = "pwa-services pwa-services--6";
+    // Shortcut dock (keep icons, more editorial)
+    const services = document.createElement("nav");
+    services.className = "pwa-dock";
+    services.setAttribute("aria-label", "바로가기");
     services.innerHTML = MENUS.map(
       (m) =>
-        `<button type="button" data-go="${m.go}"><span class="pwa-services__ico">${ICO[m.ico]}</span><span>${m.label}</span></button>`
+        `<button type="button" data-go="${m.go}">` +
+        `<span class="pwa-dock__ico">${ICO[m.ico]}</span>` +
+        `<span class="pwa-dock__txt">${m.label}</span>` +
+        `</button>`
     ).join("");
     host.append(services);
 
+    // Portfolio rail
     const secPf = document.createElement("section");
     secPf.className = "pwa-sec";
     secPf.innerHTML =
-      `<div class="pwa-sec__head"><h2>Portfolio</h2><button type="button" data-go="portfolio">전체보기</button></div>`;
+      `<div class="pwa-sec__head"><h2>Portfolio</h2><button type="button" data-go="portfolio">View all</button></div>`;
     const rail = document.createElement("div");
     rail.className = "pwa-rail";
     if (!fresh.length) rail.innerHTML = `<p class="pwa-empty">작품을 불러오는 중…</p>`;
@@ -295,17 +247,46 @@
     secPf.append(rail);
     host.append(secPf);
 
-    mountGoldSection(host);
+    // Gold
+    const goldSec = document.createElement("section");
+    goldSec.className = "pwa-sec";
+    goldSec.innerHTML =
+      `<div class="pwa-sec__head"><h2>Gold</h2><a href="./heritage-gold/">More</a></div>` +
+      `<button type="button" class="pwa-gold" data-go="gold">` +
+      `<div class="pwa-gold__top"><span class="pwa-gold__badge">BETA</span><span class="pwa-gold__unit">1돈 · 3.75g</span></div>` +
+      `<strong class="pwa-gold__price" id="pwaGoldPrice">…</strong>` +
+      `<div class="pwa-gold__row"><span id="pwaGoldMeta">시세 확인 중</span><span class="pwa-gold__more">Open →</span></div>` +
+      `</button>`;
+    host.append(goldSec);
+    fetchGoldDon().then((info) => {
+      const price = document.getElementById("pwaGoldPrice");
+      const meta = document.getElementById("pwaGoldMeta");
+      if (!price) return;
+      if (!info) {
+        price.textContent = "준비 중";
+        if (meta) meta.textContent = "More에서 확인";
+        return;
+      }
+      price.textContent = won(info.don);
+      if (meta) {
+        const t = new Date(info.at || Date.now());
+        meta.textContent = `Today ${t.toLocaleTimeString("ko-KR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`;
+      }
+    });
 
+    // Reviews
     const secRev = document.createElement("section");
     secRev.className = "pwa-sec";
     secRev.innerHTML =
-      `<div class="pwa-sec__head"><h2>Real Review</h2><button type="button" data-go="reviews">더보기</button></div>`;
+      `<div class="pwa-sec__head"><h2>Review</h2><button type="button" data-go="reviews">More</button></div>`;
     const revRail = document.createElement("div");
     revRail.className = "pwa-reviews";
     if (!reviewItems.length) {
       revRail.innerHTML =
-        `<button type="button" class="pwa-review" data-go="reviews"><strong>고객 후기</strong><p>실제 제작 후기를 확인해 보세요.</p></button>`;
+        `<button type="button" class="pwa-review" data-go="reviews"><strong>Real review</strong><p>실제 제작 후기를 확인해 보세요.</p></button>`;
     } else {
       reviewItems.forEach((item) => {
         const el = document.createElement("button");
@@ -325,6 +306,7 @@
     secRev.append(revRail);
     host.append(secRev);
 
+    // Notice + AI
     const noticeBtn = document.createElement("button");
     noticeBtn.type = "button";
     noticeBtn.className = "pwa-notice";
@@ -332,19 +314,18 @@
     noticeBtn.innerHTML =
       `<span class="pwa-notice__tag">NOTICE</span>` +
       `<span class="pwa-notice__text">${
-        (notice && (notice.title || notice.subject)) || "본 헤리티지 공지사항을 확인하세요"
+        (notice && (notice.title || notice.subject)) || "본 헤리티지 공지사항"
       }</span>`;
     host.append(noticeBtn);
 
-    // AI search promo strip
     const ai = document.createElement("button");
     ai.type = "button";
     ai.className = "pwa-ai";
     ai.dataset.go = "search";
     ai.innerHTML =
       `<span class="pwa-ai__tag">AI SEARCH</span>` +
-      `<strong>사진으로 비슷한 주얼리 찾기</strong>` +
-      `<span>BETA · 카메라·앨범으로 검색</span>`;
+      `<strong>Find by photo</strong>` +
+      `<span>BETA · 카메라·앨범으로 비슷한 주얼리 검색</span>`;
     host.append(ai);
 
     host.addEventListener("click", (event) => {
