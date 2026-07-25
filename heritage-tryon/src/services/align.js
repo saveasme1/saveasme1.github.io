@@ -7,8 +7,8 @@ import { estimateWristAnchor3D } from "./ar/WristAnchorEstimator.js";
 import { estimateFingerAnchor3D } from "./ar/FingerAnchorEstimator.js";
 import { estimateNeckAnchor3D } from "./ar/NeckAnchorEstimator.js";
 import { estimateEarAnchor3D, estimateEarPair } from "./ar/EarAnchorEstimator.js";
+import { fitNecklaceWithChain } from "./ar/NecklaceChain.js";
 import { fitNecklace } from "./ar/NecklaceFitter3D.js";
-
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const ESM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
 
@@ -298,8 +298,7 @@ function scoreNecklace(poseLm, faceLm = null, mirror = false, zoom = 1) {
     collarboneWidth: anchor.collarboneWidth * z,
     scale: anchor.scale * z,
   };
-  const fitted = fitNecklace(anchor, {});
-  const target = { x: 0.52, y: 0.38 };
+  const fitted = fitNecklaceWithChain(anchor, {}, "MEDIUM") || fitNecklace(anchor, {});  const target = { x: 0.52, y: 0.38 };
   const d = dist2(fitted.center2D.x, fitted.center2D.y, target.x, target.y);
   let score = Math.max(0, 1 - d / 0.16);
   if (anchor.confidence > 0.6) score = Math.min(1, score + 0.12);
