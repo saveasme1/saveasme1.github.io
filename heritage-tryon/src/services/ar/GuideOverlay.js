@@ -157,9 +157,11 @@ export class GuideOverlay {
     const s = this._debugHud || {};
     const lines = [
       `FPS ${s.fps ?? "-"}  render ${s.renderMs?.toFixed?.(1) ?? "-"}ms`,
-      `tier ${s.tier || "-"}  GLB ${s.hasGlb ? "yes" : "no"}  tris ${s.triangles ?? "-"}`,
-      `err ${(s.projectionError?.pxError * 1000)?.toFixed?.(1) ?? "-"}‰`,
+      `tier ${s.tier || "-"}  state ${s.assetState || "-"}`,
+      `GLB ${s.hasGlb ? "yes" : "no"}  tris ${s.triangles ?? "-"}`,
+      `errPx ${(s.projectionError?.pxError)?.toFixed?.(1) ?? "-"}  Δsave ${(s.saveConsistency?.positionDeltaNorm * 1000)?.toFixed?.(1) ?? "-"}‰`,
       `product ${s.productId || "-"}`,
+      `why ${s.assetReason || "-"}`,
     ];
     const { ctx } = this;
     ctx.fillStyle = "rgba(0,0,0,0.55)";
