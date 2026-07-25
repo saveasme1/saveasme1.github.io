@@ -7,11 +7,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="본 헤리티지">
   <title>본 헤리티지 · 사진으로 찾기</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa3">
+  <script>
+    (function () {
+      try {
+        var m = window.matchMedia;
+        var p =
+          (m &&
+            (m("(display-mode: standalone)").matches ||
+              m("(display-mode: fullscreen)").matches ||
+              m("(display-mode: minimal-ui)").matches)) ||
+          window.navigator.standalone === true ||
+          /[?&]app=1(?:&|$)/.test(location.search);
+        if (p) document.documentElement.classList.add("is-pwa");
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa4">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="search.css?v=20260725-pwa3">
+  <link rel="stylesheet" href="search.css?v=20260725-pwa4">
+  <link rel="stylesheet" href="pwa-app.css?v=20260725-pwa4">
 </head>
 <body>
   <header class="js-top">
@@ -70,7 +86,7 @@
     </section>
   </main>
 
-  <script src="search.js?v=20260725-pwa3"></script>
-  <script src="pwa-register.js?v=20260725-pwa3"></script>
+  <script src="search.js?v=20260725-pwa4"></script>
+  <script src="pwa-register.js?v=20260725-pwa4"></script>
 </body>
 </html>

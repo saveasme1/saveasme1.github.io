@@ -1,8 +1,8 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260725-pwa3";
-const RUNTIME_CACHE = "hx-pwa-runtime-images-v1";
+const CACHE_VERSION = "hx-pwa-v20260725-pwa4";
+const RUNTIME_CACHE = "hx-pwa-runtime-images-v2";
 const OFFLINE_FALLBACK = "./landing.html";
-const MAX_RUNTIME_IMAGES = 180;
+const MAX_RUNTIME_IMAGES = 640;
 
 const PRECACHE = [
   "./",
@@ -26,6 +26,7 @@ const PRECACHE = [
   "./tryon-overlay.css",
   "./price-trend-panel.css",
   "./search.css",
+  "./pwa-app.css",
   "./site-nav.js",
   "./brand-codes.js",
   "./brand-codes.json",
@@ -72,8 +73,8 @@ async function precacheAll() {
         .map((item) => item && item.image)
         .filter((src) => typeof src === "string" && src.length > 0)
         .map((src) => (src.startsWith("http") ? src : "./" + src.replace(/^\.\//, "")));
-      // Cap to keep first install reasonable on mobile data
-      urls = urls.concat(covers.slice(0, 120));
+      // All cover thumbs — detail shots stay runtime-cached when opened
+      urls = urls.concat(covers);
     }
   } catch (_) {}
 
@@ -106,7 +107,8 @@ async function precacheAll() {
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(precacheAll().then(() => self.skipWaiting()));
+  // Do not auto skipWaiting on updates — client asks the customer first.
+  event.waitUntil(precacheAll());
 });
 
 self.addEventListener("activate", (event) => {
@@ -278,7 +280,10 @@ self.addEventListener("fetch", (event) => {
                 if (url.search) c.put(url.origin + url.pathname, res.clone());
               });
             }
+            return res;
           }
+          // Avoid serving HTML/404 as an <img> → 액박
+          if (image) return cached || offlineImageResponse();
           return res;
         })
         .catch(() => {
@@ -288,11 +293,14 @@ self.addEventListener("fetch", (event) => {
         });
 
       if (cached) {
-        // stale-while-revalidate for assets when online
         network.catch(() => {});
         return cached;
       }
-      return network.then((res) => res || (image ? offlineImageResponse() : caches.match(OFFLINE_FALLBACK)));
+      return network.then((res) => {
+        if (res && (res.ok || res.type === "opaque")) return res;
+        if (image) return offlineImageResponse();
+        return caches.match(OFFLINE_FALLBACK);
+      });
     })
   );
 });

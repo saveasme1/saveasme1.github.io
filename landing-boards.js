@@ -178,6 +178,7 @@
       img.alt = item.title;
       img.loading = index === 0 ? "eager" : "lazy";
       img.decoding = "async";
+      if (window.GongbangProtectImage) window.GongbangProtectImage(img);
       slide.append(img);
       track.append(slide);
     });
@@ -502,6 +503,7 @@
         img.src = assetUrl(item.cover || item.image);
         img.alt = "";
         img.loading = "lazy";
+        if (window.GongbangProtectImage) window.GongbangProtectImage(img);
         row.append(img);
         const heading = document.createElement("strong");
         heading.className = "review-title";

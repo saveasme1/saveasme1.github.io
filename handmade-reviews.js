@@ -187,6 +187,7 @@
         img.src = imageUrl(cover.url);
         img.alt = "";
         img.loading = "lazy";
+        if (window.GongbangProtectImage) window.GongbangProtectImage(img);
         img.decoding = "async";
         button.append(img);
       }
@@ -301,6 +302,7 @@
       img.src = imageUrl(image.url);
       img.alt = title;
       img.loading = index === 0 ? "eager" : "lazy";
+      if (window.GongbangProtectImage) window.GongbangProtectImage(img);
       img.decoding = "async";
       slide.append(img);
       track.append(slide);

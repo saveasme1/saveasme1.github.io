@@ -50,8 +50,32 @@
     const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    return `/${path.replace(/^\/+/, "")}`;
+    // Prefer same-origin absolute URL so SW cache keys match reliably
+    try {
+      return new URL(path.replace(/^\/+/, ""), location.origin + "/").href;
+    } catch (_) {
+      return `/${path.replace(/^\/+/, "")}`;
+    }
   };
+
+  function bindImgFallback(img) {
+    if (!img || img.dataset.pwaProtect === "1") return;
+    if (typeof window.GongbangProtectImage === "function") {
+      window.GongbangProtectImage(img);
+      return;
+    }
+    img.dataset.pwaProtect = "1";
+    img.addEventListener("error", () => {
+      if (img.dataset.pwaFallback === "1") return;
+      img.dataset.pwaFallback = "1";
+      img.removeAttribute("srcset");
+      img.src =
+        "data:image/svg+xml;charset=utf-8," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640"><rect width="640" height="640" fill="#2a2724"/><text x="320" y="320" text-anchor="middle" fill="#c4bdb4" font-size="28" font-family="sans-serif">이미지 준비 중</text></svg>'
+        );
+    });
+  }
 
   const formatDate = (value) => (window.GongbangTime ? window.GongbangTime.formatDate(value) : "");
 
@@ -338,6 +362,7 @@
       img.alt = "";
       img.loading = "lazy";
       img.decoding = "async";
+      bindImgFallback(img);
       thumb.append(img);
 
       const shots = imageCount(item);
@@ -419,6 +444,7 @@
       img.alt = item.title;
       img.loading = index === 0 ? "eager" : "lazy";
       img.decoding = "async";
+      bindImgFallback(img);
       slide.append(img);
       track.append(slide);
     });

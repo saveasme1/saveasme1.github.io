@@ -3,6 +3,21 @@
   const HOME = "/landing.html";
   const MYPAGE = "/mypage.html";
   const MQ = "(max-width: 1024px)";
+
+  function isPwaMode() {
+    try {
+      if (window.matchMedia("(display-mode: standalone)").matches) return true;
+      if (window.matchMedia("(display-mode: fullscreen)").matches) return true;
+      if (window.matchMedia("(display-mode: minimal-ui)").matches) return true;
+    } catch (_) {}
+    if (window.navigator.standalone === true) return true;
+    if (/[?&]app=1(?:&|$)/.test(location.search)) return true;
+    return false;
+  }
+  if (isPwaMode()) {
+    document.documentElement.classList.add("is-pwa");
+    if (document.body) document.body.classList.add("is-pwa");
+  }
   const ICONS = {
     portfolio: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h3.2c.4 0 .8.2 1 .5l.8 1.1c.2.3.6.5 1 .5h5A2.5 2.5 0 0 1 20 9.6v7.9A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10Z" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
     reviews: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.2 5.7h11.6c.9 0 1.6.7 1.6 1.6v7c0 .9-.7 1.6-1.6 1.6H11l-3.7 2.9c-.4.3-1.1 0-1.1-.6v-2.3H6.2c-.9 0-1.6-.7-1.6-1.6v-7c0-.9.7-1.6 1.6-1.6z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9.2h6M9 12h4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
@@ -325,7 +340,8 @@
   function injectBottomNav() {
     if (isStandalonePublicHome()) return;
     if (document.querySelector(".gb-bottom-nav")) return;
-    if (!window.matchMedia(MQ).matches) return;
+    const pwa = document.documentElement.classList.contains("is-pwa") || isPwaMode();
+    if (!pwa && !window.matchMedia(MQ).matches) return;
     const nav = document.createElement("nav");
     nav.className = "gb-bottom-nav";
     nav.setAttribute("aria-label", "하단 메뉴");

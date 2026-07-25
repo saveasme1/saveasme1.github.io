@@ -330,6 +330,7 @@
         img.alt = "";
         img.loading = "lazy";
         img.decoding = "async";
+        if (window.GongbangProtectImage) window.GongbangProtectImage(img);
         thumb.append(img);
       }
       thumb.addEventListener("click", () => openDetail(item));
