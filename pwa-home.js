@@ -18,7 +18,6 @@
   document.documentElement.classList.add("is-pwa");
   if (document.body) document.body.classList.add("is-pwa");
 
-  // Brand-edge display face for category codes (Latin C/B/VCA)
   if (!document.getElementById("pwaBrandFont")) {
     const pre = document.createElement("link");
     pre.rel = "preconnect";
@@ -31,7 +30,7 @@
     font.id = "pwaBrandFont";
     font.rel = "stylesheet";
     font.href =
-      "https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Archivo:wght@600;700;800&display=swap";
+      "https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=Archivo:wght@500;600;700&display=swap";
     document.head.append(pre, pre2, font);
   }
 
@@ -51,12 +50,12 @@
   };
 
   const MENUS = [
-    { go: "portfolio", label: "Portfolio", ico: "portfolio" },
-    { go: "reviews", label: "Review", ico: "reviews" },
-    { go: "shipping", label: "Shipping", ico: "shipping" },
-    { go: "notices", label: "Notice", ico: "notices" },
-    { go: "search", label: "AI Search", ico: "search" },
-    { go: "gold", label: "Gold", ico: "gold" },
+    { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
+    { go: "reviews", label: "리얼후기", ico: "reviews" },
+    { go: "shipping", label: "출고확인", ico: "shipping" },
+    { go: "notices", label: "공지", ico: "notices" },
+    { go: "search", label: "AI검색", ico: "search" },
+    { go: "gold", label: "금시세", ico: "gold" },
   ];
 
   const assetUrl = (value) => {
@@ -70,8 +69,11 @@
     }
   };
 
-  function goPortfolio(cat) {
-    const q = cat && cat !== "ALL" ? `?cat=${encodeURIComponent(cat)}` : "";
+  function goPortfolio(cat, id) {
+    const parts = [];
+    if (cat && cat !== "ALL") parts.push(`cat=${encodeURIComponent(cat)}`);
+    if (id) parts.push(`id=${encodeURIComponent(id)}`);
+    const q = parts.length ? `?${parts.join("&")}` : "";
     location.href = `./portfolio.html${q}`;
   }
 
@@ -98,27 +100,31 @@
     return host;
   }
 
-  function cardButton(item) {
+  function cardButton(item, compact) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "pwa-card";
+    btn.className = compact ? "pwa-peek__card" : "pwa-card";
     const cat = item.category || "";
     const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
-    btn.innerHTML =
-      `<span class="pwa-card__thumb">` +
-      (cat ? `<span class="pwa-card__cat">${cat}</span>` : "") +
-      `<img alt="" loading="lazy" decoding="async" src="${assetUrl(item.cover || item.image)}">` +
-      `</span>` +
-      `<span class="pwa-card__name">${title}</span>` +
-      `<span class="pwa-card__meta">${cat || "PF"}</span>`;
+    if (compact) {
+      btn.innerHTML =
+        `<span class="pwa-peek__thumb"><img alt="" loading="lazy" decoding="async" src="${assetUrl(
+          item.cover || item.image
+        )}"></span>` + `<span class="pwa-peek__name">${title || cat || "작품"}</span>`;
+    } else {
+      btn.innerHTML =
+        `<span class="pwa-card__thumb">` +
+        (cat ? `<span class="pwa-card__cat">${cat}</span>` : "") +
+        `<img alt="" loading="lazy" decoding="async" src="${assetUrl(item.cover || item.image)}">` +
+        `</span>` +
+        `<span class="pwa-card__name">${title}</span>` +
+        `<span class="pwa-card__meta">${cat || "PF"}</span>`;
+    }
     if (window.GongbangProtectImage) {
       const img = btn.querySelector("img");
       if (img) window.GongbangProtectImage(img);
     }
-    btn.addEventListener("click", () => {
-      const id = item.id ? `&id=${encodeURIComponent(item.id)}` : "";
-      location.href = `./portfolio.html?cat=${encodeURIComponent(cat || "ALL")}${id}`;
-    });
+    btn.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
     return btn;
   }
 
@@ -172,13 +178,14 @@
 
     const heroItem = items[0] || null;
     const heroSrc = heroItem ? assetUrl(heroItem.cover || heroItem.image) : "";
-    const fresh = items.slice(0, 14);
+    const fresh = items.slice(0, 12);
     const reviewItems = (Array.isArray(reviews.items) ? reviews.items : []).slice(0, 5);
     const notice = (Array.isArray(notices.items) ? notices.items : [])[0];
 
+    let activeCat = "ALL";
     host.innerHTML = "";
 
-    // Full-bleed hero → portfolio
+    // Hero — KO + EN mix (Musinsa tone)
     const hero = document.createElement("button");
     hero.type = "button";
     hero.className = "pwa-hero";
@@ -190,8 +197,9 @@
       }<div class="pwa-hero__shade"></div></div>` +
       `<div class="pwa-hero__copy">` +
       `<p class="pwa-hero__kicker">BON HERITAGE</p>` +
-      `<h1 class="pwa-hero__title">Made to order<br>jewelry archive</h1>` +
-      `<span class="pwa-hero__cta">Shop portfolio</span>` +
+      `<h1 class="pwa-hero__title">주문제작 주얼리<br><em>아카이브</em></h1>` +
+      `<p class="pwa-hero__sub">Made to order · 취향대로 맞춰 드립니다</p>` +
+      `<span class="pwa-hero__cta">포트폴리오 보기</span>` +
       `</div>`;
     host.append(hero);
     if (window.GongbangProtectImage) {
@@ -199,30 +207,90 @@
       if (img) window.GongbangProtectImage(img);
     }
 
-    // Typographic category index
+    // Category + peek rail
     const catsWrap = document.createElement("section");
     catsWrap.className = "pwa-index";
-    catsWrap.innerHTML = `<div class="pwa-index__label">CATEGORY</div>`;
+    catsWrap.innerHTML =
+      `<div class="pwa-index__row">` +
+      `<div class="pwa-index__label">카테고리 <span>CATEGORY</span></div>` +
+      `<button type="button" class="pwa-index__more" data-cat-more>전체 보기</button>` +
+      `</div>`;
+
     const catsEl = document.createElement("nav");
     catsEl.className = "pwa-cats";
     catsEl.setAttribute("aria-label", "카테고리");
-    const allBtn = document.createElement("button");
-    allBtn.type = "button";
-    allBtn.className = "is-on";
-    allBtn.innerHTML = `<span>ALL</span>`;
-    allBtn.addEventListener("click", () => goPortfolio("ALL"));
-    catsEl.append(allBtn);
-    cats.forEach((code) => {
+
+    const peek = document.createElement("div");
+    peek.className = "pwa-peek";
+    peek.innerHTML =
+      `<div class="pwa-peek__hint"><span class="pwa-peek__hint-ico" aria-hidden="true">‹ ›</span> 좌우로 넘겨 보세요</div>` +
+      `<div class="pwa-peek__rail" id="pwaPeekRail"></div>`;
+
+    function setActiveCatBtn(code) {
+      catsEl.querySelectorAll("button").forEach((b) => {
+        b.classList.toggle("is-on", b.dataset.cat === code);
+      });
+    }
+
+    function renderPeek(code, animate) {
+      activeCat = code;
+      setActiveCatBtn(code);
+      const rail = peek.querySelector("#pwaPeekRail");
+      if (!rail) return;
+      const list =
+        code === "ALL" ? items.slice(0, 16) : items.filter((x) => x.category === code).slice(0, 16);
+      rail.classList.remove("is-play");
+      rail.innerHTML = "";
+      if (!list.length) {
+        rail.innerHTML = `<p class="pwa-peek__empty">이 카테고리 작품이 아직 없어요</p>`;
+        return;
+      }
+      list.forEach((item, i) => {
+        const card = cardButton(item, true);
+        card.style.setProperty("--i", String(i));
+        rail.append(card);
+      });
+      rail.scrollLeft = 0;
+      if (animate) {
+        requestAnimationFrame(() => {
+          rail.classList.add("is-play");
+        });
+      } else {
+        rail.classList.add("is-play");
+        rail.querySelectorAll(".pwa-peek__card").forEach((el) => {
+          el.style.animation = "none";
+          el.style.opacity = "1";
+          el.style.transform = "none";
+        });
+      }
+    }
+
+    function makeCatBtn(code, label) {
       const b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = `<span>${String(code)}</span>`;
-      b.addEventListener("click", () => goPortfolio(code));
-      catsEl.append(b);
-    });
-    catsWrap.append(catsEl);
+      b.dataset.cat = code;
+      b.innerHTML = `<span>${label}</span>`;
+      b.addEventListener("click", () => {
+        if (activeCat === code) {
+          // 같은 카테고리 재탭 → 포트폴리오 페이지
+          goPortfolio(code);
+          return;
+        }
+        renderPeek(code, true);
+      });
+      return b;
+    }
+
+    catsEl.append(makeCatBtn("ALL", "ALL"));
+    cats.forEach((code) => catsEl.append(makeCatBtn(code, String(code))));
+    catsWrap.append(catsEl, peek);
     host.append(catsWrap);
 
-    // Shortcut dock (keep icons, more editorial)
+    catsWrap.querySelector("[data-cat-more]")?.addEventListener("click", () => goPortfolio(activeCat));
+
+    renderPeek("ALL", true);
+
+    // Shortcut dock
     const services = document.createElement("nav");
     services.className = "pwa-dock";
     services.setAttribute("aria-label", "바로가기");
@@ -235,15 +303,18 @@
     ).join("");
     host.append(services);
 
-    // Portfolio rail
+    // New drop / 지금 뜨는
     const secPf = document.createElement("section");
     secPf.className = "pwa-sec";
     secPf.innerHTML =
-      `<div class="pwa-sec__head"><h2>Portfolio</h2><button type="button" data-go="portfolio">View all</button></div>`;
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">NOW</p><h2>지금 뜨는 작품</h2></div>` +
+      `<button type="button" data-go="portfolio">더보기</button>` +
+      `</div>`;
     const rail = document.createElement("div");
     rail.className = "pwa-rail";
     if (!fresh.length) rail.innerHTML = `<p class="pwa-empty">작품을 불러오는 중…</p>`;
-    else fresh.forEach((item) => rail.append(cardButton(item)));
+    else fresh.forEach((item) => rail.append(cardButton(item, false)));
     secPf.append(rail);
     host.append(secPf);
 
@@ -251,11 +322,14 @@
     const goldSec = document.createElement("section");
     goldSec.className = "pwa-sec";
     goldSec.innerHTML =
-      `<div class="pwa-sec__head"><h2>Gold</h2><a href="./heritage-gold/">More</a></div>` +
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">MARKET</p><h2>오늘의 금시세</h2></div>` +
+      `<a href="./heritage-gold/">자세히</a>` +
+      `</div>` +
       `<button type="button" class="pwa-gold" data-go="gold">` +
       `<div class="pwa-gold__top"><span class="pwa-gold__badge">BETA</span><span class="pwa-gold__unit">1돈 · 3.75g</span></div>` +
       `<strong class="pwa-gold__price" id="pwaGoldPrice">…</strong>` +
-      `<div class="pwa-gold__row"><span id="pwaGoldMeta">시세 확인 중</span><span class="pwa-gold__more">Open →</span></div>` +
+      `<div class="pwa-gold__row"><span id="pwaGoldMeta">시세 확인 중</span><span class="pwa-gold__more">바로가기 →</span></div>` +
       `</button>`;
     host.append(goldSec);
     fetchGoldDon().then((info) => {
@@ -264,16 +338,16 @@
       if (!price) return;
       if (!info) {
         price.textContent = "준비 중";
-        if (meta) meta.textContent = "More에서 확인";
+        if (meta) meta.textContent = "자세히에서 확인";
         return;
       }
       price.textContent = won(info.don);
       if (meta) {
         const t = new Date(info.at || Date.now());
-        meta.textContent = `Today ${t.toLocaleTimeString("ko-KR", {
+        meta.textContent = `오늘 ${t.toLocaleTimeString("ko-KR", {
           hour: "2-digit",
           minute: "2-digit",
-        })}`;
+        })} 기준`;
       }
     });
 
@@ -281,12 +355,15 @@
     const secRev = document.createElement("section");
     secRev.className = "pwa-sec";
     secRev.innerHTML =
-      `<div class="pwa-sec__head"><h2>Review</h2><button type="button" data-go="reviews">More</button></div>`;
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">REAL</p><h2>리얼 후기</h2></div>` +
+      `<button type="button" data-go="reviews">더보기</button>` +
+      `</div>`;
     const revRail = document.createElement("div");
     revRail.className = "pwa-reviews";
     if (!reviewItems.length) {
       revRail.innerHTML =
-        `<button type="button" class="pwa-review" data-go="reviews"><strong>Real review</strong><p>실제 제작 후기를 확인해 보세요.</p></button>`;
+        `<button type="button" class="pwa-review" data-go="reviews"><strong>실제 제작 후기</strong><p>고객님이 남겨 주신 리얼 후기를 확인해 보세요.</p></button>`;
     } else {
       reviewItems.forEach((item) => {
         const el = document.createElement("button");
@@ -312,7 +389,7 @@
     noticeBtn.className = "pwa-notice";
     noticeBtn.dataset.go = "notices";
     noticeBtn.innerHTML =
-      `<span class="pwa-notice__tag">NOTICE</span>` +
+      `<span class="pwa-notice__tag">공지</span>` +
       `<span class="pwa-notice__text">${
         (notice && (notice.title || notice.subject)) || "본 헤리티지 공지사항"
       }</span>`;
@@ -324,7 +401,7 @@
     ai.dataset.go = "search";
     ai.innerHTML =
       `<span class="pwa-ai__tag">AI SEARCH</span>` +
-      `<strong>Find by photo</strong>` +
+      `<strong>사진으로 찾아보기</strong>` +
       `<span>BETA · 카메라·앨범으로 비슷한 주얼리 검색</span>`;
     host.append(ai);
 

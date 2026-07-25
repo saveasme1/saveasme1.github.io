@@ -150,23 +150,39 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-hero__kicker {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   color: var(--pwa-gold);
   font-family: Syne, Archivo, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-indent: 0.28em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
 }
 
 .pwa-hero__title {
   margin: 0;
-  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
-  font-size: clamp(30px, 9vw, 42px);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
+  font-family: SUIT, Pretendard, sans-serif;
+  font-size: clamp(26px, 7.2vw, 34px);
+  font-weight: 750;
+  line-height: 1.22;
+  letter-spacing: -0.04em;
+}
+
+.pwa-hero__title em {
+  font-style: normal;
+  font-family: Syne, Archivo, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.pwa-hero__sub {
+  margin: 10px 0 0;
+  color: var(--pwa-muted);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
 }
 
 .pwa-hero__cta {
@@ -178,11 +194,9 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   border: 0;
   background: transparent;
   color: #fff;
-  font-family: Syne, Archivo, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: -0.02em;
   pointer-events: none;
 }
 
@@ -193,25 +207,49 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   background: var(--pwa-gold);
 }
 
-/* —— Typographic category index (brand edge sans) —— */
+/* —— Category index + peek rail —— */
 .pwa-index {
-  padding: 22px 0 6px;
+  padding: 18px 0 14px;
   border-bottom: 1px solid var(--pwa-line);
 }
 
+.pwa-index__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px 8px;
+}
+
 .pwa-index__label {
-  padding: 0 16px 10px;
+  color: var(--pwa-ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.pwa-index__label span {
+  margin-left: 8px;
   color: var(--pwa-dim);
   font-family: Syne, Archivo, sans-serif;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.pwa-index__more {
+  border: 0;
+  background: transparent;
+  color: var(--pwa-dim);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 .pwa-cats {
   display: flex;
-  gap: 0;
-  padding: 0 8px 4px;
+  gap: 4px;
+  padding: 0 12px 10px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -223,22 +261,23 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-cats button {
   flex: 0 0 auto;
-  min-width: 56px;
+  min-width: 0;
   height: auto;
-  padding: 10px 14px 14px;
+  padding: 8px 12px;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: var(--pwa-muted);
   font-family: Syne, Archivo, sans-serif;
-  font-size: clamp(22px, 6.2vw, 28px);
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  line-height: 1;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
   position: relative;
   -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
 }
 
 .pwa-cats button span {
@@ -249,19 +288,19 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 .pwa-cats button::after {
   content: "";
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 6px;
-  height: 2px;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  height: 1px;
   background: transparent;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.28s var(--pwa-ease), background 0.2s;
 }
 
-.pwa-cats button.is-on,
-.pwa-cats button:active {
+.pwa-cats button.is-on {
   color: #fff;
+  font-weight: 600;
 }
 
 .pwa-cats button.is-on::after {
@@ -271,6 +310,123 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-cats button:active {
   color: var(--pwa-gold);
+}
+
+/* Compact category peek — swipe cue */
+.pwa-peek {
+  padding: 2px 0 0;
+}
+
+.pwa-peek__hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 10px;
+  color: var(--pwa-dim);
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
+.pwa-peek__hint-ico {
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--pwa-gold);
+  animation: pwaSwipeCue 1.6s var(--pwa-ease) infinite;
+}
+
+.pwa-peek__rail {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.pwa-peek__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.pwa-peek__card {
+  flex: 0 0 88px;
+  width: 88px;
+  scroll-snap-align: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(-18px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pwa-peek__rail.is-play .pwa-peek__card {
+  animation: pwaPeekIn 0.48s var(--pwa-ease) both;
+  animation-delay: calc(var(--i, 0) * 42ms);
+}
+
+.pwa-peek__thumb {
+  display: block;
+  width: 88px;
+  height: 110px;
+  overflow: hidden;
+  background: #1a1a1a;
+}
+
+.pwa-peek__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pwa-peek__name {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  color: var(--pwa-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pwa-peek__empty {
+  margin: 0;
+  padding: 18px 4px;
+  color: var(--pwa-dim);
+  font-size: 12px;
+}
+
+@keyframes pwaPeekIn {
+  from {
+    opacity: 0;
+    transform: translateX(-22px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pwaSwipeCue {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
 /* —— Shortcut dock (31CM / Musinsa icon strip) —— */
@@ -315,10 +471,10 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-dock__txt {
-  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: SUIT, Pretendard, sans-serif;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
   color: var(--pwa-muted);
   white-space: nowrap;
 }
@@ -342,19 +498,27 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-sec__head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   padding: 0 16px 14px;
 }
 
+.pwa-sec__eyebrow {
+  margin: 0 0 4px;
+  color: var(--pwa-dim);
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
 .pwa-sec__head h2 {
   margin: 0;
-  font-family: Syne, Archivo, SUIT, Pretendard, sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  text-transform: uppercase;
+  font-family: SUIT, Pretendard, sans-serif;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
 }
 
 .pwa-sec__head button,
@@ -362,11 +526,9 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   border: 0;
   background: transparent;
   color: var(--pwa-dim);
-  font-family: Syne, Archivo, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
   text-decoration: none;
   cursor: pointer;
 }

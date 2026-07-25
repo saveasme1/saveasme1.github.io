@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa10";
-  const APP_VERSION = "v1.4.0";
+  const APP_BUILD = "20260725-pwa11";
+  const APP_VERSION = "v1.4.1";
   const RELEASE_NOTES = [
-    "카테고리 ALL·C·B를 브랜드 엣지 산세리프(Syne)로 재구성",
-    "히어로·대형 썸네일 탭 시 포트폴리오로 바로 이동",
-    "무신사/31CM 톤의 에디토리얼 홈·독(메뉴) 리디자인",
-    "포트폴리오 레일 썸네일 확대 및 타이포 강화",
+    "카테고리 폰트 볼드·자간·크기 정리 (가벼운 Syne)",
+    "카테고리 탭 시 상품이 좌→우로 펼쳐지는 미리보기",
+    "히어로·섹션 카피 한글+영문 믹스 (무신사 톤)",
+    "같은 카테고리 다시 누르면 포트폴리오 전체로 이동",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";
