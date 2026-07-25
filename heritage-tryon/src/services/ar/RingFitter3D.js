@@ -13,6 +13,7 @@ export function fitRing(anchor, meta = {}) {
     fittedRadius: r,
     productScale: scale,
     sizeFit: (anchor.jointBend || 0) < 1.15,
+    fitWarning: (anchor.jointBend || 0) >= 1.15,
     deformationPolicy: meta.deformationPolicy || "none",
   };
 }
