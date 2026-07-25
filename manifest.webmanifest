@@ -1,8 +1,8 @@
 {
-  "id": "/?pwa=bon-heritage-20260725-pwa5",
-  "name": "�??�리?��?",
-  "short_name": "�??�리?��?",
-  "description": "주문?�작 주얼�??�트?�리?��? ?�시�??�식",
+  "id": "/?pwa=bon-heritage-20260725-pwa6",
+  "name": "본 헤리티지",
+  "short_name": "본 헤리티지",
+  "description": "주문제작 주얼리 포트폴리오와 실시간 소식",
   "lang": "ko",
   "dir": "ltr",
   "start_url": "./landing.html",

@@ -62,31 +62,11 @@ html.is-pwa .hero {
   animation: pwaRise 0.5s var(--pwa-ease) both;
 }
 
-html.is-pwa .hero::before {
-  content: "APP";
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  margin-bottom: 12px;
-  padding: 0 9px;
-  border-radius: 7px;
-  border: 1px solid rgba(212, 165, 116, 0.35);
-  color: var(--pwa-accent);
-  font-family: SUIT, Pretendard, sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-}
-
 html.is-pwa .hero-title {
   font-size: clamp(26px, 7.2vw, 34px);
   line-height: 1.18;
   letter-spacing: -0.05em;
   max-width: 11em;
-}
-
-html.is-pwa .hero-title br {
-  display: none;
 }
 
 html.is-pwa .hero-copy {

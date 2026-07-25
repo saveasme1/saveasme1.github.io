@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#161513">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="�??�리?��?">
-  <title>�??�리?��? · ?�진?�로 찾기</title>
+  <meta name="apple-mobile-web-app-title" content="본 헤리티지">
+  <title>본 헤리티지 · 사진으로 찾기</title>
   <script>
     (function () {
       try {
@@ -22,42 +22,42 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa5">
+  <link rel="manifest" href="manifest.webmanifest?v=20260725-pwa6">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="search.css?v=20260725-pwa5">
-  <link rel="stylesheet" href="pwa-app.css?v=20260725-pwa5">
+  <link rel="stylesheet" href="search.css?v=20260725-pwa6">
+  <link rel="stylesheet" href="pwa-app.css?v=20260725-pwa6">
 </head>
 <body>
   <header class="js-top">
-    <a class="js-back" href="./landing.html">???�아가�?/a>
-    <strong>?�진?�로 찾기</strong>
+    <a class="js-back" href="./landing.html">← 돌아가기</a>
+    <strong>사진으로 찾기</strong>
     <span class="js-badge">BETA</span>
   </header>
 
   <main class="js-main">
     <section class="js-hero">
-      <h1>주얼�?AI 검??/h1>
-      <p>?�진 ?�로?�·카메라�?비슷???�품??찾습?�다. ??기능?� ?�재 베�? ?�스??기능?�로 ?�확?��? ?�을 ???�습?�다.</p>
+      <h1>주얼리 AI 검색</h1>
+      <p>사진 업로드·카메라로 비슷한 작품을 찾습니다. 이 기능은 현재 베타 테스트 기능으로 정확하지 않을 수 있습니다.</p>
     </section>
 
-    <section class="js-panel" aria-label="검??>
+    <section class="js-panel" aria-label="검색">
       <div class="js-tabs" role="tablist">
-        <button type="button" class="is-active" data-tab="photo">?�진</button>
-        <button type="button" data-tab="camera">카메??/button>
+        <button type="button" class="is-active" data-tab="photo">사진</button>
+        <button type="button" data-tab="camera">카메라</button>
       </div>
 
       <div class="js-tabpane is-active" id="pane-photo">
         <label class="js-drop" id="photoDrop">
           <input id="fileInput" type="file" accept="image/*" hidden>
-          <strong>?�진 ?�택 / ?�로??/strong>
-          <span>JPG·PNG · 최�? 10MB</span>
+          <strong>사진 선택 / 업로드</strong>
+          <span>JPG·PNG · 최대 10MB</span>
         </label>
         <div class="js-preview" id="photoPreview" hidden></div>
         <div class="js-row">
-          <button type="button" class="js-btn" id="photoClear" hidden>?�진 지?�기</button>
-          <button type="button" class="js-btn primary" id="photoSearch" disabled>검??/button>
+          <button type="button" class="js-btn" id="photoClear" hidden>사진 지우기</button>
+          <button type="button" class="js-btn primary" id="photoSearch" disabled>검색</button>
         </div>
       </div>
 
@@ -65,9 +65,9 @@
         <video id="cameraVideo" playsinline muted></video>
         <div class="js-preview" id="cameraPreview" hidden></div>
         <div class="js-row">
-          <button type="button" class="js-btn" id="cameraStart">카메??켜기</button>
+          <button type="button" class="js-btn" id="cameraStart">카메라 켜기</button>
           <button type="button" class="js-btn" id="cameraCapture" disabled>촬영</button>
-          <button type="button" class="js-btn primary" id="cameraSearch" disabled>촬영 ??검??/button>
+          <button type="button" class="js-btn primary" id="cameraSearch" disabled>촬영 후 검색</button>
         </div>
         <canvas id="cameraCanvas" hidden></canvas>
       </div>
@@ -75,18 +75,18 @@
 
     <div class="js-loading" id="loading" hidden aria-live="polite">
       <div class="js-loading-track" aria-hidden="true"><i></i></div>
-      <p id="loadingText">?��?지 검??중�?/p>
+      <p id="loadingText">이미지 검색 중…</p>
     </div>
 
     <p class="js-status" id="status" aria-live="polite">준비됨</p>
-    <section class="js-results" id="results" aria-label="검??결과"></section>
-    <section class="js-related" id="related" hidden aria-label="관???�품">
-      <h2>관???�품</h2>
+    <section class="js-results" id="results" aria-label="검색 결과"></section>
+    <section class="js-related" id="related" hidden aria-label="관련 상품">
+      <h2>관련 상품</h2>
       <div class="js-grid" id="relatedGrid"></div>
     </section>
   </main>
 
-  <script src="search.js?v=20260725-pwa5"></script>
-  <script src="pwa-register.js?v=20260725-pwa5"></script>
+  <script src="search.js?v=20260725-pwa6"></script>
+  <script src="pwa-register.js?v=20260725-pwa6"></script>
 </body>
 </html>

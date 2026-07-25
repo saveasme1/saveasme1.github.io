@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa5";
+  const APP_BUILD = "20260725-pwa6";
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";
   const BANNER_ID = "pwaStatusBanner";
