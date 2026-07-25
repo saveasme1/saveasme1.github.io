@@ -1,14 +1,12 @@
-﻿# Main may be indexed. Portfolio archive, posts, images, and private boards must not.
+﻿# Block search indexing of the root Kakao entry (공방 171 main page).
+# Other paths keep their own meta robots (e.g. landing/admin already noindex).
 
 User-agent: *
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
+Disallow: /main-blocked.html
 Disallow: /portfolio.html
-Disallow: /portfolio-board.css
-Disallow: /portfolio-board.js
-Disallow: /portfolio-data.json
-Disallow: /portfolio-draft.json
 Disallow: /portfolio/
 Disallow: /portfolio
 Disallow: /landing.html
@@ -17,6 +15,10 @@ Disallow: /admin/
 Disallow: /gb171-admin.html
 Disallow: /shipping.html
 Disallow: /notices.html
+Disallow: /mypage.html
+Disallow: /search.html
+Disallow: /portfolio-data.json
+Disallow: /portfolio-draft.json
 Disallow: /shipping-data.json
 Disallow: /shipping-draft.json
 Disallow: /notices-data.json
@@ -27,40 +29,46 @@ Disallow: /_offline_backup
 Disallow: /_hidden_anonymous
 
 User-agent: Googlebot
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
 
 User-agent: Googlebot-Image
 Disallow: /
 
 User-agent: Bingbot
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
 
 User-agent: Yeti
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
 
 User-agent: NaverBot
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
 
 User-agent: DuckDuckBot
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
 
 User-agent: Yandex
-Allow: /$
-Allow: /index.html
-Allow: /main-content.html
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
+Disallow: /
+
+User-agent: Baiduspider
+Disallow: /$
+Disallow: /index.html
+Disallow: /main-content.html
 Disallow: /
