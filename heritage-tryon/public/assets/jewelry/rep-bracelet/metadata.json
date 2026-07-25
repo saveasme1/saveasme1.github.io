@@ -1,0 +1,43 @@
+{
+  "productId": "rep-bracelet",
+  "type": "rigid_bangle",
+  "model": "model.glb",
+  "unit": "mm",
+  "innerDiameterMm": 58,
+  "outerDiameterMm": 64,
+  "widthMm": 7,
+  "thicknessMm": 3,
+  "defaultScale": 1,
+  "rotationOffset": [
+    90,
+    0,
+    0
+  ],
+  "positionOffset": [
+    0,
+    0,
+    0
+  ],
+  "allowedScaleRange": [
+    0.96,
+    1.04
+  ],
+  "deformationPolicy": "none",
+  "preferredOrientation": "palm-side",
+  "materialPreset": "rose-gold-polished",
+  "occlusionMode": "wrist-ellipse",
+  "validationAsset": false,
+  "lod": {
+    "high": "model.glb",
+    "medium": "model.glb",
+    "low": "model.glb"
+  },
+  "isRepresentative": true,
+  "sourcePriorityNoteKo": "CAD/제조사 3D/스캔이 없어 치수 기반 대표 메시입니다. 실제 SKU 형태 보존을 위해 원본 CAD가 필요합니다.",
+  "requiredFromVendorKo": [
+    "원본 CAD 또는 STEP/OBJ",
+    "내경/외경/폭 mm",
+    "재질 지정",
+    "보석 유무와 위치"
+  ]
+}
