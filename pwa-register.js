@@ -1,16 +1,51 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260725-pwa6";
+  const APP_BUILD = "20260725-pwa7";
   const BUILD_KEY = "hx.pwa.build";
   const FRESH_KEY = "hx.pwa.freshToastAt";
   const BANNER_ID = "pwaStatusBanner";
   const DIALOG_ID = "pwaUpdateDialog";
+  const RECOVER_KEY = "hx.pwa.mojibakeRecover";
 
   /** Only true after customer taps 「업데이트」 */
   let userApprovedUpdate = false;
   let pendingWorker = null;
   let refreshing = false;
+
+  async function emergencyFixMojibake() {
+    if (sessionStorage.getItem(RECOVER_KEY) === "1") return false;
+    const title = document.querySelector(".hero-title");
+    const sample =
+      (title && title.textContent) ||
+      document.title ||
+      (document.body && document.body.innerText.slice(0, 400)) ||
+      "";
+    const broken =
+      sample.includes("\uFFFD") ||
+      /br>/.test(sample) ||
+      (sample.length > 8 && !/[가-힣]/.test(sample) && /[ÃÂïìë]/.test(sample));
+    if (!broken) return false;
+
+    sessionStorage.setItem(RECOVER_KEY, "1");
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+    } catch (_) {}
+    const url = new URL(location.href);
+    url.searchParams.set("_fix", String(Date.now()));
+    location.replace(url.href);
+    return true;
+  }
+
+  // Run ASAP — corrupted cache must not linger on web or PWA
+  emergencyFixMojibake();
 
   const IMG_FALLBACK =
     "data:image/svg+xml;charset=utf-8," +
