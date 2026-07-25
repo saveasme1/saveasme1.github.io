@@ -5,6 +5,9 @@
 
 import { estimateWristAnchor3D } from "./ar/WristAnchorEstimator.js";
 import { estimateFingerAnchor3D } from "./ar/FingerAnchorEstimator.js";
+import { estimateNeckAnchor3D } from "./ar/NeckAnchorEstimator.js";
+import { estimateEarAnchor3D, estimateEarPair } from "./ar/EarAnchorEstimator.js";
+import { fitNecklace } from "./ar/NecklaceFitter3D.js";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const ESM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
@@ -214,74 +217,108 @@ function scoreRing(lm, finger = "ring") {
 }
 
 function scoreEarring(faceLm, earSide, mirror = false) {
-  const L = faceLm[234] || faceLm[127];
-  const R = faceLm[454] || faceLm[356];
   const anatomical = earSide === "left" ? "left" : "right";
-  const ear = anatomical === "left" ? L : R;
-  if (!ear) return { score: 0, ok: false, far: true, message: "얼굴·귀가 보이도록 맞춰 주세요" };
-  const sx = mirror ? 1 - ear.x : ear.x;
+  const pair = estimateEarPair(faceLm, { mirrored: false });
+  const primary = pair[anatomical] || estimateEarAnchor3D(faceLm, anatomical, { mirrored: false });
+  const secondary = anatomical === "left" ? pair.right : pair.left;
+  if (!primary) {
+    return {
+      score: 0,
+      ok: false,
+      far: true,
+      message: "얼굴·귀가 보이도록 맞춰 주세요",
+      placement: null,
+      anchor3D: null,
+    };
+  }
+  // Display-space center when video is CSS-mirrored
+  const displayPrimary = mirror
+    ? {
+        ...primary,
+        center2D: { x: 1 - primary.center2D.x, y: primary.center2D.y },
+        attachment2D: { x: 1 - primary.attachment2D.x, y: primary.attachment2D.y },
+        center: { x: 1 - primary.center2D.x, y: primary.center2D.y },
+        mirrored: true,
+      }
+    : primary;
+  const displaySecondary =
+    secondary && mirror
+      ? {
+          ...secondary,
+          center2D: { x: 1 - secondary.center2D.x, y: secondary.center2D.y },
+          attachment2D: { x: 1 - secondary.attachment2D.x, y: secondary.attachment2D.y },
+          center: { x: 1 - secondary.center2D.x, y: secondary.center2D.y },
+          mirrored: true,
+        }
+      : secondary;
+
+  const c = displayPrimary.attachment2D;
   const target = anatomical === "right" ? { x: 0.68, y: 0.4 } : { x: 0.32, y: 0.4 };
-  const d = dist2(sx, ear.y, target.x, target.y);
-  let score = Math.max(0, 1 - d / 0.18);
-  if (d > 0.1) score = Math.min(score, 0.78);
-  const ok = score >= 0.78 && d <= 0.09;
-  const far = d > 0.22 || score < 0.3;
+  const d = dist2(c.x, c.y, target.x, target.y);
+  let score = Math.max(0, 1 - d / 0.2);
+  score = Math.min(1, score + (displayPrimary.visibility || 0) * 0.25);
+  if (displayPrimary.confidence > 0.6) score = Math.min(1, score + 0.1);
+  const ok = score >= 0.72 && (displayPrimary.visibility || 0) >= 0.35 && d <= 0.14;
+  const far = d > 0.28 || score < 0.28;
   const label = anatomical === "left" ? "왼쪽" : "오른쪽";
   return {
     score,
     ok,
     far,
     message: far
-      ? `${label} 귀가 가이드에서 벗어났습니다`
+      ? `${label} 귀가 보이도록 맞춰주세요`
       : ok
-        ? "좋아요! 그대로 3초간 유지해 주세요"
-        : `${label} 귀 · 살짝 기울여 가이드(+)에`,
+        ? "좋습니다. 그대로 유지해주세요"
+        : `${label} 귀가 보이도록 고개를 돌려주세요`,
+    placement: displayPrimary,
+    anchor3D: displayPrimary,
+    secondaryAnchor: displaySecondary,
+    landmarks: faceLm,
   };
 }
 
-function scoreNecklace(poseLm, mirror = false, zoom = 1) {
-  const ls = poseLm[11];
-  const rs = poseLm[12];
-  const nose = poseLm[0];
-  if (!ls || !rs) return { score: 0, ok: false, far: true, message: "얼굴·목이 보이게 맞춰 주세요" };
-
+function scoreNecklace(poseLm, faceLm = null, mirror = false, zoom = 1) {
   const z = Math.max(0.5, Number(zoom) || 1);
-  const mapX = (x) => {
-    const sx = mirror ? 1 - x : x;
-    return 0.5 + (sx - 0.5) * z;
+  let anchor = estimateNeckAnchor3D(faceLm, poseLm, { mirrored: false });
+  if (!anchor) {
+    return { score: 0, ok: false, far: true, message: "얼굴·목이 보이게 맞춰 주세요", placement: null };
+  }
+  // apply zoom mapping similar to prior guide targeting
+  const mapPoint = (p) => ({
+    x: 0.5 + ((mirror ? 1 - p.x : p.x) - 0.5) * z,
+    y: 0.5 + (p.y - 0.5) * z,
+  });
+  const center2D = mapPoint(anchor.center2D);
+  anchor = {
+    ...anchor,
+    center2D,
+    center: center2D,
+    mirrored: mirror,
+    shoulderWidth: anchor.shoulderWidth * z,
+    collarboneWidth: anchor.collarboneWidth * z,
+    scale: anchor.scale * z,
   };
-  const mapY = (y) => 0.5 + (y - 0.5) * z;
-
-  const mid = { x: (mapX(ls.x) + mapX(rs.x)) / 2, y: (mapY(ls.y) + mapY(rs.y)) / 2 };
-  const shoulderW = dist2(mapX(ls.x), mapY(ls.y), mapX(rs.x), mapY(rs.y));
-  const noseY = nose ? mapY(nose.y) : null;
-  const faceNeck = {
-    x: mid.x,
-    y: noseY != null ? noseY * 0.55 + mid.y * 0.45 : mid.y - 0.04,
-  };
-  const target = { x: 0.52, y: 0.34 };
-  const d = dist2(faceNeck.x, faceNeck.y, target.x, target.y);
-
-  let score = Math.max(0, 1 - d / 0.14);
-  if (Math.abs(mid.x - 0.5) > 0.2) score *= 0.55;
-  if (noseY == null) score *= 0.35;
-  else if (noseY > 0.45 || noseY < 0.04) score *= 0.4;
-  if (shoulderW < 0.22 || shoulderW > 0.85) score *= 0.55;
-  const level = 1 - Math.min(1, Math.abs(mapY(ls.y) - mapY(rs.y)) / 0.12);
-  score *= 0.6 + 0.4 * level;
-  if (d > 0.11) score = Math.min(score, 0.72);
-
-  const ok = score >= 0.8 && d <= 0.08;
-  const far = d > 0.2 || score < 0.35;
+  const fitted = fitNecklace(anchor, {});
+  const target = { x: 0.52, y: 0.38 };
+  const d = dist2(fitted.center2D.x, fitted.center2D.y, target.x, target.y);
+  let score = Math.max(0, 1 - d / 0.16);
+  if (anchor.confidence > 0.6) score = Math.min(1, score + 0.12);
+  if (anchor.shoulderWidth > 0.18 && anchor.shoulderWidth < 0.8) score = Math.min(1, score + 0.1);
+  const ok = score >= 0.72 && d <= 0.12;
+  const far = d > 0.24 || score < 0.3;
   return {
     score,
     ok,
     far,
     message: far
-      ? "가이드에 더 가까이 · 얼굴·목을 가운데로"
+      ? "얼굴과 어깨를 화면 중앙에 맞춰주세요"
       : ok
-        ? "좋아요! 그대로 3초간 유지해 주세요"
-        : "한손 셀카 · 얼굴·목을 가이드에 맞춰 주세요",
+        ? "좋습니다. 그대로 유지해주세요"
+        : "정면을 바라봐주세요",
+    placement: fitted,
+    anchor3D: fitted,
+    landmarks: poseLm,
+    faceLandmarks: faceLm,
   };
 }
 
@@ -350,15 +387,21 @@ export async function evaluateAlignment(video, type, earSide = "right", ringFing
       const detector = await getVideoFace();
       const res = detector.detectForVideo(video, now);
       const lm = res.faceLandmarks?.[0];
-      if (!lm) return { score: 0, ok: false, far: true, message: "얼굴이 화면에 들어오게 해 주세요" };
+      if (!lm) return { score: 0, ok: false, far: true, message: "얼굴을 화면에 보여주세요", placement: null };
       return scoreEarring(lm, earSide, mirror);
     }
     if (type === "necklace") {
-      const detector = await getVideoPose();
-      const res = detector.detectForVideo(video, now);
-      const lm = res.landmarks?.[0];
-      if (!lm) return { score: 0, ok: false, far: true, message: "상체가 화면에 들어오게 해 주세요" };
-      return scoreNecklace(lm, mirror, zoom);
+      const pose = await getVideoPose();
+      const pres = pose.detectForVideo(video, now);
+      const plm = pres.landmarks?.[0];
+      if (!plm) return { score: 0, ok: false, far: true, message: "얼굴과 어깨를 화면에 보여주세요", placement: null };
+      let faceLm = null;
+      try {
+        const face = await getVideoFace();
+        const fres = face.detectForVideo(video, now);
+        faceLm = fres.faceLandmarks?.[0] || null;
+      } catch (_) {}
+      return scoreNecklace(plm, faceLm, mirror, zoom);
     }
   } catch (err) {
     console.warn("align", err);
