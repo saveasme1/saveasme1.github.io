@@ -431,15 +431,21 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     crop.getContext("2d").drawImage(syn, 0, 0);
   }
 
-  // Bracelet: product texture wrap on wrist FRONT only (no Love-stud 3D mesh — wrong product)
+  // Bracelet: prefer 2.5D front/back + occlusion; legacy wrap as last resort
   if (type === "bracelet") {
-    const t = target?.center ? target : null;
+    const t = target?.center || target?.center2D ? target : null;
     if (!t) {
       console.warn("bracelet compose: missing target");
       return out;
     }
-    const cx = Math.min(out.width - 8, Math.max(8, t.center.x));
-    const cy = Math.min(out.height - 8, Math.max(8, t.center.y));
+    try {
+      const { composeBracelet25D } = await import("./ar/BraceletFitter25D.js");
+      return composeBracelet25D(bodyCanvas, jewelryCanvas, t);
+    } catch (err) {
+      console.warn("bracelet 2.5D failed, legacy wrap", err);
+    }
+    const cx = Math.min(out.width - 8, Math.max(8, (t.center || t.center2D).x));
+    const cy = Math.min(out.height - 8, Math.max(8, (t.center || t.center2D).y));
     let targetW = Math.max(minWidthForType(out.width, "bracelet"), t.width || out.width * 0.28);
     try {
       wrapBraceletCylinder(
@@ -451,10 +457,21 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
         t.angle || 38,
         t.frontAngle
       );
-    } catch (err) {
-      console.warn("bracelet wrap failed", err);
+    } catch (err2) {
+      console.warn("bracelet wrap failed", err2);
     }
     return out;
+  }
+
+  if (type === "ring") {
+    const t = target?.center || target?.center2D ? target : null;
+    if (!t) return out;
+    try {
+      const { composeRing25D } = await import("./ar/BraceletFitter25D.js");
+      return composeRing25D(bodyCanvas, jewelryCanvas, t);
+    } catch (err) {
+      console.warn("ring 2.5D failed, legacy place", err);
+    }
   }
 
   const layer = document.createElement("canvas");
@@ -463,7 +480,8 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
   const lctx = layer.getContext("2d");
 
   const placeOne = (t) => {
-    if (!t?.center) return;
+    if (!t?.center && !t?.center2D) return;
+    const center = t.center || t.center2D;
     let targetW = Math.max(8, t.width || out.width * 0.12);
     targetW = Math.max(targetW, minWidthForType(out.width, type));
     const aspect = crop.height / Math.max(crop.width, 1);
@@ -473,7 +491,8 @@ export async function composeTryOn(bodyImg, jewelryCanvas, target, type = "ring"
     const angle = t.angle || 0;
 
     if (type === "ring") {
-      placeRingOnFinger(lctx, crop, { ...t, width: targetW }, out.width);
+      // Prefer 2.5D ring path (caller may have already used composeRing25D)
+      placeRingOnFinger(lctx, crop, { ...t, center, width: targetW }, out.width);
       return;
     }
 
