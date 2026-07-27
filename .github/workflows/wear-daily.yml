@@ -1,0 +1,32 @@
+name: Build verified wear daily feed
+
+on:
+  schedule:
+    # 00:10 KST = 15:10 UTC previous day
+    - cron: "10 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Build daily verified wear feed
+        run: node scripts/build-wear-daily.mjs
+      - name: Commit if changed
+        run: |
+          git config user.name "heritage-wear-bot"
+          git config user.email "bot@hand-made.kr"
+          git add hx-wear-daily.json hx-wear-candidates.json
+          if git diff --staged --quiet; then
+            echo "No feed changes"
+          else
+            git commit -m "chore: refresh verified wear daily feed"
+            git push
+          fi

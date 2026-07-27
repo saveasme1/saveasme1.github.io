@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "day": "2026-07-27",
+  "builtAt": "2026-07-27T12:42:41.751Z",
+  "note": "검토 후 hx-wear-allowlist.json 에 승격하세요. 앱 미송출.",
+  "items": [
+    {
+      "id": "cand-49c80e99-1acf-4dff-9433-bc9bc3e2432b",
+      "brandEn": "Cartier",
+      "type": "bracelet",
+      "productHints": [
+        "love",
+        "bracelet"
+      ],
+      "title": "Cartier love collection re launched",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cartier_love_collection_re_launched.jpg",
+      "permalink": "https://commons.wikimedia.org/w/index.php?curid=6074893",
+      "source": "wikimedia",
+      "license": "by-sa",
+      "indexedOn": "2020-10-07T23:58:49.229474Z",
+      "status": "needs_review",
+      "note": "자동 후보 · 허용목록 승격 전까지 앱에 미송출"
+    }
+  ]
+}

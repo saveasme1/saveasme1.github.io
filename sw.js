@@ -1,5 +1,5 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260727-pwa24";
+const CACHE_VERSION = "hx-pwa-v20260727-pwa25";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -35,6 +35,8 @@ const PRECACHE = [
   "./hx-today.js",
   "./hx-extras.js",
   "./hx-wear-feed.js",
+  "./hx-wear-daily.json",
+  "./hx-wear-allowlist.json",
   "./hx-lifestyle.css",
   "./discover.html",
   "./hx-diamond-rules.json",

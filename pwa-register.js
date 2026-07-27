@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260727-pwa24";
+  const APP_BUILD = "20260727-pwa25";
   const APP_VERSION = "v1.9.4";
   const RELEASE_NOTES = [
     "코디 피드: 원문 메타에 브랜드명 있을 때만 노출",
