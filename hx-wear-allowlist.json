@@ -1,64 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
   "updated": "2026-07-27",
-  "policy": [
-    "원문 제목/태그에 브랜드+제품이 명시되고, 이미지까지 확인된 항목만 허용",
-    "포폴 제품명을 사진에 강제로 붙이지 않음",
-    "자동 검색 결과는 candidates 로만 저장 · 허용목록 승격 후에만 송출",
-    "확신이 없으면 빈 피드"
-  ],
-  "entries": [
-    {
-      "id": "allow-cartier-gloria-swanson-bracelets",
-      "brandEn": "Cartier",
-      "type": "bracelet",
-      "productHints": ["bracelet"],
-      "title": "Gloria Swanson bracelets - Cartier",
-      "image": "https://live.staticflickr.com/4723/39053445764_d9f91b49ba_b.jpg",
-      "permalink": "https://www.flickr.com/photos/23165290@N00/39053445764",
-      "source": "flickr",
-      "license": "by-sa",
-      "indexedOn": "2019-01-06T00:00:00.000Z",
-      "confidence": "high",
-      "reasons": [
-        "제목 Gloria Swanson bracelets - Cartier",
-        "클리블랜드 미술관 Jazz Age 전시 촬영",
-        "CC BY-SA · Cartier 팔찌 확인"
-      ]
-    },
-    {
-      "id": "allow-cartier-love-ring-engraved",
-      "brandEn": "Cartier",
-      "type": "ring",
-      "productHints": ["love", "ring"],
-      "title": "the-cartier-love-ring",
-      "image": "https://live.staticflickr.com/1272/1055557039_4bd33c765d_b.jpg",
-      "permalink": "https://www.flickr.com/photos/93734858@N00/1055557039",
-      "source": "flickr",
-      "license": "by",
-      "indexedOn": "2020-05-03T05:57:27.421619Z",
-      "confidence": "high",
-      "reasons": [
-        "제목에 cartier love ring",
-        "이미지에 Cartier 각인·750·스크류 모티프 Love 링 확인"
-      ]
-    },
-    {
-      "id": "allow-cartier-love-relaunch",
-      "brandEn": "Cartier",
-      "type": "bracelet",
-      "productHints": ["love"],
-      "title": "Cartier love collection re launched",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cartier_love_collection_re_launched.jpg",
-      "permalink": "https://commons.wikimedia.org/wiki/File:Cartier_love_collection_re_launched.jpg",
-      "source": "wikimedia",
-      "license": "by-sa",
-      "indexedOn": "2009-01-01T00:00:00.000Z",
-      "confidence": "high",
-      "reasons": [
-        "제목 Cartier love collection 명시",
-        "Love 컬렉션 공개 이미지"
-      ]
-    }
-  ]
+  "note": "deprecated — use hx-ig-wear.json only. flickr emptied.",
+  "items": []
 }

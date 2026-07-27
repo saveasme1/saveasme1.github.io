@@ -1025,6 +1025,46 @@ html.is-pwa {
   transform: scale(1.02);
 }
 
+.hx-ig__media--ph {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(201, 166, 107, 0.18), transparent 55%),
+    linear-gradient(160deg, #1a1612 0%, #0a0a0a 55%, #12100e 100%);
+}
+
+.hx-ig__ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.hx-ig__ph b {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #f5f5f5;
+}
+
+.hx-ig__ph span {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--hx-gold, #c9a66b);
+}
+
+.hx-ig__ph em {
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(245, 245, 245, 0.45);
+  border-bottom: 1px solid rgba(201, 166, 107, 0.45);
+  padding-bottom: 2px;
+}
+
 .hx-ig__foot {
   padding: 12px 14px 14px;
 }

@@ -822,7 +822,7 @@
       panel.id = "hxDiscoverPanel";
 
       const defs = [
-        { id: "wear", label: "해외 피드" },
+        { id: "wear", label: "착용 코디" },
         { id: "today", label: "Jewelry Today" },
         { id: "tools", label: "유틸" },
       ];
