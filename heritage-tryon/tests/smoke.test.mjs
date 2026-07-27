@@ -335,3 +335,43 @@ describe("StyleAR Phase 1 still resolve", () => {
     assert.equal(r.source, "capture");
   });
 });
+
+describe("StyleAR Phase 2–3 specialists and catalog", () => {
+  it("ear specialist flags hair occlusion on low visibility", async () => {
+    const { refineEarSpecialist } = await import("../src/services/ar/PartSpecialists.js");
+    const a = refineEarSpecialist({
+      side: "right",
+      attachment2D: { x: 0.7, y: 0.45 },
+      center2D: { x: 0.7, y: 0.45 },
+      visibility: 0.3,
+      yaw: 0.7,
+      confidence: 0.5,
+    });
+    assert.equal(a.hairOcclusionHint, true);
+    assert.equal(a.specialist, "ear-v1");
+  });
+
+  it("finger specialist marks fitWarning on high bend", async () => {
+    const { refineFingerSpecialist } = await import("../src/services/ar/PartSpecialists.js");
+    const a = refineFingerSpecialist({
+      center2D: { x: 0.5, y: 0.5 },
+      direction: { x: 0, y: -1, z: 0 },
+      jointBend: 1.4,
+    });
+    assert.equal(a.fitWarning, true);
+    assert.equal(a.uniformScaleOnly, true);
+  });
+
+  it("normalizeSkuMeta defaults material and occlusion", async () => {
+    const { normalizeSkuMeta } = await import("../src/services/ar/CatalogMaterial.js");
+    const m = normalizeSkuMeta({}, "ring");
+    assert.equal(m.materialPreset, "yellow-gold-polished");
+    assert.equal(m.occlusionMode, "finger-ellipse");
+    assert.equal(m.deformationPolicy, "none");
+  });
+
+  it("pipeline version is phase3+", async () => {
+    const { STYLEAR_PIPELINE_VERSION } = await import("../src/services/ar/StyleArComposePipeline.js");
+    assert.match(STYLEAR_PIPELINE_VERSION, /phase3/);
+  });
+});
