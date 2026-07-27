@@ -22,6 +22,7 @@ export { fitNecklaceWithChain } from "./NecklaceChain.js";
 export { fitEarring } from "./EarringFitter3D.js";
 export { EarringPhysics } from "./EarringPhysics.js";
 export { composeHighResTryOn } from "./HighResCompose.js";
+export { runStyleArCompose, STYLEAR_PIPELINE_VERSION, STYLEAR_PARTS, resolveComposeTarget, targetToAnchor } from "./StyleArComposePipeline.js";
 export { PerfHarness } from "./PerfHarness.js";
 export { HAIR_OCCLUSION_DECISION, probeHairSegmenterCost } from "./HairOcclusionDecision.js";
 export { MATERIAL_PRESETS, GEMSTONE_TRADEOFF_KO } from "./MaterialPresets.js";
