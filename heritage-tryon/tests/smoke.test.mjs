@@ -372,6 +372,6 @@ describe("StyleAR Phase 2–3 specialists and catalog", () => {
 
   it("pipeline version is phase3+", async () => {
     const { STYLEAR_PIPELINE_VERSION } = await import("../src/services/ar/StyleArComposePipeline.js");
-    assert.match(STYLEAR_PIPELINE_VERSION, /phase3/);
+    assert.match(STYLEAR_PIPELINE_VERSION, /^1\.3/);
   });
 });
