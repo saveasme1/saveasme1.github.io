@@ -1,14 +1,15 @@
 import { prepareJewelry } from "./services/jewelry.js";
 import { detectBody } from "./services/mediapipe.js";
 import { assetUrl, guessTypeFromText, loadPortfolioItem } from "./services/portfolio.js";
-import { composeTryOn, fallbackTarget } from "./services/tryon.js";
 import { evaluateAlignment, stopAlignClock } from "./services/align.js";
 import {
   GuideOverlay,
   GuideStateEngine,
   TrackingSmoother,
   JewelryARRenderer,
-  composeHighResTryOn,
+  runStyleArCompose,
+  resolveComposeTarget,
+  targetToAnchor,
   PerfHarness,
   HAIR_OCCLUSION_DECISION,
   probeHairSegmenterCost,
@@ -26,6 +27,7 @@ const state = {
     cover: params.get("image") || params.get("path") || "",
   },
   bodyImage: null,
+  bodySource: null, // "camera" | "upload" — same StyleAR compose path either way
   afterCanvas: null,
   productReady: false,
   wearType: "bracelet",
@@ -286,11 +288,16 @@ async function loadProduct() {
   setStatus(`제품 이미지를 불러오지 못했습니다. ${lastErr?.message || ""}`.trim(), "is-err");
 }
 
-function setBodyFromBlob(blob) {
+function setBodyFromBlob(blob, source = "upload") {
   const url = URL.createObjectURL(blob);
   const img = new Image();
   img.onload = () => {
     state.bodyImage = img;
+    state.bodySource = source === "camera" ? "camera" : "upload";
+    state.capturePlacement = source === "camera" ? state.capturePlacement : null;
+    if (source !== "camera") {
+      state.captureExtras = null;
+    }
     const preview = $("bodyPreview");
     preview.src = url;
     preview.alt = "";
@@ -298,7 +305,12 @@ function setBodyFromBlob(blob) {
     hide($("captureEmpty"));
     $("captureFrame")?.classList.add("has-photo");
     refreshReady();
-    setStatus("사진이 준비되었습니다. ‘착용해보기’를 눌러주세요.", "is-ok");
+    setStatus(
+      state.bodySource === "upload"
+        ? "앨범 사진이 준비되었습니다. ‘착용해보기’로 StyleAR 합성합니다."
+        : "사진이 준비되었습니다. ‘착용해보기’를 눌러주세요.",
+      "is-ok"
+    );
   };
   img.onerror = () => setStatus("사진 로드에 실패했습니다.", "is-err");
   img.src = url;
@@ -307,7 +319,9 @@ function setBodyFromBlob(blob) {
 function onPickFile(event) {
   const file = event.target.files?.[0];
   if (!file) return;
-  setBodyFromBlob(file);
+  state.capturePlacement = null;
+  state.captureExtras = null;
+  setBodyFromBlob(file, "upload");
   event.target.value = "";
 }
 
@@ -1109,7 +1123,7 @@ function shutterCapture() {
       return;
     }
     closeCameraSheet();
-    setBodyFromBlob(blob);
+    setBodyFromBlob(blob, "camera");
   }, "image/jpeg", 0.92);
 }
 
@@ -1155,50 +1169,20 @@ async function runMergeTryOn() {
     setMergeProgress(72);
 
     const useType = detection.type || type;
-    let target = detection.target;
-    if (useType === "bracelet") {
-      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
-      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
-      const fromCapture = placementToPixels(state.capturePlacement, w, h);
-      target =
-        fromCapture ||
-        detection.allTargets?.bracelet ||
-        detection.target ||
-        fallbackTarget(state.bodyImage, "bracelet");
-    } else if (useType === "ring") {
-      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
-      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
-      const fromCapture = placementToPixels(state.capturePlacement, w, h);
-      target =
-        fromCapture ||
-        detection.allTargets?.ring ||
-        detection.target ||
-        fallbackTarget(state.bodyImage, "ring", { ringFinger: state.ringFinger });
-    } else if (useType === "necklace" || useType === "earring") {
-      const w = state.bodyImage.naturalWidth || state.bodyImage.width;
-      const h = state.bodyImage.naturalHeight || state.bodyImage.height;
-      const fromCapture = placementToPixels(state.capturePlacement, w, h);
-      target =
-        fromCapture ||
-        detection.allTargets?.[useType] ||
-        detection.target ||
-        fallbackTarget(state.bodyImage, useType, {
-          earSide: state.earSide,
-          ringFinger: state.ringFinger,
-        });
-    } else if (!target) {
-      target = fallbackTarget(state.bodyImage, useType, {
+    // Phase 1 StyleAR: still re-detect wins over live capture coords
+    const resolved = resolveComposeTarget({
+      mode: useType,
+      detection,
+      capturePlacement: state.capturePlacement,
+      bodyImage: state.bodyImage,
+      placementToPixels,
+      extras: {
         earSide: state.earSide,
         ringFinger: state.ringFinger,
-      });
-    }
-    const usedFallback = useType === "bracelet"
-      ? !(state.capturePlacement || detection.allTargets?.bracelet || detection.target)
-      : useType === "ring"
-        ? !(state.capturePlacement || detection.allTargets?.ring || detection.target)
-        : useType === "necklace" || useType === "earring"
-          ? !(state.capturePlacement || detection.target)
-          : !detection.target;
+      },
+    });
+    const target = resolved.target;
+    const usedFallback = resolved.usedFallback;
 
     setMergeProgress(82);
 
@@ -1230,41 +1214,32 @@ async function runMergeTryOn() {
             return c;
           })();
 
-    const anchorForSave = state.capturePlacement
-      ? state.capturePlacement
-      : target?.center
-        ? {
-            ...target,
-            center2D: {
-              x: target.center.x / Math.max(1, bodyCanvas.width),
-              y: target.center.y / Math.max(1, bodyCanvas.height),
-            },
-            center: {
-              x: target.center.x / Math.max(1, bodyCanvas.width),
-              y: target.center.y / Math.max(1, bodyCanvas.height),
-            },
-            radiusX: target.width ? target.width / bodyCanvas.width / 2.4 : 0.06,
-            radiusY: target.width ? (target.width / bodyCanvas.width / 2.4) * 0.7 : 0.04,
-            radiusEstimate: target.width ? target.width / bodyCanvas.width / 2 : 0.03,
-          }
-        : null;
+    const anchorForSave = targetToAnchor(target, bodyCanvas.width, bodyCanvas.height);
     const composed = await withTimeout(
-      composeHighResTryOn({
+      runStyleArCompose({
         bodyCanvas,
+        bodyImage: state.bodyImage,
         jewelryCanvas: jewelry.canvas,
         type: useType,
+        mode: useType,
         target,
+        detection,
+        capturePlacement: state.capturePlacement,
+        placementToPixels,
         arRenderer: state.arRenderer,
         anchor: anchorForSave,
         extras: {
           secondaryAnchor: state.captureExtras?.secondaryAnchor || null,
+          earSide: state.earSide,
+          ringFinger: state.ringFinger,
+          bodySource: state.bodySource || "unknown",
         },
       }),
       60000,
       "합성 시간 초과"
     );
     const after = composed.canvas;
-    const composePath = composed.path;
+    const composePath = composed.path || composed.pipeline || "stylear-compose";
     setMergeProgress(96);
     state.afterCanvas = after;
     const canvas = $("resultCanvas");
@@ -1275,12 +1250,18 @@ async function runMergeTryOn() {
     await sleep(180);
     hideMergeProgress();
     setStageMode("result");
+    const srcLabel =
+      composed.resolveSource === "still"
+        ? "사진 재인식"
+        : composed.resolveSource === "capture"
+          ? "촬영 가이드"
+          : "기본 위치";
     setStatus(
       usedFallback
         ? "위치 인식이 어려워 가이드 기준으로 합성했습니다. 다시 촬영해 보세요."
         : composePath === "glb-highres"
-          ? "3D 고해상도 착용 미리보기입니다. 저장하거나 초기화할 수 있습니다."
-          : "착용 미리보기입니다. 저장하거나 초기화할 수 있습니다.",
+          ? `3D 고해상도 착용 (${srcLabel}). 저장하거나 초기화할 수 있습니다.`
+          : `착용 미리보기 (${srcLabel} · StyleAR 합성). 저장하거나 초기화할 수 있습니다.`,
       "is-ok"
     );
   } catch (err) {
