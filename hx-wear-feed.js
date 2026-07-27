@@ -476,13 +476,7 @@
     root.append(feed);
 
     try {
-      // Bust previous loose results after filter upgrade
-      try {
-        localStorage.removeItem("hx.wear.feed.v1");
-        localStorage.removeItem("hx.wear.feed.v2");
-        localStorage.removeItem("hx.wear.feed.v3");
-      } catch (_) {}
-      const { items, from, meta } = await buildWearFeed({ force: true });
+      const { items, from } = await buildWearFeed(opts);
       if (!items.length) {
         note.textContent = "검증을 통과한 착용컷이 없습니다. 잠시 후 다시 시도해 주세요.";
         return false;
@@ -507,7 +501,7 @@
     }
   }
 
-  // Bust stale loose cache from older versions
+  // Bust stale loose cache from older versions (once)
   try {
     localStorage.removeItem("hx.wear.feed.v1");
     localStorage.removeItem("hx.wear.feed.v2");
