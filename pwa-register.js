@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260727-pwa22";
-  const APP_VERSION = "v1.9.2";
+  const APP_BUILD = "20260727-pwa23";
+  const APP_VERSION = "v1.9.3";
   const RELEASE_NOTES = [
-    "발견 탭 기본: 포트폴리오 시드 해외 코디·착용 인스타형 피드",
-    "이미지 탭→원문 링크 · 한국 도메인 제외",
-    "Jewelry Today·유틸은 탭으로 유지",
+    "코디 피드: 주얼리 착용컷만 엄격 필터",
+    "프로필=본 헤리티지 로고 · BY 링크 · 상대시간",
+    "성인·무관 이미지 차단",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
