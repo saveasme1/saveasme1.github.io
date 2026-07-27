@@ -926,7 +926,7 @@ function startAlignLoop() {
   state.alignRaf = requestAnimationFrame(alignTick);
 }
 
-function closeCameraSheet({ fromHistory = false } = {}) {
+function closeCameraSheet({ fromHistory = false, fromCapture = false } = {}) {
   if (!state.cameraOpen && $("cameraSheet")?.hidden) return;
 
   stopAlignLoop();
@@ -950,6 +950,13 @@ function closeCameraSheet({ fromHistory = false } = {}) {
   state.autoCaptureArmed = true;
 
   if (fromHistory) return;
+
+  // 촬영 성공: 히스토리를 건드리지 않음 — back() 하면 착용해보기 오버레이까지 닫힘
+  if (fromCapture) {
+    state.cameraHistoryLocal = false;
+    if (embedded) postParent("heritage-tryon-camera-captured");
+    return;
+  }
 
   if (embedded) {
     postParent("heritage-tryon-camera-close");
@@ -1129,7 +1136,7 @@ function shutterCapture() {
       startAlignLoop();
       return;
     }
-    closeCameraSheet();
+    closeCameraSheet({ fromCapture: true });
     setBodyFromBlob(blob, "camera");
   }, "image/jpeg", 0.92);
 }
