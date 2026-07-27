@@ -1034,6 +1034,14 @@ html.is-pwa {
   font-weight: 700;
 }
 
+.hx-ig__seed {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(245, 245, 245, 0.4);
+  font-weight: 500;
+}
+
 .hx-ig__by {
   display: flex;
   align-items: center;

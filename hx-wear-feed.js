@@ -1,16 +1,16 @@
 (() => {
   "use strict";
 
-  /** Instagram-style jewelry WEAR feed only.
-   *  Strict relevance + NSFW/noise filters. Korea hosts excluded.
-   *  Optional backend: window.HX_WEAR_FEED_API
+  /**
+   * Wear feed — ONLY keep images whose own title/tags mention the seed brand.
+   * Never slap a portfolio product name onto a random necklace photo.
    */
 
-  const CACHE_KEY = "hx.wear.feed.v3";
-  const CACHE_TTL_MS = 4 * 3600 * 1000;
+  const CACHE_KEY = "hx.wear.feed.v4";
+  const CACHE_TTL_MS = 3 * 3600 * 1000;
   const LOGO = "./icons/icon-192.png";
   const BRAND_NAME = "본 헤리티지";
-  const MIN_SCORE = 9;
+  const MIN_SCORE = 14;
 
   const TYPE_EN = {
     ring: "ring",
@@ -21,19 +21,19 @@
   };
 
   const TYPE_WORDS = {
-    ring: ["ring", "rings", "band", "engagementring", "weddingring", "반지"],
-    bracelet: ["bracelet", "bracelets", "bangle", "cuff", "wristband", "팔찌", "브레이슬릿"],
-    necklace: ["necklace", "necklaces", "pendant", "choker", "chain", "목걸", "펜던"],
-    earring: ["earring", "earrings", "earring", "stud", "hoop", "귀걸", "이어링"],
-    other: ["jewelry", "jewellery", "jewel", "주얼"],
+    ring: ["ring", "rings", "band", "engagementring", "weddingring"],
+    bracelet: ["bracelet", "bracelets", "bangle", "cuff", "love bracelet"],
+    necklace: ["necklace", "necklaces", "pendant", "choker"],
+    earring: ["earring", "earrings", "stud", "hoop"],
+    other: ["jewelry", "jewellery"],
   };
 
   const WEAR_WORDS = {
-    ring: ["finger", "fingers", "hand", "hands", "worn", "wearing", "on finger", "closeup", "close-up"],
-    bracelet: ["wrist", "arm", "hand", "worn", "wearing", "on wrist", "closeup", "close-up", "stacked"],
-    necklace: ["neck", "worn", "wearing", "portrait", "collar", "décollet", "decollet", "closeup"],
+    ring: ["finger", "fingers", "hand", "hands", "worn", "wearing", "closeup", "close-up"],
+    bracelet: ["wrist", "arm", "hand", "worn", "wearing", "closeup", "close-up", "stacked"],
+    necklace: ["neck", "worn", "wearing", "portrait", "closeup", "close-up", "model"],
     earring: ["ear", "earlobe", "ears", "worn", "wearing", "portrait", "closeup"],
-    other: ["worn", "wearing", "wrist", "finger", "neck", "ear", "hand", "model", "portrait"],
+    other: ["worn", "wearing", "wrist", "finger", "neck", "hand", "model", "portrait"],
   };
 
   const BODY_FOR_QUERY = {
@@ -44,17 +44,53 @@
     other: "hand",
   };
 
+  const BRAND_ALIASES = {
+    cartier: ["cartier"],
+    bulgari: ["bulgari", "bvlgari"],
+    "van cleef & arpels": ["van cleef", "vancleef", "vca", "alhambra"],
+    boucheron: ["boucheron"],
+    chaumet: ["chaumet"],
+    "chrome hearts": ["chrome hearts", "chromehearts"],
+    chanel: ["chanel"],
+    gucci: ["gucci"],
+    hermes: ["hermes", "hermès"],
+    tiffany: ["tiffany", "tiffany & co", "tiffanyandco"],
+    harry: ["harry winston"],
+    piaget: ["piaget"],
+  };
+
   const NSFW_RE =
-    /\b(nude|nudes|naked|topless|bottomless|lingerie|underwear|panties|thong|bra\b|fetish|bdsm|porn|xxx|erotic|sensual|boudoir|pin[\s-]?up|nsfw|sex\b|sexy|cleavage|nipple|breast|boob|ass\b|butt\b|crotch|genital|bikini|swimsuit|lingerie|onlyfans|hentai|lewd)\b/i;
+    /\b(nude|nudes|naked|topless|bottomless|lingerie|underwear|panties|thong|bra\b|fetish|bdsm|porn|xxx|erotic|sensual|boudoir|pin[\s-]?up|nsfw|sex\b|sexy|cleavage|nipple|breast|boob|ass\b|butt\b|crotch|genital|bikini|swimsuit|onlyfans|hentai|lewd)\b/i;
 
-  const NOISE_RE =
-    /\b(building|architecture|skyline|streetparade|protest|rally|mosaic|painting|sculpture|statue|museum hall|remote|golem|coloring|cartoon|comic|anime|cosplay|christmas decor|xmas decor|lighting|billboard|storefront|window display only|ruins|excavation|archeolog|archaeolog|tribal dance|political|election|covid|mask mandate)\b/i;
+  /** Ethnic / craft / museum noise that is NOT luxury brand wear */
+  const REJECT_STYLE_RE =
+    /\b(tribal|ethnic|indigenous|folk|traditional|maasai|masai|massai|zulu|beadwork|beaded|beads only|african jewelry|native|ceremonial|costume jewelry|handmade beads|macrame|friendship bracelet|rainbow loom|lego|toy|doll|mannequin head|museum artifact|archaeolog|excavation|ancient roman|byzantine|viking|celtic torc|streetparade|protest|building|architecture|skyline|coloring|cartoon|comic|anime|cosplay|christmas decor|xmas)\b/i;
 
-  const JEWELRY_RE =
-    /\b(jewelry|jewellery|jewel|gold|silver|diamond|pearl|platinum|bracelet|ring|necklace|earring|pendant|bangle|tiffany|cartier|bulgari|bvlgari|chanel|hermes|van\s*cleef)\b/i;
+  const LUXURY_CONTEXT_RE =
+    /\b(luxury|haute|couture|fashion week|street style|outfit|model|editorial|campaign|lookbook|wrist shot|hand shot|fine jewelry|high jewelry|joaillerie)\b/i;
 
   const KR_HOST_RE =
     /\.kr\b|naver\.|daum\.|kakao\.|coupang\.|gmarket\.|11st\.|musinsa\.|ssg\.com|oliveyoung\.|kurly\.|tistory\.|blog\.me|wemakeprice\.|auction\.co\.kr|interpark\.|smartstore\.|bunjang\.|zigzag\.|ably\.|brandi\.|hiver\.|ohou\.|yanolja\.|baemin\.|toss\.im|kream\.co/i;
+
+  const STOP_PRODUCT = new Set([
+    "the",
+    "and",
+    "for",
+    "with",
+    "gold",
+    "rose",
+    "white",
+    "yellow",
+    "ring",
+    "bracelet",
+    "necklace",
+    "earring",
+    "earrings",
+    "pendant",
+    "chain",
+    "jewelry",
+    "jewellery",
+  ]);
 
   function cacheGet() {
     try {
@@ -119,60 +155,80 @@
   }
 
   function hasToken(blob, word) {
-    const w = String(word || "").toLowerCase();
+    const w = String(word || "").toLowerCase().trim();
     if (!w) return false;
-    if (w.length <= 4) return new RegExp(`(?:^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[^a-z0-9]|$)`, "i").test(blob);
+    if (w.includes(" ")) return blob.includes(w);
+    if (w.length <= 4) {
+      return new RegExp(`(?:^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[^a-z0-9]|$)`, "i").test(blob);
+    }
     return blob.includes(w);
   }
 
-  /** Strict: jewelry + matching type + wear context; reject NSFW/noise. */
+  function brandAliases(brandEn) {
+    const key = String(brandEn || "").toLowerCase().trim();
+    if (!key) return [];
+    for (const [name, list] of Object.entries(BRAND_ALIASES)) {
+      if (key === name || key.includes(name) || list.some((a) => key.includes(a))) {
+        return [...new Set([key, name, ...list])];
+      }
+    }
+    return [key];
+  }
+
+  function brandMatched(blob, brandEn) {
+    const aliases = brandAliases(brandEn);
+    return aliases.some((a) => hasToken(blob, a) || blob.includes(a));
+  }
+
+  function productTokens(seed) {
+    const raw = String(seed.displayTitle || seed.title || "");
+    const latin = raw.match(/[A-Za-z][A-Za-z0-9'&.-]{2,}/g) || [];
+    const brandBits = brandAliases(seed.brandEn).flatMap((a) => a.split(/\s+/));
+    return latin
+      .map((w) => w.toLowerCase())
+      .filter((w) => w.length >= 3 && !STOP_PRODUCT.has(w) && !brandBits.includes(w));
+  }
+
+  /** Hard gates: brand in source text, luxury-ish, not tribal/NSFW, type+wear. */
   function scoreRelevance(card, seed) {
     const blob = textBlob(card);
     if (!blob.trim()) return -100;
     if (card.mature === true) return -100;
     if (Array.isArray(card.sensitivity) && card.sensitivity.length) return -100;
     if (NSFW_RE.test(blob)) return -100;
-    if (NOISE_RE.test(blob) && !JEWELRY_RE.test(blob)) return -100;
-    if (NSFW_RE.test(String(card.permalink || ""))) return -100;
+    if (REJECT_STYLE_RE.test(blob)) return -100;
 
-    // Reject museum catalog-only product shots without a person/body cue
-    if (/\b(one of a pair|pair of earrings|600s|bc\b|century)\b/i.test(blob) && !/\b(worn|wearing|woman|girl|model|portrait|hand|wrist|finger|neck)\b/i.test(blob)) {
-      return -70;
-    }
+    const brand = seed?.brandEn || "";
+    if (!brand) return -100;
+    // CRITICAL: portfolio label only if brand appears in the SOURCE metadata
+    if (!brandMatched(blob, brand)) return -100;
 
     const type = seed?.type || "other";
     const typeWords = TYPE_WORDS[type] || TYPE_WORDS.other;
     const wearWords = WEAR_WORDS[type] || WEAR_WORDS.other;
 
-    let score = 0;
-    if (JEWELRY_RE.test(blob)) score += 3;
-    else return -80;
+    if (!typeWords.some((w) => hasToken(blob, w))) return -80;
+    if (!wearWords.some((w) => hasToken(blob, w))) return -80;
 
-    const typeHit = typeWords.some((w) => hasToken(blob, w));
-    if (!typeHit) return -60;
-    score += 5;
+    let score = 12; // brand + type + wear already required
+    score += 4; // brand bonus already gated
 
-    const wearHit = wearWords.some((w) => hasToken(blob, w));
-    if (!wearHit) return -50;
-    score += 5;
-
-    if (/\b(close[\s-]?up|worn|wearing|on\s+(my|her|his|the)\s+(wrist|finger|neck|ear))\b/i.test(blob)) {
-      score += 2;
+    const tokens = productTokens(seed);
+    let productHits = 0;
+    tokens.forEach((t) => {
+      if (blob.includes(t)) productHits += 1;
+    });
+    // For named lines (Coco Crush, Juste un Clou, Love…) require ≥1 product token when available
+    if (tokens.length >= 1 && productHits === 0) {
+      // Allow only if strong luxury editorial context — still risky, so keep strict
+      if (!LUXURY_CONTEXT_RE.test(blob)) return -40;
+      score -= 3;
+    } else {
+      score += Math.min(6, productHits * 3);
     }
 
-    const brand = String(seed?.brandEn || "").toLowerCase();
-    if (brand && blob.includes(brand)) score += 3;
-
-    const latin = String(seed?.displayTitle || seed?.title || "").match(/[A-Za-z][A-Za-z0-9'&.-]{2,}/g);
-    if (latin) {
-      let hits = 0;
-      latin.slice(0, 4).forEach((w) => {
-        if (blob.includes(w.toLowerCase())) hits += 1;
-      });
-      score += Math.min(3, hits);
-    }
-
-    if (/\b(product shot|white background|packshot|still life only)\b/i.test(blob)) score -= 2;
+    if (LUXURY_CONTEXT_RE.test(blob)) score += 2;
+    if (/\b(close[\s-]?up|on\s+(my|her|his|the)\s+(wrist|finger|neck|ear))\b/i.test(blob)) score += 2;
 
     return score;
   }
@@ -188,7 +244,6 @@
   function relativeTimeKo(iso, salt) {
     let ms = iso ? Date.parse(iso) : NaN;
     if (!Number.isFinite(ms)) {
-      // Stable faux recency when source has no date (still IG-like)
       const n = Math.abs(hashStr(String(salt || "x"))) % (72 * 3600 * 1000);
       ms = Date.now() - (6 * 3600 * 1000 + n);
     }
@@ -214,38 +269,40 @@
     const items = (catalog && catalog.items) || [];
     if (!items.length) return [];
     const seed = daySeed();
-    const ranked = window.HxCatalog?.forYou?.(catalog, 48) || items.slice(0, 48);
+    const ranked = (window.HxCatalog?.forYou?.(catalog, 60) || items.slice(0, 60)).filter(
+      (x) => x.brandEn && x.type && x.type !== "other"
+    );
     const rotated = ranked
       .map((item, i) => ({ item, k: (seed + i * 17) % 997 }))
       .sort((a, b) => a.k - b.k)
-      .map((x) => x.item)
-      .filter((x) => x.type && x.type !== "other");
+      .map((x) => x.item);
     const seen = new Set();
     const out = [];
     for (const item of rotated) {
-      const key = `${item.brandCode}|${item.type}`;
+      const key = `${item.brandCode}|${item.type}|${(item.displayTitle || "").slice(0, 24)}`;
       if (seen.has(key)) continue;
       seen.add(key);
       out.push(item);
       if (out.length >= n) break;
     }
-    return out.length ? out : ranked.slice(0, n);
+    return out;
   }
 
   function buildQueries(item) {
     const type = TYPE_EN[item.type] || "jewelry";
     const body = BODY_FOR_QUERY[item.type] || "hand";
     const brand = item.brandEn || "";
-    const q = [
-      `closeup ${type} on ${body} jewelry`,
-      `wearing ${type} jewelry ${body}`,
-      `gold ${type} on ${body} jewelry hand`,
-    ];
-    if (brand) {
-      q.push(`${brand} ${type} on ${body}`);
-      q.push(`${brand} ${type} jewelry worn`);
+    const tokens = productTokens(item).slice(0, 2);
+    const q = [];
+    // Brand MUST be in the query string
+    if (tokens.length) {
+      q.push(`${brand} ${tokens.join(" ")} ${type}`);
+      q.push(`${brand} ${tokens[0]} ${type} worn`);
     }
-    return [...new Set(q)].slice(0, 4);
+    q.push(`${brand} ${type} on ${body}`);
+    q.push(`${brand} ${type} jewelry worn`);
+    q.push(`${brand} ${type} street style`);
+    return [...new Set(q.filter(Boolean))].slice(0, 4);
   }
 
   function normalizeCard(partial) {
@@ -267,6 +324,7 @@
       seedTitle: partial.seedTitle || "",
       seedBrand: partial.seedBrand || "",
       seedType: partial.seedType || "",
+      brandVerified: !!partial.brandVerified,
       score: partial.score || 0,
     };
   }
@@ -314,7 +372,8 @@
         body: JSON.stringify({
           region: "overseas",
           excludeCountries: ["KR"],
-          mode: "jewelry_wear_only",
+          mode: "brand_verified_wear_only",
+          requireBrandInSource: true,
           seeds: seeds.map((s) => ({
             id: s.id,
             brand: s.brandEn,
@@ -334,6 +393,7 @@
             permalink: row.permalink || row.post_url || row.sourceUrl,
             image: row.image || row.image_url || row.coverUrl,
             indexedOn: row.indexedOn || row.created_at || row.published_at || "",
+            brandVerified: true,
           })
         )
         .filter(isOverseasOk);
@@ -350,22 +410,26 @@
     }
 
     const catalog = await window.HxCatalog.loadCatalog();
-    const seeds = pickSeeds(catalog, 5);
+    const seeds = pickSeeds(catalog, 8);
     if (!seeds.length) return { items: [], from: "empty", meta: {} };
 
     const backend = await fetchBackendFeed(seeds);
     if (backend && backend.length) {
       const scored = backend
         .map((c) => {
-          const seed = seeds.find((s) => String(s.id) === String(c.seedId)) || seeds[0];
+          const seed = seeds.find((s) => String(s.id) === String(c.seedId)) || {
+            brandEn: c.seedBrand,
+            type: c.seedType,
+            displayTitle: c.seedTitle,
+          };
           const score = scoreRelevance(c, seed);
-          return { ...c, score };
+          return { ...c, score, brandVerified: score >= MIN_SCORE };
         })
         .filter((c) => c.score >= MIN_SCORE)
         .sort((a, b) => b.score - a.score);
       if (scored.length) {
-        cacheSet(scored, { provider: "HX_WEAR_FEED_API" });
-        return { items: scored.slice(0, 24), from: "api", meta: { provider: "HX_WEAR_FEED_API" } };
+        cacheSet(scored.slice(0, 20), { provider: "HX_WEAR_FEED_API" });
+        return { items: scored.slice(0, 20), from: "api", meta: { provider: "HX_WEAR_FEED_API" } };
       }
     }
 
@@ -383,21 +447,17 @@
             const key = String(row.image).split("?")[0];
             if (seenImg.has(key)) continue;
             seenImg.add(key);
-            collected.push({ ...row, score });
+            collected.push({ ...row, score, brandVerified: true });
           }
         } catch (_) {}
-        if (collected.length >= 28) break;
+        if (collected.length >= 24) break;
       }
-      if (collected.length >= 28) break;
+      if (collected.length >= 24) break;
     }
 
     collected.sort((a, b) => b.score - a.score || String(a.id).localeCompare(String(b.id)));
-    const items = collected.slice(0, 24);
-    const meta = {
-      provider: "openverse",
-      seeds: seeds.map((s) => s.id),
-      filtered: true,
-    };
+    const items = collected.slice(0, 20);
+    const meta = { provider: "openverse", brandVerified: true, seeds: seeds.map((s) => s.id) };
     cacheSet(items, meta);
     return { items, from: "live", meta };
   }
@@ -419,6 +479,9 @@
   }
 
   function cardNode(item) {
+    // Never claim unverified product match
+    if (!item.brandVerified) return null;
+
     const a = el("article", "hx-ig__card");
 
     const head = el("div", "hx-ig__head");
@@ -438,10 +501,12 @@
 
     const foot = el("div", "hx-ig__foot");
     const cap = el("p", "hx-ig__caption");
-    const seedLine = item.seedTitle
-      ? `<b>${item.seedBrand ? item.seedBrand + " · " : ""}${item.seedTitle}</b> 착용·코디 참고`
-      : `<b>${BRAND_NAME}</b> 주얼리 착용컷`;
-    cap.innerHTML = seedLine;
+    // Caption = source title (truth), seed only as small hint when brand-verified
+    const srcTitle = String(item.title || "").trim().slice(0, 80);
+    cap.innerHTML =
+      `<b>${item.seedBrand || BRAND_NAME}</b> ` +
+      `${srcTitle || "브랜드 착용 참고컷"}` +
+      (item.seedTitle ? `<span class="hx-ig__seed"> · 시드: ${item.seedTitle}</span>` : "");
 
     const by = el("div", "hx-ig__by");
     const srcName = sourceLabel(item.permalink, item.source);
@@ -465,11 +530,11 @@
     hero.innerHTML =
       `<p class="hx-page__eyebrow">STYLE FEED</p>` +
       `<h1 class="hx-page__title">코디 · 착용</h1>` +
-      `<p class="hx-page__lead">주얼리 착용컷만 모았습니다. 이미지·링크를 누르면 원문으로 이동합니다.</p>`;
+      `<p class="hx-page__lead">원문 메타에 브랜드명이 확인된 착용컷만 표시합니다. 없으면 비웁니다.</p>`;
     root.append(hero);
 
     const note = el("p", "hx-note");
-    note.textContent = "착용컷 검증 중…";
+    note.textContent = "브랜드 검증 중…";
     root.append(note);
 
     const feed = el("div", "hx-ig");
@@ -477,23 +542,23 @@
 
     try {
       const { items, from } = await buildWearFeed(opts);
-      if (!items.length) {
-        note.textContent = "검증을 통과한 착용컷이 없습니다. 잠시 후 다시 시도해 주세요.";
+      const nodes = items.map(cardNode).filter(Boolean);
+      if (!nodes.length) {
+        note.textContent =
+          "브랜드가 원문에 확인된 착용컷이 지금은 없습니다. (틀린 매칭보다 빈 화면이 낫습니다)";
         return false;
       }
-      note.textContent = `${items.length}장 · 주얼리 착용컷만 · ${from}`;
+      note.textContent = `${nodes.length}장 · 브랜드 원문 검증 통과 · ${from}`;
       const frag = document.createDocumentFragment();
-      items.forEach((item) => frag.append(cardNode(item)));
+      nodes.forEach((n) => frag.append(n));
       feed.append(frag);
-      if (!window.HX_WEAR_FEED_API) {
-        root.append(
-          el(
-            "p",
-            "hx-disclaimer",
-            "해외 오픈 이미지(Flickr 등)에서 착용 맥락·주얼리 키워드로 필터링합니다. 성인·무관 이미지는 제외합니다."
-          )
-        );
-      }
+      root.append(
+        el(
+          "p",
+          "hx-disclaimer",
+          "포폴 제품명과 사진이 1:1로 같다고 보장하지 않습니다. 원문 제목/태그에 브랜드가 있을 때만 노출합니다."
+        )
+      );
       return true;
     } catch (_) {
       note.textContent = "피드를 불러오지 못했습니다.";
@@ -501,16 +566,17 @@
     }
   }
 
-  // Bust stale loose cache from older versions (once)
   try {
     localStorage.removeItem("hx.wear.feed.v1");
     localStorage.removeItem("hx.wear.feed.v2");
+    localStorage.removeItem("hx.wear.feed.v3");
   } catch (_) {}
 
   window.HxWearFeed = {
     buildWearFeed,
     renderWearFeed,
     scoreRelevance,
+    brandMatched,
     isOverseasOk,
   };
 })();
