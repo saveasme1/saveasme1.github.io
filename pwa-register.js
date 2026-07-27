@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260726-pwa21";
-  const APP_VERSION = "v1.9.1";
+  const APP_BUILD = "20260727-pwa22";
+  const APP_VERSION = "v1.9.2";
   const RELEASE_NOTES = [
-    "귀금속 보드·Met 전시중·시대 타임라인·Commons 아카이브",
-    "On This Day·모티프 백과·홀마크 디코더 추가",
-    "GIA 컷 영상 추가 · Jewelry Today 확장",
+    "발견 탭 기본: 포트폴리오 시드 해외 코디·착용 인스타형 피드",
+    "이미지 탭→원문 링크 · 한국 도메인 제외",
+    "Jewelry Today·유틸은 탭으로 유지",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

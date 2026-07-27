@@ -124,6 +124,21 @@
       "attributionRequired": true,
       "commercialUse": "public_feed",
       "enabled": true
+    },
+    {
+      "id": "openverse_wear",
+      "name": "Openverse (wear/coord feed)",
+      "type": "media",
+      "docs": "https://api.openverse.org/v1/",
+      "baseUrl": "https://api.openverse.org/v1/images",
+      "authentication": "none",
+      "cacheTtlHours": 6,
+      "rightsFilterRequired": true,
+      "attributionRequired": true,
+      "commercialUse": "per_license_cc",
+      "imageRights": "Use foreign_landing_url; do not rehost; filter Korea hosts",
+      "enabled": true,
+      "note": "Discover 코디 피드 시드 검색. Instagram Graph는 HX_WEAR_FEED_API 백엔드 연결 시."
     }
   ]
 }
