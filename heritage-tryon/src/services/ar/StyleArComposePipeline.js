@@ -1,10 +1,5 @@
 /**
- * StyleAR-class compose pipeline (photo / offline quality path).
- * Phase 1: still re-detect, occlusion, harmonize
- * Phase 2: part specialists
- * Phase 3: catalog material on 2.5D path
- *
- * @see LONGTERM_STYLEAR_KO.md
+ * StyleAR compose — hardened so merge always yields a canvas.
  */
 import { composeHighResTryOn } from "./HighResCompose.js";
 import { resolveComposeTarget, targetToAnchor } from "./StillRedetect.js";
@@ -13,7 +8,7 @@ import { harmonizeCompose } from "./ComposeHarmonize.js";
 import { applyPartSpecialist } from "./PartSpecialists.js";
 import { applyCatalogMaterial2D, normalizeSkuMeta } from "./CatalogMaterial.js";
 
-export const STYLEAR_PIPELINE_VERSION = "1.3.0-phase3";
+export const STYLEAR_PIPELINE_VERSION = "1.3.1-compose-fix";
 
 export const STYLEAR_PARTS = Object.freeze({
   earring: ["face", "ear"],
@@ -21,6 +16,33 @@ export const STYLEAR_PARTS = Object.freeze({
   bracelet: ["hand", "wrist"],
   necklace: ["pose", "neck", "face"],
 });
+
+function stampFallback(bodyCanvas, jewelryCanvas, target) {
+  const out = document.createElement("canvas");
+  out.width = Math.max(1, bodyCanvas?.width || 1);
+  out.height = Math.max(1, bodyCanvas?.height || 1);
+  const ctx = out.getContext("2d");
+  if (bodyCanvas) ctx.drawImage(bodyCanvas, 0, 0);
+  if (!jewelryCanvas) return out;
+  const c = target?.center || target?.center2D || { x: out.width * 0.5, y: out.height * 0.45 };
+  const cx = c.x <= 1 && c.y <= 1 ? c.x * out.width : c.x;
+  const cy = c.y <= 1 && c.x <= 1 ? c.y * out.height : c.y;
+  let tw =
+    target?.width != null
+      ? target.width <= 1.5
+        ? target.width * out.width
+        : target.width
+      : out.width * 0.22;
+  tw = Math.max(24, Math.min(out.width * 0.55, tw));
+  const aspect = jewelryCanvas.height / Math.max(1, jewelryCanvas.width);
+  const th = Math.max(12, tw * aspect);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(((target?.angle || 0) * Math.PI) / 180);
+  ctx.drawImage(jewelryCanvas, -tw / 2, -th / 2, tw, th);
+  ctx.restore();
+  return out;
+}
 
 export async function runStyleArCompose(opts) {
   const mode = opts?.mode || opts?.type || "bracelet";
@@ -47,35 +69,60 @@ export async function runStyleArCompose(opts) {
     target = resolveMeta.target;
   }
 
-  // Phase 2 specialists
-  target = applyPartSpecialist(mode, target) || target;
+  try {
+    target = applyPartSpecialist(mode, target) || target;
+  } catch (_) {
+    /* keep target */
+  }
 
   const meta = normalizeSkuMeta(opts.meta || opts.arRenderer?.meta || {}, mode);
   let jewelryCanvas = opts.jewelryCanvas;
-  // Phase 3: tint 2.5D product cutout toward catalog metal (GLB uses Three materials)
-  const useGlb =
-    opts.arRenderer?.hasGlb && opts.arRenderer?.assetState !== "fallback_2_5d";
+  const useGlb = Boolean(
+    opts.arRenderer?.hasGlb &&
+      opts.arRenderer?.assetState &&
+      opts.arRenderer.assetState !== "fallback_2_5d" &&
+      opts.arRenderer.assetState !== "unavailable"
+  );
+
   if (jewelryCanvas && !useGlb) {
     try {
       jewelryCanvas = applyCatalogMaterial2D(jewelryCanvas, meta.materialPreset);
-    } catch (err) {
-      console.warn("catalog material 2D failed", err);
+    } catch (_) {
+      /* keep original cutout */
     }
   }
 
   const anchor =
     opts.anchor ||
-    targetToAnchor(target, bodyCanvas.width, bodyCanvas.height);
+    (bodyCanvas ? targetToAnchor(target, bodyCanvas.width, bodyCanvas.height) : null);
 
-  const base = await composeHighResTryOn({
-    ...opts,
-    type: mode,
-    target,
-    anchor,
-    jewelryCanvas,
-  });
+  let base;
+  try {
+    // Skip flaky GLB high-res when renderer mount is zero-sized (camera closed)
+    const ar = useGlb ? opts.arRenderer : null;
+    base = await composeHighResTryOn({
+      ...opts,
+      type: mode,
+      target,
+      anchor,
+      jewelryCanvas,
+      arRenderer: ar,
+    });
+  } catch (err) {
+    console.warn("composeHighResTryOn failed, stamp fallback", err);
+    base = {
+      canvas: stampFallback(bodyCanvas, jewelryCanvas || opts.jewelryCanvas, target),
+      path: "stamp-fallback",
+      assetState: "fallback_2_5d",
+    };
+  }
 
-  let canvas = base.canvas;
+  let canvas = base?.canvas;
+  if (!canvas) {
+    canvas = stampFallback(bodyCanvas, jewelryCanvas || opts.jewelryCanvas, target);
+    base = { ...(base || {}), canvas, path: "stamp-fallback" };
+  }
+
   if (canvas && bodyCanvas && target) {
     try {
       canvas = applyPartOcclusion(canvas, bodyCanvas, target, mode);
@@ -96,7 +143,7 @@ export async function runStyleArCompose(opts) {
     parts,
     primaryPath: "photo_compose",
     resolveSource: resolveMeta.source,
-    usedFallback: resolveMeta.usedFallback,
+    usedFallback: resolveMeta.usedFallback || base?.path === "stamp-fallback",
     stillConfidence: resolveMeta.stillConfidence,
     specialist: target?.specialist || null,
     materialPreset: meta.materialPreset,
