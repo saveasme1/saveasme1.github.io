@@ -3,7 +3,7 @@
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260726-tryon44c";
+  const TRYON_BUST = "20260726-tryon45";
   let overlay = null;
   let frame = null;
   let overlayOpen = false;
@@ -41,6 +41,7 @@
     if (payload.id) params.set("id", payload.id);
     if (payload.title) params.set("title", payload.title);
     if (payload.category) params.set("category", payload.category);
+    if (payload.type) params.set("type", payload.type);
     const image = String(payload.image || payload.path || "").trim();
     if (image) {
       if (/^https?:\/\//i.test(image)) {
