@@ -10,6 +10,8 @@ import {
   runStyleArCompose,
   resolveComposeTarget,
   targetToAnchor,
+  liveSmootherOptions,
+  livePreviewOpacity,
   PerfHarness,
   HAIR_OCCLUSION_DECISION,
   probeHairSegmenterCost,
@@ -482,6 +484,8 @@ function applyWearTypeFromProduct() {
   }
   const chip = $("wearTypeChip");
   if (chip) chip.textContent = WEAR_LABEL[state.wearType] || "자동";
+  // Phase 4: retune live smoother per mode
+  state.smoother = new TrackingSmoother(liveSmootherOptions(state.wearType));
 
   const earBar = $("earSideBar");
   if (earBar) {
@@ -720,7 +724,9 @@ function ensureArGuide() {
     state.guideOverlay.setDebug(AR_DEBUG);
   }
   if (!state.guideState) state.guideState = new GuideStateEngine();
-  if (!state.smoother) state.smoother = new TrackingSmoother();
+  if (!state.smoother) {
+    state.smoother = new TrackingSmoother(liveSmootherOptions(state.wearType || "bracelet"));
+  }
   if (!state.perfHarness) state.perfHarness = new PerfHarness(45000);
   if (AR_DEBUG) ensureDebugPanel();
 }
@@ -790,6 +796,7 @@ async function ensureArRenderer(type) {
     }
   }
   state.arRenderer.setVisible(state.arHasGlb);
+  state.arRenderer.setLivePreviewOpacity?.(livePreviewOpacity(type));
   return state.arRenderer;
 }
 
@@ -1227,6 +1234,7 @@ async function runMergeTryOn() {
         capturePlacement: state.capturePlacement,
         placementToPixels,
         arRenderer: state.arRenderer,
+        meta: state.arRenderer?.meta || null,
         anchor: anchorForSave,
         extras: {
           secondaryAnchor: state.captureExtras?.secondaryAnchor || null,
