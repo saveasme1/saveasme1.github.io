@@ -78,29 +78,34 @@ StyleAR SaaS는 라이브만이 아니라 **사진 기반 착용**을 공식 지
 - [x] 앨범 업로드 = 셀카와 동일 `runStyleArCompose` (`bodySource: upload|camera`)
 - [ ] 모드별 실기기 합성 샘플 + 디버그 JSON (실측)
 
-코드: `StyleArComposePipeline.js` v1.1.0-phase1
+코드: `StyleArComposePipeline.js` v1.3.0-phase3
 
-### Phase 2 — 부위 특화 (Deepixel Face·Ear / Hand·Wrist 축)
-- 귀: 측면·가림(헤어) 휴리스틱 / 좌우 identity
-- 반지: 손가락 평면·관절 bend → fitWarning 유지, 왜곡 금지
-- 팔찌: 손목 타원·전후 2.5D
-- 목걸이: 전면 카메라 강제 + 쇄골/넥라인 드레이프
-- 합격: 가림·측면 포즈 고정 테스트셋
+### Phase 2 — 부위 특화 (Deepixel Face·Ear / Hand·Wrist 축) · 코드 완료
 
-### Phase 3 — 카탈로그·재질 (StyleAR+ 광택 축)
-- SKU 메타: mm 실측, attachment, allowedScaleRange, metal preset
-- 합성 시 metal/specular 프리셋 강제
-- 검증/대표 자산과 생산 SKU 분리 유지
-- 합격: SKU 10종 이상 합성 A/B
+- [x] 귀: 측면·가림(헤어) 휴리스틱 / 좌우 identity (`refineEarSpecialist`)
+- [x] 반지: 관절 bend → fitWarning, MCP 쪽 보정 (`refineFingerSpecialist`)
+- [x] 팔찌: 손목 타원 클램프 (`refineWristSpecialist`)
+- [x] 목걸이: 쇄골 드레이프 (`refineNecklaceSpecialist`) + 전면캠(기존)
+- [ ] 가림·측면 포즈 **실기기** 고정 테스트셋
 
-### Phase 4 — (선택) 라이브 프리뷰 동급화
-- StyleAR 라이브에 가까운 미리보기. **Phase 1~3 합격 후**만
-- 저지연이 목표이지, 최종 품질 대체 아님
+### Phase 3 — 카탈로그·재질 (StyleAR+ 광택 축) · 코드 완료
+
+- [x] SKU 메타 normalize (`normalizeSkuMeta`)
+- [x] 2.5D 합성 metal 틴트 (`applyCatalogMaterial2D`)
+- [x] GLB는 기존 `applyMaterialPreset` live/save
+- [ ] SKU 10종 이상 **실측** A/B
+
+### Phase 4 — 라이브 프리뷰 폴리시 · 코드 완료
+
+- [x] 모드별 smoother (`liveSmootherOptions`)
+- [x] 라이브 GLB 가이드 투명도 (`setLivePreviewOpacity`)
+- 최종 픽셀은 계속 `runStyleArCompose`
 
 ### Phase 5 — (조건부) 상용 엔진 POC
-- Phase 1~3 실측이 StyleAR 동급 미달일 때만
+
+- Phase 1~3 **실기기** 리포트가 StyleAR 동급 미달일 때만
 - 후보: Perfect Corp → Banuba/DeepAR(얼굴·귀) → 최후 네이티브
-- StyleAR 자체 구매는 별도 사업·계약 결정
+- StyleAR SDK 구매는 별도 사업·계약 결정 · **현재 미실행**
 
 ---
 
