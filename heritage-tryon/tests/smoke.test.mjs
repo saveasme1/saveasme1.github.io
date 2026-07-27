@@ -274,3 +274,64 @@ describe("live-to-save normalized consistency helper", () => {
     assert.ok(delta < 0.015);
   });
 });
+
+describe("StyleAR compose pipeline Phase 0", () => {
+  it("exports parts map and version", async () => {
+    const { STYLEAR_PARTS, STYLEAR_PIPELINE_VERSION, runStyleArCompose } =
+      await import("../src/services/ar/StyleArComposePipeline.js");
+    assert.equal(typeof runStyleArCompose, "function");
+    assert.ok(STYLEAR_PIPELINE_VERSION.startsWith("1."));
+    assert.deepEqual(STYLEAR_PARTS.earring, ["face", "ear"]);
+    assert.deepEqual(STYLEAR_PARTS.necklace, ["pose", "neck", "face"]);
+  });
+});
+
+describe("StyleAR Phase 1 still resolve", () => {
+  it("prefers still detection over capture", async () => {
+    const { resolveComposeTarget } = await import("../src/services/ar/StillRedetect.js");
+    const body = { width: 1000, height: 1000, naturalWidth: 1000, naturalHeight: 1000 };
+    const detection = {
+      target: { center: { x: 400, y: 500 }, width: 120, confidence: 0.8, angle: 10 },
+      allTargets: {
+        bracelet: { center: { x: 400, y: 500 }, width: 120, confidence: 0.8, angle: 10 },
+      },
+    };
+    const capture = {
+      center2D: { x: 0.7, y: 0.7 },
+      radiusX: 0.06,
+      angle: 40,
+    };
+    const r = resolveComposeTarget({
+      mode: "bracelet",
+      detection,
+      capturePlacement: capture,
+      bodyImage: body,
+      placementToPixels: (p, w, h) => ({
+        center: { x: p.center2D.x * w, y: p.center2D.y * h },
+        width: 100,
+        angle: p.angle,
+      }),
+    });
+    assert.equal(r.source, "still");
+    assert.equal(r.usedFallback, false);
+    assert.ok(Math.abs(r.target.center.x - 400) < 1);
+  });
+
+  it("falls back to capture when still missing", async () => {
+    const { resolveComposeTarget } = await import("../src/services/ar/StillRedetect.js");
+    const body = { width: 800, height: 600, naturalWidth: 800, naturalHeight: 600 };
+    const r = resolveComposeTarget({
+      mode: "ring",
+      detection: { target: null, allTargets: {} },
+      capturePlacement: { center2D: { x: 0.4, y: 0.5 }, radiusEstimate: 0.03, angle: 0 },
+      bodyImage: body,
+      placementToPixels: (p, w, h) => ({
+        center: { x: p.center2D.x * w, y: p.center2D.y * h },
+        width: 40,
+        angle: 0,
+        source: "capture",
+      }),
+    });
+    assert.equal(r.source, "capture");
+  });
+});
