@@ -3,6 +3,7 @@
  * Landmarks are normalized 0..1 image space unless worldLandmarks provided.
  */
 import { norm3, cross3, quatFromBasis, clamp } from "./math.js";
+import { refineWristSpecialist } from "./PartSpecialists.js";
 
 /**
  * @param {Array<{x:number,y:number,z?:number}>} lm — hand landmarks (image)
@@ -72,7 +73,7 @@ export function estimateWristAnchor3D(lm, opts = {}) {
   if (thumbMcp) confidence += 0.05;
   confidence = clamp(confidence, 0, 1);
 
-  return {
+  return refineWristSpecialist({
     center2D,
     center3D,
     rotationQuaternion,
@@ -92,5 +93,5 @@ export function estimateWristAnchor3D(lm, opts = {}) {
     angle: (Math.atan2(wristAxis.y, wristAxis.x) * 180) / Math.PI,
     frontAngle: (Math.atan2(palmY.y, palmY.x) * 180) / Math.PI,
     source: "hand3d",
-  };
+  });
 }
