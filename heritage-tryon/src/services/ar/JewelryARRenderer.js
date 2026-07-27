@@ -138,6 +138,15 @@ export class JewelryARRenderer {
   setVisible(v) {
     this._visible = Boolean(v);
     this.canvas.style.visibility = this._visible ? "visible" : "hidden";
+    if (this._visible) {
+      this.canvas.style.opacity = String(this._liveOpacity ?? 1);
+    }
+  }
+
+  /** Phase 4: guidance preview opacity (final pixels from compose). */
+  setLivePreviewOpacity(opacity = 0.92) {
+    this._liveOpacity = Math.max(0.4, Math.min(1, Number(opacity) || 0.92));
+    if (this._visible && this.canvas) this.canvas.style.opacity = String(this._liveOpacity);
   }
 
   resize(width, height) {
