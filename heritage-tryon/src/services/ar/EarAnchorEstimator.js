@@ -2,6 +2,7 @@
  * Left/Right EarAnchor3D from Face Landmarker.
  */
 import { norm3, cross3, quatFromBasis, clamp } from "./math.js";
+import { refineEarSpecialist } from "./PartSpecialists.js";
 
 /** Face mesh indices commonly used as ear / cheek proxies */
 const EAR_IDX = {
@@ -70,7 +71,7 @@ export function estimateEarAnchor3D(faceLm, side = "right", opts = {}) {
   if (visibility > 0.45) confidence += 0.15;
   confidence = clamp(confidence, 0, 1);
 
-  return {
+  return refineEarSpecialist({
     side,
     attachment2D,
     attachment3D: { x: attachment2D.x, y: attachment2D.y, z: lobe.z || 0 },
@@ -93,7 +94,7 @@ export function estimateEarAnchor3D(faceLm, side = "right", opts = {}) {
     width: earScale,
     angle: (Math.atan2(earNormal.y, earNormal.x) * 180) / Math.PI,
     source: "ear3d",
-  };
+  });
 }
 
 export function estimateEarPair(faceLm, opts = {}) {
