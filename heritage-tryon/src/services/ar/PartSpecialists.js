@@ -1,21 +1,24 @@
 /**
- * Phase 2 — part specialists (StyleAR Face·Ear / Hand·Finger·Wrist / Neck).
- * Refine anchors/targets after generic MediaPipe estimates.
+ * Phase 2 — part specialists. Must not invent normalized radius when width is pixels.
  */
 import { clamp } from "./math.js";
 
-/** Ear: when side-on / hair likely, bias attachment toward cheek and lower visibility swing. */
+function isPixelWidth(w) {
+  return w != null && w > 2;
+}
+
 export function refineEarSpecialist(anchor) {
   if (!anchor) return null;
   const vis = anchor.visibility ?? 1;
   const yaw = Math.abs(anchor.yaw || 0);
   const out = { ...anchor, specialist: "ear-v1" };
   if (vis < 0.42 || yaw > 0.55) {
-    // pull toward face center slightly (hair/occluded lobe heuristic)
-    const c = out.attachment2D || out.center2D;
+    const c = out.attachment2D || out.center2D || out.center;
     if (c) {
       const toward = anchor.side === "left" ? 0.012 : -0.012;
-      out.attachment2D = { x: clamp(c.x + toward, 0.02, 0.98), y: clamp(c.y + 0.008, 0.02, 0.98) };
+      const nx = c.x <= 1 && c.y <= 1 ? clamp(c.x + toward, 0.02, 0.98) : c.x + toward * 20;
+      const ny = c.x <= 1 && c.y <= 1 ? clamp(c.y + 0.008, 0.02, 0.98) : c.y + 4;
+      out.attachment2D = { x: nx, y: ny };
       out.center2D = out.attachment2D;
       out.center = out.attachment2D;
     }
@@ -23,68 +26,69 @@ export function refineEarSpecialist(anchor) {
     out.confidence = clamp((out.confidence || 0.4) * 0.9, 0.1, 1);
     out.hairOcclusionHint = true;
   }
-  // asymmetric product: keep side identity
   out.sideIdentity = out.side;
   return out;
 }
 
-/** Ring: keep band on MCP–PIP plane; on high bend move toward MCP (avoid tip stretch). */
 export function refineFingerSpecialist(anchor) {
   if (!anchor) return null;
   const out = { ...anchor, specialist: "finger-v1" };
   const bend = out.jointBend || 0;
   if (bend >= 1.0 && out.center2D && out.direction) {
-    // nudge toward MCP along -direction (finger base)
     const t = clamp((bend - 1.0) / 0.8, 0, 0.35);
+    const c = out.center2D;
+    const scale = c.x <= 1 && c.y <= 1 ? 0.018 : 8;
     out.center2D = {
-      x: out.center2D.x - out.direction.x * 0.018 * t,
-      y: out.center2D.y - out.direction.y * 0.018 * t,
+      x: c.x - out.direction.x * scale * t,
+      y: c.y - out.direction.y * scale * t,
     };
     out.center = out.center2D;
     out.fitWarning = true;
   }
-  // uniform scale hint for compose
   out.uniformScaleOnly = true;
   return out;
 }
 
-/** Bracelet: tighten wrist ellipse from palm span / orientation. */
 export function refineWristSpecialist(anchor) {
   if (!anchor) return null;
   const out = { ...anchor, specialist: "wrist-v1" };
-  const rx = out.radiusX || 0.06;
-  const ry = out.radiusY || rx * 0.72;
-  // keep elliptical, never circular stretch
-  out.radiusX = clamp(rx, 0.03, 0.16);
-  out.radiusY = clamp(Math.min(ry, out.radiusX * 0.85), 0.022, 0.12);
-  if (out.width == null) out.width = out.radiusX * 2.4;
+  // Do NOT invent normalized radiusX when still-detect gave pixel width — that shrinks the stamp.
+  if (out.radiusX != null && out.radiusX <= 1.5) {
+    out.radiusX = clamp(out.radiusX, 0.03, 0.16);
+    out.radiusY = clamp(
+      Math.min(out.radiusY != null ? out.radiusY : out.radiusX * 0.72, out.radiusX * 0.85),
+      0.022,
+      0.12
+    );
+  } else if (isPixelWidth(out.width)) {
+    delete out.radiusX;
+    delete out.radiusY;
+  }
   out.ellipseOnly = true;
   out.uniformScaleOnly = true;
   return out;
 }
 
-/** Necklace: collarbone drape — drop along neck axis, widen with shoulders. */
 export function refineNecklaceSpecialist(anchor) {
   if (!anchor) return null;
   const out = { ...anchor, specialist: "necklace-v1" };
-  const drop = out.necklaceDropEstimate || 0.06;
+  const drop = out.necklaceDropEstimate;
   const c = out.center2D || out.center;
-  if (c && out.neckAxis) {
+  if (c && out.neckAxis && drop != null) {
+    const unit = c.x <= 1 && c.y <= 1 ? 1 : 120;
     out.center2D = {
-      x: c.x + out.neckAxis.x * drop * 0.35,
-      y: c.y + Math.abs(out.neckAxis.y) * drop * 0.85 + drop * 0.25,
+      x: c.x + out.neckAxis.x * drop * 0.35 * unit,
+      y: c.y + (Math.abs(out.neckAxis.y) * drop * 0.85 + drop * 0.25) * unit,
     };
     out.center = out.center2D;
   }
-  out.drapeWidth = out.collarboneWidth || out.width || 0.3;
-  if (out.width == null) out.width = out.drapeWidth;
+  if (out.collarboneWidth != null && !isPixelWidth(out.width)) {
+    out.width = out.collarboneWidth;
+  }
   out.frontCameraPreferred = true;
   return out;
 }
 
-/**
- * Apply specialist by mode to a compose target (pixel or normalized).
- */
 export function applyPartSpecialist(mode, target) {
   if (!target) return null;
   if (mode === "earring") return refineEarSpecialist(target);
