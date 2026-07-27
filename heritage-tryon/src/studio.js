@@ -315,7 +315,7 @@ const CAMERA_HINT = {
   ring: "왼손을 보여주세요",
   bracelet: "손등을 카메라로 향해주세요",
   earring: "한손 셀카 · 살짝 기울여 귀를 가이드에",
-  necklace: "한손 셀카 · 얼굴·목을 가이드에 맞추세요",
+  necklace: "전면 카메라 · 얼굴·목을 가이드에 맞추세요",
 };
 
 const GUIDE_CAPTION = {
@@ -346,6 +346,40 @@ function resolveType() {
 /** 목걸이·귀걸이 = 전면(user), 반지·팔찌 = 후면(environment) */
 function facingModeForType(type) {
   return type === "earring" || type === "necklace" ? "user" : "environment";
+}
+
+/** Prefer exact facing; many phones ignore `ideal` and open the rear cam. */
+async function openCameraStream(facing) {
+  const base = { width: { ideal: 1280 }, height: { ideal: 720 } };
+  const tryGet = async (videoConstraints) =>
+    navigator.mediaDevices.getUserMedia({ audio: false, video: videoConstraints });
+
+  if (facing === "user") {
+    try {
+      return await tryGet({ ...base, facingMode: { exact: "user" } });
+    } catch (_) {
+      /* fall through */
+    }
+    try {
+      return await tryGet({ ...base, facingMode: "user" });
+    } catch (_) {
+      /* fall through */
+    }
+  }
+
+  try {
+    return await tryGet({ ...base, facingMode: { ideal: facing } });
+  } catch (_) {
+    return tryGet(true);
+  }
+}
+
+function streamFacingMode(stream) {
+  try {
+    return stream?.getVideoTracks?.()?.[0]?.getSettings?.()?.facingMode || "";
+  } catch (_) {
+    return "";
+  }
 }
 
 function earringGuideCaption(anatomicalSide) {
@@ -399,7 +433,16 @@ function setEarSide(side) {
 }
 
 function applyWearTypeFromProduct() {
-  state.wearType = guessTypeFromText(state.item.title, state.item.category || "") || "bracelet";
+  const forced = String(params.get("type") || "").toLowerCase();
+  const allowed = ["bracelet", "ring", "necklace", "earring"];
+  if (allowed.includes(forced)) {
+    state.wearType = forced;
+  } else {
+    state.wearType =
+      guessTypeFromText(state.item.title, state.item.category || "") ||
+      guessTypeFromText(state.item.id || "", "") ||
+      "bracelet";
+  }
   const guide = $("cameraGuide");
   if (guide) {
     guide.dataset.type = state.wearType;
@@ -929,14 +972,17 @@ async function openGuidedCamera() {
   try {
     stopCamera();
     const facing = facingModeForType(state.wearType);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: facing },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-    });
+    let stream = await openCameraStream(facing);
+    // If front was required but device still gave rear, retry once with exact user.
+    const got = String(streamFacingMode(stream) || "").toLowerCase();
+    if (facing === "user" && got && got !== "user") {
+      try {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = await openCameraStream("user");
+      } catch (_) {
+        /* keep previous stream */
+      }
+    }
     state.cameraStream = stream;
     video.srcObject = stream;
     // 전면 = 신분증/얼굴인식처럼 거울 미리보기. 후면 = 미러 없음.
@@ -949,8 +995,11 @@ async function openGuidedCamera() {
     setStatus(CAMERA_HINT[state.wearType] || "손을 화면에 보여주세요");
     if ($("cameraSub")) {
       $("cameraSub").textContent = front
-        ? "좌·우 버튼 또는 두 손가락으로 줌 · 맞춘 뒤 잠시 유지"
+        ? "전면(셀카) 카메라 · 좌·우 줌 · 맞춘 뒤 잠시 유지"
         : "정렬되면 약 1초 후 자동 촬영 · 직접 눌러도 됩니다";
+    }
+    if (front && $("cameraHint") && state.wearType === "necklace") {
+      $("cameraHint").textContent = "전면 카메라 · 얼굴·쇄골을 가이드에 맞추세요";
     }
     if (state.wearType === "earring") {
       setEarSide(state.earSide || "right");
