@@ -3,7 +3,7 @@
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260726-tryon45";
+  const TRYON_BUST = "20260727-tryon46";
   let overlay = null;
   let frame = null;
   let overlayOpen = false;
