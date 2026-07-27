@@ -2,6 +2,7 @@
  * FingerAnchor3D for ring placement.
  */
 import { norm3, cross3, quatFromBasis, clamp } from "./math.js";
+import { refineFingerSpecialist } from "./PartSpecialists.js";
 
 const FINGER = {
   index: { mcp: 5, pip: 6, tip: 8, neighbors: [9] },
@@ -60,7 +61,7 @@ export function estimateFingerAnchor3D(lm, finger = "ring", opts = {}) {
   if (jointBend < 0.7) confidence += 0.1;
   confidence = clamp(confidence, 0, 1);
 
-  return {
+  return refineFingerSpecialist({
     finger,
     center2D: { x: mid.x, y: mid.y },
     center3D: { x: mid.x, y: mid.y, z: mid.z },
@@ -77,5 +78,5 @@ export function estimateFingerAnchor3D(lm, finger = "ring", opts = {}) {
     angle: (Math.atan2(direction.y, direction.x) * 180) / Math.PI,
     frontAngle: (Math.atan2(direction.y, direction.x) * 180) / Math.PI - 90,
     source: "finger3d",
-  };
+  });
 }
