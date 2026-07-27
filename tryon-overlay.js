@@ -3,7 +3,7 @@
 
   const TRYON_ORIGIN = "https://saveasme1.github.io";
   const TRYON_PATH = "/heritage-tryon/studio.html";
-  const TRYON_BUST = "20260727-tryon47";
+  const TRYON_BUST = "20260727-tryon48";
   let overlay = null;
   let frame = null;
   let overlayOpen = false;
@@ -16,7 +16,6 @@
     overlay.id = "heritageTryOnOverlay";
     overlay.className = "heritage-tryon-overlay";
     overlay.hidden = true;
-    // ASCII labels only — broken encoding must never destroy attribute quotes.
     overlay.innerHTML =
       '<div class="heritage-tryon-sheet" role="dialog" aria-modal="true" aria-label="Try-on">' +
       '<iframe class="heritage-tryon-frame" title="Try-on" allow="camera *; microphone *; fullscreen *; autoplay *" allowfullscreen></iframe>' +
@@ -86,6 +85,15 @@
     history.back();
   }
 
+  function clearCameraHistorySoft() {
+    cameraOpen = false;
+    try {
+      if (history.state && history.state.heritageTryOnCamera) {
+        history.replaceState({ heritageTryOn: true }, "");
+      }
+    } catch (_) {}
+  }
+
   function postToFrame(data) {
     try {
       frame?.contentWindow?.postMessage(data, "*");
@@ -119,6 +127,11 @@
         cameraOpen = true;
         history.pushState({ heritageTryOnCamera: true }, "");
       }
+      return;
+    }
+    // 촬영 성공: 오버레이 유지. history.back() 금지.
+    if (type === "heritage-tryon-camera-captured") {
+      clearCameraHistorySoft();
       return;
     }
     if (type === "heritage-tryon-camera-close") {
