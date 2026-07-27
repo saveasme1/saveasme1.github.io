@@ -1200,21 +1200,21 @@ async function runMergeTryOn() {
 
     setMergeProgress(82);
 
-    // Ensure AR renderer for high-res save — AssetResolver, no silent validation
+    // 합성 시 카메라가 닫혀 있으면 새 WebGL 마운트하지 않음 → 2.5D로 안정 합성
     const allowValidation = AR_DEBUG && params.get("arValidation") === "1";
     const allowRepresentative = AR_DEBUG && params.get("repAssets") === "1";
-    if (!state.arRenderer) {
-      const mount = $("cameraGuide") || document.body;
-      state.arRenderer = new JewelryARRenderer(mount, { debug: AR_DEBUG });
-      state.arReady = await state.arRenderer.init();
-    }
-    if (state.arReady) {
-      const result = await state.arRenderer.loadProductForSku(state.item.id, useType, {
-        allowValidation,
-        allowRepresentative,
-      });
-      state.arHasGlb = Boolean(result.ok);
-      state.assetState = result.state;
+    try {
+      if (state.arRenderer && state.arReady && state.cameraOpen) {
+        const result = await state.arRenderer.loadProductForSku(state.item.id, useType, {
+          allowValidation,
+          allowRepresentative,
+        });
+        state.arHasGlb = Boolean(result.ok);
+        state.assetState = result.state;
+      }
+    } catch (err) {
+      console.warn("AR product load skipped", err);
+      state.arHasGlb = false;
     }
 
     const bodyCanvas =
@@ -1222,11 +1222,14 @@ async function runMergeTryOn() {
         ? state.bodyImage
         : (() => {
             const c = document.createElement("canvas");
-            c.width = state.bodyImage.naturalWidth || state.bodyImage.width;
-            c.height = state.bodyImage.naturalHeight || state.bodyImage.height;
+            c.width = state.bodyImage.naturalWidth || state.bodyImage.width || 1;
+            c.height = state.bodyImage.naturalHeight || state.bodyImage.height || 1;
             c.getContext("2d").drawImage(state.bodyImage, 0, 0);
             return c;
           })();
+
+    if (!jewelry?.canvas) throw new Error("주얼리 이미지를 준비하지 못했습니다.");
+    if (!bodyCanvas.width || !bodyCanvas.height) throw new Error("사진 크기를 읽을 수 없습니다.");
 
     const anchorForSave = targetToAnchor(target, bodyCanvas.width, bodyCanvas.height);
     const composed = await withTimeout(
@@ -1240,7 +1243,7 @@ async function runMergeTryOn() {
         detection,
         capturePlacement: state.capturePlacement,
         placementToPixels,
-        arRenderer: state.arRenderer,
+        arRenderer: state.arHasGlb && state.arReady ? state.arRenderer : null,
         meta: state.arRenderer?.meta || null,
         anchor: anchorForSave,
         extras: {
@@ -1253,7 +1256,8 @@ async function runMergeTryOn() {
       60000,
       "합성 시간 초과"
     );
-    const after = composed.canvas;
+    const after = composed?.canvas;
+    if (!after) throw new Error("합성 결과를 만들지 못했습니다.");
     const composePath = composed.path || composed.pipeline || "stylear-compose";
     setMergeProgress(96);
     state.afterCanvas = after;
@@ -1272,11 +1276,11 @@ async function runMergeTryOn() {
           ? "촬영 가이드"
           : "기본 위치";
     setStatus(
-      usedFallback
-        ? "위치 인식이 어려워 가이드 기준으로 합성했습니다. 다시 촬영해 보세요."
+      usedFallback || composePath === "stamp-fallback"
+        ? "위치 인식이 어려워 기본 위치로 합성했습니다. 다시 촬영하면 더 정확합니다."
         : composePath === "glb-highres"
           ? `3D 고해상도 착용 (${srcLabel}). 저장하거나 초기화할 수 있습니다.`
-          : `착용 미리보기 (${srcLabel} · StyleAR 합성). 저장하거나 초기화할 수 있습니다.`,
+          : `착용 미리보기 (${srcLabel}). 저장하거나 초기화할 수 있습니다.`,
       "is-ok"
     );
   } catch (err) {
@@ -1284,6 +1288,7 @@ async function runMergeTryOn() {
     hideMergeProgress();
     setStageMode("split");
     setStatus(String(err.message || err), "is-err");
+  } finally {
     refreshReady();
   }
 }
