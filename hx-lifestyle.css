@@ -977,11 +977,19 @@ html.is-pwa {
   letter-spacing: -0.02em;
 }
 
+.hx-ig-filters {
+  padding: 0 16px 8px;
+}
+
 .hx-ig__meta span {
-  display: block;
-  margin-top: 2px;
-  font-size: 11px;
-  color: rgba(245, 245, 245, 0.45);
+  display: inline-block;
+  margin-top: 3px;
+  padding: 2px 7px;
+  border: 1px solid rgba(201, 166, 107, 0.35);
+  color: var(--hx-gold, #c9a66b);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .hx-ig__time {

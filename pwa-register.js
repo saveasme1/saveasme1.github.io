@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260727-pwa25";
-  const APP_VERSION = "v1.9.5";
+  const APP_BUILD = "20260727-pwa26";
+  const APP_VERSION = "v1.9.6";
   const RELEASE_NOTES = [
-    "코디 피드: 일일 검증 허용목록만 송출",
-    "자동 플리커 라벨링 폐기 · 오매칭 시 빈 화면",
-    "하루 1회 GitHub Action 갱신",
+    "발견 탭: 해외 주얼리 풍성 피드",
+    "착용·뮤지엄·아카이브 + 한글 요약·원문 링크",
+    "포폴 SKU 강제 매칭 폐기",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
