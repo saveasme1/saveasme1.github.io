@@ -1,14 +1,14 @@
 {
   "name": "heritage-tryon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Heritage virtual jewelry try-on (MediaPipe + Three.js)",
+  "description": "Heritage jewelry try-on — StyleAR-class compose-first (MediaPipe + photo compose)",
   "type": "module",
   "scripts": {
     "start": "npx --yes serve . -p 5177",
     "test": "node --test tests/smoke.test.mjs",
     "validate:assets": "python validate_sku_assets.py",
     "analyze:debug": "python analyze_debug_report.py",
-    "check:syntax": "node --check src/studio.js && node --check src/services/ar/AssetResolver.js && node --check src/services/ar/JewelryARRenderer.js"
+    "check:syntax": "node --check src/studio.js && node --check src/services/ar/AssetResolver.js && node --check src/services/ar/JewelryARRenderer.js && node --check src/services/ar/StyleArComposePipeline.js"
   }
 }
