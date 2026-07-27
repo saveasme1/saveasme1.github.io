@@ -2,6 +2,7 @@
  * NeckAnchor3D from Face + Pose landmarks.
  */
 import { norm3, cross3, quatFromBasis, clamp } from "./math.js";
+import { refineNecklaceSpecialist } from "./PartSpecialists.js";
 
 /**
  * @param {Array} faceLm — Face Landmarker landmarks (optional)
@@ -59,7 +60,7 @@ export function estimateNeckAnchor3D(faceLm, poseLm, opts = {}) {
   if (Math.abs(ly - ry) < 0.08) confidence += 0.1;
   confidence = clamp(confidence, 0, 1);
 
-  return {
+  return refineNecklaceSpecialist({
     center2D,
     center3D: { x: center2D.x, y: center2D.y, z: midShoulder.z },
     neckAxis,
@@ -86,5 +87,5 @@ export function estimateNeckAnchor3D(faceLm, poseLm, opts = {}) {
     angle: (Math.atan2(shoulderAxis.y, shoulderAxis.x) * 180) / Math.PI,
     frontAngle: (Math.atan2(neckAxis.y, neckAxis.x) * 180) / Math.PI,
     source: "neck3d",
-  };
+  });
 }
