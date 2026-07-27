@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>본 헤리티지 · A3</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
+<style>
+html,body{margin:0;background:#111}
+*{box-sizing:border-box}
+:root{--accent:#ff8236;--ink:#161513;--paper:#f3efe9;--line:rgba(22,21,19,.12)}
+body{font-family:Pretendard,SUIT,"Noto Sans KR",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.poster{width:1000px;height:1000px;margin:0 auto;overflow:hidden;display:grid;grid-template-columns:300px 1fr;background:var(--paper)}
+.visual{position:relative;background:#0a0a0c;overflow:hidden}
+.visual img{width:100%;height:100%;object-fit:cover;object-position:center 32%;display:block;filter:brightness(.58) contrast(1.04) saturate(.9)}
+.visual .grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,6,8,.32) 0%,rgba(6,6,8,.1) 35%,rgba(6,6,8,.55) 70%,rgba(6,6,8,.92) 100%)}
+.brand{position:absolute;top:16px;left:12px;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;border-radius:999px;background:#fff}
+.brand img{width:38px;height:38px;border-radius:10px;display:block;filter:none!important}
+.brand b{font-size:16px;font-weight:800;color:#161513}
+.ghost{
+  position:absolute;left:10px;top:42%;z-index:2;transform:translateY(-50%);
+  font-family:Pretendard,sans-serif;font-weight:800;
+  font-size:46px;line-height:.92;letter-spacing:.1em;
+  color:rgba(255,255,255,.22);pointer-events:none;white-space:nowrap;
+}
+.mag{position:absolute;left:12px;right:10px;bottom:16px;z-index:4;color:#fff}
+.mag .label{margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.22em;color:rgba(255,255,255,.75)}
+.mag .to{margin:0;font-size:28px;line-height:1.22;font-weight:900;letter-spacing:-.04em}
+.mag .to i{font-style:normal;background:linear-gradient(180deg,transparent 58%,rgba(255,130,54,.8) 58%)}
+.copy{padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.meta{display:flex;justify-content:space-between;align-items:flex-start}
+.meta .l{font-size:13px;font-weight:800;letter-spacing:.16em;color:#9a8160}
+.meta .r{text-align:right}
+.meta .r b{display:block;font-size:12px;font-weight:800;color:var(--accent);margin-bottom:2px}
+.meta .r span{font-size:22px;font-weight:900}
+.kicker{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:800;letter-spacing:.14em;color:#9a8160}
+.kicker i{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+h1{margin:0;font-size:36px;line-height:1.18;letter-spacing:-.04em;font-weight:900}
+.big{margin:0;font-size:24px;line-height:1.4;font-weight:900;word-break:keep-all}
+.lead{margin:0;font-size:21px;line-height:1.42;font-weight:700;color:#2c2925;word-break:keep-all}
+.hl{color:var(--accent);font-weight:800}
+.close{margin-top:auto;padding:16px 0 0;border-top:1px solid var(--line);font-size:24px;line-height:1.4;font-weight:900;word-break:keep-all}
+</style>
+</head>
+<body>
+<div class="poster">
+  <aside class="visual">
+    <img src="assets/camp-ella-1.jpg" alt="">
+    <div class="grad"></div>
+    <div class="brand"><img src="assets/app-icon.png" alt=""><b>본 헤리티지</b></div>
+    <div class="ghost" aria-hidden="true">ESSENCE</div>
+    <div class="mag">
+      <p class="label">OUR PROMISE</p>
+      <p class="to">본질은 그대로<br><i>더 특별한 작품으로</i></p>
+    </div>
+  </aside>
+  <section class="copy">
+    <div class="meta">
+      <span class="l">PROMISE</span>
+      <div class="r"><b>리뉴얼 오픈 날짜</b><span>2026. 08. 01</span></div>
+    </div>
+    <div class="kicker"><i></i>CONTINUES</div>
+    <h1>이름은 바뀌어도<br>본질은 그대로입니다</h1>
+    <p class="big">앞으로도 <span class="hl">본 헤리티지</span>만의 디자인과 기술력으로 더 특별한 작품을 선보이며, 오래도록 믿고 찾을 수 있는 브랜드가 되겠습니다.</p>
+    <p class="lead">15년 동안 지켜온 제작 철학과 품질, 고객 한 분 한 분을 소중히 생각하는 마음은 변하지 않습니다.</p>
+    <p class="close">항상 감사합니다.<br>본 헤리티지 드림</p>
+  </section>
+</div>
+</body>
+</html>

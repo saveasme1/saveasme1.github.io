@@ -2,11 +2,11 @@
   "use strict";
 
   const APP_BUILD = "20260727-pwa25";
-  const APP_VERSION = "v1.9.4";
+  const APP_VERSION = "v1.9.5";
   const RELEASE_NOTES = [
-    "코디 피드: 원문 메타에 브랜드명 있을 때만 노출",
-    "포폴 제품명을 아무 사진에 붙이지 않음",
-    "부족하면 빈 화면 (오매칭 거절)",
+    "코디 피드: 일일 검증 허용목록만 송출",
+    "자동 플리커 라벨링 폐기 · 오매칭 시 빈 화면",
+    "하루 1회 GitHub Action 갱신",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
