@@ -11,7 +11,8 @@ Heritage는 **사진/합성(Compose-first)** 을 StyleAR SaaS와 같은 본진�
 촬영|업로드 → (합성 직전) 부위 재추정 → 정렬 → 오클루전·재질 합성 → 고해상도 스틸
 ```
 
-진입: `runStyleArCompose` (`StyleArComposePipeline.js`) ← `studio.js` `runMergeTryOn`
+진입: `runStyleArCompose` (`StyleArComposePipeline.js` v1.3 Phase1–3 + Phase4 live polish) ← `studio.js` `runMergeTryOn`  
+흐름: 스틸 우선 재검출 → 부위 특화 → (2.5D) 카탈로그 재질 → 고해상도 합성 → 오클루전 → 하모나이즈
 
 ## 네 모드 (StyleAR 부위 매핑)
 
