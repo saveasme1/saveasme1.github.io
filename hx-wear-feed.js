@@ -245,7 +245,9 @@
       brandCode: row.brandCode || "",
       displayName: row.displayName || row.profileName || row.brandName || handle,
       handle,
-      caption: row.caption || row.captionKo || row.titleKo || "",
+      caption: row.captionKo || row.caption || row.titleKo || "",
+      captionKo: row.captionKo || row.caption || "",
+      captionOriginal: row.captionOriginal || "",
       image,
       avatar: row.avatar || row.profileImage || "",
       profilePictureUrl: row.profilePictureUrl || row.profileImage || "",
@@ -404,13 +406,16 @@
 
     const foot = el("div", "hx-ig__foot");
     const cap = el("p", "hx-ig__caption");
-    const body = String(item.caption || "")
+    const body = String(item.captionKo || item.caption || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    cap.innerHTML =
-      (item.brandCode ? `<b class="hx-ig__badge">${item.brandCode}</b> ` : "") +
-      `<span class="hx-ig__seed">${body}</span>`;
+    cap.innerHTML = `<span class="hx-ig__seed">${body}</span>`;
+    if (item.brandCode) {
+      const badge = el("b", "hx-ig__badge");
+      badge.textContent = item.brandCode;
+      cap.prepend(badge, document.createTextNode(" "));
+    }
     const by = el("div", "hx-ig__by");
     by.innerHTML = `<span></span>`;
     const linkBtn = el("button", "hx-ig__src");
