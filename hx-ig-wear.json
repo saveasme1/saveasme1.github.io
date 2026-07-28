@@ -1,13 +1,18 @@
-﻿{
-  "version": 7,
+{
+  "version": 8,
   "updated": "2026-07-28",
   "policy": [
-    "image MUST come from the same Instagram post /media/",
-    "permalink must be /p/ or /reel/ only",
-    "handle is exact IG username of the post author",
-    "no watches, no portfolio SKU product cuts, no brand-mismatched images"
+    "one item per IG shortcode (no duplicates)",
+    "image from same post /media/",
+    "handle = post author username",
+    "avatar: local brand/author mark + MakerBridge proxy fallback"
   ],
-  "typesAllowed": ["ring", "bracelet", "necklace", "earring"],
+  "typesAllowed": [
+    "ring",
+    "bracelet",
+    "necklace",
+    "earring"
+  ],
   "items": [
     {
       "id": "ig-C-CyiMtmbMQBx",
@@ -18,10 +23,14 @@
       "captionKo": "@cartier #lovebracelet",
       "handle": "esquiresg",
       "displayName": "Esquire Singapore",
+      "avatar": "./wear-media/avatars/esquiresg.jpg",
       "permalink": "https://www.instagram.com/p/CyiMtmbMQBx/",
       "image": "./wear-media/posts/CyiMtmbMQBx.jpg",
       "publishedAt": "2023-10-20T00:00:00.000Z",
-      "tags": ["@cartier", "#lovebracelet", "#cartier"]
+      "tags": [
+        "@cartier",
+        "#lovebracelet"
+      ]
     },
     {
       "id": "ig-C-Cwp9yQxSQzL",
@@ -29,41 +38,17 @@
       "type": "bracelet",
       "pieceKo": "러브 브레이슬릿",
       "titleKo": "까르띠에 매트 러브 브레이슬릿",
-      "captionKo": "@cartier #lovebracelet matte",
+      "captionKo": "@cartier #lovebracelet",
       "handle": "diamondsindubaii",
       "displayName": "Diamonds in Dubai",
+      "avatar": "./wear-media/avatars/diamondsindubaii.jpg",
       "permalink": "https://www.instagram.com/p/Cwp9yQxSQzL/",
       "image": "./wear-media/posts/Cwp9yQxSQzL.jpg",
       "publishedAt": "2023-08-15T00:00:00.000Z",
-      "tags": ["@cartier", "#lovebracelet"]
-    },
-    {
-      "id": "ig-CL-B393bYVi0Ii",
-      "brandCode": "CL",
-      "type": "ring",
-      "pieceKo": "코코 크러쉬 링",
-      "titleKo": "샤넬 코코 크러쉬 링 착용",
-      "captionKo": "@chanel #cococcrush",
-      "handle": "chanel",
-      "displayName": "CHANEL",
-      "permalink": "https://www.instagram.com/p/B393bYVi0Ii/",
-      "image": "./wear-media/posts/B393bYVi0Ii.jpg",
-      "publishedAt": "2020-01-15T00:00:00.000Z",
-      "tags": ["@chanel", "#cococcrush", "#chanelfinejewelry"]
-    },
-    {
-      "id": "ig-CL-DTvXe_OjHFH",
-      "brandCode": "CL",
-      "type": "necklace",
-      "pieceKo": "코코 크러쉬 네클리스",
-      "titleKo": "샤넬 코코 크러쉬 네클리스 착용",
-      "captionKo": "@chanel #cococcrush",
-      "handle": "chanel",
-      "displayName": "CHANEL",
-      "permalink": "https://www.instagram.com/p/DTvXe_OjHFH/",
-      "image": "./wear-media/posts/DTvXe_OjHFH.jpg",
-      "publishedAt": "2026-01-13T00:00:00.000Z",
-      "tags": ["@chanel", "#cococcrush"]
+      "tags": [
+        "@cartier",
+        "#lovebracelet"
+      ]
     },
     {
       "id": "ig-C-CiNz8yhPg8o",
@@ -74,10 +59,50 @@
       "captionKo": "@cartier #JusteUnClou",
       "handle": "diamondsindubaii",
       "displayName": "Diamonds in Dubai",
+      "avatar": "./wear-media/avatars/diamondsindubaii.jpg",
       "permalink": "https://www.instagram.com/p/CiNz8yhPg8o/",
       "image": "./wear-media/posts/CiNz8yhPg8o.jpg",
       "publishedAt": "2022-09-01T00:00:00.000Z",
-      "tags": ["@cartier", "#JusteUnClou", "#cartier"]
+      "tags": [
+        "@cartier",
+        "#JusteUnClou"
+      ]
+    },
+    {
+      "id": "ig-CL-B393bYVi0Ii",
+      "brandCode": "CL",
+      "type": "ring",
+      "pieceKo": "코코 크러쉬 링",
+      "titleKo": "샤넬 코코 크러쉬 링 착용",
+      "captionKo": "@chanel #cococcrush",
+      "handle": "chanel",
+      "displayName": "CHANEL",
+      "avatar": "./wear-media/avatars/chanel.jpg",
+      "permalink": "https://www.instagram.com/p/B393bYVi0Ii/",
+      "image": "./wear-media/posts/B393bYVi0Ii.jpg",
+      "publishedAt": "2020-01-15T00:00:00.000Z",
+      "tags": [
+        "@chanel",
+        "#cococcrush"
+      ]
+    },
+    {
+      "id": "ig-CL-DTvXe_OjHFH",
+      "brandCode": "CL",
+      "type": "necklace",
+      "pieceKo": "코코 크러쉬 네클리스",
+      "titleKo": "샤넬 코코 크러쉬 네클리스 착용",
+      "captionKo": "@chanel #cococcrush",
+      "handle": "chanel",
+      "displayName": "CHANEL",
+      "avatar": "./wear-media/avatars/chanel.jpg",
+      "permalink": "https://www.instagram.com/p/DTvXe_OjHFH/",
+      "image": "./wear-media/posts/DTvXe_OjHFH.jpg",
+      "publishedAt": "2026-01-13T00:00:00.000Z",
+      "tags": [
+        "@chanel",
+        "#cococcrush"
+      ]
     },
     {
       "id": "ig-VCA-CGkjqZel3u3",
@@ -88,10 +113,14 @@
       "captionKo": "@vancleefarpels #VCAalhambra",
       "handle": "vancleefarpels",
       "displayName": "Van Cleef & Arpels",
+      "avatar": "./wear-media/avatars/vancleefarpels.jpg",
       "permalink": "https://www.instagram.com/p/CGkjqZel3u3/",
       "image": "./wear-media/posts/CGkjqZel3u3.jpg",
       "publishedAt": "2020-10-01T00:00:00.000Z",
-      "tags": ["@vancleefarpels", "#VCAalhambra", "#alhambra"]
+      "tags": [
+        "@vancleefarpels",
+        "#VCAalhambra"
+      ]
     },
     {
       "id": "ig-VCA-CUSmAQTNB1t",
@@ -99,13 +128,17 @@
       "type": "necklace",
       "pieceKo": "알함브라 네클리스",
       "titleKo": "반클리프 알함브라 네클리스 착용",
-      "captionKo": "@vancleefarpels #VCAalhambra",
+      "captionKo": "@vancleefarpels #alhambra",
       "handle": "vancleefarpels",
       "displayName": "Van Cleef & Arpels",
+      "avatar": "./wear-media/avatars/vancleefarpels.jpg",
       "permalink": "https://www.instagram.com/p/CUSmAQTNB1t/",
       "image": "./wear-media/posts/CUSmAQTNB1t.jpg",
       "publishedAt": "2021-09-01T00:00:00.000Z",
-      "tags": ["@vancleefarpels", "#alhambra"]
+      "tags": [
+        "@vancleefarpels",
+        "#alhambra"
+      ]
     },
     {
       "id": "ig-VCA-C8m-0pUgVnY",
@@ -116,13 +149,17 @@
       "captionKo": "@vancleefarpels #alhambra",
       "handle": "highsnobiety",
       "displayName": "Highsnobiety",
+      "avatar": "./wear-media/avatars/highsnobiety.jpg",
       "permalink": "https://www.instagram.com/p/C8m-0pUgVnY/",
       "image": "./wear-media/posts/C8m-0pUgVnY.jpg",
       "publishedAt": "2024-05-10T00:00:00.000Z",
-      "tags": ["@vancleefarpels", "@highsnobiety", "#alhambra"]
+      "tags": [
+        "@vancleefarpels",
+        "#alhambra"
+      ]
     },
     {
-      "id": "ig-TC-C5Bw6EPOD70",
+      "id": "ig-T&C-C5Bw6EPOD70",
       "brandCode": "T&C",
       "type": "bracelet",
       "pieceKo": "티파니 락 브레이슬릿",
@@ -130,10 +167,14 @@
       "captionKo": "@tiffanyandco #TiffanyLock",
       "handle": "tiffanyandco",
       "displayName": "Tiffany & Co.",
+      "avatar": "./wear-media/avatars/tiffanyandco.jpg",
       "permalink": "https://www.instagram.com/p/C5Bw6EPOD70/",
       "image": "./wear-media/posts/C5Bw6EPOD70.jpg",
       "publishedAt": "2024-03-18T00:00:00.000Z",
-      "tags": ["@tiffanyandco", "#TiffanyLock", "#TiffanyAndCo"]
+      "tags": [
+        "@tiffanyandco",
+        "#TiffanyLock"
+      ]
     },
     {
       "id": "ig-B-DHdHQnjJyYt",
@@ -144,10 +185,230 @@
       "captionKo": "@bvlgari #serpenti",
       "handle": "lofficielmalaysia",
       "displayName": "L'Officiel Malaysia",
+      "avatar": "./wear-media/avatars/lofficielmalaysia.jpg",
       "permalink": "https://www.instagram.com/p/DHdHQnjJyYt/",
       "image": "./wear-media/posts/DHdHQnjJyYt.jpg",
       "publishedAt": "2025-03-01T00:00:00.000Z",
-      "tags": ["@bvlgari", "#serpenti", "#bvlgari"]
+      "tags": [
+        "@bvlgari",
+        "#serpenti"
+      ]
+    },
+    {
+      "id": "ig-CM-CSyf-LxAFTl",
+      "brandCode": "CM",
+      "type": "necklace",
+      "pieceKo": "쥬 드 리앙 네클리스",
+      "titleKo": "쇼메 쥬 드 리앙 착용",
+      "captionKo": "@chaumetofficial #ChaumetLiens",
+      "handle": "chaumetofficial",
+      "displayName": "Chaumet",
+      "avatar": "./wear-media/avatars/chaumetofficial.jpg",
+      "permalink": "https://www.instagram.com/p/CSyf-LxAFTl/",
+      "image": "./wear-media/posts/CSyf-LxAFTl.jpg",
+      "publishedAt": "2021-08-20T00:00:00.000Z",
+      "tags": [
+        "@chaumetofficial",
+        "#ChaumetLiens"
+      ]
+    },
+    {
+      "id": "ig-H-DFfm1RIKtw1",
+      "brandCode": "H",
+      "type": "bracelet",
+      "pieceKo": "클릭 H 브레이슬릿",
+      "titleKo": "에르메스 클릭 H 착용",
+      "captionKo": "@hermes #ClicH",
+      "handle": "legitgrails",
+      "displayName": "LegitGrails",
+      "avatar": "./wear-media/avatars/legitgrails.jpg",
+      "permalink": "https://www.instagram.com/p/DFfm1RIKtw1/",
+      "image": "./wear-media/posts/DFfm1RIKtw1.jpg",
+      "publishedAt": "2025-01-20T00:00:00.000Z",
+      "tags": [
+        "@hermes",
+        "#ClicH"
+      ]
+    },
+    {
+      "id": "ig-H-Cd4tyCQLkhz",
+      "brandCode": "H",
+      "type": "bracelet",
+      "pieceKo": "투르니 트레세 브레이슬릿",
+      "titleKo": "에르메스 브레이슬릿 착용 코디",
+      "captionKo": "@hermes #hermes",
+      "handle": "hermesselebriti",
+      "displayName": "Hermes Selebriti",
+      "avatar": "./wear-media/avatars/hermesselebriti.jpg",
+      "permalink": "https://www.instagram.com/p/Cd4tyCQLkhz/",
+      "image": "./wear-media/posts/Cd4tyCQLkhz.jpg",
+      "publishedAt": "2022-05-20T00:00:00.000Z",
+      "tags": [
+        "@hermes",
+        "#hermes"
+      ]
+    },
+    {
+      "id": "ig-C&H-DJHYneyxWak",
+      "brandCode": "C&H",
+      "type": "bracelet",
+      "pieceKo": "크롬하츠 브레이슬릿",
+      "titleKo": "크롬하츠 브레이슬릿 착용",
+      "captionKo": "@chromeheartsofficial #chromehearts",
+      "handle": "archivethreads",
+      "displayName": "ArchiveThreads",
+      "avatar": "./wear-media/avatars/archivethreads.jpg",
+      "permalink": "https://www.instagram.com/p/DJHYneyxWak/",
+      "image": "./wear-media/posts/DJHYneyxWak.jpg",
+      "publishedAt": "2025-05-10T00:00:00.000Z",
+      "tags": [
+        "@chromeheartsofficial",
+        "#chromehearts"
+      ]
+    },
+    {
+      "id": "ig-C&H-DCes6ltx8_s",
+      "brandCode": "C&H",
+      "type": "necklace",
+      "pieceKo": "크롬하츠 크로스 네클리스",
+      "titleKo": "크롬하츠 22k 주얼리",
+      "captionKo": "@chromeheartsofficial #chromehearts",
+      "handle": "joopiter",
+      "displayName": "JOOPITER",
+      "avatar": "./wear-media/avatars/joopiter.jpg",
+      "permalink": "https://www.instagram.com/p/DCes6ltx8_s/",
+      "image": "./wear-media/posts/DCes6ltx8_s.jpg",
+      "publishedAt": "2024-12-01T00:00:00.000Z",
+      "tags": [
+        "@chromeheartsofficial",
+        "#chromehearts"
+      ]
+    },
+    {
+      "id": "ig-F-B1zGjVmC8u0",
+      "brandCode": "F",
+      "type": "bracelet",
+      "pieceKo": "포스 10 브레이슬릿",
+      "titleKo": "프레드 포스 10 착용",
+      "captionKo": "@fredjewelry #Force10",
+      "handle": "fredjewelry",
+      "displayName": "FRED Paris",
+      "avatar": "./wear-media/avatars/fredjewelry.jpg",
+      "permalink": "https://www.instagram.com/p/B1zGjVmC8u0/",
+      "image": "./wear-media/posts/B1zGjVmC8u0.jpg",
+      "publishedAt": "2019-08-01T00:00:00.000Z",
+      "tags": [
+        "@fredjewelry",
+        "#Force10"
+      ]
+    },
+    {
+      "id": "ig-G-DBq__HIxzK9",
+      "brandCode": "G",
+      "type": "bracelet",
+      "pieceKo": "구찌 링크 브레이슬릿",
+      "titleKo": "구찌 링크 브레이슬릿 착용",
+      "captionKo": "@gucci bracelet",
+      "handle": "imsaintkatherine",
+      "displayName": "Kate",
+      "avatar": "./wear-media/avatars/imsaintkatherine.jpg",
+      "permalink": "https://www.instagram.com/p/DBq__HIxzK9/",
+      "image": "./wear-media/posts/DBq__HIxzK9.jpg",
+      "publishedAt": "2024-11-01T00:00:00.000Z",
+      "tags": [
+        "@gucci",
+        "#gucci"
+      ]
+    },
+    {
+      "id": "ig-L-Cv3ZV14pW2o",
+      "brandCode": "L",
+      "type": "necklace",
+      "pieceKo": "루이비통 룰루그램 네클리스",
+      "titleKo": "루이비통 주얼리 착용",
+      "captionKo": "@louisvuitton #lvjewelry",
+      "handle": "designerarchives",
+      "displayName": "Designer Archives",
+      "avatar": "./wear-media/avatars/designerarchives.jpg",
+      "permalink": "https://www.instagram.com/p/Cv3ZV14pW2o/",
+      "image": "./wear-media/posts/Cv3ZV14pW2o.jpg",
+      "publishedAt": "2023-07-20T00:00:00.000Z",
+      "tags": [
+        "@louisvuitton",
+        "#lvjewelry"
+      ]
+    },
+    {
+      "id": "ig-L-CxIzX67BUqb",
+      "brandCode": "L",
+      "type": "bracelet",
+      "pieceKo": "루이비통 모노그램 체인 브레이슬릿",
+      "titleKo": "루이비통 브레이슬릿 착용",
+      "captionKo": "@louisvuitton Monogram",
+      "handle": "drbengee",
+      "displayName": "Dr Ben Gee",
+      "avatar": "./wear-media/avatars/drbengee.jpg",
+      "permalink": "https://www.instagram.com/p/CxIzX67BUqb/",
+      "image": "./wear-media/posts/CxIzX67BUqb.jpg",
+      "publishedAt": "2023-09-10T00:00:00.000Z",
+      "tags": [
+        "@louisvuitton",
+        "#louisvuitton"
+      ]
+    },
+    {
+      "id": "ig-D-DB3yCDYvD-g",
+      "brandCode": "D",
+      "type": "necklace",
+      "pieceKo": "벨 에포크 네클리스",
+      "titleKo": "다미아니 벨 에포크 착용",
+      "captionKo": "@damianiofficial #BelleEpoque",
+      "handle": "damianiofficial",
+      "displayName": "Damiani",
+      "avatar": "./wear-media/avatars/damianiofficial.jpg",
+      "permalink": "https://www.instagram.com/p/DB3yCDYvD-g/",
+      "image": "./wear-media/posts/DB3yCDYvD-g.jpg",
+      "publishedAt": "2024-10-01T00:00:00.000Z",
+      "tags": [
+        "@damianiofficial",
+        "#BelleEpoque"
+      ]
+    },
+    {
+      "id": "ig-P-ClmW0EuSzbh",
+      "brandCode": "P",
+      "type": "necklace",
+      "pieceKo": "프라다 이터널 골드 네클리스",
+      "titleKo": "프라다 이터널 골드 착용",
+      "captionKo": "@prada #PradaFineJewelry",
+      "handle": "amandagorman",
+      "displayName": "Amanda Gorman",
+      "avatar": "./wear-media/avatars/amandagorman.jpg",
+      "permalink": "https://www.instagram.com/p/ClmW0EuSzbh/",
+      "image": "./wear-media/posts/ClmW0EuSzbh.jpg",
+      "publishedAt": "2022-11-20T00:00:00.000Z",
+      "tags": [
+        "@prada",
+        "#PradaFineJewelry"
+      ]
+    },
+    {
+      "id": "ig-P-DBa6yn6NWf8",
+      "brandCode": "P",
+      "type": "necklace",
+      "pieceKo": "프라다 이터널 골드 체인",
+      "titleKo": "프라다 이터널 골드 체인",
+      "captionKo": "@prada #PradaFineJewelry",
+      "handle": "prada",
+      "displayName": "Prada",
+      "avatar": "./wear-media/avatars/prada.jpg",
+      "permalink": "https://www.instagram.com/p/DBa6yn6NWf8/",
+      "image": "./wear-media/posts/DBa6yn6NWf8.jpg",
+      "publishedAt": "2024-10-15T00:00:00.000Z",
+      "tags": [
+        "@prada",
+        "#PradaFineJewelry"
+      ]
     }
   ]
 }

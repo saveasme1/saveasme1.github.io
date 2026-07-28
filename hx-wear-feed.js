@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.ig.wear.v10";
+    const CACHE_KEY = "hx.ig.wear.v11";
   const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
@@ -93,13 +93,11 @@
       .replace(/^@/, "")
       .trim()
       .toLowerCase();
-    if (!h && !localAvatar && !profilePictureUrl) return "";
+    if (localAvatar) return absUrl(localAvatar);
     const apiBase = String(
       window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
     ).replace(/\/$/, "");
-    // Prefer MakerBridge proxy (real IG profile cache). Local brand mark as soft fallback.
     if (h) return `${apiBase}/ig-avatar?u=${encodeURIComponent(h)}&b=1`;
-    if (localAvatar) return absUrl(localAvatar);
     if (profilePictureUrl) return profilePictureUrl;
     return "";
   }
@@ -232,6 +230,15 @@
     return [];
   }
 
+  function postShortcode(url) {
+    try {
+      const m = String(url || "").match(IG_POST_PATH);
+      return m ? m[2] : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
   function normalize(row, brands, liveProfile) {
     let code = String(row.brandCode || row.brand || "").trim();
     let brand = brands[code];
@@ -333,6 +340,7 @@
         "hx.ig.wear.v7",
         "hx.ig.wear.v8",
         "hx.ig.wear.v9",
+        "hx.ig.wear.v10",
       ].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
@@ -356,14 +364,17 @@
       .filter(isRelevantWear)
       .map((row) => applyProfileMeta(row, profiles));
 
-    [...backend.items.map((row) => applyProfileMeta(row, profiles)), ...curatedRows].forEach((row) => {
+    // Prefer curated first (local matched media), then API/seeds — dedupe by shortcode only.
+    [...curatedRows, ...backend.items.map((row) => applyProfileMeta(row, profiles))].forEach((row) => {
       const item = normalize(row, brands, liveProfile);
       if (!item) return;
       if (!allowedCodes.has(item.brandCode)) return;
       if (item.source === "portfolio" || String(item.id).startsWith("pf-")) return;
-      if (seen.has(item.id) || seen.has(item.permalink + item.image)) return;
+      const code = postShortcode(item.permalink);
+      const key = code || item.permalink;
+      if (!key || seen.has(key) || seen.has(item.id)) return;
+      seen.add(key);
       seen.add(item.id);
-      seen.add(item.permalink + item.image);
       merged.push(item);
     });
 
