@@ -1,0 +1,98 @@
+﻿[
+    {
+        "id":  "ig-c-love-1",
+        "brandCode":  "C",
+        "type":  "bracelet",
+        "pieceKo":  "러브 브레이슬릿",
+        "titleKo":  "까르띠에 러브 브레이슬릿 착용",
+        "captionKo":  "Love bracelet",
+        "handle":  "cartier",
+        "permalink":  "https://www.instagram.com/p/C2h9nXDs972/",
+        "image":  "./wear-media/posts/C2h9nXDs972.jpg",
+        "publishedAt":  "2024-01-25T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-cl-crush-1",
+        "brandCode":  "CL",
+        "type":  "ring",
+        "pieceKo":  "코코 크러쉬 링",
+        "titleKo":  "샤넬 코코 크러쉬 링 착용",
+        "captionKo":  "COCO CRUSH rings",
+        "handle":  "chanel",
+        "permalink":  "https://www.instagram.com/p/B393bYVi0Ii/",
+        "image":  "./wear-media/posts/B393bYVi0Ii.jpg",
+        "publishedAt":  "2020-01-15T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-cl-crush-2",
+        "brandCode":  "CL",
+        "type":  "necklace",
+        "pieceKo":  "코코 크러쉬 네클리스",
+        "titleKo":  "샤넬 코코 크러쉬 네클리스 착용",
+        "captionKo":  "COCO CRUSH necklaces",
+        "handle":  "chanel",
+        "permalink":  "https://www.instagram.com/p/DTvXe_OjHFH/",
+        "image":  "./wear-media/posts/DTvXe_OjHFH.jpg",
+        "publishedAt":  "2026-01-13T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-vca-1",
+        "brandCode":  "VCA",
+        "type":  "bracelet",
+        "pieceKo":  "알함브라 브레이슬릿",
+        "titleKo":  "반클리프 알함브라 브레이슬릿 착용",
+        "captionKo":  "Vintage Alhambra bracelet",
+        "handle":  "vancleefarpels",
+        "permalink":  "https://www.instagram.com/p/CGkjqZel3u3/",
+        "image":  "./wear-media/posts/CGkjqZel3u3.jpg",
+        "publishedAt":  "2020-10-01T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-vca-2",
+        "brandCode":  "VCA",
+        "type":  "necklace",
+        "pieceKo":  "알함브라 네클리스",
+        "titleKo":  "반클리프 알함브라 네클리스 착용",
+        "captionKo":  "Vintage Alhambra necklace",
+        "handle":  "vancleefarpels",
+        "permalink":  "https://www.instagram.com/p/CUSmAQTNB1t/",
+        "image":  "./wear-media/posts/CUSmAQTNB1t.jpg",
+        "publishedAt":  "2021-09-01T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-tc-1",
+        "brandCode":  "T\u0026C",
+        "type":  "bracelet",
+        "pieceKo":  "티파니 락 브레이슬릿",
+        "titleKo":  "티파니 락 착용",
+        "captionKo":  "Tiffany Lock",
+        "handle":  "tiffanyandco",
+        "permalink":  "https://www.instagram.com/p/C5Bw6EPOD70/",
+        "image":  "./wear-media/posts/C5Bw6EPOD70.jpg",
+        "publishedAt":  "2024-03-18T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-b-1",
+        "brandCode":  "B",
+        "type":  "bracelet",
+        "pieceKo":  "세르펜티 브레이슬릿",
+        "titleKo":  "불가리 세르펜티 착용 코디",
+        "captionKo":  "Bvlgari Serpenti wear",
+        "handle":  "lofficielmalaysia",
+        "permalink":  "https://www.instagram.com/p/DHdHQnjJyYt/",
+        "image":  "./wear-media/posts/DHdHQnjJyYt.jpg",
+        "publishedAt":  "2025-03-01T00:00:00.000Z"
+    },
+    {
+        "id":  "ig-c-love-2",
+        "brandCode":  "C",
+        "type":  "bracelet",
+        "pieceKo":  "주스트 앙끌로 브레이슬릿",
+        "titleKo":  "까르띠에 주스트 앙끌로 착용",
+        "captionKo":  "Juste un Clou Limited Edition",
+        "handle":  "diamondsindubaii",
+        "permalink":  "https://www.instagram.com/p/CiNz8yhPg8o/",
+        "image":  "./wear-media/posts/CiNz8yhPg8o.jpg",
+        "publishedAt":  "2022-09-01T00:00:00.000Z"
+    }
+]

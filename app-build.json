@@ -1,5 +1,9 @@
 {
-  "build": "20260728-pwa34",
-  "version": "v1.10.4",
-  "notes": ["IG post permalink click", "reject profile-only curated links"]
+  "build": "20260728-pwa35",
+  "version": "v1.10.5",
+  "notes": [
+    "fix brand/image mismatch using real IG post media",
+    "@handle display + avatar proxy",
+    "@/# seed collection via MakerBridge"
+  ]
 }

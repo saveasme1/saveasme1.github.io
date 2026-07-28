@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.ig.wear.v9";
+  const CACHE_KEY = "hx.ig.wear.v10";
   const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
@@ -88,29 +88,28 @@
     }
   }
 
-  function avatarFor(handle, profilePictureUrl) {
+  function avatarFor(handle, profilePictureUrl, localAvatar) {
     const h = String(handle || "")
       .replace(/^@/, "")
       .trim()
       .toLowerCase();
-    if (!h) return "";
+    if (!h && !localAvatar && !profilePictureUrl) return "";
     const apiBase = String(
       window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
     ).replace(/\/$/, "");
-    // Proxy real IG profile (avoids CDN hotlink block). Local files as fallbacks in cardNode.
-    if (profilePictureUrl || h) {
-      return `${apiBase}/ig-avatar?u=${encodeURIComponent(h)}&b=1`;
-    }
-    return absUrl(`./wear-media/avatars/${h}.png`);
+    // Prefer MakerBridge proxy (real IG profile cache). Local brand mark as soft fallback.
+    if (h) return `${apiBase}/ig-avatar?u=${encodeURIComponent(h)}&b=1`;
+    if (localAvatar) return absUrl(localAvatar);
+    if (profilePictureUrl) return profilePictureUrl;
+    return "";
   }
 
-  function setAvatar(av, handle, primaryUrl, wearImage) {
+  function setAvatar(av, handle, primaryUrl) {
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
     const candidates = [
       primaryUrl,
       absUrl(`./wear-media/avatars/${h}.jpg`),
       absUrl(`./wear-media/avatars/${h}.png`),
-      wearImage, // last resort: post image in circle (better than wrong letter)
     ].filter(Boolean);
 
     const tryNext = (i) => {
@@ -284,9 +283,11 @@
       profileUrl: profileUrl(handle) || permalink,
       permalink,
       image,
+      avatar: row.avatar ? absUrl(row.avatar) : "",
       profilePictureUrl,
       publishedAt: row.publishedAt || row.indexedOn || "",
       source: row.source || "",
+      tags: Array.isArray(row.tags) ? row.tags : [],
     };
   }
 
@@ -331,6 +332,7 @@
         "hx.ig.wear.v6",
         "hx.ig.wear.v7",
         "hx.ig.wear.v8",
+        "hx.ig.wear.v9",
       ].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
@@ -382,24 +384,23 @@
     a.dataset.brand = item.brandCode;
     a.dataset.type = item.type;
 
-    const handle = item.handle || "instagram";
+    const handle = String(item.handle || "instagram").replace(/^@/, "");
     const profile = item.profileUrl || profileUrl(handle);
-    const avatarSrc = avatarFor(handle, item.profilePictureUrl);
+    const avatarSrc = avatarFor(handle, item.profilePictureUrl, item.avatar);
 
     const head = el("button", "hx-ig__head");
     head.type = "button";
-    head.setAttribute("aria-label", `${handle} 프로필`);
+    head.setAttribute("aria-label", `@${handle} 프로필`);
     const av = el("div", "hx-ig__avatar");
-    setAvatar(av, handle, avatarSrc, item.image);
+    setAvatar(av, handle, avatarSrc);
 
     const meta = el("div", "hx-ig__meta");
-    // Exact Instagram username (as on IG). Optional display name as subtle second line.
-    const uname = String(item.handle || "").replace(/^@/, "");
+    const uname = handle;
     const dname = String(item.displayName || "").trim();
     meta.innerHTML =
-      `<strong>${uname}</strong>` +
+      `<strong>@${uname}</strong>` +
       (dname && dname.toLowerCase() !== uname.toLowerCase()
-        ? `<em class="hx-ig__fullname">${dname}</em>`
+        ? `<em class="hx-ig__name">${dname}</em>`
         : "") +
       `<span>${item.brandCode !== "IG" ? item.brandCode + " · " : ""}${item.typeKo}</span>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt, item.id));
@@ -432,7 +433,7 @@
       `<b>${item.titleKo}</b>` +
       (item.captionKo ? `<span class="hx-ig__seed">${item.captionKo}</span>` : "");
     const by = el("div", "hx-ig__by");
-    by.innerHTML = `<span>${handle}</span>`;
+    by.innerHTML = `<span>@${handle}</span>`;
     const linkBtn = el("button", "hx-ig__src");
     linkBtn.type = "button";
     linkBtn.textContent = "원문";
