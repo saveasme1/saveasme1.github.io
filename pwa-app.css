@@ -938,9 +938,12 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-rank__delta {
   flex: none;
-  font-size: 10px;
+  min-width: 1.1em;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -954,10 +957,13 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-rank__delta.is-same {
   color: var(--pwa-dim);
+  font-size: 11px;
 }
 
 .pwa-rank__delta.is-new {
   color: #f0d09a;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 /* Gold ticker — legacy */
@@ -1921,4 +1927,184 @@ body.board-standalone .is-standalone {
 body.board-standalone .reviews-heading {
   padding-left: 16px;
   padding-right: 16px;
+}
+
+/* ?? PC PWA shell: app column, not stretched mobile ?? */
+@media (min-width: 1025px) {
+  html.is-pwa {
+    --pwa-shell: 720px;
+    --pwa-gutter: 28px;
+    --pwa-tab-h: 58px;
+  }
+
+  html.is-pwa body {
+    background:
+      radial-gradient(80% 50% at 50% 0%, rgba(201, 166, 107, 0.08), transparent 55%),
+      #050505;
+  }
+
+  html.is-pwa .landing {
+    width: min(100%, var(--pwa-shell));
+    max-width: var(--pwa-shell);
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: calc(var(--pwa-tab-h) + 40px);
+  }
+
+  html.is-pwa #pwaHome {
+    width: 100%;
+  }
+
+  html.is-pwa .gb-top-brand {
+    padding-left: max(20px, calc((100vw - var(--pwa-shell)) / 2 + 12px));
+    padding-right: max(20px, calc((100vw - var(--pwa-shell)) / 2 + 12px));
+  }
+
+  html.is-pwa .gb-top-brand__auth {
+    gap: 14px !important;
+  }
+
+  html.is-pwa .gb-top-auth-btn {
+    width: auto !important;
+    min-width: 44px;
+    height: 38px !important;
+    padding: 0 14px !important;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 10px !important;
+  }
+
+  html.is-pwa .gb-top-auth-btn__icon {
+    display: inline-flex !important;
+  }
+
+  html.is-pwa .gb-top-auth-btn__label {
+    display: inline !important;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  html.is-pwa .gb-top-auth-btn + .gb-top-auth-btn {
+    margin-left: 2px;
+  }
+
+  html.is-pwa .gb-bottom-nav {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 18px !important;
+    width: min(var(--pwa-shell), calc(100vw - 48px)) !important;
+    transform: translateX(-50%);
+    padding: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 18px !important;
+    background: rgba(12, 12, 12, 0.92) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+
+  html.is-pwa .gb-bottom-nav__bar {
+    height: var(--pwa-tab-h);
+  }
+
+  html.is-pwa body.has-gb-bottom-nav {
+    padding-bottom: calc(var(--pwa-tab-h) + 36px) !important;
+  }
+
+  html.is-pwa .pwa-hero--banner {
+    height: min(42vh, 420px);
+    min-height: 320px;
+    border-radius: 0 0 4px 4px;
+  }
+
+  html.is-pwa .pwa-dock {
+    padding: 22px 12px 20px;
+    gap: 4px;
+  }
+
+  html.is-pwa .pwa-dock__txt {
+    font-size: 11px;
+  }
+
+  html.is-pwa .pwa-dropbar {
+    margin: 10px var(--pwa-gutter) 22px;
+    padding: 16px 18px;
+  }
+
+  html.is-pwa .pwa-sec {
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  html.is-pwa .pwa-sec__head {
+    padding-left: var(--pwa-gutter);
+    padding-right: var(--pwa-gutter);
+    margin-bottom: 14px;
+  }
+
+  html.is-pwa .pwa-sec__head h2 {
+    font-size: 20px;
+  }
+
+  html.is-pwa .pwa-rank {
+    padding: 0 var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-rank__row {
+    padding: 12px 0;
+    gap: 14px;
+  }
+
+  html.is-pwa .pwa-rank__meta b {
+    font-size: 14px;
+  }
+
+  html.is-pwa .pwa-reviews {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 var(--pwa-gutter);
+    overflow: visible;
+  }
+
+  html.is-pwa .pwa-review {
+    flex: none;
+    max-width: none;
+    width: 100%;
+  }
+
+  html.is-pwa .pwa-rail,
+  html.is-pwa .pwa-peek__rail,
+  html.is-pwa .pwa-look__rail {
+    padding-left: var(--pwa-gutter);
+    padding-right: var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-market,
+  html.is-pwa .pwa-aiseek,
+  html.is-pwa .pwa-pulse,
+  html.is-pwa .pwa-index {
+    margin-left: var(--pwa-gutter);
+    margin-right: var(--pwa-gutter);
+    width: auto;
+  }
+
+  html.is-pwa .pwa-aiseek,
+  html.is-pwa .pwa-ai {
+    width: auto;
+    margin-left: var(--pwa-gutter);
+    margin-right: var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-notice {
+    margin-left: var(--pwa-gutter);
+    margin-right: var(--pwa-gutter);
+    width: auto;
+  }
+
+  html.is-pwa body.pf-body .pf-shell,
+  html.is-pwa body.board-standalone .board-standalone__main {
+    width: min(100%, var(--pwa-shell));
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

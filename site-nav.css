@@ -166,6 +166,21 @@
 
 }
 
+@media (min-width: 1025px) {
+  .gb-top-brand__auth {
+    gap: 14px;
+  }
+
+  .gb-top-auth-btn {
+    min-height: 36px;
+    padding: 0 14px;
+  }
+
+  html.is-pwa .gb-top-brand__auth {
+    gap: 16px;
+  }
+}
+
 .gb-top-auth-btn {
 
   display: inline-flex;

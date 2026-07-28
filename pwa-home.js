@@ -135,12 +135,12 @@
     const prev = Number(prevRank) || 0;
     const cur = Number(curRank) || 0;
     if (!prev || prev < 1) {
-      return `<span class="pwa-rank__delta is-new">NEW</span>`;
+      return `<span class="pwa-rank__delta is-new" aria-label="NEW">NEW</span>`;
     }
     const diff = prev - cur;
-    if (diff > 0) return `<span class="pwa-rank__delta is-up">${diff} UP</span>`;
-    if (diff < 0) return `<span class="pwa-rank__delta is-down">${Math.abs(diff)} DOWN</span>`;
-    return `<span class="pwa-rank__delta is-same">—</span>`;
+    if (diff > 0) return `<span class="pwa-rank__delta is-up" aria-label="${diff} up">▲</span>`;
+    if (diff < 0) return `<span class="pwa-rank__delta is-down" aria-label="${Math.abs(diff)} down">▼</span>`;
+    return `<span class="pwa-rank__delta is-same" aria-label="same">—</span>`;
   }
 
   const assetUrl = (value) => {
@@ -1190,11 +1190,9 @@
         const curViews = Number(item._views || 0);
         let deltaHtml = rankDeltaHtml(prevRank, curRank);
         if (deltaHtml.includes("is-same") && curViews > prevViews && prevViews > 0) {
-          const grow = Math.min(99, Math.max(1, curViews - prevViews));
-          deltaHtml = `<span class="pwa-rank__delta is-up">${grow} UP</span>`;
+          deltaHtml = `<span class="pwa-rank__delta is-up" aria-label="up">▲</span>`;
         } else if (deltaHtml.includes("is-same") && prevViews > curViews && curViews >= 0 && prevViews > 0) {
-          const drop = Math.min(99, Math.max(1, prevViews - curViews));
-          deltaHtml = `<span class="pwa-rank__delta is-down">${drop} DOWN</span>`;
+          deltaHtml = `<span class="pwa-rank__delta is-down" aria-label="down">▼</span>`;
         }
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
@@ -1216,7 +1214,7 @@
     shipSec.className = "pwa-sec";
     shipSec.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">OUT</p><h2>실시간 출고</h2></div>` +
+      `<div><p class="pwa-sec__eyebrow">LIVE SHIPPING</p><h2>실시간 출고</h2></div>` +
       `<button type="button" data-go="shipping">더보기</button>` +
       `</div>`;
     const shipRail = document.createElement("div");

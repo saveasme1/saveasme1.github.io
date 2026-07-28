@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa40";
-  const APP_VERSION = "v1.10.9";
+  const APP_BUILD = "20260728-pwa41";
+  const APP_VERSION = "v1.10.10";
   const RELEASE_NOTES = [
     "업데이트 팝업 무한 반복 수정",
     "발견: 게시물 원본 이미지·@계정 표시",
