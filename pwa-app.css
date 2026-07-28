@@ -928,6 +928,14 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   background: #161616;
 }
 
+.pwa-stories__ring--blank::after {
+  background: #fff;
+}
+.pwa-stories__ring--blank::before {
+  background: #dbdbdb;
+  animation: none;
+}
+
 .pwa-stories__lab {
   display: block;
   margin-top: 6px;
@@ -1156,6 +1164,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-cats {
   display: flex;
+  justify-content: center;
   gap: 4px;
   padding: 0 12px 10px;
   overflow-x: auto;

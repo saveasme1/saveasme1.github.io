@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v14";
+  const CACHE_KEY = "hx.discover.feed.v15";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -258,8 +258,31 @@
     } catch (_) {}
   }
 
-  function setAvatar(av, handle, primaryUrl, platform, brandCode) {
+  function isScrapedAnonProfile(platform, primaryUrl, source) {
+    const p = String(platform || "").toLowerCase();
+    const s = String(source || "").toLowerCase();
+    if (p === "web") return true;
+    if (/^web_/.test(s) || /web_(ddg|bing|google|search)/i.test(s)) return true;
+    // Pinterest / random-site scrapes without a real profile photo → blank white
+    if ((p === "pinterest" || p === "web") && !primaryUrl) return true;
+    return false;
+  }
+
+  function paintBlankAvatar(av) {
+    av.classList.remove("hx-ig__avatar--letter");
+    av.classList.add("hx-ig__avatar--blank");
+    av.textContent = "";
+    av.innerHTML = "";
+  }
+
+  function setAvatar(av, handle, primaryUrl, platform, brandCode, source) {
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+    // Do not invent brand/stock avatars for web/Pinterest scrapes
+    if (isScrapedAnonProfile(platform, primaryUrl, source)) {
+      paintBlankAvatar(av);
+      return;
+    }
+
     const brandHandle = String(BRAND_AVATAR[brandCode] || "").toLowerCase();
     const handles = [...new Set([h, brandHandle].filter(Boolean))];
     const candidates = [];
@@ -271,19 +294,13 @@
       candidates.push(absUrl(`./wear-media/avatars/${name}.png`));
       candidates.push(`${apiBase()}/ig-avatar?u=${encodeURIComponent(name)}&b=1`);
     });
-    // brand code fallback files already covered via BRAND_AVATAR
 
     const tryNext = (i) => {
       if (i >= candidates.length) {
-        av.classList.add("hx-ig__avatar--letter");
-        av.textContent = (
-          (brandCode && String(brandCode).replace(/[^A-Za-z]/g, "").slice(0, 1)) ||
-          h.slice(0, 1) ||
-          (PLATFORM_LABEL[platform] || "?").slice(0, 1)
-        ).toUpperCase();
+        paintBlankAvatar(av);
         return;
       }
-      av.classList.remove("hx-ig__avatar--letter");
+      av.classList.remove("hx-ig__avatar--letter", "hx-ig__avatar--blank");
       av.textContent = "";
       av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" decoding="async" src="${candidates[i]}">`;
       const img = av.querySelector("img");
@@ -435,6 +452,7 @@
           : [image],
       avatar: row.avatar || row.profileImage || "",
       profilePictureUrl: row.profilePictureUrl || row.profileImage || "",
+      source: row.source || "",
       permalink,
       publishedAt: row.publishedAt || "",
       mediaType: row.mediaType || "image",
@@ -569,7 +587,14 @@
     const head = el("button", "hx-ig__head");
     head.type = "button";
     const av = el("div", "hx-ig__avatar");
-    setAvatar(av, handle, item.profilePictureUrl || item.avatar, item.platform, item.brandCode);
+    setAvatar(
+      av,
+      handle,
+      item.profilePictureUrl || item.avatar,
+      item.platform,
+      item.brandCode,
+      item.source
+    );
 
     const meta = el("div", "hx-ig__meta");
     meta.innerHTML = `<strong>${escapeHtml(handle || plat)}</strong>`;

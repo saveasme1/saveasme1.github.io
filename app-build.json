@@ -1,9 +1,9 @@
 {
-  "build": "20260728-pwa71",
-  "version": "v1.12.9",
+  "build": "20260728-pwa72",
+  "version": "v1.12.10",
   "notes": [
-    "Mobile AI translation note on its own line",
-    "UTF-8 title/offline copy restored",
+    "Blank white avatar for web/Pinterest scrapes",
+    "Mobile AI note on its own line",
     "Taller hero slider"
   ]
 }

@@ -488,6 +488,7 @@ html.is-pwa {
 
 .hx-chips {
   display: flex;
+  justify-content: center;
   gap: 8px;
   overflow-x: auto;
   padding: 0 16px 14px;
@@ -969,6 +970,12 @@ html.is-pwa {
 .hx-ig__avatar--letter {
   background: linear-gradient(145deg, #333, #111);
   text-transform: uppercase;
+}
+
+.hx-ig__avatar--blank {
+  background: #fff !important;
+  color: transparent !important;
+  border-color: #dbdbdb !important;
 }
 
 .hx-ig__avatar img {
@@ -1658,4 +1665,9 @@ html.is-pwa {
   border-color: #dbdbdb !important;
   background: #efefef !important;
   color: #262626 !important;
+}
+#hxDiscover .hx-ig__avatar--blank {
+  background: #fff !important;
+  color: transparent !important;
+  border-color: #dbdbdb !important;
 }
