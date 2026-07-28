@@ -1,8 +1,8 @@
 ﻿{
-  "build": "20260728-pwa30",
-  "version": "v1.10.0",
+  "build": "20260728-pwa31",
+  "version": "v1.10.1",
   "notes": [
-    "Discover: wear feed only, brand code chips (C/B/VCA)",
-    "IG handle profile headers, remove tabs/disclaimers"
+    "All portfolio brand chips (C/B/VCA…)",
+    "Portfolio + curated volume; IG profile pic/username; 브레이슬릿"
   ]
 }

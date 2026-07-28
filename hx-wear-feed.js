@@ -1,28 +1,36 @@
 (() => {
   "use strict";
 
-  /**
-   * Portfolio-brand wear/coord feed (customer-facing).
-   * Brands: C, B, VCA… · Types: ring|bracelet|necklace|earring
-   * Live IG API + curated wear-media. No Flickr/museum/watches.
-   */
-
-  const CACHE_KEY = "hx.ig.wear.v4";
-  const CACHE_TTL_MS = 30 * 60 * 1000;
+  const CACHE_KEY = "hx.ig.wear.v5";
+  const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
     ring: "반지",
-    bracelet: "팔찌",
+    bracelet: "브레이슬릿",
     necklace: "목걸이",
     earring: "귀걸이",
   };
   const BRAND_ORDER = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "T&C", "L", "D"];
+  const BRAND_HANDLE = {
+    C: "cartier",
+    B: "bulgari",
+    VCA: "vancleefarpels",
+    BO: "boucheron",
+    CM: "chaumetofficial",
+    "C&H": "chromeheartsofficial",
+    CL: "chanel",
+    G: "gucci",
+    H: "hermes",
+    P: "prada",
+    F: "fred",
+    "T&C": "tiffanyandco",
+    L: "louisvuitton",
+    D: "damianiofficial",
+  };
 
   const BLOCK_HOST =
     /flickr\.|staticflickr\.|metmuseum\.|clevelandart\.|artic\.edu|wikimedia\.org|upload\.wikimedia/i;
-
-  const BLOCK_TEXT =
-    /\b(watch|wristwatch|horloge|clock|tank watch|museum|flickr|tribal|beadwork)\b/i;
+  const WATCH_RE = /시계|워치|\bwatch\b/i;
 
   function el(tag, cls, html) {
     const n = document.createElement(tag);
@@ -43,6 +51,23 @@
   function profileUrl(handle) {
     const h = String(handle || "").replace(/^@/, "").trim();
     return h ? `https://www.instagram.com/${encodeURIComponent(h)}/` : "";
+  }
+
+  function absUrl(path) {
+    if (!path) return "";
+    if (/^https?:\/\//i.test(path)) return path;
+    try {
+      return new URL(String(path).replace(/^\.\//, ""), location.href).href;
+    } catch (_) {
+      return path;
+    }
+  }
+
+  function avatarFor(handle, profilePictureUrl) {
+    if (profilePictureUrl && !BLOCK_HOST.test(profilePictureUrl)) return profilePictureUrl;
+    const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+    if (!h) return "";
+    return absUrl(`./wear-media/avatars/${h}.jpg`) || absUrl(`./wear-media/avatars/${h}.png`);
   }
 
   function relativeTimeKo(iso, salt) {
@@ -86,6 +111,25 @@
     } catch (_) {}
   }
 
+  function inferTypeFromTitle(title) {
+    const t = String(title || "");
+    if (WATCH_RE.test(t)) return "";
+    if (/브레이슬릿|팔찌|뱅글|bangle|bracelet/i.test(t)) return "bracelet";
+    if (/목걸이|네클리스|펜던트|초커|necklace|pendant/i.test(t)) return "necklace";
+    if (/귀걸이|이어링|earring/i.test(t)) return "earring";
+    if (/반지|링\b|ring/i.test(t)) return "ring";
+    return "";
+  }
+
+  function parseBrandFromTitle(title, brands) {
+    const t = String(title || "").trim();
+    const keys = Object.keys(brands).sort((a, b) => b.length - a.length);
+    for (const code of keys) {
+      if (t === code || t.startsWith(code + " ") || t.startsWith(code + "\t")) return code;
+    }
+    return "";
+  }
+
   async function loadBrands() {
     try {
       const res = await fetch(`./brand-codes.json?v=${Date.now()}`, { cache: "no-store" });
@@ -102,7 +146,7 @@
     return res.json();
   }
 
-  async function loadBackend(brands) {
+  async function loadBackend() {
     const base = String(
       window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
     ).replace(/\/$/, "");
@@ -110,23 +154,62 @@
       const res = await fetch(`${base}/ig-wear`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          brands: Object.keys(brands),
-          types: [...TYPES],
-          exclude: ["flickr", "museum", "watch"],
-          region: "overseas",
-          limit: 48,
-        }),
+        body: JSON.stringify({ limit: 50 }),
       });
-      if (!res.ok) return [];
+      if (!res.ok) return { items: [], profilePictureUrl: "", username: "", name: "" };
       const data = await res.json();
-      return data.items || data.results || [];
+      return {
+        items: data.items || [],
+        profilePictureUrl: data.profilePictureUrl || "",
+        username: data.username || "",
+        name: data.name || "",
+      };
+    } catch (_) {
+      return { items: [], profilePictureUrl: "", username: "", name: "" };
+    }
+  }
+
+  async function loadPortfolioWear(brands) {
+    try {
+      const cat = await window.HxCatalog?.loadCatalog?.();
+      const rows = cat?.items || [];
+      const perBrand = {};
+      const out = [];
+      for (const it of rows) {
+        const title = it.title || "";
+        if (WATCH_RE.test(title)) continue;
+        const code = it.brandCode || parseBrandFromTitle(title, brands);
+        if (!code || !brands[code]) continue;
+        const type = inferTypeFromTitle(title);
+        if (!TYPES.has(type)) continue;
+        const image = it.image || (Array.isArray(it.images) && it.images[0]) || "";
+        if (!image) continue;
+        perBrand[code] = (perBrand[code] || 0) + 1;
+        if (perBrand[code] > 10) continue;
+        const handle = BRAND_HANDLE[code] || String(code).toLowerCase();
+        out.push({
+          id: `pf-${it.id || out.length}`,
+          brandCode: code,
+          type,
+          pieceKo: TYPE_KO[type],
+          titleKo: title.replace(/^\S+\s+/, "").trim() || TYPE_KO[type],
+          captionKo: "",
+          handle,
+          displayName: handle,
+          profilePictureUrl: "",
+          permalink: profileUrl(handle),
+          image: absUrl(image),
+          publishedAt: it.sortAt || it.uploadedAt || "",
+          source: "portfolio",
+        });
+      }
+      return out;
     } catch (_) {
       return [];
     }
   }
 
-  function normalize(row, brands) {
+  function normalize(row, brands, liveProfile) {
     let code = String(row.brandCode || row.brand || "").trim();
     let brand = brands[code];
     if (!brand && (row.source === "instagram" || code === "IG")) {
@@ -139,33 +222,45 @@
     const permalink = String(row.permalink || row.instagram || row.url || "");
     let image = String(row.image || row.image_url || "");
     if (!permalink || !image) return null;
-    if (image.startsWith("./") || image.startsWith("wear-media/")) {
-      try {
-        image = new URL(image.replace(/^\.\//, ""), location.href).href;
-      } catch (_) {}
-    }
+    image = absUrl(image);
     if (BLOCK_HOST.test(permalink) || BLOCK_HOST.test(image)) return null;
-    const blob = `${row.titleKo || ""} ${row.captionKo || ""} ${row.pieceKo || ""} ${type}`;
-    if (BLOCK_TEXT.test(blob)) return null;
-    if (/flickr/i.test(row.source || "")) return null;
 
-    const handle = String(row.handle || "").replace(/^@/, "");
+    let handle = String(row.handle || "").replace(/^@/, "").trim();
+    if (!handle && code !== "IG") handle = BRAND_HANDLE[code] || "";
+    if (!handle && liveProfile?.username) handle = liveProfile.username;
+
+    let profilePictureUrl = String(row.profilePictureUrl || row.profile_picture_url || "");
+    if (
+      !profilePictureUrl &&
+      liveProfile?.profilePictureUrl &&
+      handle &&
+      liveProfile.username &&
+      handle.toLowerCase() === String(liveProfile.username).toLowerCase()
+    ) {
+      profilePictureUrl = liveProfile.profilePictureUrl;
+    }
+
+    const displayName =
+      String(row.displayName || row.name || "").trim() ||
+      (liveProfile?.name && handle === liveProfile.username ? liveProfile.name : "") ||
+      handle;
 
     return {
       id: row.id || `ig-${code}-${type}-${Math.random().toString(36).slice(2, 7)}`,
       brandCode: code,
-      brandEn: brand.en,
-      brandKo: brand.ko,
       type,
       typeKo: TYPE_KO[type],
-      pieceKo: row.pieceKo || TYPE_KO[type],
-      titleKo: row.titleKo || `${TYPE_KO[type]} 착용`,
+      pieceKo: row.pieceKo === "팔찌" ? "브레이슬릿" : row.pieceKo || TYPE_KO[type],
+      titleKo: row.titleKo || TYPE_KO[type],
       captionKo: row.captionKo || "",
       handle,
+      displayName,
       profileUrl: profileUrl(handle) || permalink,
       permalink,
       image,
+      profilePictureUrl,
       publishedAt: row.publishedAt || row.indexedOn || "",
+      source: row.source || "",
     };
   }
 
@@ -174,43 +269,41 @@
       const hit = cacheGet();
       if (hit?.items?.length) return hit.items;
     }
-
     try {
-      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3"].forEach((k) =>
+      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4"].forEach((k) =>
         localStorage.removeItem(k)
       );
     } catch (_) {}
 
     const brands = await loadBrands();
     const curated = await loadCurated();
-    const backend = await loadBackend(brands);
+    const backend = await loadBackend();
+    const portfolio = await loadPortfolioWear(brands);
+    const liveProfile = {
+      username: backend.username || "",
+      name: backend.name || "",
+      profilePictureUrl: backend.profilePictureUrl || "",
+    };
 
-    const portfolioCodes = new Set();
-    try {
-      const cat = await window.HxCatalog?.loadCatalog?.();
-      (cat?.items || []).forEach((it) => {
-        if (it.brandCode && brands[it.brandCode]) portfolioCodes.add(it.brandCode);
-      });
-    } catch (_) {}
-    if (!portfolioCodes.size) Object.keys(brands).forEach((c) => portfolioCodes.add(c));
+    const portfolioCodes = new Set(BRAND_ORDER.filter((c) => brands[c]));
+    Object.keys(brands).forEach((c) => portfolioCodes.add(c));
     portfolioCodes.add("IG");
 
     const merged = [];
     const seen = new Set();
-    [...backend, ...(curated.items || [])].forEach((row) => {
-      const item = normalize(row, brands);
+    [...backend.items, ...(curated.items || []), ...portfolio].forEach((row) => {
+      const item = normalize(row, brands, liveProfile);
       if (!item) return;
       if (!portfolioCodes.has(item.brandCode)) return;
-      if (!item.image) return;
-      if (seen.has(item.id) || seen.has(item.permalink + item.type)) return;
+      if (seen.has(item.id) || seen.has(item.permalink + item.image)) return;
       seen.add(item.id);
-      seen.add(item.permalink + item.type);
+      seen.add(item.permalink + item.image);
       merged.push(item);
     });
 
     merged.sort((a, b) => {
-      const aLive = a.brandCode === "IG" || String(a.id).startsWith("ig-api-") ? 1 : 0;
-      const bLive = b.brandCode === "IG" || String(b.id).startsWith("ig-api-") ? 1 : 0;
+      const aLive = a.source === "instagram" || String(a.id).startsWith("ig-api-") ? 1 : 0;
+      const bLive = b.source === "instagram" || String(b.id).startsWith("ig-api-") ? 1 : 0;
       if (aLive !== bLive) return bLive - aLive;
       const at = Date.parse(a.publishedAt) || 0;
       const bt = Date.parse(b.publishedAt) || 0;
@@ -227,15 +320,41 @@
 
     const handle = item.handle || "instagram";
     const profile = item.profileUrl || profileUrl(handle);
+    const avatarSrc = avatarFor(handle, item.profilePictureUrl);
 
     const head = el("button", "hx-ig__head");
     head.type = "button";
-    head.setAttribute("aria-label", `@${handle} 프로필`);
-    const av = el("div", "hx-ig__avatar hx-ig__avatar--letter");
-    av.textContent = handle.slice(0, 1).toUpperCase() || "I";
+    head.setAttribute("aria-label", `${handle} 프로필`);
+    const av = el("div", "hx-ig__avatar");
+    if (avatarSrc) {
+      av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" src="${avatarSrc}">`;
+      const img = av.querySelector("img");
+      img?.addEventListener("error", () => {
+        av.classList.add("hx-ig__avatar--letter");
+        av.textContent = handle.slice(0, 1).toUpperCase();
+      });
+      // also try .png if .jpg 404
+      if (avatarSrc.endsWith(".jpg")) {
+        img?.addEventListener("error", () => {
+          const png = avatarSrc.replace(/\.jpg$/i, ".png");
+          if (png !== avatarSrc) {
+            av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" src="${png}">`;
+            av.querySelector("img")?.addEventListener("error", () => {
+              av.classList.add("hx-ig__avatar--letter");
+              av.textContent = handle.slice(0, 1).toUpperCase();
+            });
+          }
+        }, { once: true });
+      }
+    } else {
+      av.classList.add("hx-ig__avatar--letter");
+      av.textContent = handle.slice(0, 1).toUpperCase();
+    }
+
     const meta = el("div", "hx-ig__meta");
+    // Instagram-style: username as primary account id
     meta.innerHTML =
-      `<strong>@${handle}</strong>` +
+      `<strong>${handle}</strong>` +
       `<span>${item.brandCode !== "IG" ? item.brandCode + " · " : ""}${item.typeKo}</span>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt, item.id));
     head.append(av, meta, time);
@@ -243,17 +362,11 @@
 
     const media = el("button", "hx-ig__media");
     media.type = "button";
-    media.setAttribute("aria-label", "게시물 열기");
-    if (item.image && !BLOCK_HOST.test(item.image)) {
-      media.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${item.image}">`;
-      const img = media.querySelector("img");
-      if (img) {
-        img.addEventListener("error", () => {
-          media.classList.add("hx-ig__media--ph");
-          media.innerHTML = `<div class="hx-ig__ph"><b>@${handle}</b><em>원문 보기</em></div>`;
-        });
-      }
-    }
+    media.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${item.image}">`;
+    media.querySelector("img")?.addEventListener("error", () => {
+      media.classList.add("hx-ig__media--ph");
+      media.innerHTML = `<div class="hx-ig__ph"><b>${handle}</b><em>원문 보기</em></div>`;
+    });
     media.addEventListener("click", () => openPermalink(item.permalink));
 
     const foot = el("div", "hx-ig__foot");
@@ -261,15 +374,13 @@
     cap.innerHTML =
       `<b>${item.titleKo}</b>` +
       (item.captionKo ? `<span class="hx-ig__seed">${item.captionKo}</span>` : "");
-
     const by = el("div", "hx-ig__by");
-    by.innerHTML = `<span>@${handle}</span>`;
+    by.innerHTML = `<span>${handle}</span>`;
     const linkBtn = el("button", "hx-ig__src");
     linkBtn.type = "button";
     linkBtn.textContent = "원문";
     linkBtn.addEventListener("click", () => openPermalink(item.permalink));
     by.append(linkBtn);
-
     foot.append(cap, by);
     a.append(head, media, foot);
     return a;
@@ -285,13 +396,11 @@
     root.append(chips, feed);
 
     let items = [];
+    let brands = {};
 
     function paint() {
       feed.replaceChildren();
-      const rows = items.filter((x) => {
-        if (activeBrand !== "all" && x.brandCode !== activeBrand) return false;
-        return true;
-      });
+      const rows = items.filter((x) => activeBrand === "all" || x.brandCode === activeBrand);
       if (!rows.length) {
         feed.append(el("p", "hx-empty", "표시할 착용컷이 없습니다."));
         return;
@@ -309,12 +418,6 @@
 
     function buildChips() {
       chips.replaceChildren();
-      const present = new Set(items.map((x) => x.brandCode).filter((c) => c && c !== "IG"));
-      const ordered = BRAND_ORDER.filter((c) => present.has(c));
-      present.forEach((c) => {
-        if (!ordered.includes(c)) ordered.push(c);
-      });
-
       const mk = (id, label) => {
         const b = el("button", "", label);
         b.type = "button";
@@ -327,16 +430,19 @@
         return b;
       };
       chips.append(mk("all", "ALL"));
-      ordered.forEach((code) => chips.append(mk(code, code)));
+      // 포폴 brand-codes 전체 나열 (자료 유무와 무관)
+      BRAND_ORDER.forEach((code) => {
+        if (brands[code]) chips.append(mk(code, code));
+      });
+      Object.keys(brands).forEach((code) => {
+        if (!BRAND_ORDER.includes(code)) chips.append(mk(code, code));
+      });
       syncChipState();
     }
 
     try {
+      brands = await loadBrands();
       items = await buildFeed(true);
-      if (!items.length) {
-        feed.append(el("p", "hx-empty", "표시할 착용컷이 없습니다."));
-        return false;
-      }
       buildChips();
       paint();
       return true;
