@@ -1,5 +1,5 @@
 /* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260728-pwa28";
+const CACHE_VERSION = "hx-pwa-v20260728-pwa29";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -36,6 +36,29 @@ const PRECACHE = [
   "./hx-extras.js",
   "./hx-wear-feed.js",
   "./hx-ig-wear.json",
+  "./wear-media/b-serp.png",
+  "./wear-media/c-clou-2.jpg",
+  "./wear-media/c-clou.jpg",
+  "./wear-media/c-love-close.jpg",
+  "./wear-media/c-love-stack.jpg",
+  "./wear-media/c-love3.jpg",
+  "./wear-media/c-monica-love.jpg",
+  "./wear-media/c-monica.jpg",
+  "./wear-media/cl-brace.jpg",
+  "./wear-media/cl-crush.jpg",
+  "./wear-media/cl-crush2.jpg",
+  "./wear-media/cl-ear.jpg",
+  "./wear-media/cl-gracie-li.jpg",
+  "./wear-media/cl-gracie1.jpg",
+  "./wear-media/cl-gracie2.jpg",
+  "./wear-media/cl-gracie3.jpg",
+  "./wear-media/cl-neck.png",
+  "./wear-media/h-clic.png",
+  "./wear-media/tc-lock.jpg",
+  "./wear-media/vca-1.jpg",
+  "./wear-media/vca-2.jpg",
+  "./wear-media/www-love.jpg",
+  "./wear-media/www-love2.jpg",
   "./hx-lifestyle.css",
   "./discover.html",
   "./hx-diamond-rules.json",

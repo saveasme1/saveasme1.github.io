@@ -1,8 +1,9 @@
-{
-  "build": "20260728-pwa28",
-  "version": "v1.9.8",
+﻿{
+  "build": "20260728-pwa29",
+  "version": "v1.9.9",
   "notes": [
-    "Discover wear: MakerBridge Instagram API (HX_WEAR_FEED_API)",
-    "큐레이션 + /api/handmade/v1/ig-wear 이미지 피드"
+    "착용 피드: 이미지 있는 카드만 / 플레이스홀더 제거",
+    "라이브 IG 게시물 최신순 최상단",
+    "로컬 wear-media 에디토리얼 착용컷"
   ]
 }

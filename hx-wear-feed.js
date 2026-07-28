@@ -9,8 +9,8 @@
    * - Source: curated IG handles + optional HX_WEAR_FEED_API
    */
 
-  const CACHE_KEY = "hx.ig.wear.v1";
-  const CACHE_TTL_MS = 6 * 3600 * 1000;
+  const CACHE_KEY = "hx.ig.wear.v3";
+  const CACHE_TTL_MS = 30 * 60 * 1000;
   const LOGO = "./icons/icon-192.png";
   const BRAND_NAME = "본 헤리티지";
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
@@ -135,8 +135,15 @@
     const type = String(row.type || "").toLowerCase();
     if (!TYPES.has(type)) return null;
     const permalink = String(row.permalink || row.instagram || row.url || "");
-    const image = String(row.image || row.image_url || "");
+    let image = String(row.image || row.image_url || "");
     if (!permalink) return null;
+    if (!image) return null; // no placeholder cards
+    // resolve relative wear-media paths
+    if (image.startsWith("./") || image.startsWith("wear-media/")) {
+      try {
+        image = new URL(image.replace(/^\.\//, ""), location.href).href;
+      } catch (_) {}
+    }
     if (BLOCK_HOST.test(permalink) || BLOCK_HOST.test(image)) return null;
     const blob = `${row.titleKo || ""} ${row.captionKo || ""} ${row.pieceKo || ""} ${type}`;
     if (BLOCK_TEXT.test(blob)) return null;
@@ -168,6 +175,8 @@
     // bust old toxic caches
     try {
       [
+        "hx.ig.wear.v1",
+        "hx.ig.wear.v2",
         "hx.wear.rich.v1",
         "hx.wear.feed.v1",
         "hx.wear.feed.v2",
@@ -197,14 +206,22 @@
       const item = normalize(row, brands);
       if (!item) return;
       if (!portfolioCodes.has(item.brandCode)) return;
+      if (!item.image) return;
       if (seen.has(item.id) || seen.has(item.permalink + item.type)) return;
       seen.add(item.id);
       seen.add(item.permalink + item.type);
       merged.push(item);
     });
 
-    // Prefer brands heavily in portfolio first
-    merged.sort((a, b) => String(a.brandCode).localeCompare(String(b.brandCode)) || a.type.localeCompare(b.type));
+    // Newest first; live Instagram API posts always on top
+    merged.sort((a, b) => {
+      const aLive = a.brandCode === "IG" || String(a.id).startsWith("ig-api-") ? 1 : 0;
+      const bLive = b.brandCode === "IG" || String(b.id).startsWith("ig-api-") ? 1 : 0;
+      if (aLive !== bLive) return bLive - aLive;
+      const at = Date.parse(a.publishedAt) || 0;
+      const bt = Date.parse(b.publishedAt) || 0;
+      return bt - at;
+    });
     cacheSet(merged);
     return merged;
   }
@@ -229,10 +246,18 @@
     media.setAttribute("aria-label", "인스타 원문 열기");
     if (item.image && !BLOCK_HOST.test(item.image)) {
       media.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${item.image}">`;
+      const img = media.querySelector("img");
+      if (img) {
+        img.addEventListener("error", () => {
+          media.classList.add("hx-ig__media--ph");
+          media.innerHTML =
+            `<div class="hx-ig__ph"><b>${item.brandEn}</b><span>이미지 로드 실패</span><em>링크로 원문 보기</em></div>`;
+        });
+      }
     } else {
       media.classList.add("hx-ig__media--ph");
       media.innerHTML =
-        `<div class="hx-ig__ph"><b>${item.brandEn}</b><span>@${item.handle || "instagram"}</span><em>인스타에서 착용컷 보기</em></div>`;
+        `<div class="hx-ig__ph"><b>${item.brandEn}</b><span>@${item.handle || "instagram"}</span><em>이미지 없음</em></div>`;
     }
     media.addEventListener("click", () => openPermalink(item.permalink));
 
