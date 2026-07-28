@@ -1,9 +1,1 @@
-﻿{
-  "build": "20260728-pwa65",
-  "version": "v1.12.3",
-  "notes": [
-    "AI note right of caption",
-    "Longer MZ captions from original",
-    "Web search civilian jewelry wear + 1h sync"
-  ]
-}
+{"build":"20260728-pwa66","version":"v1.12.4","notes":["Fix Discover feed JS encoding"]}
