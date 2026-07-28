@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v3";
-  const CACHE_TTL_MS = 12 * 60 * 1000;
+  const CACHE_KEY = "hx.discover.feed.v4";
+  const CACHE_TTL_MS = 8 * 60 * 1000;
   const TYPE_KO = {
     ring: "반지",
     bracelet: "브레이슬릿",
@@ -481,11 +481,22 @@
     async function reload() {
       status.textContent = "불러오는 중…";
       status.hidden = false;
-      feed.replaceChildren();
+      let showedCache = false;
+      try {
+        const cached = await buildFeed(false, activeBrand);
+        if (cached.length) {
+          items = cached;
+          paint();
+          status.hidden = true;
+          showedCache = true;
+        }
+      } catch (_) {}
       try {
         items = await buildFeed(true, activeBrand);
       } catch (_) {
-        items = await loadLegacyFallback().then((rows) => rows.map(normalizeItem).filter(Boolean));
+        if (!showedCache) {
+          items = await loadLegacyFallback().then((rows) => rows.map(normalizeItem).filter(Boolean));
+        }
       }
       paint();
       if (!items.length) {

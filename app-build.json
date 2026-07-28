@@ -1,8 +1,8 @@
 {
-  "build": "20260728-pwa50",
-  "version": "v1.11.6",
+  "build": "20260728-pwa51",
+  "version": "v1.11.7",
   "notes": [
-    "RECENT UPDATE marquee items open their posts",
-    "shipping/reviews ?id= deep-link detail"
+    "Discover: cache-first load, wear/coord only",
+    "Exclude Korean / K-pop celebrity content"
   ]
 }
