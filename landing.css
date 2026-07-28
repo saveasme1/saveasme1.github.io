@@ -176,6 +176,7 @@ body.has-gb-top-brand .landing {
   border: 1px solid rgba(245, 242, 238, 0.28);
   background: rgba(245, 242, 238, 0.1);
   color: #f5f2ee;
+  font: inherit;
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -183,6 +184,8 @@ body.has-gb-top-brand .landing {
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-appearance: none;
+  appearance: none;
   transition: color .18s var(--soft), border-color .18s var(--soft), background .18s var(--soft);
 }
 .action-dl:hover,

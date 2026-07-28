@@ -107,13 +107,12 @@
         <span class="action-kicker">Portfolio</span>
         <span class="action-title-row">
           <strong>포트폴리오 보기</strong>
-          <span
+          <button
+            type="button"
             class="action-dl"
-            id="portfolioPdfDemo"
-            role="link"
-            tabindex="0"
+            id="portfolioPdfDownload"
             aria-label="포트폴리오 PDF 다운로드"
-          >다운로드</span>
+          >다운로드</button>
         </span>
         <span class="action-hint">웹에서 본 헤리티지 포트폴리오를 확인합니다</span>
       </button>
@@ -376,30 +375,10 @@
   <script src="pwa-register.js?v=20260728-pwa75"></script>
   <script>
     (function () {
-      var demo = document.getElementById("portfolioPdfDemo");
-      if (!demo) return;
+      var btn = document.getElementById("portfolioPdfDownload");
+      if (!btn) return;
 
-      var apiPdf = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
-      var href = apiPdf;
-      var downloadName = "공방171_포트폴리오.pdf";
-      var useDownloadAttr = false;
-
-      function resolveHref(meta) {
-        if (meta && meta.version && meta.version !== "pending") {
-          href = "./portfolio/portfolio-latest.pdf?v=" + encodeURIComponent(meta.version);
-          var name = String(meta.downloadName || "").trim();
-          downloadName = /[가-힣]/.test(name) ? name : "공방171_포트폴리오.pdf";
-          useDownloadAttr = true;
-          return;
-        }
-        href = apiPdf + "?v=" + encodeURIComponent(String(Date.now()));
-        useDownloadAttr = false;
-      }
-
-      fetch("./portfolio/portfolio-meta.json?_=" + Date.now(), { cache: "no-store" })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(resolveHref)
-        .catch(function () { resolveHref(null); });
+      var API = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
 
       function ensureFrame() {
         var frame = document.getElementById("portfolioDownloadFrame");
@@ -408,6 +387,7 @@
         frame.id = "portfolioDownloadFrame";
         frame.name = "portfolioDownloadFrame";
         frame.hidden = true;
+        frame.style.cssText = "position:fixed;width:0;height:0;border:0;left:-9999px;top:0;opacity:0;pointer-events:none;";
         frame.setAttribute("aria-hidden", "true");
         document.body.appendChild(frame);
         return frame;
@@ -428,33 +408,18 @@
           if (bar) bar.style.width = "0%";
           if (percent) percent.textContent = "0%";
           if (status) status.textContent = "준비 중…";
-        }, 2600);
+        }, 3200);
       }
 
       function startDownload(event) {
         event.preventDefault();
         event.stopPropagation();
-        var url = href;
-        if (url.indexOf("?") < 0) url += "?_=" + Date.now();
-        var a = document.createElement("a");
-        a.href = url;
-        a.rel = "noopener";
-        if (useDownloadAttr) {
-          a.setAttribute("download", downloadName);
-        } else {
-          a.target = ensureFrame().name;
-        }
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        // Hidden iframe + API Content-Disposition:attachment — no new tab / no about:blank
+        ensureFrame().src = API + "?_=" + Date.now();
         flashProgress();
       }
 
-      demo.addEventListener("click", startDownload);
-      demo.addEventListener("keydown", function (event) {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        startDownload(event);
-      });
+      btn.addEventListener("click", startDownload);
     })();
   </script>
 </body>
