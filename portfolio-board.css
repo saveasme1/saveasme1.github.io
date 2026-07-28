@@ -750,15 +750,78 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 
 
-/* In-page portfolio writer (admin-like previews) */
-.pf-write-dialog form { max-height: min(86vh, 920px); overflow: auto; }
+/* In-page portfolio writer — responsive, aligned */
+.pf-write-dialog.review-dialog {
+  width: min(calc(100% - 24px), 440px);
+  margin: auto;
+  padding: 0;
+}
+.pf-write-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: min(90vh, 960px);
+  overflow: auto;
+  padding: 22px 0 20px;
+  box-sizing: border-box;
+}
+.pf-write-dialog h2 {
+  margin: 0;
+  padding: 0 24px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.pf-write-dialog .pf-writer-fields,
+.pf-write-dialog .pf-writer-images,
+.pf-write-dialog .pf-writer-footer {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 24px;
+}
+.pf-writer-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+.pf-write-dialog .pf-writer-fields > label {
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pf-write-dialog .pf-writer-fields input,
+.pf-write-dialog .pf-writer-fields select,
+.pf-write-dialog .pf-writer-fields textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 7px;
+}
+.pf-write-dialog .html-editor {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  box-sizing: border-box;
+}
+.pf-write-dialog .html-editor textarea {
+  margin-top: 0;
+}
 .pf-writer-images {
   display: grid;
-  gap: 16px;
-  padding: 0 22px;
-  margin: 4px 0 8px;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 18px;
 }
-.pf-writer-block { display: grid; gap: 10px; }
+.pf-writer-block {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
 .pf-writer-heading {
   display: flex;
   flex-direction: column;
@@ -772,13 +835,15 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 .pf-writer-heading span {
   color: #8a8278;
   font-size: 12px;
+  line-height: 1.4;
 }
 .pf-writer-cover {
-  width: min(100%, 220px);
+  width: 100%;
+  max-width: 200px;
   aspect-ratio: 1;
-  border: 1px solid rgba(22,21,19,.12);
+  border: 1px solid rgba(22, 21, 19, 0.12);
   border-radius: 12px;
-  background: #f1eee9 center/cover no-repeat;
+  background: #f1eee9 center / cover no-repeat;
   color: #8a8278;
   display: grid;
   place-items: center;
@@ -791,9 +856,10 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   align-items: center;
   justify-content: center;
   width: fit-content;
+  margin: 0 !important;
+  padding: 8px 14px !important;
   min-height: 38px;
-  padding: 8px 14px;
-  border: 1px solid rgba(22,21,19,.14);
+  border: 1px solid rgba(22, 21, 19, 0.14);
   border-radius: 10px;
   background: #fff;
   color: #3d3a35;
@@ -801,13 +867,14 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   font-weight: 750;
   cursor: pointer;
 }
-.pf-writer-file.compact { min-height: 34px; padding: 6px 12px; }
-.pf-writer-file input { display: none; }
+.pf-writer-file.compact { min-height: 34px; padding: 6px 12px !important; }
+.pf-writer-file input { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
 .pf-writer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: 8px;
   min-height: 40px;
+  width: 100%;
 }
 .pf-writer-empty {
   margin: 0;
@@ -818,9 +885,9 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 .pf-writer-thumb {
   position: relative;
   aspect-ratio: 1;
-  border: 1px solid rgba(22,21,19,.12);
+  border: 1px solid rgba(22, 21, 19, 0.12);
   border-radius: 10px;
-  background: #f1eee9 center/cover no-repeat;
+  background: #f1eee9 center / cover no-repeat;
 }
 .pf-writer-order {
   position: absolute;
@@ -830,7 +897,7 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: rgba(15,15,17,.72);
+  background: rgba(15, 15, 17, 0.72);
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -846,16 +913,62 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(15,15,17,.78);
+  background: rgba(15, 15, 17, 0.78);
   color: #fff;
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
 }
-.pf-write-dialog .review-image-help,
-.pf-write-dialog .review-dialog-status,
-.pf-write-dialog label:not(.pf-writer-file) {
-  padding-left: 22px;
-  padding-right: 22px;
+.pf-writer-footer {
+  margin-top: 14px;
 }
-.pf-write-dialog .review-dialog-actions { padding: 0 22px; }
+.pf-write-dialog .review-image-help,
+.pf-write-dialog .review-dialog-status {
+  margin: 10px 0 0;
+  padding: 0;
+}
+.pf-write-dialog .review-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+@media (min-width: 720px) {
+  .pf-write-dialog.review-dialog {
+    width: min(calc(100% - 48px), 920px);
+  }
+  .pf-write-dialog h2,
+  .pf-write-dialog .pf-writer-fields,
+  .pf-write-dialog .pf-writer-images,
+  .pf-write-dialog .pf-writer-footer {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+  .pf-writer-fields {
+    grid-template-columns: 148px minmax(0, 1fr);
+    gap: 14px 16px;
+    align-items: start;
+  }
+  .pf-writer-content {
+    grid-column: 1 / -1;
+  }
+  .pf-writer-images {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 20px 28px;
+    align-items: start;
+  }
+  .pf-writer-cover {
+    max-width: 100%;
+  }
+  .pf-writer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .pf-write-dialog.review-dialog {
+    width: min(calc(100% - 64px), 1040px);
+  }
+}

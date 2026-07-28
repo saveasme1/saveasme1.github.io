@@ -263,7 +263,12 @@
   }
 
   function ensureWriter() {
-    if (state.writer?.root?.isConnected && state.writer.coverPreview && state.writer.detailGrid) {
+    if (
+      state.writer?.root?.isConnected &&
+      state.writer.coverPreview &&
+      state.writer.detailGrid &&
+      state.writer.root.querySelector(".pf-writer-fields")
+    ) {
       return state.writer;
     }
     state.writer?.root?.remove?.();
@@ -276,11 +281,13 @@
       <form id="portfolioWriteForm">
         <input type="hidden" name="editId" value="">
         <h2 id="portfolioWriteTitle">포트폴리오 작성</h2>
-        <label>카테고리<select name="category" required></select></label>
-        <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
-        <label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
-        <section class="pf-writer-images">
-          <div class="pf-writer-block">
+        <div class="pf-writer-fields">
+          <label class="pf-writer-cat">카테고리<select name="category" required></select></label>
+          <label class="pf-writer-title">제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
+          <label class="pf-writer-content">내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
+        </div>
+        <section class="pf-writer-images" aria-label="이미지">
+          <div class="pf-writer-block pf-writer-cover-block">
             <div class="pf-writer-heading">
               <strong>대표 이미지</strong>
               <span>목록에 가장 먼저 보이는 이미지</span>
@@ -288,7 +295,7 @@
             <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
             <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
           </div>
-          <div class="pf-writer-block">
+          <div class="pf-writer-block pf-writer-detail-block">
             <div class="pf-writer-heading">
               <strong>추가 이미지</strong>
               <span>여러 번 눌러 계속 추가할 수 있습니다</span>
@@ -297,11 +304,13 @@
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
           </div>
         </section>
-        <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수입니다. 추가 이미지는 제한 없이 붙일 수 있습니다.</p>
-        <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
-        <div class="review-dialog-actions">
-          <button type="button" id="portfolioWriteCancel">취소</button>
-          <button class="primary" type="submit" id="portfolioWriteSubmit">등록하기</button>
+        <div class="pf-writer-footer">
+          <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수입니다. 추가 이미지는 제한 없이 붙일 수 있습니다.</p>
+          <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
+          <div class="review-dialog-actions">
+            <button type="button" id="portfolioWriteCancel">취소</button>
+            <button class="primary" type="submit" id="portfolioWriteSubmit">등록하기</button>
+          </div>
         </div>
       </form>`;
     document.body.append(root);
