@@ -150,8 +150,15 @@ body.has-gb-top-brand .landing {
 .action-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 8px 10px;
   flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+}
+.action-title-row > strong {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .action-beta {
   display: inline-flex;
@@ -165,40 +172,45 @@ body.has-gb-top-brand .landing {
   font-weight: 800;
   letter-spacing: 0.08em;
 }
-
 .action-dl-group {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  margin-left: auto;
 }
 .action-dl {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 22px;
-  padding: 0 9px;
+  height: 18px;
+  padding: 0 7px;
   border-radius: 999px;
   border: 1px solid rgba(245, 242, 238, 0.28);
   background: rgba(245, 242, 238, 0.1);
   color: #f5f2ee;
   font: inherit;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 750;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 1;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   -webkit-appearance: none;
   appearance: none;
+  white-space: nowrap;
   transition: color .18s var(--soft), border-color .18s var(--soft), background .18s var(--soft);
 }
 .action-dl.is-muted {
   opacity: 0.55;
   border-color: rgba(245, 242, 238, 0.16);
   background: rgba(245, 242, 238, 0.05);
+}
+.action-portfolio .action-hint {
+  display: block;
+  width: 100%;
 }
 .action-dl:hover,
 .action-dl:focus-visible {

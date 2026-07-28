@@ -1,9 +1,8 @@
 {
-  "build": "20260728-pwa78",
-  "version": "v1.12.15",
+  "build": "20260728-pwa79",
+  "version": "v1.12.13",
   "notes": [
-    "Clear category chips under top bar",
-    "Measure real top bar height",
-    "Keep C/B visible on MO/TB"
+    "Keep PDF chips inside portfolio card",
+    "Fix summary download (no iframe / XFO)"
   ]
 }
