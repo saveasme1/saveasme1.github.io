@@ -13,16 +13,16 @@
   const BRAND_ORDER = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "T&C", "L", "D"];
   const BRAND_HANDLE = {
     C: "cartier",
-    B: "bulgari",
+    B: "bvlgari",
     VCA: "vancleefarpels",
     BO: "boucheron",
     CM: "chaumetofficial",
     "C&H": "chromeheartsofficial",
-    CL: "chanel",
+    CL: "chanelofficial",
     G: "gucci",
     H: "hermes",
     P: "prada",
-    F: "fred",
+    F: "fredjewelry",
     "T&C": "tiffanyandco",
     L: "louisvuitton",
     D: "damianiofficial",
@@ -93,12 +93,20 @@
       .replace(/^@/, "")
       .trim()
       .toLowerCase();
-    if (localAvatar) return absUrl(localAvatar);
+    // Prefer saved official IG profile copies, then API proxy that returns CDN originals.
+    if (localAvatar && /ig-real|cdninstagram|fbcdn/i.test(String(localAvatar))) {
+      return absUrl(localAvatar);
+    }
+    if (h) {
+      const real = absUrl(`./wear-media/avatars/ig-real/${h}.jpg`);
+      if (real) return real;
+    }
     const apiBase = String(
       window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
     ).replace(/\/$/, "");
     if (h) return `${apiBase}/ig-avatar?u=${encodeURIComponent(h)}&b=1`;
     if (profilePictureUrl) return profilePictureUrl;
+    if (localAvatar) return absUrl(localAvatar);
     return "";
   }
 

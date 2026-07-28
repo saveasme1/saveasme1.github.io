@@ -1,9 +1,9 @@
-{
-  "build": "20260728-pwa41",
-  "version": "v1.10.10",
+﻿{
+  "build": "20260728-pwa42",
+  "version": "v1.10.11",
   "notes": [
-    "순위 ▲▼ 표시",
-    "PC PWA 앱 컬럼 레이아웃",
-    "LIVE SHIPPING · 상단 계정 버튼 간격"
+    "공식 IG 프로필 사진 복사본 사용",
+    "샤넬 @chanelofficial",
+    "아바타 중복/파비콘 제거"
   ]
 }
