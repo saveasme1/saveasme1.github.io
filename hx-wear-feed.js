@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v13";
+  const CACHE_KEY = "hx.discover.feed.v14";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -421,6 +421,11 @@
       caption: row.captionKo || row.caption || row.titleKo || "",
       captionKo: row.captionKo || row.caption || "",
       captionOriginal: row.captionOriginal || "",
+      captionKoSource: row.captionKoSource || "",
+      translated: !!(
+        row.translated ||
+        (row.captionKoSource && row.captionKoSource !== "already_ko")
+      ),
       image,
       imageFallbacks:
         platform === "instagram" && shortcode
@@ -632,13 +637,14 @@
     const body = escapeHtml(item.captionKo || item.caption || "");
     const who = escapeHtml(handle || "");
     cap.innerHTML = (who ? `<strong>${who}</strong> ` : "") + `<span class="hx-ig__seed">${body}</span>`;
-    const note = item.translated
-      ? el(
-          "p",
-          "hx-ig__ai-note",
-          "이 글은 자체 AI 시스템에 의해 번역되었습니다."
-        )
-      : null;
+    const note =
+      item.translated || (item.captionKoSource && item.captionKoSource !== "already_ko")
+        ? el(
+            "p",
+            "hx-ig__ai-note",
+            "이 글은 자체 AI 시스템에 의해 번역되었습니다."
+          )
+        : null;
     capRow.append(cap);
     if (note) capRow.append(note);
 

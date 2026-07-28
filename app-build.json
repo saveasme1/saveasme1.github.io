@@ -1,8 +1,9 @@
 {
-  "build": "20260728-pwa66",
-  "version": "v1.12.5",
+  "build": "20260728-pwa68",
+  "version": "v1.12.6",
   "notes": [
-    "MZ caption tone",
-    "AI note copy"
+    "Pass translated flag",
+    "MZ v3 tone",
+    "AI note visible"
   ]
 }
