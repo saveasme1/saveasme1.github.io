@@ -3,7 +3,7 @@
 
   const APP_BUILD = "20260728-pwa74";
   const APP_VERSION = "v1.12.1";
-  const RELEASE_NOTES = ["Main wear rings show post images", "Blank profile on Discover scrapes only", "Mobile AI note next line"];
+  const RELEASE_NOTES = ["Discover avatar uses post thumb for web", "IG/official profiles unchanged", "Main wear rings show posts"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

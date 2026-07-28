@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v15";
+  const CACHE_KEY = "hx.discover.feed.v16";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -263,10 +263,10 @@
     const s = String(source || "").toLowerCase();
     // Instagram / official social posts keep real (or brand) avatars
     if (p === "instagram" || p === "youtube" || p === "tiktok") return false;
-    // Web-search scrapes only → blank white (no invented brand pics)
+    // Web-search scrapes
     if (p === "web") return true;
     if (/^web_/.test(s) || /web_(ddg|bing|google|search)/i.test(s)) return true;
-    // Pinterest without a real profile photo → blank
+    // Pinterest without a real profile photo
     if (p === "pinterest" && !String(primaryUrl || "").trim()) return true;
     return false;
   }
@@ -278,10 +278,40 @@
     av.innerHTML = "";
   }
 
-  function setAvatar(av, handle, primaryUrl, platform, brandCode, source) {
+  function paintLetterAvatar(av, handle, platform, brandCode) {
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+    av.classList.remove("hx-ig__avatar--blank");
+    av.classList.add("hx-ig__avatar--letter");
+    av.innerHTML = "";
+    av.textContent = (
+      (brandCode && String(brandCode).replace(/[^A-Za-z]/g, "").slice(0, 1)) ||
+      h.slice(0, 1) ||
+      (PLATFORM_LABEL[platform] || "?").slice(0, 1)
+    ).toUpperCase();
+  }
+
+  function setAvatar(av, handle, primaryUrl, platform, brandCode, source, postImage) {
+    const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+
+    // Web / random-site scrapes: never invent brand profile pics.
+    // Use the post image in the circle instead of an empty white disc.
     if (isScrapedAnonProfile(platform, primaryUrl, source)) {
-      paintBlankAvatar(av);
+      const thumb = String(postImage || "").trim();
+      if (thumb) {
+        av.classList.remove("hx-ig__avatar--letter", "hx-ig__avatar--blank");
+        av.textContent = "";
+        av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" decoding="async" src="${thumb}">`;
+        const img = av.querySelector("img");
+        if (img) {
+          img.addEventListener(
+            "error",
+            () => paintLetterAvatar(av, handle, platform, brandCode),
+            { once: true }
+          );
+        }
+        return;
+      }
+      paintLetterAvatar(av, handle, platform, brandCode);
       return;
     }
 
@@ -299,15 +329,7 @@
 
     const tryNext = (i) => {
       if (i >= candidates.length) {
-        // Official / IG: keep letter mark — never force blank white
-        av.classList.remove("hx-ig__avatar--blank");
-        av.classList.add("hx-ig__avatar--letter");
-        av.innerHTML = "";
-        av.textContent = (
-          (brandCode && String(brandCode).replace(/[^A-Za-z]/g, "").slice(0, 1)) ||
-          h.slice(0, 1) ||
-          (PLATFORM_LABEL[platform] || "?").slice(0, 1)
-        ).toUpperCase();
+        paintLetterAvatar(av, handle, platform, brandCode);
         return;
       }
       av.classList.remove("hx-ig__avatar--letter", "hx-ig__avatar--blank");
@@ -603,7 +625,8 @@
       item.profilePictureUrl || item.avatar,
       item.platform,
       item.brandCode,
-      item.source
+      item.source,
+      item.image || item.thumbnail || ""
     );
 
     const meta = el("div", "hx-ig__meta");

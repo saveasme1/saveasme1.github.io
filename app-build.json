@@ -1,8 +1,9 @@
 {
   "build": "20260728-pwa74",
-  "version": "v1.12.9",
+  "version": "v1.12.12",
   "notes": [
-    "Mypage compact dual-panel UI",
-    "Always 5 items per page"
+    "Discover web scrapes use post thumb in avatar",
+    "IG/official keep real profile photos",
+    "Main NEW WEAR rings show post images"
   ]
 }
