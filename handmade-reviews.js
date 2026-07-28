@@ -682,9 +682,18 @@
   });
 
   loadMe().then(() => {
-    const wantOpen = new URLSearchParams(location.search).get("open");
-    if (wantOpen === "reviews" || /\/reviews\.html$/i.test(location.pathname)) openReviewsPanel();
-    else if (wantOpen === "mypage") openAuth("login", { redirect: "/mypage.html" });
+    const params = new URLSearchParams(location.search);
+    const wantOpen = params.get("open");
+    const itemId = params.get("id");
+    if (wantOpen === "reviews" || /\/reviews\.html$/i.test(location.pathname)) {
+      openReviewsPanel();
+      if (itemId) {
+        // openReview fetches by id; slight delay lets panel mount
+        setTimeout(() => {
+          openReview(itemId).catch(() => {});
+        }, 120);
+      }
+    } else if (wantOpen === "mypage") openAuth("login", { redirect: "/mypage.html" });
     else if (!els.section.hidden) {
       state.opened = true;
       loadReviews();

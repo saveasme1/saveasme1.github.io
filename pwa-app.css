@@ -786,7 +786,33 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   white-space: nowrap;
 }
 
-.pwa-pulse__move span::before {
+.pwa-pulse:hover .pwa-pulse__move,
+.pwa-pulse:focus-within .pwa-pulse__move {
+  animation-play-state: paused;
+}
+
+.pwa-pulse__item {
+  flex: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pwa-pulse__item:hover,
+.pwa-pulse__item:focus-visible {
+  color: #fff;
+  outline: none;
+}
+
+.pwa-pulse__move span::before,
+.pwa-pulse__move .pwa-pulse__item::before {
   content: "";
   display: inline-block;
   width: 3px;

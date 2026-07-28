@@ -164,6 +164,26 @@
     }
   };
 
+  function goBoardPost(board, id) {
+    const parts = [];
+    if (
+      /[?&]app=1(?:&|$)/.test(location.search) ||
+      document.documentElement.classList.contains("is-pwa")
+    ) {
+      parts.push("app=1");
+    }
+    if (id) parts.push(`id=${encodeURIComponent(id)}`);
+    const q = parts.length ? `?${parts.join("&")}` : "";
+    if (board === "shipping") {
+      location.href = `./shipping.html${q}`;
+      return;
+    }
+    if (board === "reviews") {
+      location.href = `./reviews.html${q}`;
+      return;
+    }
+  }
+
   function goPortfolio(cat, id) {
     const parts = [];
     if (
@@ -938,25 +958,56 @@
     // —— Live pulse (KREAM/Musinsa activity feel) ——
     const pulse = document.createElement("div");
     pulse.className = "pwa-pulse";
-    const pulseLines = [];
+    const pulseEntries = [];
     shipItems.slice(0, 4).forEach((s) => {
       const t = String(s.title || "").replace(/\s+/g, " ").trim().slice(0, 28);
-      if (t) pulseLines.push(`최종검수 · ${t}`);
+      if (!t) return;
+      pulseEntries.push({
+        label: `최종검수 · ${t}`,
+        board: "shipping",
+        id: s.id || "",
+      });
     });
     reviewItems.slice(0, 3).forEach((r) => {
       const t = String(r.title || "스냅").slice(0, 24);
-      pulseLines.push(`스냅 · ${t}`);
+      pulseEntries.push({
+        label: `스냅 · ${t}`,
+        board: "reviews",
+        id: r.id || "",
+      });
     });
-    if (!pulseLines.length) {
-      pulseLines.push("본 헤리티지 · 주문제작 아카이브가 업데이트 중입니다");
+    if (!pulseEntries.length) {
+      pulseEntries.push({
+        label: "본 헤리티지 · 주문제작 아카이브가 업데이트 중입니다",
+        board: "",
+        id: "",
+      });
     }
     pulse.innerHTML =
       `<span class="pwa-pulse__dot" aria-hidden="true"></span>` +
       `<span class="pwa-pulse__label">RECENT UPDATE</span>` +
-      `<div class="pwa-pulse__track"><div class="pwa-pulse__move">${pulseLines
-        .concat(pulseLines)
-        .map((t) => `<span>${t}</span>`)
-        .join("")}</div></div>`;
+      `<div class="pwa-pulse__track"><div class="pwa-pulse__move"></div></div>`;
+    const pulseMove = pulse.querySelector(".pwa-pulse__move");
+    const appendPulseEntry = (entry) => {
+      if (!entry.id || !entry.board) {
+        const span = document.createElement("span");
+        span.textContent = entry.label;
+        pulseMove.append(span);
+        return;
+      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pwa-pulse__item";
+      btn.textContent = entry.label;
+      btn.setAttribute("aria-label", entry.label);
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        goBoardPost(entry.board, entry.id);
+      });
+      pulseMove.append(btn);
+    };
+    pulseEntries.concat(pulseEntries).forEach(appendPulseEntry);
     host.append(pulse);
 
     // —— Story rings (Discover recent wear) ——

@@ -1,7 +1,8 @@
-﻿{
-  "build": "20260728-pwa49",
-  "version": "v1.11.5",
+{
+  "build": "20260728-pwa50",
+  "version": "v1.11.6",
   "notes": [
-    "발견탭 브랜드: 포트폴리오 취급만"
+    "RECENT UPDATE marquee items open their posts",
+    "shipping/reviews ?id= deep-link detail"
   ]
 }

@@ -661,4 +661,21 @@
   if (new URLSearchParams(location.search).get("open") === "shipping" || /\/shipping\.html$/i.test(location.pathname)) {
     openShippingPanel();
   }
+
+  // Deep-link: shipping.html?id=
+  (async () => {
+    if (!/\/shipping\.html$/i.test(location.pathname)) return;
+    const itemId = new URLSearchParams(location.search).get("id");
+    if (!itemId) return;
+    if (!state.loaded) {
+      state.opened = true;
+      await loadData();
+    }
+    const started = Date.now();
+    while (!state.loaded && Date.now() - started < 15000) {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    const item = state.items.find((row) => String(row.id) === String(itemId));
+    if (item) openDetail(item);
+  })();
 })();
