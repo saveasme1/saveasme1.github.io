@@ -1988,26 +1988,53 @@ body.board-standalone .reviews-heading {
     margin-left: 2px;
   }
 
+  /* Full-bleed bottom bar like top brand (not left-clipped floating pill) */
   html.is-pwa .gb-bottom-nav {
-    left: 50% !important;
-    right: auto !important;
-    bottom: 18px !important;
-    width: min(var(--pwa-shell), calc(100vw - 48px)) !important;
-    transform: translateX(-50%);
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    transform: none !important;
     padding: 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 18px !important;
-    background: rgba(12, 12, 12, 0.92) !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
-    overflow: hidden;
+    padding-bottom: var(--pwa-tab-safe) !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0 !important;
+    background: rgba(10, 10, 10, 0.96) !important;
+    box-shadow: none;
+    overflow: visible;
+    z-index: 2500;
   }
 
   html.is-pwa .gb-bottom-nav__bar {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    width: min(100%, var(--pwa-shell));
+    max-width: var(--pwa-shell);
     height: var(--pwa-tab-h);
+    margin: 0 auto;
+    padding: 0 8px;
+  }
+
+  html.is-pwa .gb-bottom-nav__item {
+    min-width: 0 !important;
+  }
+
+  html.is-pwa .gb-bottom-nav__label {
+    font-size: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   html.is-pwa body.has-gb-bottom-nav {
-    padding-bottom: calc(var(--pwa-tab-h) + 36px) !important;
+    padding-bottom: calc(var(--pwa-tab-h) + var(--pwa-tab-safe) + 8px) !important;
+  }
+
+  html.is-pwa body.gb-chrome-paper .gb-bottom-nav {
+    background: rgba(247, 245, 242, 0.96) !important;
+    border-top-color: rgba(22, 21, 19, 0.1) !important;
   }
 
   html.is-pwa .pwa-hero--banner {
@@ -2107,4 +2134,24 @@ body.board-standalone .reviews-heading {
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+/* Paper pages: keep logo readable on light chrome (MO/TB/PC) */
+html.is-pwa body.gb-chrome-paper .gb-top-brand__text {
+  color: #161513 !important;
+}
+html.is-pwa body.gb-chrome-paper .gb-top-brand {
+  background: rgba(247, 245, 242, 0.94) !important;
+  border-bottom-color: rgba(22, 21, 19, 0.1) !important;
+}
+html.is-pwa body.gb-chrome-paper .gb-top-auth-btn {
+  border-color: rgba(22, 21, 19, 0.16) !important;
+  color: rgba(22, 21, 19, 0.78) !important;
+}
+html.is-pwa body.gb-chrome-paper .gb-top-auth-btn.is-accent {
+  color: #ff8236 !important;
+  border-color: rgba(255, 130, 54, 0.55) !important;
+}
+body.gb-chrome-paper .gb-top-brand__text {
+  color: #161513 !important;
 }
