@@ -1,9 +1,9 @@
 {
-  "build": "20260728-pwa43",
-  "version": "v1.10.12",
+  "build": "20260728-pwa44",
+  "version": "v1.10.13",
   "notes": [
-    "한글 깨짐 복구 UTF-8",
-    "출고→최종검수 · 후기→스냅",
-    "스냅 카메라 아이콘"
+    "PC bottom nav full-bleed like top bar",
+    "Hot rank delta numbers",
+    "Paper page HERITAGE logo contrast"
   ]
 }

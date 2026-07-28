@@ -137,8 +137,8 @@
       return `<span class="pwa-rank__delta is-new" aria-label="NEW">NEW</span>`;
     }
     const diff = prev - cur;
-    if (diff > 0) return `<span class="pwa-rank__delta is-up" aria-label="${diff} up">▲</span>`;
-    if (diff < 0) return `<span class="pwa-rank__delta is-down" aria-label="${Math.abs(diff)} down">▼</span>`;
+    if (diff > 0) return `<span class="pwa-rank__delta is-up" aria-label="${diff} up">▲${diff}</span>`;
+    if (diff < 0) return `<span class="pwa-rank__delta is-down" aria-label="${Math.abs(diff)} down">▼${Math.abs(diff)}</span>`;
     return `<span class="pwa-rank__delta is-same" aria-label="same">—</span>`;
   }
 
@@ -1189,9 +1189,11 @@
         const curViews = Number(item._views || 0);
         let deltaHtml = rankDeltaHtml(prevRank, curRank);
         if (deltaHtml.includes("is-same") && curViews > prevViews && prevViews > 0) {
-          deltaHtml = `<span class="pwa-rank__delta is-up" aria-label="up">▲</span>`;
+          const up = Math.max(1, curViews - prevViews);
+          deltaHtml = `<span class="pwa-rank__delta is-up" aria-label="${up} up">▲${up}</span>`;
         } else if (deltaHtml.includes("is-same") && prevViews > curViews && curViews >= 0 && prevViews > 0) {
-          deltaHtml = `<span class="pwa-rank__delta is-down" aria-label="down">▼</span>`;
+          const down = Math.max(1, prevViews - curViews);
+          deltaHtml = `<span class="pwa-rank__delta is-down" aria-label="${down} down">▼${down}</span>`;
         }
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +

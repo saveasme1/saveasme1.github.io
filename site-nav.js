@@ -397,8 +397,6 @@
   function injectBottomNav() {
     if (isStandalonePublicHome()) return;
     if (document.querySelector(".gb-bottom-nav")) return;
-    const pwa = document.documentElement.classList.contains("is-pwa") || isPwaMode();
-    if (!pwa && !window.matchMedia(MQ).matches) return;
     const nav = document.createElement("nav");
     nav.className = "gb-bottom-nav";
     nav.setAttribute("aria-label", "하단 메뉴");

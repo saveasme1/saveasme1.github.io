@@ -1154,6 +1154,60 @@ html.is-pwa {
   display: none;
 }
 
+.hx-ig__plat {
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.hx-ig__badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border: 1px solid rgba(201, 166, 107, 0.45);
+  color: var(--hx-gold, #c9a66b);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.hx-ig__media {
+  position: relative;
+}
+
+.hx-ig__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.hx-ig__play::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  border-style: solid;
+  border-width: 8px 0 8px 12px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.hx-ig-filters--plat,
+.hx-ig-filters--media {
+  top: auto;
+  position: relative;
+  background: transparent;
+  backdrop-filter: none;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 .hx-panel-host {
   min-height: 40vh;
 }

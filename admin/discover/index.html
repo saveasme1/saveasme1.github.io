@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>발견탭 관리 · 본 헤리티지</title>
+  <link rel="stylesheet" href="/admin/admin.css?v=20260728-disc1">
+  <style>
+    .disc-toolbar { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 18px; }
+    .disc-toolbar select, .disc-toolbar button { min-height:40px; }
+    .disc-grid { display:grid; gap:12px; }
+    .disc-card { display:grid; grid-template-columns:96px 1fr; gap:12px; padding:12px; background:#fff; border:1px solid var(--line); border-radius:12px; }
+    .disc-card img { width:96px; height:120px; object-fit:cover; border-radius:8px; background:#eee; }
+    .disc-meta { font-size:12px; color:var(--muted); }
+    .disc-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .disc-stats { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px; }
+    .disc-stat { background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13px; }
+    .plat-row, .brand-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <main class="admin-hub" style="padding-top:32px">
+    <a class="admin-home-link" href="/admin/">← 통합 관리자</a>
+    <header class="hub-heading">
+      <div>
+        <p class="eyebrow">DISCOVER ADMIN</p>
+        <h1>발견탭 관리</h1>
+        <p>브랜드·플랫폼 동기화, 숨김/삭제/추천/고정</p>
+      </div>
+      <div class="hub-session">
+        <span id="adminIdentity"></span>
+        <button type="button" class="button" id="logoutButton">로그아웃</button>
+      </div>
+    </header>
+
+    <section class="disc-stats" id="stats"></section>
+
+    <section>
+      <div class="hub-section-heading">
+        <h2>동기화</h2>
+      </div>
+      <div class="disc-toolbar">
+        <button type="button" class="button primary" data-sync="all">전체 강제 동기화</button>
+        <button type="button" class="button" data-sync="instagram">Instagram</button>
+        <button type="button" class="button" data-sync="pinterest">Pinterest</button>
+        <button type="button" class="button" data-sync="youtube">YouTube</button>
+        <button type="button" class="button" data-sync="tiktok">TikTok</button>
+      </div>
+      <p class="form-status" id="syncStatus" aria-live="polite"></p>
+    </section>
+
+    <section>
+      <div class="hub-section-heading"><h2>플랫폼</h2></div>
+      <div id="platformList"></div>
+    </section>
+
+    <section style="margin-top:28px">
+      <div class="hub-section-heading"><h2>브랜드</h2></div>
+      <div id="brandList"></div>
+    </section>
+
+    <section style="margin-top:28px">
+      <div class="hub-section-heading"><h2>게시물</h2></div>
+      <div class="disc-toolbar">
+        <select id="filterPlatform">
+          <option value="all">플랫폼 전체</option>
+          <option value="instagram">Instagram</option>
+          <option value="pinterest">Pinterest</option>
+          <option value="youtube">YouTube</option>
+          <option value="tiktok">TikTok</option>
+        </select>
+        <select id="filterBrand"><option value="all">브랜드 전체</option></select>
+        <button type="button" class="button" id="refreshPosts">새로고침</button>
+      </div>
+      <p class="form-status" id="postStatus"></p>
+      <div class="disc-grid" id="postList"></div>
+    </section>
+  </main>
+  <script src="/admin/admin-nav.js?v=20260722-eye1"></script>
+  <script src="/admin/discover/discover.js?v=20260728-disc1"></script>
+</body>
+</html>
