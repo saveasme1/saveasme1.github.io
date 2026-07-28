@@ -488,10 +488,16 @@ html.is-pwa {
 
 .hx-chips {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   overflow-x: auto;
   padding: 0 16px 14px;
+  scroll-padding-inline: 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.hx-chips::-webkit-scrollbar {
+  display: none;
 }
 
 .hx-chips button {
@@ -1632,6 +1638,9 @@ html.is-pwa {
   background: rgba(250, 250, 250, 0.96) !important;
   border-bottom: 1px solid #dbdbdb !important;
   top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+  justify-content: flex-start !important;
+  padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+  padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
 }
 #hxDiscover .hx-chips button {
   background: #fff !important;

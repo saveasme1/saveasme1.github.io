@@ -1164,12 +1164,13 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-cats {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   padding: 0 12px 10px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 12px;
 }
 
 .pwa-cats::-webkit-scrollbar {

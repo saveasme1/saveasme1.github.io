@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa75";
+  const APP_BUILD = "20260728-pwa76";
   const APP_VERSION = "v1.12.1";
-  const RELEASE_NOTES = ["Restore IG profile photos", "Blank profile for web scrapes only", "Discover prefers Instagram posts"];
+  const RELEASE_NOTES = ["Fix category chips visible on mobile", "Restore IG profile photos", "Blank profile for web scrapes"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

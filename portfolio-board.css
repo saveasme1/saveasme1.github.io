@@ -134,13 +134,14 @@
 
 .pf-cats {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 7px;
   overflow-x: auto;
   padding: 2px 2px 4px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
+  scroll-padding-inline: 8px;
 }
 .pf-cats::-webkit-scrollbar { display: none; }
 
@@ -625,11 +626,12 @@
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     width: 100% !important;
     max-height: 44px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
+    scroll-padding-inline: 12px !important;
   }
   .pf-cat {
     width: auto !important;

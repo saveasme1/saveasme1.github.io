@@ -1002,11 +1002,13 @@ body.has-gb-bottom-nav .toast-stack {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
     width: 100% !important;
     max-height: 44px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     scroll-snap-type: x proximity !important;
+    scroll-padding-inline: 12px !important;
   }
   .portfolio-inline .pf-cat {
     width: auto !important;
