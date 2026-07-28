@@ -809,77 +809,22 @@
   async function bootDiscoverPage() {
     const root = document.getElementById("hxDiscover");
     if (!root) return;
-    root.innerHTML = `<p class="hx-empty">코디 피드 준비 중…</p>`;
+    root.innerHTML = `<p class="hx-empty">…</p>`;
     try {
       await ensureData();
-
       root.replaceChildren();
-      const tabs = document.createElement("div");
-      tabs.className = "hx-tabs";
-      tabs.setAttribute("role", "tablist");
       const panel = document.createElement("div");
       panel.className = "hx-panel-host";
       panel.id = "hxDiscoverPanel";
-
-      const defs = [
-        { id: "wear", label: "착용 코디" },
-        { id: "today", label: "Jewelry Today" },
-        { id: "tools", label: "유틸" },
-      ];
-      let active = "wear";
-      const hash = location.hash.replace("#", "");
-      if (hash === "today") active = "today";
-      if (["quiz", "diamond", "gift", "vault", "compare", "tools"].includes(hash)) active = "tools";
-
-      async function show(id) {
-        active = id;
-        tabs.querySelectorAll("button").forEach((b) => {
-          b.classList.toggle("is-on", b.dataset.id === id);
-        });
-        panel.replaceChildren();
-        if (id === "wear") {
-          if (window.HxWearFeed?.renderWearFeed) {
-            await window.HxWearFeed.renderWearFeed(panel);
-          } else {
-            panel.innerHTML = `<p class="hx-empty">코디 피드 모듈을 불러오지 못했습니다.</p>`;
-          }
-          return;
-        }
-        if (id === "today") {
-          if (window.HxToday?.renderToday) {
-            await window.HxToday.renderToday(panel);
-          } else {
-            panel.innerHTML = `<p class="hx-empty">Jewelry Today를 불러오지 못했습니다.</p>`;
-          }
-          return;
-        }
-        const toolsWrap = document.createElement("div");
-        toolsWrap.id = "hxInternalTools";
-        panel.append(toolsWrap);
-        renderInternalTools(toolsWrap);
+      root.append(panel);
+      if (window.HxWearFeed?.renderWearFeed) {
+        await window.HxWearFeed.renderWearFeed(panel);
+      } else {
+        panel.innerHTML = `<p class="hx-empty">피드를 불러오지 못했습니다.</p>`;
       }
-
-      defs.forEach((d) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.dataset.id = d.id;
-        b.textContent = d.label;
-        b.className = d.id === active ? "is-on" : "";
-        b.addEventListener("click", () => show(d.id));
-        tabs.append(b);
-      });
-
-      root.append(tabs, panel);
-      await show(active);
-
-      if (hash === "quiz") openQuiz();
-      if (hash === "diamond") openDiamond();
-      if (hash === "gift") openGift();
-      if (hash === "vault") openVault();
-      if (hash === "compare") openCompare();
     } catch (err) {
-      if (!root.querySelector(".hx-ig") && !root.querySelector(".hx-jod")) {
-        root.innerHTML = `<p class="hx-empty">디스커버를 불러오지 못했습니다. 네트워크 후 다시 시도해 주세요.</p>`;
+      if (!root.querySelector(".hx-ig")) {
+        root.innerHTML = `<p class="hx-empty">피드를 불러오지 못했습니다.</p>`;
       }
     }
   }
@@ -935,24 +880,7 @@
       return b;
     };
     const appQ = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
-    strip.append(
-      mk("코디 피드", "해외 착용·코디", `./discover.html${appQ}`),
-      mk("Jewelry Today", "뮤지엄·영상·젬", `./discover.html${appQ}#today`),
-      mk("귀금속 보드", "금·은·플래티넘", `./discover.html${appQ}#today`),
-      mk("홀마크", "750·925 해석", `./discover.html${appQ}#today`)
-    );
-    strip.children[0].onclick = () => {
-      location.href = `./discover.html${appQ}`;
-    };
-    strip.children[1].onclick = () => {
-      location.href = `./discover.html${appQ}#today`;
-    };
-    strip.children[2].onclick = () => {
-      location.href = `./discover.html${appQ}#today`;
-    };
-    strip.children[3].onclick = () => {
-      location.href = `./discover.html${appQ}#today`;
-    };
+    strip.append(mk("발견", "착용 · 코디", `./discover.html${appQ}`));
     host.append(strip);
 
     // Live metals mini (external)

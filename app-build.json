@@ -1,9 +1,8 @@
 ﻿{
-  "build": "20260728-pwa29",
-  "version": "v1.9.9",
+  "build": "20260728-pwa30",
+  "version": "v1.10.0",
   "notes": [
-    "착용 피드: 이미지 있는 카드만 / 플레이스홀더 제거",
-    "라이브 IG 게시물 최신순 최상단",
-    "로컬 wear-media 에디토리얼 착용컷"
+    "Discover: wear feed only, brand code chips (C/B/VCA)",
+    "IG handle profile headers, remove tabs/disclaimers"
   ]
 }

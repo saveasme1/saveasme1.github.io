@@ -942,6 +942,12 @@ html.is-pwa {
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .hx-ig__avatar {
@@ -957,6 +963,11 @@ html.is-pwa {
   font-weight: 800;
   flex: 0 0 auto;
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hx-ig__avatar--letter {
+  background: linear-gradient(145deg, #2a241c, #12100e);
+  text-transform: uppercase;
 }
 
 .hx-ig__avatar img {
@@ -975,10 +986,16 @@ html.is-pwa {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 
 .hx-ig-filters {
-  padding: 0 16px 8px;
+  padding: 12px 16px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(10px);
 }
 
 .hx-ig__meta span {

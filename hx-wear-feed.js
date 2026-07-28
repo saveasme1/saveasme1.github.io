@@ -2,17 +2,13 @@
   "use strict";
 
   /**
-   * Portfolio-brand overseas wear/coord feed only.
-   * - Brands from brand-codes / portfolio (C, VCA, CL…)
-   * - Types: ring | bracelet | necklace | earring only
-   * - NO Flickr, NO museum, NO watches
-   * - Source: curated IG handles + optional HX_WEAR_FEED_API
+   * Portfolio-brand wear/coord feed (customer-facing).
+   * Brands: C, B, VCA… · Types: ring|bracelet|necklace|earring
+   * Live IG API + curated wear-media. No Flickr/museum/watches.
    */
 
-  const CACHE_KEY = "hx.ig.wear.v3";
+  const CACHE_KEY = "hx.ig.wear.v4";
   const CACHE_TTL_MS = 30 * 60 * 1000;
-  const LOGO = "./icons/icon-192.png";
-  const BRAND_NAME = "본 헤리티지";
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
     ring: "반지",
@@ -20,6 +16,7 @@
     necklace: "목걸이",
     earring: "귀걸이",
   };
+  const BRAND_ORDER = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "T&C", "L", "D"];
 
   const BLOCK_HOST =
     /flickr\.|staticflickr\.|metmuseum\.|clevelandart\.|artic\.edu|wikimedia\.org|upload\.wikimedia/i;
@@ -41,6 +38,11 @@
     } catch (_) {
       location.href = url;
     }
+  }
+
+  function profileUrl(handle) {
+    const h = String(handle || "").replace(/^@/, "").trim();
+    return h ? `https://www.instagram.com/${encodeURIComponent(h)}/` : "";
   }
 
   function relativeTimeKo(iso, salt) {
@@ -136,9 +138,7 @@
     if (!TYPES.has(type)) return null;
     const permalink = String(row.permalink || row.instagram || row.url || "");
     let image = String(row.image || row.image_url || "");
-    if (!permalink) return null;
-    if (!image) return null; // no placeholder cards
-    // resolve relative wear-media paths
+    if (!permalink || !image) return null;
     if (image.startsWith("./") || image.startsWith("wear-media/")) {
       try {
         image = new URL(image.replace(/^\.\//, ""), location.href).href;
@@ -149,6 +149,8 @@
     if (BLOCK_TEXT.test(blob)) return null;
     if (/flickr/i.test(row.source || "")) return null;
 
+    const handle = String(row.handle || "").replace(/^@/, "");
+
     return {
       id: row.id || `ig-${code}-${type}-${Math.random().toString(36).slice(2, 7)}`,
       brandCode: code,
@@ -157,9 +159,10 @@
       type,
       typeKo: TYPE_KO[type],
       pieceKo: row.pieceKo || TYPE_KO[type],
-      titleKo: row.titleKo || `${brand.ko} ${TYPE_KO[type]} 착용`,
-      captionKo: row.captionKo || "해외 인스타 착용·코디 참고",
-      handle: String(row.handle || "").replace(/^@/, ""),
+      titleKo: row.titleKo || `${TYPE_KO[type]} 착용`,
+      captionKo: row.captionKo || "",
+      handle,
+      profileUrl: profileUrl(handle) || permalink,
       permalink,
       image,
       publishedAt: row.publishedAt || row.indexedOn || "",
@@ -172,18 +175,10 @@
       if (hit?.items?.length) return hit.items;
     }
 
-    // bust old toxic caches
     try {
-      [
-        "hx.ig.wear.v1",
-        "hx.ig.wear.v2",
-        "hx.wear.rich.v1",
-        "hx.wear.feed.v1",
-        "hx.wear.feed.v2",
-        "hx.wear.feed.v3",
-        "hx.wear.feed.v4",
-        "hx.wear.feed.v5",
-      ].forEach((k) => localStorage.removeItem(k));
+      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3"].forEach((k) =>
+        localStorage.removeItem(k)
+      );
     } catch (_) {}
 
     const brands = await loadBrands();
@@ -198,7 +193,7 @@
       });
     } catch (_) {}
     if (!portfolioCodes.size) Object.keys(brands).forEach((c) => portfolioCodes.add(c));
-    portfolioCodes.add("IG"); // Instagram API unbranded wear cards
+    portfolioCodes.add("IG");
 
     const merged = [];
     const seen = new Set();
@@ -213,7 +208,6 @@
       merged.push(item);
     });
 
-    // Newest first; live Instagram API posts always on top
     merged.sort((a, b) => {
       const aLive = a.brandCode === "IG" || String(a.id).startsWith("ig-api-") ? 1 : 0;
       const bLive = b.brandCode === "IG" || String(b.id).startsWith("ig-api-") ? 1 : 0;
@@ -231,33 +225,34 @@
     a.dataset.brand = item.brandCode;
     a.dataset.type = item.type;
 
-    const head = el("div", "hx-ig__head");
-    const av = el("div", "hx-ig__avatar");
-    av.innerHTML = `<img alt="본 헤리티지" src="${LOGO}" width="36" height="36" loading="lazy">`;
+    const handle = item.handle || "instagram";
+    const profile = item.profileUrl || profileUrl(handle);
+
+    const head = el("button", "hx-ig__head");
+    head.type = "button";
+    head.setAttribute("aria-label", `@${handle} 프로필`);
+    const av = el("div", "hx-ig__avatar hx-ig__avatar--letter");
+    av.textContent = handle.slice(0, 1).toUpperCase() || "I";
     const meta = el("div", "hx-ig__meta");
     meta.innerHTML =
-      `<strong>${BRAND_NAME}</strong>` +
-      `<span>${item.brandKo} · ${item.typeKo}</span>`;
+      `<strong>@${handle}</strong>` +
+      `<span>${item.brandCode !== "IG" ? item.brandCode + " · " : ""}${item.typeKo}</span>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt, item.id));
     head.append(av, meta, time);
+    head.addEventListener("click", () => openPermalink(profile));
 
     const media = el("button", "hx-ig__media");
     media.type = "button";
-    media.setAttribute("aria-label", "인스타 원문 열기");
+    media.setAttribute("aria-label", "게시물 열기");
     if (item.image && !BLOCK_HOST.test(item.image)) {
       media.innerHTML = `<img alt="" loading="lazy" decoding="async" src="${item.image}">`;
       const img = media.querySelector("img");
       if (img) {
         img.addEventListener("error", () => {
           media.classList.add("hx-ig__media--ph");
-          media.innerHTML =
-            `<div class="hx-ig__ph"><b>${item.brandEn}</b><span>이미지 로드 실패</span><em>링크로 원문 보기</em></div>`;
+          media.innerHTML = `<div class="hx-ig__ph"><b>@${handle}</b><em>원문 보기</em></div>`;
         });
       }
-    } else {
-      media.classList.add("hx-ig__media--ph");
-      media.innerHTML =
-        `<div class="hx-ig__ph"><b>${item.brandEn}</b><span>@${item.handle || "instagram"}</span><em>이미지 없음</em></div>`;
     }
     media.addEventListener("click", () => openPermalink(item.permalink));
 
@@ -265,14 +260,13 @@
     const cap = el("p", "hx-ig__caption");
     cap.innerHTML =
       `<b>${item.titleKo}</b>` +
-      `<span class="hx-ig__seed">${item.captionKo}</span>` +
-      (item.handle ? `<span class="hx-ig__seed">@${item.handle}</span>` : "");
+      (item.captionKo ? `<span class="hx-ig__seed">${item.captionKo}</span>` : "");
 
     const by = el("div", "hx-ig__by");
-    by.innerHTML = `<span>BY instagram</span>`;
+    by.innerHTML = `<span>@${handle}</span>`;
     const linkBtn = el("button", "hx-ig__src");
     linkBtn.type = "button";
-    linkBtn.textContent = "링크";
+    linkBtn.textContent = "원문";
     linkBtn.addEventListener("click", () => openPermalink(item.permalink));
     by.append(linkBtn);
 
@@ -285,20 +279,10 @@
     if (!root) return false;
     root.replaceChildren();
 
-    const hero = el("header", "hx-page__hero");
-    hero.innerHTML =
-      `<p class="hx-page__eyebrow">INSTAGRAM WEAR</p>` +
-      `<h1 class="hx-page__title">브랜드 착용 · 코디</h1>` +
-      `<p class="hx-page__lead">포폴 브랜드(C·VCA·CL 등) 해외 인스타 착용샷만. 귀걸이·팔찌·목걸이·반지. 플리커·뮤지엄·시계 없음.</p>`;
-    root.append(hero);
-
     const chips = el("div", "hx-chips hx-ig-filters");
     let activeBrand = "all";
-    let activeType = "all";
     const feed = el("div", "hx-ig");
-    const note = el("p", "hx-note");
-    note.textContent = "인스타 착용 피드 준비 중…";
-    root.append(chips, note, feed);
+    root.append(chips, feed);
 
     let items = [];
 
@@ -306,11 +290,10 @@
       feed.replaceChildren();
       const rows = items.filter((x) => {
         if (activeBrand !== "all" && x.brandCode !== activeBrand) return false;
-        if (activeType !== "all" && x.type !== activeType) return false;
         return true;
       });
       if (!rows.length) {
-        feed.append(el("p", "hx-empty", "이 필터에 착용컷이 없습니다."));
+        feed.append(el("p", "hx-empty", "표시할 착용컷이 없습니다."));
         return;
       }
       const frag = document.createDocumentFragment();
@@ -319,62 +302,46 @@
     }
 
     function syncChipState() {
-      chips.querySelectorAll("button[data-group]").forEach((btn) => {
-        const g = btn.dataset.group;
-        const id = btn.dataset.id;
-        const on = g === "brand" ? id === activeBrand : id === activeType;
-        btn.classList.toggle("is-on", on);
+      chips.querySelectorAll("button").forEach((btn) => {
+        btn.classList.toggle("is-on", btn.dataset.id === activeBrand);
       });
     }
 
     function buildChips() {
       chips.replaceChildren();
-      const brandSet = [...new Set(items.map((x) => x.brandCode))];
-      const mk = (id, label, group) => {
+      const present = new Set(items.map((x) => x.brandCode).filter((c) => c && c !== "IG"));
+      const ordered = BRAND_ORDER.filter((c) => present.has(c));
+      present.forEach((c) => {
+        if (!ordered.includes(c)) ordered.push(c);
+      });
+
+      const mk = (id, label) => {
         const b = el("button", "", label);
         b.type = "button";
-        b.dataset.group = group;
         b.dataset.id = id;
         b.addEventListener("click", () => {
-          if (group === "brand") activeBrand = id;
-          else activeType = id;
+          activeBrand = id;
           syncChipState();
           paint();
         });
         return b;
       };
-      chips.append(mk("all", "전체브랜드", "brand"));
-      brandSet.forEach((code) => {
-        const sample = items.find((x) => x.brandCode === code);
-        chips.append(mk(code, `${code} ${sample?.brandKo || ""}`, "brand"));
-      });
-      chips.append(mk("all", "전체종류", "type"));
-      chips.append(mk("bracelet", "팔찌", "type"));
-      chips.append(mk("necklace", "목걸이", "type"));
-      chips.append(mk("ring", "반지", "type"));
-      chips.append(mk("earring", "귀걸이", "type"));
+      chips.append(mk("all", "ALL"));
+      ordered.forEach((code) => chips.append(mk(code, code)));
       syncChipState();
     }
 
     try {
       items = await buildFeed(true);
       if (!items.length) {
-        note.textContent = "표시할 브랜드 착용컷이 없습니다. 큐레이션/API를 확인해 주세요.";
+        feed.append(el("p", "hx-empty", "표시할 착용컷이 없습니다."));
         return false;
       }
-      note.textContent = `${items.length}장 · 인스타 착용·코디 · 포폴 브랜드만`;
       buildChips();
       paint();
-      root.append(
-        el(
-          "p",
-          "hx-disclaimer",
-          "인스타 공식 키워드 검색은 Meta API 키가 필요합니다. 지금은 포폴 브랜드 큐레이션(+ window.HX_WEAR_FEED_API)만 송출합니다. 링크는 해외 인스타로 연결됩니다."
-        )
-      );
       return true;
     } catch (_) {
-      note.textContent = "피드를 불러오지 못했습니다.";
+      feed.append(el("p", "hx-empty", "피드를 불러오지 못했습니다."));
       return false;
     }
   }
