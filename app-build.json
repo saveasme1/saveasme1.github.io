@@ -1,8 +1,9 @@
 {
-  "build": "20260728-pwa51",
-  "version": "v1.11.7",
+  "build": "20260728-pwa52",
+  "version": "v1.11.8",
   "notes": [
-    "Discover: cache-first load, wear/coord only",
-    "Exclude Korean / K-pop celebrity content"
+    "Fix RECENT UPDATE click (externalId + touch pause)",
+    "Hide back button on home",
+    "Tighter mobile hero dots"
   ]
 }

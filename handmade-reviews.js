@@ -450,7 +450,56 @@
       els.view.setAttribute("aria-hidden", "false");
       document.body.classList.add("review-lock");
     } catch (error) {
-      alert(error.message);
+      // Fallback: local curated reviews-data.json (externalId)
+      try {
+        const res = await fetch(`./reviews-data.json?v=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw error;
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : data.items || data.reviews || [];
+        const found = list.find(
+          (row) =>
+            String(row.id || "") === String(id) ||
+            String(row.externalId || "") === String(id)
+        );
+        if (!found) throw error;
+        const images = (found.images || []).map((img) => {
+          if (typeof img === "string") return { url: img };
+          return { url: img.url || img.path || "" };
+        });
+        state.currentReview = {
+          id: found.id || found.externalId || id,
+          title: found.title || "스냅",
+          body: found.body || found.content || "",
+          publishedAt: found.publishedAt || "",
+          viewCount: found.viewCount || 0,
+          images,
+        };
+        buildCarousel(images, state.currentReview.title);
+        if (window.GongbangBoardMeta?.renderMetaRow) {
+          window.GongbangBoardMeta.renderMetaRow(els.viewMeta, {
+            dateText: formatDate(state.currentReview.publishedAt),
+            viewCount: state.currentReview.viewCount,
+          });
+        }
+        window.GongbangTime.renderPostTitle(
+          els.viewTitle,
+          state.currentReview.title,
+          state.currentReview.publishedAt
+        );
+        if (window.GongbangHtmlEditor) {
+          window.GongbangHtmlEditor.renderSafe(els.viewText, state.currentReview.body);
+        } else {
+          els.viewText.textContent = state.currentReview.body;
+        }
+        window.GongbangBoardMeta?.setupContentClamp?.(els.viewText);
+        if (els.viewActions) els.viewActions.hidden = true;
+        els.view.hidden = false;
+        els.view.classList.add("open");
+        els.view.setAttribute("aria-hidden", "false");
+        document.body.classList.add("review-lock");
+      } catch (_) {
+        alert(error.message);
+      }
     }
   }
 

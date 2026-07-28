@@ -205,22 +205,22 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 @media (max-width: 1024px) {
   .pwa-hero-slider__dots {
     bottom: 10px;
-    gap: 4px;
+    gap: 2px;
   }
 
   .pwa-hero-slider__dots button {
-    width: 6px;
-    height: 6px;
-    padding: 12px;
+    width: 5px;
+    height: 5px;
+    padding: 4px;
   }
 
   .pwa-hero-slider__dots button::after {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   .pwa-hero-slider__dots button.is-on::after {
-    width: 16px;
+    width: 12px;
   }
 }
 
@@ -787,20 +787,22 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-pulse:hover .pwa-pulse__move,
-.pwa-pulse:focus-within .pwa-pulse__move {
+.pwa-pulse:focus-within .pwa-pulse__move,
+.pwa-pulse.is-paused .pwa-pulse__move {
   animation-play-state: paused;
 }
 
 .pwa-pulse__item {
   flex: none;
   margin: 0;
-  padding: 0;
+  padding: 6px 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   letter-spacing: inherit;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }

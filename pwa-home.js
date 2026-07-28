@@ -184,6 +184,26 @@
     }
   }
 
+  function boardPostHref(board, id) {
+    const parts = [];
+    if (
+      /[?&]app=1(?:&|$)/.test(location.search) ||
+      document.documentElement.classList.contains("is-pwa")
+    ) {
+      parts.push("app=1");
+    }
+    if (id) parts.push(`id=${encodeURIComponent(id)}`);
+    const q = parts.length ? `?${parts.join("&")}` : "";
+    if (board === "shipping") return `./shipping.html${q}`;
+    if (board === "reviews") return `./reviews.html${q}`;
+    return "./landing.html" + (parts[0] === "app=1" ? "?app=1" : "");
+  }
+
+  function resolveBoardId(item) {
+    if (!item || typeof item !== "object") return "";
+    return String(item.id || item.externalId || item.sourceExternalId || "").trim();
+  }
+
   function goPortfolio(cat, id) {
     const parts = [];
     if (
@@ -961,19 +981,22 @@
     const pulseEntries = [];
     shipItems.slice(0, 4).forEach((s) => {
       const t = String(s.title || "").replace(/\s+/g, " ").trim().slice(0, 28);
-      if (!t) return;
+      const id = resolveBoardId(s);
+      if (!t || !id) return;
       pulseEntries.push({
         label: `최종검수 · ${t}`,
         board: "shipping",
-        id: s.id || "",
+        id,
       });
     });
     reviewItems.slice(0, 3).forEach((r) => {
       const t = String(r.title || "스냅").slice(0, 24);
+      const id = resolveBoardId(r);
+      if (!t || !id) return;
       pulseEntries.push({
         label: `스냅 · ${t}`,
         board: "reviews",
-        id: r.id || "",
+        id,
       });
     });
     if (!pulseEntries.length) {
@@ -995,19 +1018,25 @@
         pulseMove.append(span);
         return;
       }
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "pwa-pulse__item";
-      btn.textContent = entry.label;
-      btn.setAttribute("aria-label", entry.label);
-      btn.addEventListener("click", (event) => {
+      const link = document.createElement("a");
+      link.className = "pwa-pulse__item";
+      link.href = boardPostHref(entry.board, entry.id);
+      link.textContent = entry.label;
+      link.setAttribute("aria-label", entry.label);
+      link.addEventListener("click", (event) => {
         event.preventDefault();
-        event.stopPropagation();
         goBoardPost(entry.board, entry.id);
       });
-      pulseMove.append(btn);
+      pulseMove.append(link);
     };
     pulseEntries.concat(pulseEntries).forEach(appendPulseEntry);
+    // Pause marquee while pressing/holding so mobile taps land on a stable item
+    const pausePulse = () => pulse.classList.add("is-paused");
+    const resumePulse = () => pulse.classList.remove("is-paused");
+    pulse.addEventListener("pointerdown", pausePulse);
+    pulse.addEventListener("pointerup", resumePulse);
+    pulse.addEventListener("pointercancel", resumePulse);
+    pulse.addEventListener("pointerleave", resumePulse);
     host.append(pulse);
 
     // —— Story rings (Discover recent wear) ——

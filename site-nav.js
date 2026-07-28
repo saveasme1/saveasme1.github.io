@@ -152,6 +152,16 @@
       });
     }
     syncChromeTheme(key);
+    const back = document.querySelector(".gb-top-brand__back");
+    if (back) {
+      const onHome =
+        isLandingPage() &&
+        !new URLSearchParams(location.search).get("open") &&
+        key === "home";
+      back.hidden = onHome;
+      back.setAttribute("aria-hidden", onHome ? "true" : "false");
+      back.tabIndex = onHome ? -1 : 0;
+    }
   }
   function keepAppParam(url) {
     try {
@@ -378,10 +388,26 @@
       } catch (_) {}
       goHome();
     });
+    const syncBackButton = () => {
+      const back = header.querySelector(".gb-top-brand__back");
+      if (!back) return;
+      // Home (landing) does not need a back control
+      const onHome =
+        isLandingPage() &&
+        !new URLSearchParams(location.search).get("open") &&
+        detectActivePanel() === "home";
+      back.hidden = onHome;
+      back.setAttribute("aria-hidden", onHome ? "true" : "false");
+      back.tabIndex = onHome ? -1 : 0;
+    };
+    syncBackButton();
+    window.addEventListener("popstate", syncBackButton);
+    window.addEventListener("gongbang:nav-changed", syncBackButton);
     header.querySelector(".gb-top-brand__link").addEventListener("click", (event) => {
       if (!isLandingPage()) return;
       event.preventDefault();
       goHome();
+      syncBackButton();
     });
     renderTopAuth();
     fetchMember().then((member) => {

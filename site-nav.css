@@ -73,6 +73,10 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+.gb-top-brand__back[hidden] {
+  visibility: hidden;
+  pointer-events: none;
+}
 .gb-top-brand__back:hover,
 .gb-top-brand__back:focus-visible {
   background: rgba(255, 255, 255, 0.08);
