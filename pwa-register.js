@@ -1,7 +1,7 @@
 ﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa63";
+  const APP_BUILD = "20260728-pwa65";
   const APP_VERSION = "v1.12.1";
   const RELEASE_NOTES = ["諛쒓껄 ?붿씠??UI", "?볤? 濡쒓렇???섏젙", "?쇰컲??李⑹슜而??섏쭛"];
   const BUILD_KEY = "hx.pwa.build";

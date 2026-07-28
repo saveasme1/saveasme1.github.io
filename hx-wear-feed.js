@@ -1,14 +1,14 @@
-﻿(() => {
+(() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v11";
+  const CACHE_KEY = "hx.discover.feed.v9";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
-    ring: "諛섏?",
-    bracelet: "釉뚮젅?댁뒳由?,
-    necklace: "紐⑷구??,
-    earring: "洹嫄몄씠",
+    ring: "반지",
+    bracelet: "브레이슬릿",
+    necklace: "목걸이",
+    earring: "귀걸이",
   };
   const PLATFORM_LABEL = {
     instagram: "IG",
@@ -101,27 +101,27 @@
       `<dialog class="review-dialog auth-dialog" id="hxDiscoverAuthDialog" data-mode="login">
         <form id="hxDiscoverAuthForm" data-mode="login">
           <div class="auth-tabs" role="tablist">
-            <button type="button" class="auth-tab is-active" data-hx-auth-tab="login" role="tab">濡쒓렇??/button>
-            <button type="button" class="auth-tab" data-hx-auth-tab="register" role="tab">?뚯썝媛??/button>
+            <button type="button" class="auth-tab is-active" data-hx-auth-tab="login" role="tab">로그인</button>
+            <button type="button" class="auth-tab" data-hx-auth-tab="register" role="tab">회원가입</button>
           </div>
           <div class="auth-panel" data-hx-auth-panel="login">
-            <h2>濡쒓렇??/h2>
-            <p class="auth-desc">?섑듃쨌?볤?? 濡쒓렇?????댁슜?????덉뼱??</p>
+            <h2>로그인</h2>
+            <p class="auth-desc">하트·댓글은 로그인 후 이용할 수 있어요.</p>
           </div>
           <div class="auth-panel" data-hx-auth-panel="register" hidden>
-            <h2>?뚯썝媛??/h2>
-            <p class="auth-desc">媛????愿由ъ옄 ?뱀씤???꾩슂?????덉뼱??</p>
+            <h2>회원가입</h2>
+            <p class="auth-desc">가입 후 관리자 승인이 필요할 수 있어요.</p>
           </div>
-          <label class="auth-field">?꾩씠??
-            <input id="hxDiscoverUsername" autocomplete="username" minlength="4" maxlength="30" required placeholder="?꾩씠??>
+          <label class="auth-field">아이디
+            <input id="hxDiscoverUsername" autocomplete="username" minlength="4" maxlength="30" required placeholder="아이디">
           </label>
-          <label class="auth-field">鍮꾨?踰덊샇
-            <input id="hxDiscoverPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="鍮꾨?踰덊샇">
+          <label class="auth-field">비밀번호
+            <input id="hxDiscoverPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="비밀번호">
           </label>
           <p class="review-dialog-status" id="hxDiscoverAuthStatus" aria-live="polite"></p>
           <div class="review-dialog-actions auth-actions">
-            <button type="button" data-hx-auth-close>痍⑥냼</button>
-            <button class="primary" type="submit" id="hxDiscoverAuthSubmit">濡쒓렇??/button>
+            <button type="button" data-hx-auth-close>취소</button>
+            <button class="primary" type="submit" id="hxDiscoverAuthSubmit">로그인</button>
           </div>
         </form>
       </dialog>`
@@ -140,7 +140,7 @@
       const status = document.getElementById("hxDiscoverAuthStatus");
       const username = document.getElementById("hxDiscoverUsername").value.trim();
       const password = document.getElementById("hxDiscoverPassword").value;
-      status.textContent = "泥섎━ 以묅?;
+      status.textContent = "처리 중…";
       status.classList.remove("error");
       try {
         const path = mode === "register" ? "/auth/register" : "/auth/login";
@@ -155,11 +155,11 @@
             sessionStorage.setItem(TOKEN_KEY, data.accessToken);
           } catch (_) {}
         }
-        status.textContent = mode === "register" ? "媛???좎껌 ?꾨즺" : "濡쒓렇???꾨즺";
+        status.textContent = mode === "register" ? "가입 신청 완료" : "로그인 완료";
         dlg.close();
         window.dispatchEvent(new CustomEvent("gongbang:auth-changed", { detail: { member: state.member } }));
       } catch (e) {
-        status.textContent = e.message || "?ㅽ뙣";
+        status.textContent = e.message || "실패";
         status.classList.add("error");
       }
     });
@@ -183,7 +183,7 @@
       p.hidden = p.getAttribute("data-hx-auth-panel") !== next;
     });
     document.getElementById("hxDiscoverAuthSubmit").textContent =
-      next === "register" ? "媛?낇븯湲? : "濡쒓렇??;
+      next === "register" ? "가입하기" : "로그인";
     document.getElementById("hxDiscoverAuthStatus").textContent = "";
     dlg.showModal();
   }
@@ -230,14 +230,14 @@
     if (!Number.isFinite(ms)) return "";
     const diff = Math.max(60 * 1000, Date.now() - ms);
     const min = Math.floor(diff / 60000);
-    if (min < 60) return `${Math.max(1, min)}遺???;
+    if (min < 60) return `${Math.max(1, min)}분 전`;
     const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}?쒓컙 ??;
+    if (hr < 24) return `${hr}시간 전`;
     const day = Math.floor(hr / 24);
-    if (day < 30) return `${day}????;
+    if (day < 30) return `${day}일 전`;
     const mon = Math.floor(day / 30);
-    if (mon < 12) return `${mon}媛쒖썡 ??;
-    return `${Math.floor(mon / 12)}????;
+    if (mon < 12) return `${mon}개월 전`;
+    return `${Math.floor(mon / 12)}년 전`;
   }
 
   function cacheGet(key) {
@@ -400,7 +400,7 @@
     const permalink = String(row.permalink || "").trim();
     const shortcode = igShortcode(permalink, row.externalId);
     let image = absUrl(row.image || row.thumbnail || "");
-    // Instagram CDN /media/?size=l is blocked ??prefer local wear-media cache
+    // Instagram CDN /media/?size=l is blocked — prefer local wear-media cache
     if (platform === "instagram" && shortcode) {
       const local = localIgPostImage(shortcode);
       if (!image || /instagram\.com\/.+\/media/i.test(image) || /cdninstagram|fbcdn\.net/i.test(image)) {
@@ -443,19 +443,11 @@
     };
   }
 
-  function sortLatest(items) {
-    return [...(items || [])].sort((a, b) => {
-      const ta = Date.parse(a?.publishedAt || 0) || 0;
-      const tb = Date.parse(b?.publishedAt || 0) || 0;
-      return tb - ta || String(b?.id || "").localeCompare(String(a?.id || ""));
-    });
-  }
-
   async function buildFeed(force, brand) {
     const cacheKey = `${CACHE_KEY}:${brand || "all"}`;
     if (!force) {
       const hit = cacheGet(cacheKey);
-      if (hit?.items?.length) return sortLatest(hit.items);
+      if (hit?.items?.length) return hit.items;
     }
     let raw = [];
     try {
@@ -467,7 +459,7 @@
     if (!raw.length && (!brand || brand === "all")) {
       raw = await loadLegacyFallback();
     }
-    const items = sortLatest(raw.map(normalizeItem).filter(Boolean));
+    const items = raw.map(normalizeItem).filter(Boolean);
     cacheSet(cacheKey, items);
     return items;
   }
@@ -538,10 +530,10 @@
       return;
     }
 
-    // IG reels / other: keep in-tab poster + open source only via ?먮Ц button
+    // IG reels / other: keep in-tab poster + open source only via 원문 button
     mediaEl.innerHTML =
       `<img alt="" src="${item.image}"><span class="hx-ig__play" aria-hidden="true"></span>` +
-      `<div class="hx-ig__inline-note">??뿉??誘몃━蹂닿린 쨌 ?먮Ц?쇰줈 ?ъ깮</div>`;
+      `<div class="hx-ig__inline-note">탭에서 미리보기 · 원문으로 재생</div>`;
     mediaEl.addEventListener(
       "click",
       () => {
@@ -596,7 +588,7 @@
           return;
         }
         media.classList.add("hx-ig__media--ph");
-        media.innerHTML = `<div class="hx-ig__ph"><b>${escapeHtml(handle || plat)}</b><em>?먮Ц 蹂닿린</em></div>`;
+        media.innerHTML = `<div class="hx-ig__ph"><b>${escapeHtml(handle || plat)}</b><em>원문 보기</em></div>`;
       });
     }
     media.addEventListener("click", () => playInline(media, item));
@@ -604,18 +596,18 @@
     const actions = el("div", "hx-ig__actions");
     const likeBtn = el("button", "hx-ig__like" + (item.likedByMe ? " is-on" : ""));
     likeBtn.type = "button";
-    likeBtn.setAttribute("aria-label", "醫뗭븘??);
+    likeBtn.setAttribute("aria-label", "좋아요");
     likeBtn.innerHTML = `<span class="hx-ig__heart" aria-hidden="true"></span><b class="hx-ig__like-count">${Number(
       item.likeCount || 0
     )}</b>`;
     const cmtBtn = el("button", "hx-ig__cmt-toggle");
     cmtBtn.type = "button";
-    cmtBtn.innerHTML = `<span aria-hidden="true">?뮠</span><b class="hx-ig__cmt-count">${Number(
+    cmtBtn.innerHTML = `<span aria-hidden="true">💬</span><b class="hx-ig__cmt-count">${Number(
       item.commentCount || 0
     )}</b>`;
     const moreBtn = el("button", "hx-ig__more");
     moreBtn.type = "button";
-    moreBtn.textContent = "?먮Ц 蹂닿린";
+    moreBtn.textContent = "원문 보기";
     moreBtn.addEventListener("click", () => openUrl(item.permalink));
     actions.append(likeBtn, cmtBtn, moreBtn);
 
@@ -628,13 +620,13 @@
         item.likedByMe = !!r.likedByMe;
         item.likeCount = r.likeCount || 0;
       } catch (e) {
-        if (e.message !== "login_required") alert(e.message || "醫뗭븘???ㅽ뙣");
+        if (e.message !== "login_required") alert(e.message || "좋아요 실패");
       }
     });
 
     const foot = el("div", "hx-ig__foot");
     const likesLine = el("p", "hx-ig__likes-line");
-    likesLine.textContent = `醫뗭븘??${Number(item.likeCount || 0)}媛?;
+    likesLine.textContent = `좋아요 ${Number(item.likeCount || 0)}개`;
     const capRow = el("div", "hx-ig__cap-row");
     const cap = el("p", "hx-ig__caption");
     const body = escapeHtml(item.captionKo || item.caption || "");
@@ -644,7 +636,7 @@
       ? el(
           "p",
           "hx-ig__ai-note",
-          "??湲? ?대? AI ?쒖뒪?쒖뿉 ?섑빐 ?먮룞?쇰줈 踰덉뿭?섏뿀?듬땲??"
+          "이 글은 내부 AI 시스템에 의해 자동으로 번역되었습니다."
         )
       : null;
     capRow.append(cap);
@@ -655,8 +647,8 @@
     const cmtList = el("div", "hx-ig__cmt-list");
     const cmtForm = el("form", "hx-ig__cmt-form");
     cmtForm.innerHTML =
-      `<input name="body" maxlength="500" placeholder="?볤? ?ш린?? autocomplete="off">` +
-      `<button type="submit">寃뚯떆</button>`;
+      `<input name="body" maxlength="500" placeholder="댓글 달기…" autocomplete="off">` +
+      `<button type="submit">게시</button>`;
 
     async function refreshComments() {
       try {
@@ -672,12 +664,12 @@
             const tools = el("span", "hx-ig__cmt-tools");
             const edit = el("button", "hx-ig__cmt-edit");
             edit.type = "button";
-            edit.textContent = "?섏젙";
+            edit.textContent = "수정";
             const del = el("button", "hx-ig__cmt-del");
             del.type = "button";
-            del.textContent = "??젣";
+            del.textContent = "삭제";
             edit.addEventListener("click", async () => {
-              const next = prompt("?볤? ?섏젙", c.body);
+              const next = prompt("댓글 수정", c.body);
               if (next == null) return;
               try {
                 await requireMember();
@@ -687,11 +679,11 @@
                 });
                 await refreshComments();
               } catch (e) {
-                if (e.message !== "login_required") alert(e.message || "?섏젙 ?ㅽ뙣");
+                if (e.message !== "login_required") alert(e.message || "수정 실패");
               }
             });
             del.addEventListener("click", async () => {
-              if (!confirm("???볤?????젣?좉퉴??")) return;
+              if (!confirm("이 댓글을 삭제할까요?")) return;
               try {
                 await requireMember();
                 await api(`/discover/comments/${c.id}`, { method: "DELETE" });
@@ -699,7 +691,7 @@
                 cmtBtn.querySelector(".hx-ig__cmt-count").textContent = String(item.commentCount);
                 await refreshComments();
               } catch (e) {
-                if (e.message !== "login_required") alert(e.message || "??젣 ?ㅽ뙣");
+                if (e.message !== "login_required") alert(e.message || "삭제 실패");
               }
             });
             tools.append(edit, del);
@@ -709,7 +701,7 @@
         });
         item.commentCount = (data.items || []).length;
         cmtBtn.querySelector(".hx-ig__cmt-count").textContent = String(item.commentCount);
-        likesLine.textContent = `醫뗭븘??${Number(item.likeCount || 0)}媛?;
+        likesLine.textContent = `좋아요 ${Number(item.likeCount || 0)}개`;
       } catch (_) {}
     }
 
@@ -735,7 +727,7 @@
         comments.hidden = false;
         await refreshComments();
       } catch (e) {
-        if (e.message !== "login_required") alert(e.message || "?볤? ?ㅽ뙣");
+        if (e.message !== "login_required") alert(e.message || "댓글 실패");
       }
     });
 
@@ -752,7 +744,7 @@
     let activeBrand = "all";
     const chips = el("div", "hx-chips hx-ig-filters");
     const feed = el("div", "hx-ig");
-    const status = el("p", "hx-empty", "遺덈윭?ㅻ뒗 以묅?);
+    const status = el("p", "hx-empty", "불러오는 중…");
     root.append(chips, status, feed);
 
     let brands = {};
@@ -805,7 +797,7 @@
     }
 
     async function reload() {
-      status.textContent = "遺덈윭?ㅻ뒗 以묅?;
+      status.textContent = "불러오는 중…";
       status.hidden = false;
       let showedCache = false;
       try {
@@ -827,7 +819,7 @@
       paint();
       if (!items.length) {
         status.hidden = false;
-        status.textContent = "?쒖떆??李⑹슜而룹씠 ?놁뒿?덈떎.";
+        status.textContent = "표시할 착용컷이 없습니다.";
       } else {
         status.hidden = true;
       }

@@ -539,14 +539,21 @@
       const seen = new Set();
       const out = [];
       for (const item of sorted) {
-        const key = String(item?.handle || item?.profileUsername || "")
+        const handle = String(item?.handle || item?.profileUsername || "")
           .replace(/^@/, "")
           .trim()
           .toLowerCase();
-        if (key) {
-          if (seen.has(key)) continue;
-          seen.add(key);
+        const platform = String(item?.platform || "").toLowerCase();
+        const sharedWeb = !handle || /^(ddg|bing|google|web)_wear$/i.test(handle);
+        // IG/real users: one ring per account. Web search rows shared *_wear must not collapse.
+        let key = "";
+        if (!sharedWeb && platform !== "web") {
+          key = `u:${handle}`;
+        } else {
+          key = `p:${item?.externalId || item?.id || item?.permalink || item?.image || handle || Math.random()}`;
         }
+        if (seen.has(key)) continue;
+        seen.add(key);
         out.push(item);
         if (out.length >= limit) break;
       }
@@ -555,14 +562,14 @@
 
     if (window.HxWearFeed && typeof window.HxWearFeed.buildFeed === "function") {
       try {
-        const rows = await window.HxWearFeed.buildFeed(false, "all");
+        const rows = await window.HxWearFeed.buildFeed(true, "all");
         if (Array.isArray(rows) && rows.length) return takeUnique(rows);
       } catch (_) {}
     }
     try {
       const q = new URLSearchParams({
         brand: "all",
-        limit: String(Math.max(limit * 4, 40)),
+        limit: String(Math.max(limit * 8, 80)),
         sort: "latest",
       });
       const res = await fetch(`${wearApiBase()}/discover/feed?${q}`, {
@@ -593,7 +600,14 @@
 
   function storyLabel(item) {
     const handle = String(item.handle || item.profileUsername || "").replace(/^@/, "").trim();
-    if (handle) return `@${handle}`;
+    if (handle && !/^(ddg|bing|google|web)_wear$/i.test(handle)) {
+      // web handles like site_abc12 → show brand if present, else @site
+      if (String(item.platform || "").toLowerCase() === "web" && item.brandCode) {
+        return String(item.brandCode);
+      }
+      return `@${handle.replace(/_[a-f0-9]{4,}$/i, "").slice(0, 12)}`;
+    }
+    if (item.brandCode) return String(item.brandCode);
     const name = String(item.displayName || item.profileName || item.brandName || "").trim();
     return name || "WEAR";
   }

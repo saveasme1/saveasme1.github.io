@@ -998,6 +998,15 @@ html.is-pwa {
   color: rgba(255, 255, 255, 0.45);
   font-weight: 500;
 }
+.hx-ig__meta .hx-ig__brand,
+.hx-ig__meta .hx-ig__src {
+  display: inline-block;
+  margin-right: 6px;
+  color: rgba(255, 255, 255, 0.62);
+}
+.hx-ig__meta .hx-ig__src {
+  color: rgba(255, 200, 120, 0.85);
+}
 
 .hx-ig__name {
   display: none;
