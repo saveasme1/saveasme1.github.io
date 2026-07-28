@@ -1,12 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa33";
-  const APP_VERSION = "v1.9.6";
+  const APP_BUILD = "20260728-pwa36";
+  const APP_VERSION = "v1.10.6";
   const RELEASE_NOTES = [
-    "발견 탭: 해외 주얼리 풍성 피드",
-    "착용·뮤지엄·아카이브 + 한글 요약·원문 링크",
-    "포폴 SKU 강제 매칭 폐기",
+    "업데이트 팝업 무한 반복 수정",
+    "발견: 게시물 원본 이미지·@계정 표시",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -22,6 +21,7 @@
   let refreshing = false;
   let updateOffered = false;
   let remoteNotes = null;
+  let pendingRemoteBuild = "";
 
   async function emergencyFixMojibake() {
     if (sessionStorage.getItem(RECOVER_KEY) === "1") return false;
@@ -354,8 +354,9 @@
           await Promise.all(keys.map((k) => caches.delete(k)));
         }
       } catch (_) {}
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
+      const target = pendingRemoteBuild || APP_BUILD;
+      localStorage.setItem(ACTIVATED_KEY, target);
+      localStorage.setItem(BUILD_KEY, target);
       localStorage.removeItem(UPDATE_SNOOZE_KEY);
       const worker = pendingWorker;
       if (worker) {
@@ -429,28 +430,25 @@
   }
 
   function noteBuildActivated() {
-    const activated = localStorage.getItem(ACTIVATED_KEY);
-    if (!activated) {
-      const legacy = localStorage.getItem(BUILD_KEY) || "";
-      if (legacy && legacy !== APP_BUILD) {
-        localStorage.setItem(ACTIVATED_KEY, legacy);
-        promptUpdateAvailable(RELEASE_NOTES, true);
-        return;
-      }
+    const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
+    // Running script already matches its own build marker — just stamp and exit.
+    if (!activated || activated === APP_BUILD) {
       localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
       localStorage.setItem(BUILD_KEY, APP_BUILD);
+      if (userApprovedUpdate) {
+        showStatus("ready", "업데이트 완료 · 최신 버전입니다");
+        const chip = document.getElementById("pwaUpdateChip");
+        if (chip) chip.hidden = true;
+      }
       return;
     }
-    if (userApprovedUpdate && activated !== APP_BUILD) {
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
+    // Script is newer than stored marker (update just landed) — stamp silently.
+    localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+    localStorage.setItem(BUILD_KEY, APP_BUILD);
+    if (userApprovedUpdate) {
       showStatus("ready", "업데이트 완료 · 최신 버전입니다");
       const chip = document.getElementById("pwaUpdateChip");
       if (chip) chip.hidden = true;
-      return;
-    }
-    if (activated !== APP_BUILD) {
-      promptUpdateAvailable(RELEASE_NOTES, true);
     }
   }
 
@@ -465,24 +463,35 @@
       if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
       const remoteBuild = String(data.build || "");
       if (!remoteBuild) return;
-      const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-      if (activated && activated !== remoteBuild) {
-        promptUpdateAvailable(data.notes, true);
+      pendingRemoteBuild = remoteBuild;
+
+      // Already on remote build — never show update dialog again.
+      if (remoteBuild === APP_BUILD) {
+        localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+        localStorage.setItem(BUILD_KEY, APP_BUILD);
+        const chip = document.getElementById("pwaUpdateChip");
+        if (chip) chip.hidden = true;
         return;
       }
-      if (activated && activated !== APP_BUILD) {
-        promptUpdateAvailable(RELEASE_NOTES, true);
-      }
+
+      // Running script is behind app-build.json — offer update once.
+      promptUpdateAvailable(data.notes, true);
     } catch (_) {}
   }
 
-  // Boot ASAP: if local build marker already mismatches running script, force dialog
+  // Boot: never force-dialog from local marker alone — wait for app-build.json
+  // (prevents endless update loop when APP_BUILD lagged behind remote).
   try {
     const marked = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-    if (marked && marked !== APP_BUILD) {
-      const kick = () => promptUpdateAvailable(RELEASE_NOTES, true);
-      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", kick);
-      else setTimeout(kick, 50);
+    if (!marked) {
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
+    } else if (marked === APP_BUILD) {
+      /* already current for this script */
+    } else {
+      // Stale marker from older run — stamp to running script; remote check decides prompt.
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
     }
   } catch (_) {}
 

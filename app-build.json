@@ -1,9 +1,8 @@
 {
-  "build": "20260728-pwa35",
-  "version": "v1.10.5",
+  "build": "20260728-pwa36",
+  "version": "v1.10.6",
   "notes": [
-    "fix brand/image mismatch using real IG post media",
-    "@handle display + avatar proxy",
-    "@/# seed collection via MakerBridge"
+    "업데이트 루프 수정",
+    "발견 피드 브랜드/이미지 정합"
   ]
 }
