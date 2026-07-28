@@ -1,9 +1,9 @@
 {
-  "build": "20260728-pwa47",
-  "version": "v1.11.3",
+  "build": "20260728-pwa48",
+  "version": "v1.11.4",
   "notes": [
-    "IG-like thin multicolor story rings",
-    "RECENT UPDATE pulse label",
-    "Bottom nav PWA-only (hidden on regular web)"
+    "Fix hero slider product click → portfolio detail",
+    "Fix swipe false-blocking taps",
+    "portfolio.html?id= deep-link openDetail"
   ]
 }

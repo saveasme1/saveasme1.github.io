@@ -166,7 +166,12 @@
 
   function goPortfolio(cat, id) {
     const parts = [];
-    if (/[?&]app=1(?:&|$)/.test(location.search)) parts.push("app=1");
+    if (
+      /[?&]app=1(?:&|$)/.test(location.search) ||
+      document.documentElement.classList.contains("is-pwa")
+    ) {
+      parts.push("app=1");
+    }
     if (cat && cat !== "ALL") parts.push(`cat=${encodeURIComponent(cat)}`);
     if (id) parts.push(`id=${encodeURIComponent(id)}`);
     const q = parts.length ? `?${parts.join("&")}` : "";
@@ -699,8 +704,11 @@
         `<span class="pwa-hero__cta">${slide.cta}</span>` +
         `</div>`;
       protect(btn.querySelector("img"));
-      btn.addEventListener("click", () => {
-        if (slide.mode === "item" && slide.item?.id) {
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        // Always open the product shown on this slide when available
+        if (slide.item?.id) {
           goPortfolio(slide.item.category || "ALL", slide.item.id);
           return;
         }
@@ -748,7 +756,8 @@
     });
 
     // Touch / pointer swipe → next / prev slide
-    let swipe = { x: 0, y: 0, active: false, moved: false, locked: false };
+    let swipe = { x: 0, y: 0, active: false, locked: false, id: null };
+    let suppressClickUntil = 0;
     const SWIPE_MIN = 42;
     function onPointerDown(event) {
       if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -756,7 +765,6 @@
         x: event.clientX,
         y: event.clientY,
         active: true,
-        moved: false,
         locked: false,
         id: event.pointerId,
       };
@@ -768,15 +776,16 @@
       if (!swipe.locked && Math.abs(dx) + Math.abs(dy) > 8) {
         swipe.locked = Math.abs(dx) > Math.abs(dy);
       }
-      if (swipe.locked && Math.abs(dx) > 12) swipe.moved = true;
     }
     function onPointerUp(event) {
       if (!swipe.active || swipe.id !== event.pointerId) return;
       const dx = event.clientX - swipe.x;
       const dy = event.clientY - swipe.y;
-      const wasSwipe = swipe.moved && Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(dy);
+      const wasSwipe = swipe.locked && Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(dy);
       swipe.active = false;
       if (!wasSwipe) return;
+      // Only suppress the click that immediately follows a real swipe
+      suppressClickUntil = Date.now() + 350;
       event.preventDefault();
       event.stopPropagation();
       goSlide(dx < 0 ? slideIdx + 1 : slideIdx - 1);
@@ -788,14 +797,14 @@
     hero.addEventListener("pointercancel", () => {
       swipe.active = false;
     });
-    // Block slide tap navigation right after a swipe
+    // Block only the synthetic click right after a completed swipe
     track.addEventListener(
       "click",
       (event) => {
-        if (!swipe.moved) return;
+        if (Date.now() > suppressClickUntil) return;
         event.preventDefault();
         event.stopPropagation();
-        swipe.moved = false;
+        suppressClickUntil = 0;
       },
       true
     );

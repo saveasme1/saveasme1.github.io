@@ -775,6 +775,8 @@
   }
   async function openFromQuery() {
     const params = new URLSearchParams(location.search);
+    const itemId = params.get("id");
+    const onPortfolioPage = /\/portfolio\.html$/i.test(location.pathname);
     // App shell: portfolio is its own page, not an overlay panel
     const isApp =
       document.documentElement.classList.contains("is-pwa") ||
@@ -787,38 +789,43 @@
     if (isApp && els.panel && params.get("open") === "portfolio") {
       const q = new URLSearchParams();
       if (params.get("app") === "1") q.set("app", "1");
-      if (params.get("id")) q.set("id", params.get("id"));
+      if (itemId) q.set("id", itemId);
       if (params.get("cat")) q.set("cat", params.get("cat"));
       const qs = q.toString();
       location.replace(`./portfolio.html${qs ? `?${qs}` : ""}`);
       return;
     }
-    if (params.get("open") !== "portfolio" || !els.panel) return;
-    openPortfolioPanel();
-    const itemId = params.get("id");
-    if (!itemId) return;
+
     const waitReady = async () => {
+      if (!state.loaded && (!els.panel || els.panel.hidden === false || onPortfolioPage)) {
+        // ensure data load started
+        if (!state.opened) {
+          state.opened = true;
+          loadData();
+        }
+      }
       const started = Date.now();
       while (!state.loaded && Date.now() - started < 15000) {
         await new Promise((r) => setTimeout(r, 80));
       }
     };
-    await waitReady();
-    const item = state.items.find((row) => String(row.id) === String(itemId));
-    if (item) await openDetail(item);
+
+    // Landing overlay: ?open=portfolio&id=
+    if (params.get("open") === "portfolio" && els.panel) {
+      openPortfolioPanel();
+      if (!itemId) return;
+      await waitReady();
+      const item = state.items.find((row) => String(row.id) === String(itemId));
+      if (item) await openDetail(item);
+      return;
+    }
+
+    // Standalone portfolio.html?id= (and optional cat)
+    if (onPortfolioPage && itemId) {
+      await waitReady();
+      const item = state.items.find((row) => String(row.id) === String(itemId));
+      if (item) await openDetail(item);
+    }
   }
   openFromQuery();
-
-  // Deep-link detail on portfolio.html?id=
-  (async () => {
-    if (els.panel) return;
-    const itemId = new URLSearchParams(location.search).get("id");
-    if (!itemId) return;
-    const started = Date.now();
-    while (!state.loaded && Date.now() - started < 15000) {
-      await new Promise((r) => setTimeout(r, 80));
-    }
-    const item = state.items.find((row) => String(row.id) === String(itemId));
-    if (item) await openDetail(item);
-  })();
 })();
