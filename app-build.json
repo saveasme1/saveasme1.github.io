@@ -1,8 +1,5 @@
-﻿{
-  "build": "20260728-pwa32",
-  "version": "v1.10.2",
-  "notes": [
-    "Discover: no portfolio SKUs",
-    "IG profile avatar via MakerBridge proxy"
-  ]
+{
+  "build": "20260728-pwa33",
+  "version": "v1.10.3",
+  "notes": ["relevant wear only", "IG username + avatar proxy"]
 }

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa32";
+  const APP_BUILD = "20260728-pwa33";
   const APP_VERSION = "v1.9.6";
   const RELEASE_NOTES = [
     "발견 탭: 해외 주얼리 풍성 피드",

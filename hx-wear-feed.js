@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.ig.wear.v7";
+  const CACHE_KEY = "hx.ig.wear.v8";
   const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
@@ -79,12 +79,13 @@
     return absUrl(`./wear-media/avatars/${h}.png`);
   }
 
-  function setAvatar(av, handle, primaryUrl) {
+  function setAvatar(av, handle, primaryUrl, wearImage) {
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
     const candidates = [
       primaryUrl,
       absUrl(`./wear-media/avatars/${h}.jpg`),
       absUrl(`./wear-media/avatars/${h}.png`),
+      wearImage, // last resort: post image in circle (better than wrong letter)
     ].filter(Boolean);
 
     const tryNext = (i) => {
@@ -188,16 +189,17 @@
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ limit: 50 }),
       });
-      if (!res.ok) return { items: [], profilePictureUrl: "", username: "", name: "" };
+      if (!res.ok) return { items: [], profilePictureUrl: "", username: "", name: "", profiles: {} };
       const data = await res.json();
       return {
         items: data.items || [],
         profilePictureUrl: data.profilePictureUrl || "",
         username: data.username || "",
         name: data.name || "",
+        profiles: data.profiles || {},
       };
     } catch (_) {
-      return { items: [], profilePictureUrl: "", username: "", name: "" };
+      return { items: [], profilePictureUrl: "", username: "", name: "", profiles: {} };
     }
   }
 
@@ -261,13 +263,39 @@
     };
   }
 
+  function applyProfileMeta(row, profiles) {
+    const h = String(row.handle || "")
+      .replace(/^@/, "")
+      .trim()
+      .toLowerCase();
+    const p = profiles && h ? profiles[h] : null;
+    if (!p) return row;
+    return {
+      ...row,
+      handle: p.username || row.handle,
+      displayName: p.name || row.displayName || p.username || row.handle,
+      profilePictureUrl:
+        row.profilePictureUrl ||
+        `https://app.0-1.co.kr/api/handmade/v1/ig-avatar?u=${encodeURIComponent(h)}`,
+    };
+  }
+
+  function isRelevantWear(row) {
+    const blob = `${row.titleKo || ""} ${row.captionKo || ""} ${row.pieceKo || ""} ${row.type || ""}`.toLowerCase();
+    if (/시계|워치|\bwatch\b|museum|flickr|tribal/.test(blob)) return false;
+    // jewelry wear / coord relevance
+    return /bracelet|브레이슬릿|팔찌|necklace|목걸이|earring|귀걸이|ring|반지|착용|코디|alhambra|알함브라|crush|크러쉬|love|러브|serpenti|세르펜티|앙끌로|clou|스택|wear|jewel/.test(
+      blob
+    );
+  }
+
   async function buildFeed(force) {
     if (!force) {
       const hit = cacheGet();
       if (hit?.items?.length) return hit.items;
     }
     try {
-      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4", "hx.ig.wear.v5"].forEach(
+      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4", "hx.ig.wear.v5", "hx.ig.wear.v6", "hx.ig.wear.v7"].forEach(
         (k) => localStorage.removeItem(k)
       );
     } catch (_) {}
@@ -280,6 +308,7 @@
       name: backend.name || "",
       profilePictureUrl: backend.profilePictureUrl || "",
     };
+    const profiles = backend.profiles || {};
 
     const allowedCodes = new Set(BRAND_ORDER.filter((c) => brands[c]));
     Object.keys(brands).forEach((c) => allowedCodes.add(c));
@@ -287,8 +316,11 @@
 
     const merged = [];
     const seen = new Set();
-    // Instagram API + curated overseas wear ONLY — never portfolio SKUs
-    [...backend.items, ...(curated.items || [])].forEach((row) => {
+    const curatedRows = (curated.items || [])
+      .filter(isRelevantWear)
+      .map((row) => applyProfileMeta(row, profiles));
+
+    [...backend.items.map((row) => applyProfileMeta(row, profiles)), ...curatedRows].forEach((row) => {
       const item = normalize(row, brands, liveProfile);
       if (!item) return;
       if (!allowedCodes.has(item.brandCode)) return;
@@ -324,12 +356,17 @@
     head.type = "button";
     head.setAttribute("aria-label", `${handle} 프로필`);
     const av = el("div", "hx-ig__avatar");
-    setAvatar(av, handle, avatarSrc);
+    setAvatar(av, handle, avatarSrc, item.image);
 
     const meta = el("div", "hx-ig__meta");
-    // Instagram-style: username as primary account id
+    // Exact Instagram username (as on IG). Optional display name as subtle second line.
+    const uname = String(item.handle || "").replace(/^@/, "");
+    const dname = String(item.displayName || "").trim();
     meta.innerHTML =
-      `<strong>${handle}</strong>` +
+      `<strong>${uname}</strong>` +
+      (dname && dname.toLowerCase() !== uname.toLowerCase()
+        ? `<em class="hx-ig__fullname">${dname}</em>`
+        : "") +
       `<span>${item.brandCode !== "IG" ? item.brandCode + " · " : ""}${item.typeKo}</span>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt, item.id));
     head.append(av, meta, time);
