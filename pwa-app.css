@@ -748,12 +748,23 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-pulse__dot {
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #ef4444;
-  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
   animation: pwaLive 1.2s ease-out infinite;
+}
+
+.pwa-pulse__label {
+  flex: none;
+  margin-right: 2px;
+  font-family: Syne, Archivo, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #ef4444;
+  white-space: nowrap;
 }
 
 .pwa-pulse__track {
@@ -820,38 +831,73 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-stories__ring {
+  position: relative;
   display: grid;
   place-items: center;
   width: 58px;
   height: 58px;
   margin: 0 auto;
-  padding: 2px;
+  padding: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4, #f58529);
-  background-size: 300% 300%;
-  animation: pwaStoryRing 4.5s linear infinite;
+  background: transparent;
+  isolation: isolate;
 }
 
-.pwa-stories__item.is-new .pwa-stories__ring,
-.pwa-stories__item.is-live .pwa-stories__ring {
-  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #f09433);
-  background-size: 300% 300%;
-  animation: pwaStoryRing 3.2s linear infinite;
+.pwa-stories__ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #feda75 0deg,
+    #fa7e1e 60deg,
+    #d62976 140deg,
+    #962fbf 210deg,
+    #4f5bd5 280deg,
+    #feda75 360deg
+  );
+  animation: pwaStorySpin 3.6s linear infinite;
+  z-index: 0;
 }
 
-@keyframes pwaStoryRing {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.pwa-stories__ring::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  border-radius: 50%;
+  background: #0a0a0a;
+  z-index: 1;
+}
+
+.pwa-stories__item.is-new .pwa-stories__ring::before,
+.pwa-stories__item.is-live .pwa-stories__ring::before {
+  background: conic-gradient(
+    from 0deg,
+    #feda75 0deg,
+    #fa7e1e 55deg,
+    #d62976 130deg,
+    #962fbf 200deg,
+    #4f5bd5 270deg,
+    #feda75 360deg
+  );
+  animation: pwaStorySpin 2.8s linear infinite;
+}
+
+@keyframes pwaStorySpin {
+  to { transform: rotate(360deg); }
 }
 
 .pwa-stories__ring img {
-  width: 52px;
-  height: 52px;
+  position: relative;
+  z-index: 2;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #0a0a0a;
+  border: 1.5px solid #0a0a0a;
   display: block;
+  background: #161616;
 }
 
 .pwa-stories__lab {
@@ -2169,4 +2215,13 @@ html.is-pwa body.gb-chrome-paper .gb-top-auth-btn.is-accent {
 }
 body.gb-chrome-paper .gb-top-brand__text {
   color: #161513 !important;
+}
+
+
+/* Regular web: no app bottom dock */
+html:not(.is-pwa) .gb-bottom-nav {
+  display: none !important;
+}
+html:not(.is-pwa) body.has-gb-bottom-nav {
+  padding-bottom: 0 !important;
 }

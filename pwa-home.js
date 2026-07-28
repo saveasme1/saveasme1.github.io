@@ -943,6 +943,7 @@
     }
     pulse.innerHTML =
       `<span class="pwa-pulse__dot" aria-hidden="true"></span>` +
+      `<span class="pwa-pulse__label">RECENT UPDATE</span>` +
       `<div class="pwa-pulse__track"><div class="pwa-pulse__move">${pulseLines
         .concat(pulseLines)
         .map((t) => `<span>${t}</span>`)

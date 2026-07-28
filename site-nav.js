@@ -407,6 +407,8 @@
   }
   function injectBottomNav() {
     if (isStandalonePublicHome()) return;
+    // App dock is PWA-only (sell the installable experience)
+    if (!isPwaMode() && !document.documentElement.classList.contains("is-pwa")) return;
     if (document.querySelector(".gb-bottom-nav")) return;
     const nav = document.createElement("nav");
     nav.className = "gb-bottom-nav";
