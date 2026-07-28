@@ -53,10 +53,16 @@
     status: $("boardWriteStatus"),
     submit: $("boardWriteSubmit"),
     cancel: $("boardWriteCancel"),
+    help: $("boardWriteHelp"),
+    coverPreview: $("boardCoverPreview"),
+    detailGrid: $("boardDetailGrid"),
+    cover: { path: "", file: null, preview: "" },
+    details: [],
   };
   const writerHtmlEditor = window.GongbangHtmlEditor?.mount(writer.form?.elements.content);
 
   if (!boards.shipping.section || !boards.notices.section || !dialog.root) return;
+  if (!writer.root || !writer.form) return;
 
   const state = {
     shipping: [],
@@ -355,6 +361,58 @@
     return path;
   }
 
+  function clearWriterMedia() {
+    if (writer.cover?.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
+    (writer.details || []).forEach((detail) => {
+      if (detail.preview?.startsWith("blob:")) URL.revokeObjectURL(detail.preview);
+    });
+    writer.cover = { path: "", file: null, preview: "" };
+    writer.details = [];
+  }
+
+  function renderWriterCover() {
+    const preview = writer.coverPreview;
+    if (!preview) return;
+    const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
+    preview.classList.toggle("is-empty", !url);
+    preview.textContent = url ? "" : "대표 이미지 없음";
+    preview.style.backgroundImage = url ? `url("${url}")` : "";
+  }
+
+  function renderWriterDetails() {
+    const grid = writer.detailGrid;
+    if (!grid) return;
+    grid.replaceChildren();
+    if (!writer.details.length) {
+      const empty = document.createElement("p");
+      empty.className = "pf-writer-empty";
+      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
+      grid.append(empty);
+      return;
+    }
+    writer.details.forEach((detail, index) => {
+      const card = document.createElement("div");
+      card.className = "pf-writer-thumb";
+      const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
+      card.style.backgroundImage = url ? `url("${url}")` : "";
+      const order = document.createElement("span");
+      order.className = "pf-writer-order";
+      order.textContent = String(index + 1);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "pf-writer-remove";
+      remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+      remove.textContent = "×";
+      remove.addEventListener("click", () => {
+        const [removed] = writer.details.splice(index, 1);
+        if (removed?.preview?.startsWith("blob:")) URL.revokeObjectURL(removed.preview);
+        renderWriterDetails();
+      });
+      card.append(order, remove);
+      grid.append(card);
+    });
+  }
+
   function openWriter(type) {
     if (!state.member || state.member.role !== "admin") {
       if (typeof window.showGongbangToast === "function") {
@@ -363,11 +421,18 @@
       return;
     }
     writer.form.reset();
+    clearWriterMedia();
     writer.form.elements.boardType.value = type;
     writer.title.textContent = type === "shipping" ? "최종검수 작성" : "공지사항 작성";
+    if (writer.help) {
+      writer.help.textContent = "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
+    }
     writer.status.textContent = "";
     writer.submit.disabled = false;
     writerHtmlEditor?.reset?.();
+    renderWriterCover();
+    renderWriterDetails();
+    writer.root.classList.add("gb-write-dialog");
     writer.root.showModal();
   }
 
@@ -375,22 +440,28 @@
     event.preventDefault();
     const form = event.currentTarget;
     const type = form.elements.boardType.value;
-    const coverFile = form.elements.cover.files[0];
-    const detailFiles = [...form.elements.images.files];
-    if (!boards[type] || !coverFile) return;
-    if (detailFiles.length > 8) {
-      writer.status.textContent = "추가 이미지는 최대 8장까지 등록할 수 있습니다.";
+    if (!boards[type]) return;
+    if (!writer.cover.file && !writer.cover.path) {
+      writer.status.textContent = "대표 이미지를 선택해 주세요.";
       return;
     }
     writer.submit.disabled = true;
     try {
       const id = `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-      writer.status.textContent = "대표 이미지 업로드 중…";
-      const cover = await uploadImage(type, coverFile, id, "cover");
+      let cover = writer.cover.path || "";
+      if (writer.cover.file) {
+        writer.status.textContent = "대표 이미지 업로드 중…";
+        cover = await uploadImage(type, writer.cover.file, id, "cover");
+      }
       const images = [];
-      for (let index = 0; index < detailFiles.length; index += 1) {
-        writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${detailFiles.length}`;
-        images.push(await uploadImage(type, detailFiles[index], id, "detail", index + 1));
+      for (let index = 0; index < writer.details.length; index += 1) {
+        const detail = writer.details[index];
+        if (detail.file) {
+          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${writer.details.length}`;
+          images.push(await uploadImage(type, detail.file, id, "detail", index + 1));
+        } else if (detail.path) {
+          images.push(detail.path);
+        }
       }
 
       writer.status.textContent = "게시글을 저장하고 공개하는 중…";
@@ -405,7 +476,7 @@
         content: form.elements.content.value.trim(),
         cover,
         image: cover,
-        images,
+        images: images.filter((path) => path && path !== cover),
         publishedAt: now,
         updatedAt: now,
         category:
@@ -439,6 +510,7 @@
       state[type] = published.items;
       boards[type].page = 1;
       renderList(type);
+      clearWriterMedia();
       writer.root.close();
       form.reset();
     } catch (error) {
@@ -707,6 +779,24 @@
     }
   });
   writer.cancel.addEventListener("click", () => writer.root.close());
+  writer.form.elements.cover?.addEventListener("change", () => {
+    const file = writer.form.elements.cover.files?.[0];
+    if (!file) return;
+    if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
+    writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file) };
+    writer.form.elements.cover.value = "";
+    renderWriterCover();
+  });
+  writer.form.elements.images?.addEventListener("change", () => {
+    const files = [...(writer.form.elements.images.files || [])];
+    files.forEach((file) => {
+      writer.details.push({ path: "", file, preview: URL.createObjectURL(file) });
+    });
+    writer.form.elements.images.value = "";
+    renderWriterDetails();
+  });
+  renderWriterCover();
+  renderWriterDetails();
 
   dialog.close.addEventListener("click", closeDetail);
   dialog.root.addEventListener("click", (event) => {

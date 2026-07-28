@@ -750,14 +750,14 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 
 /* In-page portfolio writer — responsive, polished */
-.pf-write-dialog.review-dialog {
+.pf-write-dialog, .gb-write-dialog.review-dialog {
   width: min(calc(100% - 20px), 440px);
   margin: auto;
   padding: 0;
   border-radius: 18px;
   overflow: hidden;
 }
-.pf-write-dialog form {
+.pf-write-dialog, .gb-write-dialog form {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -768,16 +768,16 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   background:
     linear-gradient(180deg, #fffdfb 0%, #ffffff 40%);
 }
-.pf-write-dialog h2 {
+.pf-write-dialog, .gb-write-dialog h2 {
   margin: 0;
   padding: 0 20px;
   font-size: 19px;
   line-height: 1.3;
   letter-spacing: -0.02em;
 }
-.pf-write-dialog .pf-writer-fields,
-.pf-write-dialog .pf-writer-images,
-.pf-write-dialog .pf-writer-footer {
+.pf-write-dialog, .gb-write-dialog .pf-writer-fields,
+.pf-write-dialog, .gb-write-dialog .pf-writer-images,
+.pf-write-dialog, .gb-write-dialog .pf-writer-footer {
   width: 100%;
   box-sizing: border-box;
   padding: 0 20px;
@@ -788,7 +788,7 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   gap: 14px;
   margin-top: 14px;
 }
-.pf-write-dialog .pf-writer-fields > label,
+.pf-write-dialog, .gb-write-dialog .pf-writer-fields > label,
 .pf-writer-cat {
   display: block;
   margin: 0;
@@ -804,8 +804,8 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   font-size: 12px;
   font-weight: 750;
 }
-.pf-write-dialog .pf-writer-fields input,
-.pf-write-dialog .pf-writer-fields textarea {
+.pf-write-dialog, .gb-write-dialog .pf-writer-fields input,
+.pf-write-dialog, .gb-write-dialog .pf-writer-fields textarea {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -814,13 +814,13 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   border-color: #e4dfd7;
   background: #fff;
 }
-.pf-write-dialog .html-editor {
+.pf-write-dialog, .gb-write-dialog .html-editor {
   display: block;
   width: 100%;
   margin-top: 7px;
   box-sizing: border-box;
 }
-.pf-write-dialog .html-editor textarea { margin-top: 0; }
+.pf-write-dialog, .gb-write-dialog .html-editor textarea { margin-top: 0; }
 .pf-writer-cats {
   display: flex;
   flex-wrap: wrap;
@@ -971,12 +971,12 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   cursor: pointer;
 }
 .pf-writer-footer { margin-top: 12px; }
-.pf-write-dialog .review-image-help,
-.pf-write-dialog .review-dialog-status {
+.pf-write-dialog, .gb-write-dialog .review-image-help,
+.pf-write-dialog, .gb-write-dialog .review-dialog-status {
   margin: 8px 0 0;
   padding: 0;
 }
-.pf-write-dialog .review-dialog-actions {
+.pf-write-dialog, .gb-write-dialog .review-dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -985,13 +985,13 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 
 @media (min-width: 720px) {
-  .pf-write-dialog.review-dialog {
+  .pf-write-dialog, .gb-write-dialog.review-dialog {
     width: min(calc(100% - 48px), 920px);
   }
-  .pf-write-dialog h2,
-  .pf-write-dialog .pf-writer-fields,
-  .pf-write-dialog .pf-writer-images,
-  .pf-write-dialog .pf-writer-footer {
+  .pf-write-dialog, .gb-write-dialog h2,
+  .pf-write-dialog, .gb-write-dialog .pf-writer-fields,
+  .pf-write-dialog, .gb-write-dialog .pf-writer-images,
+  .pf-write-dialog, .gb-write-dialog .pf-writer-footer {
     padding-left: 28px;
     padding-right: 28px;
   }
@@ -1024,7 +1024,7 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 
 @media (min-width: 1100px) {
-  .pf-write-dialog.review-dialog {
+  .pf-write-dialog, .gb-write-dialog.review-dialog {
     width: min(calc(100% - 64px), 1040px);
   }
   .pf-writer-cover {

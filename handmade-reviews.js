@@ -399,20 +399,124 @@
     actions.append(edit, remove);
   }
 
+  const reviewMedia = {
+    cover: { path: "", file: null, preview: "" },
+    details: [],
+  };
+
+  function reviewImageUrl(value) {
+    if (!value) return "";
+    if (typeof value === "object") return imageUrl(value.url || value.path || "");
+    return imageUrl(value);
+  }
+
+  function clearReviewMedia() {
+    if (reviewMedia.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(reviewMedia.cover.preview);
+    reviewMedia.details.forEach((detail) => {
+      if (detail.preview?.startsWith("blob:")) URL.revokeObjectURL(detail.preview);
+    });
+    reviewMedia.cover = { path: "", file: null, preview: "" };
+    reviewMedia.details = [];
+  }
+
+  function renderReviewCover() {
+    const preview = $("reviewCoverPreview");
+    if (!preview) return;
+    const url = reviewMedia.cover.preview || reviewImageUrl(reviewMedia.cover.path);
+    preview.classList.toggle("is-empty", !url);
+    preview.textContent = url ? "" : "대표 이미지 없음";
+    preview.style.backgroundImage = url ? `url("${url}")` : "";
+  }
+
+  function renderReviewDetails() {
+    const grid = $("reviewDetailGrid");
+    if (!grid) return;
+    grid.replaceChildren();
+    if (!reviewMedia.details.length) {
+      const empty = document.createElement("p");
+      empty.className = "pf-writer-empty";
+      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
+      grid.append(empty);
+      return;
+    }
+    reviewMedia.details.forEach((detail, index) => {
+      const card = document.createElement("div");
+      card.className = "pf-writer-thumb";
+      const url = detail.preview || reviewImageUrl(detail.path);
+      card.style.backgroundImage = url ? `url("${url}")` : "";
+      const order = document.createElement("span");
+      order.className = "pf-writer-order";
+      order.textContent = String(index + 1);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "pf-writer-remove";
+      remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+      remove.textContent = "×";
+      remove.addEventListener("click", () => {
+        const [removed] = reviewMedia.details.splice(index, 1);
+        if (removed?.preview?.startsWith("blob:")) URL.revokeObjectURL(removed.preview);
+        renderReviewDetails();
+      });
+      card.append(order);
+      // Existing server images can't be deleted from this dialog alone; only newly picked files
+      if (detail.file || !$("reviewWriteForm")?.dataset.reviewId) {
+        card.append(remove);
+      }
+      grid.append(card);
+    });
+  }
+
+  function bindReviewMediaInputs(form) {
+    if (!form || form.dataset.mediaBound === "1") return;
+    form.dataset.mediaBound = "1";
+    form.elements.cover?.addEventListener("change", () => {
+      const file = form.elements.cover.files?.[0];
+      if (!file) return;
+      if (reviewMedia.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(reviewMedia.cover.preview);
+      reviewMedia.cover = { path: reviewMedia.cover.path, file, preview: URL.createObjectURL(file) };
+      form.elements.cover.value = "";
+      renderReviewCover();
+    });
+    form.elements.images?.addEventListener("change", () => {
+      const files = [...(form.elements.images.files || [])];
+      files.forEach((file) => {
+        reviewMedia.details.push({ path: "", file, preview: URL.createObjectURL(file) });
+      });
+      form.elements.images.value = "";
+      renderReviewDetails();
+    });
+  }
+
   function openReviewEditor(review) {
     ensureDialogs();
     const form = $("reviewWriteForm");
+    clearReviewMedia();
+    form.reset();
     form.dataset.reviewId = String(review.id);
     form.elements.title.value = review.title;
     form.elements.body.value = review.body;
-    form.elements.cover.required = false;
+    const images = Array.isArray(review.images) ? review.images : [];
+    const cover = images[0];
+    reviewMedia.cover = {
+      path: cover ? cover.url || cover.path || cover : "",
+      file: null,
+      preview: "",
+    };
+    reviewMedia.details = images.slice(1).map((img) => ({
+      path: img.url || img.path || img || "",
+      file: null,
+      preview: "",
+    }));
     form._htmlEditor?.setMode(
       window.GongbangHtmlEditor?.looksLikeHtml?.(review.body) ? "source" : "text"
     );
     $("reviewWriteTitle").textContent = "스냅 수정";
-    $("reviewImageHelp").textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다.";
+    $("reviewImageHelp").textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다. ×로 삭제·+로 추가하세요.";
     $("reviewWriteSubmit").textContent = "수정 저장";
     $("reviewWriteStatus").textContent = "";
+    bindReviewMediaInputs(form);
+    renderReviewCover();
+    renderReviewDetails();
     closeReview();
     $("reviewWriteDialog").showModal();
   }
@@ -422,12 +526,15 @@
     const form = $("reviewWriteForm");
     form.reset();
     delete form.dataset.reviewId;
-    form.elements.cover.required = true;
+    clearReviewMedia();
     form._htmlEditor?.reset?.();
     $("reviewWriteTitle").textContent = "스냅 작성";
-    $("reviewImageHelp").textContent = "대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.";
+    $("reviewImageHelp").textContent = "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
     $("reviewWriteSubmit").textContent = "등록하기";
     $("reviewWriteStatus").textContent = "";
+    bindReviewMediaInputs(form);
+    renderReviewCover();
+    renderReviewDetails();
     $("reviewWriteDialog").showModal();
   }
 
@@ -520,21 +627,47 @@
   }
 
   function ensureDialogs() {
+    const existing = $("reviewWriteDialog");
+    if (existing && !existing.querySelector(".pf-writer-images")) {
+      existing.remove();
+    }
     if (!$("reviewWriteDialog")) {
       document.body.insertAdjacentHTML(
         "beforeend",
-        `<dialog class="review-dialog write-dialog" id="reviewWriteDialog">
+        `<dialog class="review-dialog write-dialog gb-write-dialog" id="reviewWriteDialog">
           <form id="reviewWriteForm">
             <h2 id="reviewWriteTitle">스냅 작성</h2>
-            <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="후기 제목"></label>
-            <label>내용<textarea name="body" minlength="2" maxlength="20000" required placeholder="후기 내용을 입력해 주세요"></textarea></label>
-            <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>
-            <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
-            <p class="review-image-help" id="reviewImageHelp">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
-            <p class="review-dialog-status" id="reviewWriteStatus" aria-live="polite"></p>
-            <div class="review-dialog-actions">
-              <button type="button" data-close>취소</button>
-              <button class="primary" type="submit" id="reviewWriteSubmit">등록하기</button>
+            <div class="pf-writer-fields">
+              <label class="pf-writer-title">제목<input name="title" minlength="2" maxlength="160" required placeholder="후기 제목"></label>
+              <label class="pf-writer-content">내용<textarea name="body" minlength="2" maxlength="20000" required placeholder="후기 내용을 입력해 주세요"></textarea></label>
+            </div>
+            <section class="pf-writer-images" aria-label="이미지">
+              <div class="pf-writer-block pf-writer-cover-block">
+                <div class="pf-writer-heading">
+                  <strong>대표 이미지</strong>
+                  <span>목록에 가장 먼저 보이는 이미지</span>
+                </div>
+                <div class="pf-writer-cover-row">
+                  <div class="pf-writer-cover is-empty" id="reviewCoverPreview">대표 이미지 없음</div>
+                  <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+                </div>
+              </div>
+              <div class="pf-writer-block pf-writer-detail-block">
+                <div class="pf-writer-heading">
+                  <strong>추가 이미지</strong>
+                  <span>여러 번 눌러 계속 추가</span>
+                </div>
+                <label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+                <div class="pf-writer-grid" id="reviewDetailGrid"></div>
+              </div>
+            </section>
+            <div class="pf-writer-footer">
+              <p class="review-image-help" id="reviewImageHelp">대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.</p>
+              <p class="review-dialog-status" id="reviewWriteStatus" aria-live="polite"></p>
+              <div class="review-dialog-actions">
+                <button type="button" data-close>취소</button>
+                <button class="primary" type="submit" id="reviewWriteSubmit">등록하기</button>
+              </div>
             </div>
           </form>
         </dialog>`
@@ -546,6 +679,7 @@
       $("reviewWriteForm")._htmlEditor = window.GongbangHtmlEditor?.mount(
         $("reviewWriteForm").elements.body
       );
+      bindReviewMediaInputs($("reviewWriteForm"));
     }
     if (!$("reviewAuthDialog") && !window.GongbangAuth) {
       document.body.insertAdjacentHTML(
@@ -654,25 +788,34 @@
     event.preventDefault();
     const form = event.currentTarget;
     const status = $("reviewWriteStatus");
-    const imageFiles = [...form.elements.images.files];
-    const coverFile = form.elements.cover.files[0];
-    if (imageFiles.length > 8) {
-      status.textContent = "추가 이미지는 최대 8장까지 등록할 수 있습니다.";
+    const reviewId = form.dataset.reviewId;
+    const hasNewCover = Boolean(reviewMedia.cover.file);
+    const hasNewDetails = reviewMedia.details.some((detail) => detail.file);
+    if (!reviewId && !hasNewCover && !reviewMedia.cover.path) {
+      status.textContent = "대표 이미지를 선택해 주세요.";
       return;
     }
-    const reviewId = form.dataset.reviewId;
-    if (reviewId && imageFiles.length && !coverFile) {
+    if (reviewId && hasNewDetails && !hasNewCover && !reviewMedia.cover.path) {
       status.textContent = "사진을 교체하려면 대표 이미지도 선택해 주세요.";
       return;
     }
+    status.className = "review-dialog-status";
     status.textContent = reviewId ? "후기를 수정하는 중…" : "이미지를 안전하게 처리하고 후기를 등록하는 중…";
     try {
+      const body = new FormData();
+      body.append("title", form.elements.title.value.trim());
+      body.append("body", form.elements.body.value.trim());
+      if (hasNewCover) body.append("cover", reviewMedia.cover.file);
+      reviewMedia.details.forEach((detail) => {
+        if (detail.file) body.append("images", detail.file);
+      });
       await api(reviewId ? `/reviews/${reviewId}` : "/reviews", {
         method: reviewId ? "PUT" : "POST",
-        body: new FormData(form),
+        body,
       });
       form.reset();
       delete form.dataset.reviewId;
+      clearReviewMedia();
       $("reviewWriteDialog").close();
       state.page = 1;
       await loadReviews(true);
