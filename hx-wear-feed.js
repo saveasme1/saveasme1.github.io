@@ -443,11 +443,19 @@
     };
   }
 
+  function sortLatest(items) {
+    return [...(items || [])].sort((a, b) => {
+      const ta = Date.parse(a?.publishedAt || 0) || 0;
+      const tb = Date.parse(b?.publishedAt || 0) || 0;
+      return tb - ta || String(b?.id || "").localeCompare(String(a?.id || ""));
+    });
+  }
+
   async function buildFeed(force, brand) {
     const cacheKey = `${CACHE_KEY}:${brand || "all"}`;
     if (!force) {
       const hit = cacheGet(cacheKey);
-      if (hit?.items?.length) return hit.items;
+      if (hit?.items?.length) return sortLatest(hit.items);
     }
     let raw = [];
     try {
@@ -459,7 +467,7 @@
     if (!raw.length && (!brand || brand === "all")) {
       raw = await loadLegacyFallback();
     }
-    const items = raw.map(normalizeItem).filter(Boolean);
+    const items = sortLatest(raw.map(normalizeItem).filter(Boolean));
     cacheSet(cacheKey, items);
     return items;
   }

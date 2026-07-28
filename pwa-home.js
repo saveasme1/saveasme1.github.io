@@ -530,16 +530,39 @@
   }
 
   async function loadDiscoverStories(limit) {
+    const takeUnique = (rows) => {
+      const sorted = [...(rows || [])].sort((a, b) => {
+        const ta = Date.parse(a?.publishedAt || 0) || 0;
+        const tb = Date.parse(b?.publishedAt || 0) || 0;
+        return tb - ta;
+      });
+      const seen = new Set();
+      const out = [];
+      for (const item of sorted) {
+        const key = String(item?.handle || item?.profileUsername || "")
+          .replace(/^@/, "")
+          .trim()
+          .toLowerCase();
+        if (key) {
+          if (seen.has(key)) continue;
+          seen.add(key);
+        }
+        out.push(item);
+        if (out.length >= limit) break;
+      }
+      return out;
+    };
+
     if (window.HxWearFeed && typeof window.HxWearFeed.buildFeed === "function") {
       try {
         const rows = await window.HxWearFeed.buildFeed(false, "all");
-        if (Array.isArray(rows) && rows.length) return rows.slice(0, limit);
+        if (Array.isArray(rows) && rows.length) return takeUnique(rows);
       } catch (_) {}
     }
     try {
       const q = new URLSearchParams({
         brand: "all",
-        limit: String(Math.max(limit, 20)),
+        limit: String(Math.max(limit * 4, 40)),
         sort: "latest",
       });
       const res = await fetch(`${wearApiBase()}/discover/feed?${q}`, {
@@ -549,14 +572,14 @@
       if (res.ok) {
         const data = await res.json();
         const rows = Array.isArray(data.items) ? data.items : [];
-        if (rows.length) return rows.slice(0, limit);
+        if (rows.length) return takeUnique(rows);
       }
     } catch (_) {}
     try {
       const res = await fetch(`./hx-ig-wear.json?v=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) return [];
       const data = await res.json();
-      return (data.items || []).slice(0, limit);
+      return takeUnique(data.items || []);
     } catch (_) {
       return [];
     }
