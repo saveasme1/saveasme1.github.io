@@ -294,10 +294,25 @@
     try {
       const known = typeof window.getGongbangMember === "function" ? window.getGongbangMember() : null;
       if (known) return known;
+      if (window.GongbangAuth?.fetchMe) {
+        const payload = await window.GongbangAuth.fetchMe();
+        if (payload.accessToken) {
+          try {
+            sessionStorage.setItem(TOKEN_KEY, payload.accessToken);
+          } catch (_) {}
+        }
+        return payload.member || null;
+      }
       const response = await fetch(`${API_BASE}/auth/me`, {
         credentials: "include",
         headers: authHeaders(),
       });
+      if (!response.ok && response.status === 401 && sessionStorage.getItem(TOKEN_KEY)) {
+        sessionStorage.removeItem(TOKEN_KEY);
+        const retry = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+        const retryPayload = await retry.json().catch(() => ({}));
+        return retryPayload.member || null;
+      }
       const payload = await response.json().catch(() => ({}));
       return payload.member || null;
     } catch (_) {
@@ -411,6 +426,8 @@
     });
     renderTopAuth();
     fetchMember().then((member) => {
+      // Don't clobber a successful auth-changed with a late failed/null fetch
+      if (!member && (topAuthMember || document.body.dataset.authState === "in")) return;
       topAuthMember = member;
       document.body.dataset.authState = member ? "in" : "out";
       renderTopAuth();
@@ -473,7 +490,11 @@
     boot();
   }
   window.addEventListener("gongbang:auth-changed", (event) => {
-    topAuthMember = event.detail?.member || null;
+    if (!event.detail || !Object.prototype.hasOwnProperty.call(event.detail, "member")) return;
+    const next = event.detail.member || null;
+    // Ignore boot-time null noise when we already know the user is signed in
+    if (!next && topAuthMember && document.body.dataset.authState === "in") return;
+    topAuthMember = next;
     document.body.dataset.authState = topAuthMember ? "in" : "out";
     renderTopAuth();
   });

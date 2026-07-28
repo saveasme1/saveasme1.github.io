@@ -130,9 +130,14 @@
     }
   }
   window.closeGongbangReviewsPanel = closeReviewsPanel;
-  window.openGongbangAuth = (mode, options = {}) => openAuth(mode || "login", options);
+  // Prefer shared gongbang-auth.js opener when present
+  if (!window.GongbangAuth) {
+    window.openGongbangAuth = (mode, options = {}) => openAuth(mode || "login", options);
+  }
   window.refreshGongbangAuthUI = () => renderSession();
-  window.getGongbangMember = () => state.member;
+  if (!window.getGongbangMember) {
+    window.getGongbangMember = () => state.member;
+  }
 
   function notifyAuthChanged() {
     window.dispatchEvent(new CustomEvent("gongbang:auth-changed", { detail: { member: state.member } }));
@@ -515,72 +520,86 @@
   }
 
   function ensureDialogs() {
-    if ($("reviewAuthDialog")) return;
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      `<dialog class="review-dialog auth-dialog" id="reviewAuthDialog">
-        <form id="reviewAuthForm" data-mode="login">
-          <div class="auth-tabs" role="tablist">
-            <button type="button" class="auth-tab is-active" data-auth-tab="login" role="tab">로그인</button>
-            <button type="button" class="auth-tab" data-auth-tab="register" role="tab">회원가입</button>
-          </div>
-          <div class="auth-panel" data-auth-panel="login">
-            <h2 id="reviewAuthTitleLogin">로그인</h2>
-            <p class="auth-desc">가입하신 아이디로 로그인하세요.</p>
-          </div>
-          <div class="auth-panel" data-auth-panel="register" hidden>
-            <h2 id="reviewAuthTitleRegister">회원가입</h2>
-            <p class="auth-desc">새 계정을 만들고 관리자 승인을 기다려 주세요.</p>
-            <p class="auth-notice">가입 신청 후 관리자 승인이 완료되어야 후기를 작성할 수 있습니다. 가입승인이 늦어질 경우 카카오톡 add68로 따로 가입승인 문의주세요.</p>
-          </div>
-          <label class="auth-field">아이디
-            <input id="reviewUsername" autocomplete="username" minlength="4" maxlength="30" required placeholder="아이디 입력">
-          </label>
-          <label class="auth-field">비밀번호
-            <input id="reviewPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="비밀번호 입력">
-          </label>
-          <p class="review-dialog-status" id="reviewAuthStatus" aria-live="polite"></p>
-          <div class="review-dialog-actions auth-actions">
-            <button type="button" data-close>취소</button>
-            <button class="primary" type="submit" id="reviewAuthSubmit">로그인</button>
-          </div>
-        </form>
-      </dialog>
-      <dialog class="review-dialog write-dialog" id="reviewWriteDialog">
-        <form id="reviewWriteForm">
-          <h2 id="reviewWriteTitle">스냅 작성</h2>
-          <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="후기 제목"></label>
-          <label>내용<textarea name="body" minlength="2" maxlength="20000" required placeholder="후기 내용을 입력해 주세요"></textarea></label>
-          <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>
-          <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
-          <p class="review-image-help" id="reviewImageHelp">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
-          <p class="review-dialog-status" id="reviewWriteStatus" aria-live="polite"></p>
-          <div class="review-dialog-actions">
-            <button type="button" data-close>취소</button>
-            <button class="primary" type="submit" id="reviewWriteSubmit">등록하기</button>
-          </div>
-        </form>
-      </dialog>`
-    );
-    document.querySelectorAll(".review-dialog [data-close]").forEach((button) =>
-      button.addEventListener("click", () => button.closest("dialog").close())
-    );
-    document.querySelectorAll("[data-auth-tab]").forEach((button) =>
-      button.addEventListener("click", () => openAuth(button.dataset.authTab))
-    );
-    $("reviewAuthForm").addEventListener("submit", submitAuth);
-    $("reviewWriteForm").addEventListener("submit", submitReview);
-    $("reviewWriteForm")._htmlEditor = window.GongbangHtmlEditor?.mount(
-      $("reviewWriteForm").elements.body
-    );
+    if (!$("reviewWriteDialog")) {
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        `<dialog class="review-dialog write-dialog" id="reviewWriteDialog">
+          <form id="reviewWriteForm">
+            <h2 id="reviewWriteTitle">스냅 작성</h2>
+            <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="후기 제목"></label>
+            <label>내용<textarea name="body" minlength="2" maxlength="20000" required placeholder="후기 내용을 입력해 주세요"></textarea></label>
+            <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+            <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <p class="review-image-help" id="reviewImageHelp">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
+            <p class="review-dialog-status" id="reviewWriteStatus" aria-live="polite"></p>
+            <div class="review-dialog-actions">
+              <button type="button" data-close>취소</button>
+              <button class="primary" type="submit" id="reviewWriteSubmit">등록하기</button>
+            </div>
+          </form>
+        </dialog>`
+      );
+      $("reviewWriteDialog")
+        .querySelectorAll("[data-close]")
+        .forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
+      $("reviewWriteForm").addEventListener("submit", submitReview);
+      $("reviewWriteForm")._htmlEditor = window.GongbangHtmlEditor?.mount(
+        $("reviewWriteForm").elements.body
+      );
+    }
+    if (!$("reviewAuthDialog") && !window.GongbangAuth) {
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        `<dialog class="review-dialog auth-dialog" id="reviewAuthDialog">
+          <form id="reviewAuthForm" data-mode="login">
+            <div class="auth-tabs" role="tablist">
+              <button type="button" class="auth-tab is-active" data-auth-tab="login" role="tab">로그인</button>
+              <button type="button" class="auth-tab" data-auth-tab="register" role="tab">회원가입</button>
+            </div>
+            <div class="auth-panel" data-auth-panel="login">
+              <h2 id="reviewAuthTitleLogin">로그인</h2>
+              <p class="auth-desc">가입하신 아이디로 로그인하세요.</p>
+            </div>
+            <div class="auth-panel" data-auth-panel="register" hidden>
+              <h2 id="reviewAuthTitleRegister">회원가입</h2>
+              <p class="auth-desc">새 계정을 만들고 관리자 승인을 기다려 주세요.</p>
+              <p class="auth-notice">가입 신청 후 관리자 승인이 완료되어야 후기를 작성할 수 있습니다. 가입승인이 늦어질 경우 카카오톡 add68로 따로 가입승인 문의주세요.</p>
+            </div>
+            <label class="auth-field">아이디
+              <input id="reviewUsername" autocomplete="username" minlength="4" maxlength="30" required placeholder="아이디 입력">
+            </label>
+            <label class="auth-field">비밀번호
+              <input id="reviewPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="비밀번호 입력">
+            </label>
+            <p class="review-dialog-status" id="reviewAuthStatus" aria-live="polite"></p>
+            <div class="review-dialog-actions auth-actions">
+              <button type="button" data-close>취소</button>
+              <button class="primary" type="submit" id="reviewAuthSubmit">로그인</button>
+            </div>
+          </form>
+        </dialog>`
+      );
+      $("reviewAuthDialog")
+        .querySelectorAll("[data-close]")
+        .forEach((button) => button.addEventListener("click", () => button.closest("dialog").close()));
+      $("reviewAuthDialog")
+        .querySelectorAll("[data-auth-tab]")
+        .forEach((button) => button.addEventListener("click", () => openAuth(button.dataset.authTab)));
+      $("reviewAuthForm").addEventListener("submit", submitAuth);
+    }
   }
 
   function openAuth(mode, options = {}) {
+    if (window.GongbangAuth?.open) {
+      window.GongbangAuth.open(mode, options);
+      return;
+    }
     const next = mode === "register" ? "register" : "login";
     authRedirect = typeof options.redirect === "string" ? options.redirect : "";
     ensureDialogs();
     const form = $("reviewAuthForm");
     const dialog = $("reviewAuthDialog");
+    if (!form || !dialog) return;
     form.dataset.mode = next;
     dialog.dataset.mode = next;
     document.querySelectorAll("[data-auth-tab]").forEach((tab) => {
@@ -665,14 +684,24 @@
 
   async function loadMe() {
     try {
-      const payload = await api("/auth/me");
-      state.member = payload.member;
+      const payload = window.GongbangAuth?.fetchMe
+        ? await window.GongbangAuth.fetchMe()
+        : await api("/auth/me");
+      state.member = payload.member || null;
+      if (payload.accessToken) {
+        try {
+          sessionStorage.setItem(TOKEN_KEY, payload.accessToken);
+        } catch (_) {}
+      }
+      renderSession();
+      notifyAuthChanged();
     } catch {
-      state.member = null;
+      // Don't broadcast logout on boot failure — keeps a valid cookie session visible
+      renderSession();
     }
-    renderSession();
-    notifyAuthChanged();
   }
+
+  window.openGongbangAuth = window.openGongbangAuth || ((mode, options = {}) => openAuth(mode || "login", options));
 
   window.addEventListener("gongbang:auth-changed", (event) => {
     if (!event.detail || !Object.prototype.hasOwnProperty.call(event.detail, "member")) return;
@@ -742,8 +771,11 @@
           openReview(itemId).catch(() => {});
         }, 120);
       }
-    } else if (wantOpen === "mypage") openAuth("login", { redirect: "/mypage.html" });
-    else if (!els.section.hidden) {
+    } else if (wantOpen === "mypage") {
+      if (!state.member && !window.GongbangAuth) {
+        openAuth("login", { redirect: "/mypage.html" });
+      }
+    } else if (!els.section.hidden) {
       state.opened = true;
       loadReviews();
     }

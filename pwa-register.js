@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa59";
+  const APP_BUILD = "20260728-pwa60";
   const APP_VERSION = "v1.12.1";
   const RELEASE_NOTES = ["발견 화이트 UI", "댓글 로그인 수정", "일반인 착용컷 수집"];
   const BUILD_KEY = "hx.pwa.build";

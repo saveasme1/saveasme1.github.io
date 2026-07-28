@@ -109,12 +109,19 @@
     showToast._timer = setTimeout(() => toast.classList.remove("is-on"), options.duration || 2600);
   }
 
-  function openAuth(mode = "login") {
-    if (typeof window.openGongbangAuth === "function") {
-      window.openGongbangAuth(mode === "register" ? "register" : "login");
+  function openAuth(mode = "login", options = {}) {
+    const next = mode === "register" ? "register" : "login";
+    if (window.GongbangAuth?.open) {
+      window.GongbangAuth.open(next, options);
       return;
     }
-    location.href = "/landing.html?open=mypage";
+    if (typeof window.openGongbangAuth === "function" && window.openGongbangAuth !== openAuth) {
+      window.openGongbangAuth(next, options);
+      return;
+    }
+    const params = new URLSearchParams({ open: "mypage" });
+    if (next === "register") params.set("auth", "register");
+    location.href = `/landing.html?${params}`;
   }
 
   function openAdminWindow(url, name = "heritageAdminPortfolio") {
@@ -232,7 +239,7 @@
     if (!writer.details.length) {
       const empty = document.createElement("p");
       empty.className = "pf-writer-empty";
-      empty.textContent = "추가 이미지가 없습니다. + 이미지 추가로 여러 장을 계속 붙일 수 있습니다.";
+      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
       grid.append(empty);
       return;
     }
@@ -267,7 +274,9 @@
       state.writer?.root?.isConnected &&
       state.writer.coverPreview &&
       state.writer.detailGrid &&
-      state.writer.root.querySelector(".pf-writer-fields")
+      state.writer.root.querySelector(".pf-writer-fields") &&
+      state.writer.root.querySelector(".pf-writer-cats") &&
+      state.writer.root.querySelector(".pf-writer-cover-row")
     ) {
       return state.writer;
     }
@@ -282,7 +291,11 @@
         <input type="hidden" name="editId" value="">
         <h2 id="portfolioWriteTitle">포트폴리오 작성</h2>
         <div class="pf-writer-fields">
-          <label class="pf-writer-cat">카테고리<select name="category" required></select></label>
+          <div class="pf-writer-cat">
+            <span class="pf-writer-label">카테고리</span>
+            <input type="hidden" name="category" required value="C">
+            <div class="pf-writer-cats" id="portfolioCatChips" role="listbox" aria-label="카테고리 선택"></div>
+          </div>
           <label class="pf-writer-title">제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
           <label class="pf-writer-content">내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
         </div>
@@ -292,13 +305,15 @@
               <strong>대표 이미지</strong>
               <span>목록에 가장 먼저 보이는 이미지</span>
             </div>
-            <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
-            <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <div class="pf-writer-cover-row">
+              <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
+              <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            </div>
           </div>
           <div class="pf-writer-block pf-writer-detail-block">
             <div class="pf-writer-heading">
               <strong>추가 이미지</strong>
-              <span>여러 번 눌러 계속 추가할 수 있습니다</span>
+              <span>여러 번 눌러 계속 추가</span>
             </div>
             <label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
@@ -326,20 +341,43 @@
       help: root.querySelector("#portfolioWriteHelp"),
       coverPreview: root.querySelector("#portfolioCoverPreview"),
       detailGrid: root.querySelector("#portfolioDetailGrid"),
+      catChips: root.querySelector("#portfolioCatChips"),
       htmlEditor: window.GongbangHtmlEditor?.mount(form?.elements?.content),
       editing: null,
       cover: { path: "", file: null, preview: "" },
       details: [],
     };
 
-    const categorySelect = form.elements.category;
-    categorySelect.replaceChildren();
-    (state.categories.length ? state.categories : CATEGORIES).forEach((category) => {
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = category;
-      categorySelect.append(option);
-    });
+    function setCategory(value) {
+      const cats = state.categories.length ? state.categories : CATEGORIES;
+      const next = cats.includes(value) ? value : cats[0] || "C";
+      form.elements.category.value = next;
+      writer.catChips?.querySelectorAll("[data-cat]").forEach((chip) => {
+        chip.classList.toggle("is-active", chip.dataset.cat === next);
+        chip.setAttribute("aria-selected", chip.dataset.cat === next ? "true" : "false");
+      });
+    }
+
+    function renderCategoryChips() {
+      if (!writer.catChips) return;
+      const cats = state.categories.length ? state.categories : CATEGORIES;
+      writer.catChips.replaceChildren();
+      cats.forEach((category) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "pf-writer-cat-chip";
+        chip.dataset.cat = category;
+        chip.setAttribute("role", "option");
+        chip.textContent = category;
+        chip.addEventListener("click", () => setCategory(category));
+        writer.catChips.append(chip);
+      });
+      setCategory(form.elements.category.value || cats[0] || "C");
+    }
+
+    writer.renderCategoryChips = renderCategoryChips;
+    writer.setCategory = setCategory;
+    renderCategoryChips();
 
     writer.cancel.addEventListener("click", () => writer.root.close());
     writer.root.addEventListener("close", () => {
@@ -379,25 +417,14 @@
     writer.editing = editItem || null;
     writer.status.textContent = "";
     writer.submit.disabled = false;
-
-    const categorySelect = form.elements.category;
-    const cats = state.categories.length ? state.categories : CATEGORIES;
-    if (categorySelect.options.length !== cats.length) {
-      categorySelect.replaceChildren();
-      cats.forEach((category) => {
-        const option = document.createElement("option");
-        option.value = category;
-        option.textContent = category;
-        categorySelect.append(option);
-      });
-    }
+    writer.renderCategoryChips?.();
 
     if (editItem) {
       writer.title.textContent = "포트폴리오 수정";
       writer.submit.textContent = "저장하기";
       writer.help.textContent = "이미지를 새로 고르면 교체·추가됩니다. ×로 삭제할 수 있습니다.";
       form.elements.editId.value = editItem.id || "";
-      form.elements.category.value = cats.includes(editItem.category) ? editItem.category : cats[0];
+      writer.setCategory?.(editItem.category);
       form.elements.title.value = editItem.title || "";
       form.elements.content.value = editItem.content || "";
       writer.cover = {
@@ -420,7 +447,7 @@
       writer.submit.textContent = "등록하기";
       writer.help.textContent = "대표 이미지는 필수입니다. 추가 이미지는 + 이미지 추가로 여러 장을 계속 붙이세요.";
       form.elements.editId.value = "";
-      form.elements.category.value = cats[0] || "C";
+      writer.setCategory?.(CATEGORIES[0] || "C");
     }
 
     renderWriterCover(writer);
@@ -1112,13 +1139,19 @@
 
   async function bootSession() {
     try {
-      const payload = await api("/auth/me");
+      const payload = window.GongbangAuth?.fetchMe
+        ? await window.GongbangAuth.fetchMe()
+        : await api("/auth/me");
       if (payload.member) {
         state.member = payload.member;
         if (payload.accessToken) sessionStorage.setItem(TOKEN_KEY, payload.accessToken);
+        window.dispatchEvent(
+          new CustomEvent("gongbang:auth-changed", { detail: { member: state.member } })
+        );
       }
     } catch (_error) {
-      state.member = null;
+      // Keep prior member if auth-changed already confirmed login
+      if (!state.member) state.member = window.getGongbangMember?.() || null;
     }
     renderSession();
   }
@@ -1176,9 +1209,7 @@
     if (state.current) renderActions();
   });
 
-  if (!window.openGongbangAuth) {
-    window.openGongbangAuth = (mode) => openAuth(mode || "login");
-  }
+  // Do not register a recursive openGongbangAuth stub — gongbang-auth.js owns it
   if (!window.getGongbangMember) {
     window.getGongbangMember = () => state.member;
   }
