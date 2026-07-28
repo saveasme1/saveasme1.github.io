@@ -1,8 +1,8 @@
 ﻿{
-  "build": "20260728-pwa31",
-  "version": "v1.10.1",
+  "build": "20260728-pwa32",
+  "version": "v1.10.2",
   "notes": [
-    "All portfolio brand chips (C/B/VCA…)",
-    "Portfolio + curated volume; IG profile pic/username; 브레이슬릿"
+    "Discover: no portfolio SKUs",
+    "IG profile avatar via MakerBridge proxy"
   ]
 }

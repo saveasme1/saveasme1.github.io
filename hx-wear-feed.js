@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.ig.wear.v5";
+  const CACHE_KEY = "hx.ig.wear.v7";
   const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
@@ -64,10 +64,42 @@
   }
 
   function avatarFor(handle, profilePictureUrl) {
-    if (profilePictureUrl && !BLOCK_HOST.test(profilePictureUrl)) return profilePictureUrl;
-    const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+    const h = String(handle || "")
+      .replace(/^@/, "")
+      .trim()
+      .toLowerCase();
     if (!h) return "";
-    return absUrl(`./wear-media/avatars/${h}.jpg`) || absUrl(`./wear-media/avatars/${h}.png`);
+    const apiBase = String(
+      window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
+    ).replace(/\/$/, "");
+    // Proxy real IG profile (avoids CDN hotlink block). Local files as fallbacks in cardNode.
+    if (profilePictureUrl || h) {
+      return `${apiBase}/ig-avatar?u=${encodeURIComponent(h)}&b=1`;
+    }
+    return absUrl(`./wear-media/avatars/${h}.png`);
+  }
+
+  function setAvatar(av, handle, primaryUrl) {
+    const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
+    const candidates = [
+      primaryUrl,
+      absUrl(`./wear-media/avatars/${h}.jpg`),
+      absUrl(`./wear-media/avatars/${h}.png`),
+    ].filter(Boolean);
+
+    const tryNext = (i) => {
+      if (i >= candidates.length) {
+        av.classList.add("hx-ig__avatar--letter");
+        av.textContent = (h.slice(0, 1) || "?").toUpperCase();
+        return;
+      }
+      av.classList.remove("hx-ig__avatar--letter");
+      av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" decoding="async" src="${candidates[i]}">`;
+      const img = av.querySelector("img");
+      if (!img) return tryNext(i + 1);
+      img.addEventListener("error", () => tryNext(i + 1), { once: true });
+    };
+    tryNext(0);
   }
 
   function relativeTimeKo(iso, salt) {
@@ -170,43 +202,8 @@
   }
 
   async function loadPortfolioWear(brands) {
-    try {
-      const cat = await window.HxCatalog?.loadCatalog?.();
-      const rows = cat?.items || [];
-      const perBrand = {};
-      const out = [];
-      for (const it of rows) {
-        const title = it.title || "";
-        if (WATCH_RE.test(title)) continue;
-        const code = it.brandCode || parseBrandFromTitle(title, brands);
-        if (!code || !brands[code]) continue;
-        const type = inferTypeFromTitle(title);
-        if (!TYPES.has(type)) continue;
-        const image = it.image || (Array.isArray(it.images) && it.images[0]) || "";
-        if (!image) continue;
-        perBrand[code] = (perBrand[code] || 0) + 1;
-        if (perBrand[code] > 10) continue;
-        const handle = BRAND_HANDLE[code] || String(code).toLowerCase();
-        out.push({
-          id: `pf-${it.id || out.length}`,
-          brandCode: code,
-          type,
-          pieceKo: TYPE_KO[type],
-          titleKo: title.replace(/^\S+\s+/, "").trim() || TYPE_KO[type],
-          captionKo: "",
-          handle,
-          displayName: handle,
-          profilePictureUrl: "",
-          permalink: profileUrl(handle),
-          image: absUrl(image),
-          publishedAt: it.sortAt || it.uploadedAt || "",
-          source: "portfolio",
-        });
-      }
-      return out;
-    } catch (_) {
-      return [];
-    }
+    // Discover wear feed must NOT show portfolio SKUs — Instagram / curated wear only.
+    return [];
   }
 
   function normalize(row, brands, liveProfile) {
@@ -270,31 +267,32 @@
       if (hit?.items?.length) return hit.items;
     }
     try {
-      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4"].forEach((k) =>
-        localStorage.removeItem(k)
+      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4", "hx.ig.wear.v5"].forEach(
+        (k) => localStorage.removeItem(k)
       );
     } catch (_) {}
 
     const brands = await loadBrands();
     const curated = await loadCurated();
     const backend = await loadBackend();
-    const portfolio = await loadPortfolioWear(brands);
     const liveProfile = {
       username: backend.username || "",
       name: backend.name || "",
       profilePictureUrl: backend.profilePictureUrl || "",
     };
 
-    const portfolioCodes = new Set(BRAND_ORDER.filter((c) => brands[c]));
-    Object.keys(brands).forEach((c) => portfolioCodes.add(c));
-    portfolioCodes.add("IG");
+    const allowedCodes = new Set(BRAND_ORDER.filter((c) => brands[c]));
+    Object.keys(brands).forEach((c) => allowedCodes.add(c));
+    allowedCodes.add("IG");
 
     const merged = [];
     const seen = new Set();
-    [...backend.items, ...(curated.items || []), ...portfolio].forEach((row) => {
+    // Instagram API + curated overseas wear ONLY — never portfolio SKUs
+    [...backend.items, ...(curated.items || [])].forEach((row) => {
       const item = normalize(row, brands, liveProfile);
       if (!item) return;
-      if (!portfolioCodes.has(item.brandCode)) return;
+      if (!allowedCodes.has(item.brandCode)) return;
+      if (item.source === "portfolio" || String(item.id).startsWith("pf-")) return;
       if (seen.has(item.id) || seen.has(item.permalink + item.image)) return;
       seen.add(item.id);
       seen.add(item.permalink + item.image);
@@ -326,30 +324,7 @@
     head.type = "button";
     head.setAttribute("aria-label", `${handle} 프로필`);
     const av = el("div", "hx-ig__avatar");
-    if (avatarSrc) {
-      av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" src="${avatarSrc}">`;
-      const img = av.querySelector("img");
-      img?.addEventListener("error", () => {
-        av.classList.add("hx-ig__avatar--letter");
-        av.textContent = handle.slice(0, 1).toUpperCase();
-      });
-      // also try .png if .jpg 404
-      if (avatarSrc.endsWith(".jpg")) {
-        img?.addEventListener("error", () => {
-          const png = avatarSrc.replace(/\.jpg$/i, ".png");
-          if (png !== avatarSrc) {
-            av.innerHTML = `<img alt="" width="36" height="36" loading="lazy" src="${png}">`;
-            av.querySelector("img")?.addEventListener("error", () => {
-              av.classList.add("hx-ig__avatar--letter");
-              av.textContent = handle.slice(0, 1).toUpperCase();
-            });
-          }
-        }, { once: true });
-      }
-    } else {
-      av.classList.add("hx-ig__avatar--letter");
-      av.textContent = handle.slice(0, 1).toUpperCase();
-    }
+    setAvatar(av, handle, avatarSrc);
 
     const meta = el("div", "hx-ig__meta");
     // Instagram-style: username as primary account id
