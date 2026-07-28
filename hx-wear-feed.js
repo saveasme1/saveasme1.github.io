@@ -642,7 +642,7 @@
         ? el(
             "p",
             "hx-ig__ai-note",
-            "이 글은 자체 AI 시스템에 의해 번역되었습니다."
+            "이 글은 자체 AI 시스템에 의해서 번역되었습니다."
           )
         : null;
     capRow.append(cap);
