@@ -93,6 +93,11 @@
   }
 
   function openReviewsPanel() {
+    if (!/\/reviews\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `./reviews.html${q}`;
+      return;
+    }
     if (typeof window.closeGongbangPortfolioPanel === "function") {
       window.closeGongbangPortfolioPanel({ skipNav: true });
     }
@@ -112,6 +117,11 @@
   window.openGongbangReviewsPanel = openReviewsPanel;
 
   function closeReviewsPanel(options = {}) {
+    if (/\/reviews\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `/landing.html${q}`;
+      return;
+    }
     els.section.hidden = true;
     state.opened = false;
     closeReview();
@@ -673,7 +683,7 @@
 
   loadMe().then(() => {
     const wantOpen = new URLSearchParams(location.search).get("open");
-    if (wantOpen === "reviews") openReviewsPanel();
+    if (wantOpen === "reviews" || /\/reviews\.html$/i.test(location.pathname)) openReviewsPanel();
     else if (wantOpen === "mypage") openAuth("login", { redirect: "/mypage.html" });
     else if (!els.section.hidden) {
       state.opened = true;

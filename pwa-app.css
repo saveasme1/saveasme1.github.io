@@ -117,6 +117,65 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   min-height: 280px;
 }
 
+.pwa-hero-slider {
+  cursor: default;
+}
+
+.pwa-hero-slider__track {
+  position: absolute;
+  inset: 0;
+}
+
+.pwa-hero-slider__slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #111;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s var(--pwa-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pwa-hero-slider__slide.is-on {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.pwa-hero-slider__slide:active .pwa-hero__media img {
+  transform: scale(1.06);
+}
+
+.pwa-hero-slider__dots {
+  position: absolute;
+  left: 18px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.pwa-hero-slider__dots button {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.pwa-hero-slider__dots button.is-on {
+  width: 18px;
+  background: #f0d09a;
+}
+
 .pwa-hero:active .pwa-hero__media img {
   transform: scale(1.06);
 }
@@ -829,6 +888,30 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   letter-spacing: 0.06em;
 }
 
+.pwa-rank__delta {
+  flex: none;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.pwa-rank__delta.is-up {
+  color: #ef4444;
+}
+
+.pwa-rank__delta.is-down {
+  color: #3b82f6;
+}
+
+.pwa-rank__delta.is-same {
+  color: var(--pwa-dim);
+}
+
+.pwa-rank__delta.is-new {
+  color: #f0d09a;
+}
+
 /* Gold ticker — legacy */
 .pwa-ticker {
   display: flex;
@@ -1316,6 +1399,8 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-dropbar__left .pwa-sec__eyebrow {
   margin: 0 0 2px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
 }
 
 .pwa-dropbar__left strong {
@@ -1770,4 +1855,22 @@ html.is-pwa body.pf-body .pf-deck {
 @keyframes pwaRise {
   from { opacity:0; transform:translateY(8px); }
   to { opacity:1; transform:none; }
+}
+
+/* Standalone board pages (shipping / reviews) */
+body.board-standalone {
+  min-height: 100dvh;
+  background: #161513;
+  color: #f5f2ec;
+}
+body.board-standalone .board-standalone__main {
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(96px, calc(env(safe-area-inset-bottom) + 72px));
+}
+body.board-standalone .is-standalone {
+  display: block !important;
+}
+body.board-standalone .reviews-heading {
+  padding-left: 16px;
+  padding-right: 16px;
 }

@@ -82,9 +82,33 @@
   function isDiscoverPage() {
     return /\/discover\.html$/i.test(location.pathname);
   }
+  function isShippingPage() {
+    return /\/shipping\.html$/i.test(location.pathname);
+  }
+  function isReviewsPage() {
+    return /\/reviews\.html$/i.test(location.pathname);
+  }
   function isStandalonePublicHome() {
     const path = location.pathname.replace(/\/+$/, "") || "/";
     return path === "/" || /\/index\.html$/i.test(path);
+  }
+  function detectActivePanel() {
+    if (isMyPage()) return "mypage";
+    if (isPortfolioPage()) return "portfolio";
+    if (isDiscoverPage()) return "discover";
+    if (isShippingPage()) return "shipping";
+    if (isReviewsPage()) return "reviews";
+    const portfolio = document.getElementById("portfolioPanel");
+    const reviews = document.getElementById("reviews");
+    const shipping = document.getElementById("shippingPanel");
+    const notices = document.getElementById("noticesPanel");
+    if (portfolio && !portfolio.hidden) return "portfolio";
+    if (reviews && !reviews.hidden) return "reviews";
+    if (shipping && !shipping.hidden) return "shipping";
+    if (notices && !notices.hidden) return "home";
+    const open = new URLSearchParams(location.search).get("open");
+    if (open === "portfolio" || open === "reviews" || open === "shipping" || open === "discover") return open;
+    return "home";
   }
   function syncChromeTheme(name) {
     const key = name || detectActivePanel();
@@ -128,22 +152,6 @@
       });
     }
     syncChromeTheme(key);
-  }
-  function detectActivePanel() {
-    if (isMyPage()) return "mypage";
-    if (isPortfolioPage()) return "portfolio";
-    if (isDiscoverPage()) return "discover";
-    const portfolio = document.getElementById("portfolioPanel");
-    const reviews = document.getElementById("reviews");
-    const shipping = document.getElementById("shippingPanel");
-    const notices = document.getElementById("noticesPanel");
-    if (portfolio && !portfolio.hidden) return "portfolio";
-    if (reviews && !reviews.hidden) return "reviews";
-    if (shipping && !shipping.hidden) return "shipping";
-    if (notices && !notices.hidden) return "home";
-    const open = new URLSearchParams(location.search).get("open");
-    if (open === "portfolio" || open === "reviews" || open === "shipping" || open === "discover") return open;
-    return "home";
   }
   function keepAppParam(url) {
     try {
@@ -223,64 +231,47 @@
       return;
     }
 
-    // PWA / app shell: page switch like Musinsa·KREAM (no overlay "new window")
-    if (isPwaMode() || document.documentElement.classList.contains("is-pwa")) {
-      if (name === "discover") {
-        if (isDiscoverPage()) {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-        location.href = keepAppParam("/discover.html");
+    // Standalone pages (discover / portfolio / shipping / reviews) — PC · MO · TB · PWA
+    if (name === "discover") {
+      if (isDiscoverPage()) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      if (name === "portfolio") {
-        if (isPortfolioPage()) {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-        location.href = keepAppParam("/portfolio.html");
+      location.href = keepAppParam("/discover.html");
+      return;
+    }
+    if (name === "portfolio") {
+      if (isPortfolioPage()) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      if (name === "reviews") {
-        location.href = keepAppParam(`${HOME}?open=reviews`);
+      location.href = keepAppParam("/portfolio.html");
+      return;
+    }
+    if (name === "reviews") {
+      if (isReviewsPage()) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      if (name === "shipping") {
-        location.href = keepAppParam(`${HOME}?open=shipping`);
+      location.href = keepAppParam("/reviews.html");
+      return;
+    }
+    if (name === "shipping") {
+      if (isShippingPage()) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      location.href = keepAppParam(HOME);
+      location.href = keepAppParam("/shipping.html");
       return;
     }
 
     if (isLandingPage()) {
-      if (name === "portfolio" && typeof window.openGongbangPortfolioPanel === "function") {
-        window.openGongbangPortfolioPanel();
-        return;
+      if (typeof window.openGongbangBoardPanel === "function") {
+        window.openGongbangBoardPanel(name);
       }
-      if (name === "reviews" && typeof window.openGongbangReviewsPanel === "function") {
-        window.openGongbangReviewsPanel();
-        return;
-      }
-      if (name === "shipping") {
-        if (typeof window.openGongbangShippingPanel === "function") {
-          window.openGongbangShippingPanel();
-        } else if (typeof window.openGongbangBoardPanel === "function") {
-          window.openGongbangBoardPanel(name);
-        }
-        return;
-      }
+      return;
     }
-    if (name === "portfolio") {
-      if (isPortfolioPage()) {
-        setActiveNav("portfolio");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
-      }
-      location.href = `${HOME}?open=portfolio`;
-    } else if (name === "reviews") location.href = `${HOME}?open=reviews`;
-    else if (name === "shipping") location.href = `${HOME}?open=shipping`;
-    else location.href = HOME;
+    location.href = keepAppParam(HOME);
   }
   const API_BASE = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const TOKEN_KEY = "gongbang171.adminToken";

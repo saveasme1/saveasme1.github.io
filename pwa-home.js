@@ -63,17 +63,83 @@
 
   const MENUS = [
     { go: "discover", label: "발견", ico: "portfolio" },
-    { go: "portfolio", label: "전체", ico: "portfolio" },
+    { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
     { go: "shipping", label: "출고", ico: "shipping" },
     { go: "gold", label: "금시세", ico: "gold" },
     { go: "search", label: "AI검색", ico: "search" },
     { go: "reviews", label: "후기", ico: "reviews" },
   ];
 
+  const RANK_SNAP_KEY = "hx.pwa.hotRank.v1";
+
+  function appQuery() {
+    return /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+  }
+
+  function shuffle(list) {
+    const arr = list.slice();
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function pickUnique(pool, used, count) {
+    const out = [];
+    for (const item of pool) {
+      if (!item || !item.id) continue;
+      const id = String(item.id);
+      if (used.has(id)) continue;
+      used.add(id);
+      out.push(item);
+      if (out.length >= count) break;
+    }
+    return out;
+  }
+
+  function loadRankSnap() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(RANK_SNAP_KEY) || "{}");
+      return raw && typeof raw === "object" ? raw : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function saveRankSnap(map) {
+    try {
+      localStorage.setItem(RANK_SNAP_KEY, JSON.stringify(map || {}));
+    } catch (_) {}
+  }
+
+  function rankDeltaHtml(prevRank, curRank) {
+    if (!prevRank || prevRank < 1) {
+      return `<span class="pwa-rank__delta is-new">NEW</span>`;
+    }
+    const diff = prevRank - curRank;
+    if (diff > 0) return `<span class="pwa-rank__delta is-up">${diff} UP</span>`;
+    if (diff < 0) return `<span class="pwa-rank__delta is-down">${Math.abs(diff)} DOWN</span>`;
+    return `<span class="pwa-rank__delta is-same">—</span>`;
+  }
+
   const assetUrl = (value) => {
     const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
+    // Review/API uploads live on app host, not the static site origin.
+    if (/^\/?uploads\//i.test(path)) {
+      const origin = (() => {
+        try {
+          return new URL(window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").origin;
+        } catch (_) {
+          return "https://app.0-1.co.kr";
+        }
+      })();
+      return `${origin}/${path.replace(/^\/+/, "")}`;
+    }
     try {
       return new URL(path.replace(/^\/+/, ""), location.origin + "/").href;
     } catch (_) {
@@ -93,15 +159,18 @@
   function goRoute(key) {
     if (key === "portfolio") return goPortfolio("ALL");
     if (key === "discover") {
-      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
-      location.href = `./discover.html${q}`;
+      location.href = `./discover.html${appQuery()}`;
       return;
     }
-    if (key === "search") return void (location.href = "./search.html");
+    if (key === "search") return void (location.href = `./search.html${appQuery()}`);
     if (key === "gold") return void (location.href = "./heritage-gold/");
-    if (key === "reviews") return void (location.href = "./landing.html?open=reviews");
-    if (key === "shipping") return void (location.href = "./landing.html?open=shipping");
-    if (key === "notices") return void (location.href = "./landing.html?open=notices");
+    if (key === "reviews") return void (location.href = `./reviews.html${appQuery()}`);
+    if (key === "shipping") return void (location.href = `./shipping.html${appQuery()}`);
+    if (key === "event") return void (location.href = `./opening-event.html${appQuery()}`);
+    if (key === "notices") {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?open=notices&app=1" : "?open=notices";
+      return void (location.href = `./landing.html${q}`);
+    }
   }
 
   function ensureHost() {
@@ -360,11 +429,37 @@
   }
 
   function reviewImage(item) {
+    const direct = item.cover || item.image || item.img;
+    if (direct) return assetUrl(direct);
     const imgs = item.images || [];
     const first = imgs[0];
     if (!first) return "";
     if (typeof first === "string") return assetUrl(first);
-    return assetUrl(first.path || first.src || first.url || "");
+    return assetUrl(first.url || first.path || first.src || "");
+  }
+
+  function boardBodyText(item) {
+    return String(item.body || item.content || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function photoBoardCard(item, goKey, fallbackTitle) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "pwa-review pwa-review--photo";
+    el.dataset.go = goKey;
+    const body = boardBodyText(item);
+    const img = reviewImage(item) || assetUrl(item.cover || item.image || "");
+    const title = String(item.title || fallbackTitle || "").replace(/\s+/g, " ").trim();
+    el.innerHTML =
+      (img ? `<span class="pwa-review__media"><img src="${img}" alt="" loading="lazy" decoding="async"></span>` : "") +
+      `<span class="pwa-review__body"><strong>${title || fallbackTitle}</strong><p>${
+        body || "자세히 보기"
+      }</p></span>`;
+    protect(el.querySelector("img"));
+    return el;
   }
 
   async function boot() {
@@ -394,12 +489,45 @@
         ? portfolio.categories
         : [...new Set(items.map((x) => x.category).filter(Boolean))];
 
-    const heroItem = items[0] || null;
-    const heroSrc = heroItem
-      ? assetUrl(heroItem.cover || heroItem.image)
-      : assetUrl(MEDIA.look[0].src);
+    let viewsMap = {};
+    try {
+      if (window.GongbangBoardMeta?.fetchViews && items.length) {
+        viewsMap = await window.GongbangBoardMeta.fetchViews(
+          "portfolio",
+          items.map((x) => x.id)
+        );
+      }
+    } catch (_) {
+      viewsMap = {};
+    }
+
+    const withViews = items.map((item) => ({
+      ...item,
+      _views: Number(viewsMap[String(item.id)] || 0),
+    }));
+    const ranked = withViews.slice().sort((a, b) => b._views - a._views || String(a.id).localeCompare(String(b.id)));
+    const topRanked = ranked.slice(0, 5);
+    const prevSnap = loadRankSnap();
+    const nextSnap = {};
+    topRanked.forEach((item, i) => {
+      nextSnap[String(item.id)] = i + 1;
+    });
+    // Persist after paint so this visit’s deltas use previous snapshot
+    setTimeout(() => saveRankSnap(nextSnap), 0);
+
+    const mostViewed = ranked[0] || items[0] || null;
+    const risingFifth = topRanked[4] || topRanked[topRanked.length - 1] || mostViewed;
+    const usedIds = new Set();
+    if (mostViewed?.id) usedIds.add(String(mostViewed.id));
+    if (risingFifth?.id) usedIds.add(String(risingFifth.id));
+    const fillers = pickUnique(shuffle(items), usedIds, 3);
+    while (fillers.length < 3 && items.length) {
+      const fallback = items[fillers.length % items.length];
+      if (fallback) fillers.push(fallback);
+      else break;
+    }
+
     const fresh = items.slice(0, 10);
-    const gridItems = items.slice(0, 8);
     const reviewItems = reviewsRaw.slice(0, 6);
     const shipItems = shippingRaw.slice(0, 8);
     const notice = noticesRaw[0];
@@ -407,21 +535,105 @@
     let activeCat = "ALL";
     host.innerHTML = "";
 
-    // Hero banner — shorter commerce banner
-    const hero = document.createElement("button");
-    hero.type = "button";
-    hero.className = "pwa-hero pwa-hero--banner";
-    hero.dataset.go = "portfolio";
-    hero.setAttribute("aria-label", "포트폴리오 보기");
-    hero.innerHTML =
-      `<div class="pwa-hero__media"><img src="${heroSrc}" alt="" decoding="async"><div class="pwa-hero__shade"></div></div>` +
-      `<div class="pwa-hero__copy">` +
-      `<p class="pwa-hero__kicker">BON HERITAGE</p>` +
-      `<h1 class="pwa-hero__title">주문제작 주얼리<br>지금 아카이브</h1>` +
-      `<span class="pwa-hero__cta">전체 보기</span>` +
-      `</div>`;
+    // —— Hero slider (5 unique covers) ——
+    const slides = [
+      {
+        item: fillers[0] || mostViewed,
+        kicker: "BON HERITAGE",
+        title: "주문제작 주얼리<br>포트폴리오",
+        cta: "포트폴리오 보기",
+        mode: "portfolio",
+      },
+      {
+        item: mostViewed,
+        kicker: "MOST VIEWED",
+        title: "지금, 가장 많이 본<br>포트폴리오",
+        cta: "작품 보기",
+        mode: "item",
+      },
+      {
+        item: risingFifth,
+        kicker: "RISING NOW",
+        title: "실시간 인기 급상승<br>포트폴리오",
+        cta: "5위 작품 보기",
+        mode: "item",
+      },
+      {
+        item: fillers[1] || fillers[0] || mostViewed,
+        kicker: "ARCHIVE PICK",
+        title: "주문제작 주얼리<br>포트폴리오",
+        cta: "포트폴리오 보기",
+        mode: "portfolio",
+      },
+      {
+        item: fillers[2] || fillers[0] || mostViewed,
+        kicker: "HERITAGE LOOK",
+        title: "주문제작 주얼리<br>포트폴리오",
+        cta: "포트폴리오 보기",
+        mode: "portfolio",
+      },
+    ].filter((s) => s.item);
+
+    const hero = document.createElement("section");
+    hero.className = "pwa-hero pwa-hero--banner pwa-hero-slider";
+    hero.setAttribute("aria-label", "메인 배너");
+    const track = document.createElement("div");
+    track.className = "pwa-hero-slider__track";
+    slides.forEach((slide, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `pwa-hero-slider__slide${i === 0 ? " is-on" : ""}`;
+      btn.dataset.slide = String(i);
+      const src = assetUrl(slide.item.cover || slide.item.image) || assetUrl(MEDIA.look[i % MEDIA.look.length].src);
+      btn.innerHTML =
+        `<div class="pwa-hero__media"><img src="${src}" alt="" decoding="async"><div class="pwa-hero__shade"></div></div>` +
+        `<div class="pwa-hero__copy">` +
+        `<p class="pwa-hero__kicker">${slide.kicker}</p>` +
+        `<h2 class="pwa-hero__title">${slide.title}</h2>` +
+        `<span class="pwa-hero__cta">${slide.cta}</span>` +
+        `</div>`;
+      protect(btn.querySelector("img"));
+      btn.addEventListener("click", () => {
+        if (slide.mode === "item" && slide.item?.id) {
+          goPortfolio(slide.item.category || "ALL", slide.item.id);
+          return;
+        }
+        goPortfolio("ALL");
+      });
+      track.append(btn);
+    });
+    const dots = document.createElement("div");
+    dots.className = "pwa-hero-slider__dots";
+    dots.setAttribute("aria-hidden", "true");
+    slides.forEach((_, i) => {
+      const d = document.createElement("button");
+      d.type = "button";
+      d.className = i === 0 ? "is-on" : "";
+      d.dataset.dot = String(i);
+      dots.append(d);
+    });
+    hero.append(track, dots);
     host.append(hero);
-    protect(hero.querySelector("img"));
+
+    let slideIdx = 0;
+    function goSlide(next) {
+      if (!slides.length) return;
+      slideIdx = ((next % slides.length) + slides.length) % slides.length;
+      track.querySelectorAll(".pwa-hero-slider__slide").forEach((el, i) => {
+        el.classList.toggle("is-on", i === slideIdx);
+      });
+      dots.querySelectorAll("button").forEach((el, i) => {
+        el.classList.toggle("is-on", i === slideIdx);
+      });
+    }
+    dots.addEventListener("click", (event) => {
+      const dot = event.target.closest("[data-dot]");
+      if (!dot) return;
+      goSlide(Number(dot.dataset.dot) || 0);
+    });
+    if (slides.length > 1) {
+      setInterval(() => goSlide(slideIdx + 1), 4800);
+    }
 
     // Category + peek
     const catsWrap = document.createElement("section");
@@ -509,23 +721,23 @@
     ).join("");
     host.append(services);
 
-    // Lifestyle teasers (lazy module)
-    if (window.HxDiscover?.mountHomeTeasers) {
-      window.HxDiscover.mountHomeTeasers(host).catch(() => {});
-    }
+    // Lifestyle teasers (발견/착용코디 · XAU/XAG/XPT · TODAY) — hidden for now
+    // if (window.HxDiscover?.mountHomeTeasers) {
+    //   window.HxDiscover.mountHomeTeasers(host).catch(() => {});
+    // }
 
-    // —— Today's drop countdown ——
+    // —— Heritage opening event countdown ——
     const dropBar = document.createElement("section");
     dropBar.className = "pwa-dropbar";
     dropBar.innerHTML =
       `<div class="pwa-dropbar__left">` +
-      `<p class="pwa-sec__eyebrow">TODAY DROP</p>` +
-      `<strong>아카이브 마감까지</strong>` +
+      `<p class="pwa-sec__eyebrow">HERITAGE OPENING EVENT</p>` +
+      `<strong>헤리티지 리뉴얼 기념 이벤트 마감까지</strong>` +
       `</div>` +
       `<div class="pwa-dropbar__clock" id="pwaDropClock" aria-live="polite">` +
       `<span data-h>--</span><i>:</i><span data-m>--</span><i>:</i><span data-s>--</span>` +
       `</div>` +
-      `<button type="button" class="pwa-dropbar__go" data-go="portfolio">보기</button>`;
+      `<button type="button" class="pwa-dropbar__go" data-go="event">보기</button>`;
     host.append(dropBar);
 
     function tickDropClock() {
@@ -814,59 +1026,9 @@
       paintGold(goldInfo);
     });
 
-    // Style / wearing (Amonz tone)
-    const look = document.createElement("section");
-    look.className = "pwa-sec pwa-look";
-    look.innerHTML =
-      `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">STYLE</p><h2>착용 컷</h2></div>` +
-      `<button type="button" data-go="portfolio">더보기</button>` +
-      `</div>`;
-    const lookRail = document.createElement("div");
-    lookRail.className = "pwa-look__rail";
-    MEDIA.look.forEach((shot) => {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "pwa-look__card";
-      card.dataset.go = "portfolio";
-      card.innerHTML =
-        `<span class="pwa-look__media"><img src="${assetUrl(shot.src)}" alt="" loading="lazy"></span>` +
-        `<span class="pwa-look__tag">${shot.tag}</span>` +
-        `<span class="pwa-look__label">${shot.label}</span>`;
-      protect(card.querySelector("img"));
-      lookRail.append(card);
-    });
-    look.append(lookRail);
-    host.append(look);
-
-    // Recent viewed
-    const recentRaw = loadIdList(RECENT_KEY);
-    const recentItems = recentRaw
-      .map((r) => {
-        const id = String(r && r.id != null ? r.id : r || "");
-        const hit = items.find((x) => String(x.id) === id);
-        if (hit) return hit;
-        if (r && r.cover) return { id, cover: r.cover, title: r.title || "", category: r.category || "" };
-        return null;
-      })
-      .filter(Boolean)
-      .slice(0, 12);
-    if (recentItems.length) {
-      const recentSec = document.createElement("section");
-      recentSec.className = "pwa-sec";
-      recentSec.innerHTML =
-        `<div class="pwa-sec__head">` +
-        `<div><p class="pwa-sec__eyebrow">RECENT</p><h2>최근 본 작품</h2></div>` +
-        `<button type="button" data-go="portfolio">전체</button>` +
-        `</div>`;
-      const recentRail = document.createElement("div");
-      recentRail.className = "pwa-rail";
-      recentItems.forEach((item) => recentRail.append(cardButton(item, false)));
-      recentSec.append(recentRail);
-      host.append(recentSec);
-    }
-
-    // Wishlist
+    // Style / wearing — hidden (발견·착용 코디 정리와 함께)
+    // Recent viewed — hidden
+    // Wishlist — keep if user has items? User didn't ask to hide wish; leave.
     const wishIds = loadIdList(WISH_KEY).map(String);
     const wishItems = wishIds
       .map((id) => items.find((x) => String(x.id) === id))
@@ -887,23 +1049,9 @@
       host.append(wishSec);
     }
 
-    // For you rail
-    const secPf = document.createElement("section");
-    secPf.className = "pwa-sec";
-    secPf.innerHTML =
-      `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">FOR YOU</p><h2>추천 작품</h2></div>` +
-      `<button type="button" data-go="discover">디스커버</button>` +
-      `</div>`;
-    const rail = document.createElement("div");
-    rail.className = "pwa-rail";
-    rail.id = "pwaForYouRail";
-    if (!fresh.length) rail.innerHTML = `<p class="pwa-empty">작품을 불러오는 중…</p>`;
-    else fresh.forEach((item) => rail.append(cardButton(item, false)));
-    secPf.append(rail);
-    host.append(secPf);
+    // For you rail — hidden
 
-    // HOT ranking (Musinsa chart vibe)
+    // HOT ranking (view-based + UP/DOWN delta)
     const rankSec = document.createElement("section");
     rankSec.className = "pwa-sec";
     rankSec.innerHTML =
@@ -913,21 +1061,22 @@
       `</div>`;
     const rankList = document.createElement("div");
     rankList.className = "pwa-rank";
-    const ranked = items.slice(0, 5);
-    if (!ranked.length) {
+    if (!topRanked.length) {
       rankList.innerHTML = `<p class="pwa-empty">순위 준비 중</p>`;
     } else {
-      ranked.forEach((item, i) => {
+      topRanked.forEach((item, i) => {
         const row = document.createElement("button");
         row.type = "button";
         row.className = "pwa-rank__row";
         const cat = item.category || "";
         const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
+        const id = String(item.id || "");
+        const prev = Number(prevSnap[id] || 0);
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
           `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
-          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"}</i></span>` +
-          `<span class="pwa-rank__tag">${i < 2 ? "HOT" : "UP"}</span>`;
+          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"} · 조회 ${Number(item._views || 0).toLocaleString("ko-KR")}</i></span>` +
+          rankDeltaHtml(prev, i + 1);
         protect(row.querySelector("img"));
         row.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
         rankList.append(row);
@@ -936,50 +1085,23 @@
     rankSec.append(rankList);
     host.append(rankSec);
 
-    // 2-col drop (29CM / Musinsa product wall)
-    const drop = document.createElement("section");
-    drop.className = "pwa-sec";
-    drop.innerHTML =
-      `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">DROP</p><h2>아카이브 드롭</h2></div>` +
-      `<button type="button" data-go="portfolio">더보기</button>` +
-      `</div>`;
-    const grid = document.createElement("div");
-    grid.className = "pwa-grid";
-    if (!gridItems.length) grid.innerHTML = `<p class="pwa-empty">준비 중</p>`;
-    else gridItems.forEach((item) => grid.append(cardButton(item, false)));
-    drop.append(grid);
-    host.append(drop);
+    // Archive drop — temporarily hidden
 
-    // Shipping
+    // Realtime shipping — same photo-card style as reviews
     const shipSec = document.createElement("section");
     shipSec.className = "pwa-sec";
     shipSec.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">OUT</p><h2>최근 출고</h2></div>` +
-      `<button type="button" data-go="shipping">출고확인</button>` +
+      `<div><p class="pwa-sec__eyebrow">OUT</p><h2>실시간 출고</h2></div>` +
+      `<button type="button" data-go="shipping">더보기</button>` +
       `</div>`;
     const shipRail = document.createElement("div");
-    shipRail.className = "pwa-rail";
+    shipRail.className = "pwa-reviews";
     if (!shipItems.length) {
-      shipRail.innerHTML = `<p class="pwa-empty">출고 샷 준비 중</p>`;
+      shipRail.innerHTML =
+        `<button type="button" class="pwa-review" data-go="shipping"><strong>실시간 출고</strong><p>출고 샷을 확인해 보세요.</p></button>`;
     } else {
-      shipItems.forEach((item) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pwa-card";
-        btn.dataset.go = "shipping";
-        const title = String(item.title || "").replace(/\s+/g, " ").trim();
-        btn.innerHTML =
-          `<span class="pwa-card__thumb">` +
-          `<span class="pwa-card__cat">${item.category || "OUT"}</span>` +
-          `<img alt="" loading="lazy" src="${assetUrl(item.cover || item.image)}">` +
-          `</span>` +
-          `<span class="pwa-card__brand">${item.category || "OUT"}</span>` +
-          `<span class="pwa-card__name">${title}</span>`;
-        protect(btn.querySelector("img"));
-        shipRail.append(btn);
-      });
+      shipItems.forEach((item) => shipRail.append(photoBoardCard(item, "shipping", "출고")));
     }
     shipSec.append(shipRail);
     host.append(shipSec);
@@ -998,24 +1120,7 @@
       revRail.innerHTML =
         `<button type="button" class="pwa-review" data-go="reviews"><strong>실제 제작 후기</strong><p>고객 후기를 확인해 보세요.</p></button>`;
     } else {
-      reviewItems.forEach((item) => {
-        const el = document.createElement("button");
-        el.type = "button";
-        el.className = "pwa-review pwa-review--photo";
-        el.dataset.go = "reviews";
-        const body = String(item.body || item.content || "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-        const img = reviewImage(item);
-        el.innerHTML =
-          (img ? `<span class="pwa-review__media"><img src="${img}" alt="" loading="lazy"></span>` : "") +
-          `<span class="pwa-review__body"><strong>${item.title || "후기"}</strong><p>${
-            body || "자세한 후기 보기"
-          }</p></span>`;
-        protect(el.querySelector("img"));
-        revRail.append(el);
-      });
+      reviewItems.forEach((item) => revRail.append(photoBoardCard(item, "reviews", "후기")));
     }
     secRev.append(revRail);
     host.append(secRev);

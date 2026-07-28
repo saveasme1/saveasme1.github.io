@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa36";
+  const APP_BUILD = "20260728-pwa37";
   const APP_VERSION = "v1.10.6";
   const RELEASE_NOTES = [
     "업데이트 팝업 무한 반복 수정",
@@ -210,6 +210,21 @@
       .pwa-dlg__actions .is-primary{
         border:0; background:linear-gradient(145deg,#f0d09a,#e8b86d 55%,#d4924a); color:#161513;
       }
+      .pwa-dlg.is-progress .pwa-dlg__actions{ display:none; }
+      .pwa-dlg.is-progress .pwa-dlg__notes{ display:none; }
+      .pwa-progress{
+        margin-top:18px; height:8px; border-radius:999px; overflow:hidden;
+        background:rgba(255,255,255,.08);
+      }
+      .pwa-progress > i{
+        display:block; height:100%; width:0%; border-radius:999px;
+        background:linear-gradient(90deg,#f0d09a,#e8b86d 55%,#d4924a);
+        transition:width .35s ease;
+      }
+      .pwa-progress__pct{
+        margin:10px 0 0; font-size:12px; font-weight:750; color:rgba(246,243,238,.72);
+        letter-spacing:.02em;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -344,36 +359,103 @@
     wrap.hidden = false;
   }
 
+  function setUpdateProgress(pct, label) {
+    const wrap = document.getElementById(DIALOG_ID) || ensureProgressDialog();
+    wrap.hidden = false;
+    const dlg = wrap.querySelector(".pwa-dlg");
+    dlg.classList.add("is-progress");
+    wrap.querySelector(".pwa-dlg__eyebrow").textContent = `UPDATE ${APP_VERSION}`;
+    wrap.querySelector(".pwa-dlg__title").textContent = "업데이트 적용 중";
+    wrap.querySelector(".pwa-dlg__body").textContent =
+      label || "최신 화면을 내려받는 중입니다. 잠시만 기다려 주세요.";
+    let bar = dlg.querySelector(".pwa-progress");
+    let pctEl = dlg.querySelector(".pwa-progress__pct");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "pwa-progress";
+      bar.innerHTML = "<i></i>";
+      pctEl = document.createElement("p");
+      pctEl.className = "pwa-progress__pct";
+      dlg.append(bar, pctEl);
+    }
+    const n = Math.max(0, Math.min(100, Math.round(pct)));
+    bar.querySelector("i").style.width = `${n}%`;
+    pctEl.textContent = `${n}%`;
+  }
+
+  function ensureProgressDialog() {
+    showDialog({
+      eyebrow: `UPDATE ${APP_VERSION}`,
+      title: "업데이트 적용 중",
+      body: "최신 화면을 내려받는 중입니다.",
+      primaryLabel: "확인",
+      secondaryLabel: "닫기",
+    });
+    return document.getElementById(DIALOG_ID);
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   function applyUpdate() {
     userApprovedUpdate = true;
-    showStatus("updating", { done: 0, total: 1 });
+    updateOffered = true;
+    const chip = document.getElementById("pwaUpdateChip");
+    if (chip) chip.hidden = true;
+
+    // Keep modal open as progress UI (do not flash-dismiss).
+    setUpdateProgress(4, "캐시를 정리하는 중…");
+    showStatus("updating", { done: 0, total: 100 });
+
     const finish = async () => {
+      const started = Date.now();
+      const MIN_MS = 3200;
+      let pct = 4;
+
+      const tick = setInterval(() => {
+        // Ease toward ~88% while work runs; finish jumps to 100.
+        if (pct < 88) {
+          pct += pct < 40 ? 7 : pct < 70 ? 4 : 2;
+          setUpdateProgress(pct, pct < 45 ? "캐시를 정리하는 중…" : "새 버전을 적용하는 중…");
+          showStatus("updating", { done: pct, total: 100 });
+        }
+      }, 280);
+
       try {
         if ("caches" in window) {
           const keys = await caches.keys();
           await Promise.all(keys.map((k) => caches.delete(k)));
         }
       } catch (_) {}
+
       const target = pendingRemoteBuild || APP_BUILD;
       localStorage.setItem(ACTIVATED_KEY, target);
       localStorage.setItem(BUILD_KEY, target);
       localStorage.removeItem(UPDATE_SNOOZE_KEY);
-      const worker = pendingWorker;
-      if (worker) {
-        worker.postMessage({ type: "SKIP_WAITING" });
-      } else {
-        try {
+
+      try {
+        const worker = pendingWorker;
+        if (worker) {
+          worker.postMessage({ type: "SKIP_WAITING" });
+        } else {
           const reg = await navigator.serviceWorker.getRegistration();
           if (reg && reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
-          else location.reload();
-        } catch (_) {
-          location.reload();
         }
+      } catch (_) {}
+
+      const remain = Math.max(0, MIN_MS - (Date.now() - started));
+      await sleep(remain);
+      clearInterval(tick);
+
+      setUpdateProgress(100, "업데이트 완료 · 앱을 다시 불러옵니다");
+      showStatus("ready", "업데이트 완료 · 앱을 다시 불러옵니다");
+      await sleep(900);
+
+      if (!refreshing) {
+        refreshing = true;
+        location.reload();
       }
-      // If controllerchange doesn't fire quickly, still reload
-      setTimeout(() => {
-        if (!refreshing) location.reload();
-      }, 1200);
     };
     finish();
   }

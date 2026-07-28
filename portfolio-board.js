@@ -134,6 +134,11 @@
   }
 
   function openPortfolioPanel() {
+    if (els.panel && !/\/portfolio\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `./portfolio.html${q}`;
+      return;
+    }
     closeOtherLandingPanels();
     if (els.panel) els.panel.hidden = false;
     state.opened = true;

@@ -561,6 +561,11 @@
   }
 
   function openShippingPanel() {
+    if (!/\/shipping\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `./shipping.html${q}`;
+      return;
+    }
     closeOtherPanels();
     els.panel.hidden = false;
     state.opened = true;
@@ -580,6 +585,11 @@
   }
 
   function closeShippingPanel(options = {}) {
+    if (/\/shipping\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `/landing.html${q}`;
+      return;
+    }
     els.panel.hidden = true;
     state.opened = false;
     if (!options.skipNav && window.GongbangSiteNav?.setActiveNav) {
@@ -648,7 +658,7 @@
     }
   });
 
-  if (new URLSearchParams(location.search).get("open") === "shipping") {
+  if (new URLSearchParams(location.search).get("open") === "shipping" || /\/shipping\.html$/i.test(location.pathname)) {
     openShippingPanel();
   }
 })();
