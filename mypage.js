@@ -36,12 +36,10 @@
   };
   let htmlEditor = null;
 
+  const PAGE_SIZE = 5;
+
   function pageSize() {
-    try {
-      return window.matchMedia("(max-width: 1099px)").matches ? 5 : 10;
-    } catch (_) {
-      return 5;
-    }
+    return PAGE_SIZE;
   }
 
   function ensureEditor() {
@@ -306,7 +304,7 @@
       });
     }
 
-    els.status.textContent = `내 글 ${items.length}개 · ${size}개씩`;
+    els.status.textContent = `${items.length}`;
     renderPager(els.pager, totalPages, state.page, (page) => {
       state.page = page;
       renderMineList();
@@ -373,9 +371,7 @@
     }
 
     if (els.likedStatus) {
-      els.likedStatus.textContent = items.length
-        ? `좋아요 ${items.length}개 · ${size}개씩`
-        : "";
+      els.likedStatus.textContent = items.length ? `${items.length}` : "0";
     }
     renderPager(els.likedPager, totalPages, state.likedPage, (page) => {
       state.likedPage = page;
@@ -472,12 +468,5 @@
 
   els.cancel?.addEventListener("click", () => els.dialog.close());
   els.form?.addEventListener("submit", submitEdit);
-  window.addEventListener("resize", () => {
-    clearTimeout(window.__mpPageSizeTimer);
-    window.__mpPageSizeTimer = window.setTimeout(() => {
-      renderMineList();
-      renderLikedList();
-    }, 180);
-  });
   boot();
 })();

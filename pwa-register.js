@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa73";
+  const APP_BUILD = "20260728-pwa74";
   const APP_VERSION = "v1.12.1";
   const RELEASE_NOTES = ["Main wear rings show post images", "Blank profile on Discover scrapes only", "Mobile AI note next line"];
   const BUILD_KEY = "hx.pwa.build";

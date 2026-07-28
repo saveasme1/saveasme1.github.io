@@ -1,9 +1,8 @@
 {
-  "build": "20260728-pwa73",
-  "version": "v1.12.11",
+  "build": "20260728-pwa74",
+  "version": "v1.12.9",
   "notes": [
-    "Main NEW WEAR rings use post images again",
-    "Blank profile only on Discover feed scrapes",
-    "Mobile AI note on its own line"
+    "Mypage compact dual-panel UI",
+    "Always 5 items per page"
   ]
 }
