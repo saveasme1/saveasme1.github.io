@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.ig.wear.v8";
+  const CACHE_KEY = "hx.ig.wear.v9";
   const CACHE_TTL_MS = 20 * 60 * 1000;
   const TYPES = new Set(["ring", "bracelet", "necklace", "earring"]);
   const TYPE_KO = {
@@ -31,6 +31,7 @@
   const BLOCK_HOST =
     /flickr\.|staticflickr\.|metmuseum\.|clevelandart\.|artic\.edu|wikimedia\.org|upload\.wikimedia/i;
   const WATCH_RE = /시계|워치|\bwatch\b/i;
+  const IG_POST_PATH = /\/(p|reel|tv)\/([A-Za-z0-9_-]+)/i;
 
   function el(tag, cls, html) {
     const n = document.createElement(tag);
@@ -39,12 +40,36 @@
     return n;
   }
 
-  function openPermalink(url) {
-    if (!url) return;
+  /** Only /p/, /reel/, /tv/ — profile roots like instagram.com/cartier/ are rejected. */
+  function isIgPostPermalink(url) {
     try {
-      window.open(url, "_blank", "noopener,noreferrer");
+      const u = new URL(String(url || "").trim());
+      if (!/(^|\.)instagram\.com$/i.test(u.hostname)) return false;
+      return IG_POST_PATH.test(u.pathname);
     } catch (_) {
-      location.href = url;
+      return false;
+    }
+  }
+
+  function normalizeIgPostUrl(url) {
+    try {
+      const u = new URL(String(url || "").trim());
+      const m = u.pathname.match(IG_POST_PATH);
+      if (!m) return "";
+      return `https://www.instagram.com/${m[1].toLowerCase()}/${m[2]}/`;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function openPermalink(url) {
+    const post = normalizeIgPostUrl(url);
+    const target = post || url;
+    if (!target) return;
+    try {
+      window.open(target, "_blank", "noopener,noreferrer");
+    } catch (_) {
+      location.href = target;
     }
   }
 
@@ -218,9 +243,11 @@
     if (!brand) return null;
     const type = String(row.type || "").toLowerCase();
     if (!TYPES.has(type)) return null;
-    const permalink = String(row.permalink || row.instagram || row.url || "");
+    const rawPermalink = String(row.permalink || row.instagram || row.url || "");
+    const permalink = normalizeIgPostUrl(rawPermalink);
     let image = String(row.image || row.image_url || "");
-    if (!permalink || !image) return null;
+    // Media must open a specific IG post — never a profile homepage.
+    if (!permalink || !isIgPostPermalink(permalink) || !image) return null;
     image = absUrl(image);
     if (BLOCK_HOST.test(permalink) || BLOCK_HOST.test(image)) return null;
 
@@ -295,9 +322,16 @@
       if (hit?.items?.length) return hit.items;
     }
     try {
-      ["hx.ig.wear.v1", "hx.ig.wear.v2", "hx.ig.wear.v3", "hx.ig.wear.v4", "hx.ig.wear.v5", "hx.ig.wear.v6", "hx.ig.wear.v7"].forEach(
-        (k) => localStorage.removeItem(k)
-      );
+      [
+        "hx.ig.wear.v1",
+        "hx.ig.wear.v2",
+        "hx.ig.wear.v3",
+        "hx.ig.wear.v4",
+        "hx.ig.wear.v5",
+        "hx.ig.wear.v6",
+        "hx.ig.wear.v7",
+        "hx.ig.wear.v8",
+      ].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
     const brands = await loadBrands();
@@ -370,7 +404,15 @@
       `<span>${item.brandCode !== "IG" ? item.brandCode + " · " : ""}${item.typeKo}</span>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt, item.id));
     head.append(av, meta, time);
-    head.addEventListener("click", () => openPermalink(profile));
+    head.addEventListener("click", () => {
+      // Profile row → IG profile. Media/원문 → specific post.
+      if (!profile) return;
+      try {
+        window.open(profile, "_blank", "noopener,noreferrer");
+      } catch (_) {
+        location.href = profile;
+      }
+    });
 
     const media = el("button", "hx-ig__media");
     media.type = "button";
@@ -379,7 +421,10 @@
       media.classList.add("hx-ig__media--ph");
       media.innerHTML = `<div class="hx-ig__ph"><b>${handle}</b><em>원문 보기</em></div>`;
     });
-    media.addEventListener("click", () => openPermalink(item.permalink));
+    media.addEventListener("click", () => {
+      if (!isIgPostPermalink(item.permalink)) return;
+      openPermalink(item.permalink);
+    });
 
     const foot = el("div", "hx-ig__foot");
     const cap = el("p", "hx-ig__caption");
@@ -391,7 +436,10 @@
     const linkBtn = el("button", "hx-ig__src");
     linkBtn.type = "button";
     linkBtn.textContent = "원문";
-    linkBtn.addEventListener("click", () => openPermalink(item.permalink));
+    linkBtn.addEventListener("click", () => {
+      if (!isIgPostPermalink(item.permalink)) return;
+      openPermalink(item.permalink);
+    });
     by.append(linkBtn);
     foot.append(cap, by);
     a.append(head, media, foot);

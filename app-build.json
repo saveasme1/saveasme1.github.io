@@ -1,5 +1,5 @@
 {
-  "build": "20260728-pwa33",
-  "version": "v1.10.3",
-  "notes": ["relevant wear only", "IG username + avatar proxy"]
+  "build": "20260728-pwa34",
+  "version": "v1.10.4",
+  "notes": ["IG post permalink click", "reject profile-only curated links"]
 }
