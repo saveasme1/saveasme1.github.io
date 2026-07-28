@@ -1,5 +1,5 @@
-/* 본 헤리티지 PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260728-pwa44";
+/* �??�리?��? PWA ??offline shell + image runtime cache + status events */
+const CACHE_VERSION = "hx-pwa-v20260728-pwa45";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -140,7 +140,7 @@ async function precacheAll() {
   const cache = await caches.open(CACHE_VERSION);
   let urls = PRECACHE.concat(CDN_PRECACHE);
 
-  // Cover thumbs for offline grid (seed only — details stay runtime-cached)
+  // Cover thumbs for offline grid (seed only ??details stay runtime-cached)
   try {
     const seedRes = await fetch("./portfolio-data.json", { cache: "reload" });
     if (seedRes.ok) {
@@ -149,7 +149,7 @@ async function precacheAll() {
         .map((item) => item && item.image)
         .filter((src) => typeof src === "string" && src.length > 0)
         .map((src) => (src.startsWith("http") ? src : "./" + src.replace(/^\.\//, "")));
-      // All cover thumbs — detail shots stay runtime-cached when opened
+      // All cover thumbs ??detail shots stay runtime-cached when opened
       urls = urls.concat(covers);
     }
   } catch (_) {}
@@ -183,7 +183,7 @@ async function precacheAll() {
 }
 
 self.addEventListener("install", (event) => {
-  // Do not auto skipWaiting on updates — client asks the customer first.
+  // Do not auto skipWaiting on updates ??client asks the customer first.
   event.waitUntil(precacheAll());
 });
 
@@ -226,8 +226,8 @@ function offlineImageResponse() {
   const svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
     '<rect width="640" height="640" fill="#2a2724"/>' +
-    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">오프라인</text>' +
-    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">아직 저장되지 않은 이미지</text>' +
+    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">?�프?�인</text>' +
+    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">?�직 ?�?�되지 ?��? ?��?지</text>' +
     "</svg>";
   return new Response(svg, {
     headers: {
@@ -287,7 +287,7 @@ async function offlineShell() {
     (await caches.match("./landing.html")) ||
     (await caches.match("./offline.html")) ||
     new Response(
-      "<!doctype html><meta charset=utf-8><title>오프라인</title><body style='font-family:sans-serif;padding:24px;background:#161513;color:#fff'><h1>오프라인</h1><p>와이파이에서 앱을 한 번 열어 데이터를 준비해 주세요.</p></body>",
+      "<!doctype html><meta charset=utf-8><title>?�프?�인</title><body style='font-family:sans-serif;padding:24px;background:#161513;color:#fff'><h1>?�프?�인</h1><p>?�?�파?�에???�을 ??�??�어 ?�이?��? 준비해 주세??</p></body>",
       { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
     )
   );
@@ -336,7 +336,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Always network for build manifest — never serve stale update info
+  // Always network for build manifest ??never serve stale update info
   if (/\/app-build\.json$/i.test(url.pathname)) {
     event.respondWith(
       fetch(req, { cache: "no-store" })
@@ -346,7 +346,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Portfolio catalog — prefer fresh JSON, fall back to cache offline
+  // Portfolio catalog ??prefer fresh JSON, fall back to cache offline
   if (/\/portfolio-data\.json$/i.test(url.pathname)) {
     event.respondWith(
       fetch(req, { cache: "no-store" })
@@ -380,7 +380,7 @@ self.addEventListener("fetch", (event) => {
             }
             return res;
           }
-          // Avoid serving HTML/404 as an <img> → 액박
+          // Avoid serving HTML/404 as an <img> ???�박
           if (image) return cached || offlineImageResponse();
           return res;
         })

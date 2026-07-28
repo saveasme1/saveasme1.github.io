@@ -1,9 +1,9 @@
-{
-  "build": "20260728-pwa44",
-  "version": "v1.10.13",
+﻿{
+  "build": "20260728-pwa45",
+  "version": "v1.11.1",
   "notes": [
-    "PC bottom nav full-bleed like top bar",
-    "Hot rank delta numbers",
-    "Paper page HERITAGE logo contrast"
+    "발견탭 주얼리 전용 필터",
+    "브랜드 칩만 유지",
+    "영상 탭 내 재생"
   ]
 }
