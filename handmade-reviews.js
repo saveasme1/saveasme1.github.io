@@ -180,7 +180,7 @@
     if (!reviews.length) {
       const empty = document.createElement("p");
       empty.className = "review-empty";
-      empty.textContent = state.query ? "검색 결과가 없습니다." : "등록된 후기가 없습니다.";
+      empty.textContent = state.query ? "검색 결과가 없습니다." : "등록된 스냅이 없습니다.";
       els.grid.append(empty);
       return;
     }
@@ -242,7 +242,7 @@
   async function loadReviews(scroll = false) {
     if (state.busy) return;
     state.busy = true;
-    els.status.textContent = "후기를 불러오는 중…";
+    els.status.textContent = "스냅을 불러오는 중…";
     try {
       const params = new URLSearchParams({ page: String(state.page), pageSize: "12" });
       if (state.query) params.set("q", state.query);
@@ -404,7 +404,7 @@
     form._htmlEditor?.setMode(
       window.GongbangHtmlEditor?.looksLikeHtml?.(review.body) ? "source" : "text"
     );
-    $("reviewWriteTitle").textContent = "리얼후기 수정";
+    $("reviewWriteTitle").textContent = "스냅 수정";
     $("reviewImageHelp").textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다.";
     $("reviewWriteSubmit").textContent = "수정 저장";
     $("reviewWriteStatus").textContent = "";
@@ -419,7 +419,7 @@
     delete form.dataset.reviewId;
     form.elements.cover.required = true;
     form._htmlEditor?.reset?.();
-    $("reviewWriteTitle").textContent = "리얼후기 작성";
+    $("reviewWriteTitle").textContent = "스냅 작성";
     $("reviewImageHelp").textContent = "대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.";
     $("reviewWriteSubmit").textContent = "등록하기";
     $("reviewWriteStatus").textContent = "";
@@ -499,7 +499,7 @@
       </dialog>
       <dialog class="review-dialog write-dialog" id="reviewWriteDialog">
         <form id="reviewWriteForm">
-          <h2 id="reviewWriteTitle">리얼후기 작성</h2>
+          <h2 id="reviewWriteTitle">스냅 작성</h2>
           <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="후기 제목"></label>
           <label>내용<textarea name="body" minlength="2" maxlength="20000" required placeholder="후기 내용을 입력해 주세요"></textarea></label>
           <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>

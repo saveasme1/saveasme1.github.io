@@ -20,7 +20,7 @@
   }
   const ICONS = {
     portfolio: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="6.5" width="17" height="13" rx="2.2" stroke="currentColor" stroke-width="1.7"/><path d="M8 6.5V5.4A1.9 1.9 0 0 1 9.9 3.5h4.2A1.9 1.9 0 0 1 16 5.4v1.1" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 11h17" stroke="currentColor" stroke-width="1.7"/></svg>`,
-    reviews: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 5.5h13A2 2 0 0 1 20.5 7.5v7A2 2 0 0 1 18.5 16.5H12l-4.2 2.8c-.45.3-1.05-.05-1.05-.6v-2.2H5.5A2 2 0 0 1 3.5 14.5v-7A2 2 0 0 1 5.5 5.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+    reviews: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 8.5h2.2l1.2-2h8.2l1.2 2H19.5A1.5 1.5 0 0 1 21 10v7.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5V10a1.5 1.5 0 0 1 1.5-1.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke="currentColor" stroke-width="1.7"/></svg>`,
     home: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 10.2 12 4.2l7.5 6V19a1.8 1.8 0 0 1-1.8 1.8h-3.9v-5.2a1.3 1.3 0 0 0-1.3-1.3h-2a1.3 1.3 0 0 0-1.3 1.3V20.8H6.3A1.8 1.8 0 0 1 4.5 19v-8.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`,
     shipping: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.8 8.2 12 3.8l8.2 4.4v7.6L12 20.2 3.8 15.8V8.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 12.2 4.2 8M12 12.2l7.8-4.2M12 12.2V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
     mypage: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8.2" r="3.1" stroke="currentColor" stroke-width="1.7"/><path d="M5.4 19.2c1.4-3.1 3.7-4.7 6.6-4.7s5.2 1.6 6.6 4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
@@ -407,7 +407,7 @@
       navItem("portfolio", "포트폴리오", ICONS.portfolio) +
       navItem("discover", "발견", ICONS.reviews) +
       navItem("home", "홈", ICONS.home, true) +
-      navItem("shipping", "출고확인", ICONS.shipping) +
+      navItem("shipping", "최종검수", ICONS.shipping) +
       navItem("mypage", "마이", ICONS.mypage) +
       `</ul>`;
     document.body.appendChild(nav);

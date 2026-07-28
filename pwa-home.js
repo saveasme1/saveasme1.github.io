@@ -49,8 +49,7 @@
   const ICO = {
     portfolio:
       '<svg viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="13" rx="2.2" stroke-width="1.7"/><path d="M8 6.5V5.4A1.9 1.9 0 0 1 9.9 3.5h4.2A1.9 1.9 0 0 1 16 5.4v1.1M3.5 11h17" stroke-width="1.7"/></svg>',
-    reviews:
-      '<svg viewBox="0 0 24 24"><path d="M5.5 5.5h13A2 2 0 0 1 20.5 7.5v7A2 2 0 0 1 18.5 16.5H12l-4.2 2.8c-.45.3-1.05-.05-1.05-.6v-2.2H5.5A2 2 0 0 1 3.5 14.5v-7A2 2 0 0 1 5.5 5.5Z" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+    reviews: '<svg viewBox="0 0 24 24"><path d="M4.5 8.5h2.2l1.2-2h8.2l1.2 2H19.5A1.5 1.5 0 0 1 21 10v7.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5V10a1.5 1.5 0 0 1 1.5-1.5Z" fill="none" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" fill="none" stroke-width="1.7"/></svg>',
     shipping:
       '<svg viewBox="0 0 24 24"><path d="M3.8 8.2 12 3.8l8.2 4.4v7.6L12 20.2 3.8 15.8V8.2Z" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 12.2 4.2 8M12 12.2l7.8-4.2M12 12.2V20" stroke-width="1.7" stroke-linecap="round"/></svg>',
     notices:
@@ -64,10 +63,10 @@
   const MENUS = [
     { go: "discover", label: "발견", ico: "portfolio" },
     { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
-    { go: "shipping", label: "출고", ico: "shipping" },
+    { go: "shipping", label: "최종검수", ico: "shipping" },
     { go: "gold", label: "금시세", ico: "gold" },
     { go: "search", label: "AI검색", ico: "search" },
-    { go: "reviews", label: "후기", ico: "reviews" },
+    { go: "reviews", label: "스냅", ico: "reviews" },
   ];
 
   const RANK_SNAP_KEY = "hx.pwa.hotRank.v2";
@@ -872,11 +871,11 @@
     const pulseLines = [];
     shipItems.slice(0, 4).forEach((s) => {
       const t = String(s.title || "").replace(/\s+/g, " ").trim().slice(0, 28);
-      if (t) pulseLines.push(`출고 · ${t}`);
+      if (t) pulseLines.push(`최종검수 · ${t}`);
     });
     reviewItems.slice(0, 3).forEach((r) => {
-      const t = String(r.title || "후기").slice(0, 24);
-      pulseLines.push(`후기 · ${t}`);
+      const t = String(r.title || "스냅").slice(0, 24);
+      pulseLines.push(`스냅 · ${t}`);
     });
     if (!pulseLines.length) {
       pulseLines.push("본 헤리티지 · 주문제작 아카이브가 업데이트 중입니다");
@@ -898,8 +897,8 @@
       { src: MEDIA.look[1].src, label: "WEAR", go: "portfolio" },
       { src: MEDIA.look[2].src, label: "GOLD", go: "gold" },
       { src: MEDIA.look[4].src, label: "AI", go: "search" },
-      { src: MEDIA.look[5].src, label: "OUT", go: "shipping" },
-      { src: MEDIA.look[3].src, label: "REAL", go: "reviews" },
+      { src: MEDIA.look[5].src, label: "QC", go: "shipping" },
+      { src: MEDIA.look[3].src, label: "SNAP", go: "reviews" },
     ];
     storyItems.forEach((s, i) => {
       const b = document.createElement("button");
@@ -1214,16 +1213,16 @@
     shipSec.className = "pwa-sec";
     shipSec.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">LIVE SHIPPING</p><h2>실시간 출고</h2></div>` +
+      `<div><p class="pwa-sec__eyebrow">FINAL CHECK</p><h2>최종검수</h2></div>` +
       `<button type="button" data-go="shipping">더보기</button>` +
       `</div>`;
     const shipRail = document.createElement("div");
     shipRail.className = "pwa-reviews";
     if (!shipItems.length) {
       shipRail.innerHTML =
-        `<button type="button" class="pwa-review" data-go="shipping"><strong>실시간 출고</strong><p>출고 샷을 확인해 보세요.</p></button>`;
+        `<button type="button" class="pwa-review" data-go="shipping"><strong>최종검수</strong><p>최종검수 샷을 확인해 보세요.</p></button>`;
     } else {
-      shipItems.forEach((item) => shipRail.append(photoBoardCard(item, "shipping", "출고")));
+      shipItems.forEach((item) => shipRail.append(photoBoardCard(item, "shipping", "최종검수")));
     }
     shipSec.append(shipRail);
     host.append(shipSec);
@@ -1233,16 +1232,16 @@
     secRev.className = "pwa-sec";
     secRev.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">REVIEW</p><h2>리얼 후기</h2></div>` +
+      `<div><p class="pwa-sec__eyebrow">SNAP</p><h2>스냅</h2></div>` +
       `<button type="button" data-go="reviews">더보기</button>` +
       `</div>`;
     const revRail = document.createElement("div");
     revRail.className = "pwa-reviews";
     if (!reviewItems.length) {
       revRail.innerHTML =
-        `<button type="button" class="pwa-review" data-go="reviews"><strong>실제 제작 후기</strong><p>고객 후기를 확인해 보세요.</p></button>`;
+        `<button type="button" class="pwa-review" data-go="reviews"><strong>제작 스냅</strong><p>고객 스냅을 확인해 보세요.</p></button>`;
     } else {
-      reviewItems.forEach((item) => revRail.append(photoBoardCard(item, "reviews", "후기")));
+      reviewItems.forEach((item) => revRail.append(photoBoardCard(item, "reviews", "스냅")));
     }
     secRev.append(revRail);
     host.append(secRev);

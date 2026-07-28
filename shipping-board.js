@@ -304,7 +304,7 @@
     if (!pageItems.length) {
       const empty = document.createElement("p");
       empty.className = "pf-empty";
-      empty.textContent = "조건에 맞는 출고 게시글이 없습니다.";
+      empty.textContent = "조건에 맞는 최종검수 게시글이 없습니다.";
       els.grid.append(empty);
       return;
     }
@@ -519,7 +519,7 @@
     if (els.status) els.status.textContent = "불러오는 중…";
     try {
       const response = await fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("출고 데이터를 불러오지 못했습니다.");
+      if (!response.ok) throw new Error("최종검수 데이터를 불러오지 못했습니다.");
       const payload = await response.json();
       state.categories =
         Array.isArray(payload.categories) && payload.categories.length

@@ -205,22 +205,22 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 @media (max-width: 1024px) {
   .pwa-hero-slider__dots {
     bottom: 10px;
-    gap: 6px;
+    gap: 4px;
   }
 
   .pwa-hero-slider__dots button {
-    width: 8px;
-    height: 8px;
-    padding: 14px;
+    width: 6px;
+    height: 6px;
+    padding: 12px;
   }
 
   .pwa-hero-slider__dots button::after {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   .pwa-hero-slider__dots button.is-on::after {
-    width: 18px;
+    width: 16px;
   }
 }
 
