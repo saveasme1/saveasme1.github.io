@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v4";
+  const CACHE_KEY = "hx.discover.feed.v5";
   const CACHE_TTL_MS = 8 * 60 * 1000;
   const TYPE_KO = {
     ring: "반지",
@@ -221,10 +221,30 @@
     return items;
   }
 
+  function igShortcode(permalink, externalId) {
+    const fromExt = String(externalId || "").trim();
+    if (/^[A-Za-z0-9_-]{5,}$/.test(fromExt) && !/^\d+$/.test(fromExt)) return fromExt;
+    const m = String(permalink || "").match(/\/(?:p|reel|tv)\/([^/?#]+)/i);
+    return m ? m[1] : "";
+  }
+
+  function localIgPostImage(shortcode) {
+    if (!shortcode) return "";
+    return absUrl(`./wear-media/posts/${shortcode}.jpg`);
+  }
+
   function normalizeItem(row) {
     const platform = String(row.platform || "instagram").toLowerCase();
     const permalink = String(row.permalink || "").trim();
-    const image = absUrl(row.image || row.thumbnail || "");
+    const shortcode = igShortcode(permalink, row.externalId);
+    let image = absUrl(row.image || row.thumbnail || "");
+    // Instagram CDN /media/?size=l is blocked — prefer local wear-media cache
+    if (platform === "instagram" && shortcode) {
+      const local = localIgPostImage(shortcode);
+      if (!image || /instagram\.com\/.+\/media/i.test(image) || /cdninstagram|fbcdn\.net/i.test(image)) {
+        image = local;
+      }
+    }
     if (!permalink || !image) return null;
     const type = String(row.productType || row.type || "").toLowerCase();
     const handle = String(row.handle || row.profileUsername || "").replace(/^@/, "");
@@ -240,6 +260,12 @@
       captionKo: row.captionKo || row.caption || "",
       captionOriginal: row.captionOriginal || "",
       image,
+      imageFallbacks:
+        platform === "instagram" && shortcode
+          ? [localIgPostImage(shortcode), absUrl(row.thumbnail || ""), absUrl(row.image || "")].filter(
+              (u, i, a) => u && a.indexOf(u) === i
+            )
+          : [image],
       avatar: row.avatar || row.profileImage || "",
       profilePictureUrl: row.profilePictureUrl || row.profileImage || "",
       permalink,
@@ -247,7 +273,7 @@
       mediaType: row.mediaType || "image",
       type,
       typeKo: TYPE_KO[type] || "",
-      externalId: row.externalId || youtubeId(permalink),
+      externalId: row.externalId || shortcode || youtubeId(permalink),
     };
   }
 
@@ -389,10 +415,20 @@
     media.innerHTML =
       `<img alt="" loading="lazy" decoding="async" src="${item.image}">` +
       (isVideo ? `<span class="hx-ig__play" aria-hidden="true"></span>` : "");
-    media.querySelector("img")?.addEventListener("error", () => {
-      media.classList.add("hx-ig__media--ph");
-      media.innerHTML = `<div class="hx-ig__ph"><b>${handle || plat}</b><em>원문 보기</em></div>`;
-    });
+    const imgEl = media.querySelector("img");
+    if (imgEl) {
+      let fb = 0;
+      const fallbacks = (item.imageFallbacks || [item.image]).filter(Boolean);
+      imgEl.addEventListener("error", () => {
+        fb += 1;
+        if (fb < fallbacks.length && fallbacks[fb] && fallbacks[fb] !== imgEl.src) {
+          imgEl.src = fallbacks[fb];
+          return;
+        }
+        media.classList.add("hx-ig__media--ph");
+        media.innerHTML = `<div class="hx-ig__ph"><b>${handle || plat}</b><em>원문 보기</em></div>`;
+      });
+    }
     media.addEventListener("click", () => playInline(media, item));
 
     const foot = el("div", "hx-ig__foot");

@@ -1,7 +1,8 @@
 {
-  "build": "20260728-pwa54",
-  "version": "v1.11.10",
+  "build": "20260728-pwa55",
+  "version": "v1.11.9",
   "notes": [
-    "Event deadline: 2026-08-08 24:00 KST"
+    "Discover: restore local wear-media images for IG posts",
+    "한글 깨짐 복구"
   ]
 }
