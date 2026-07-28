@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v8";
+  const CACHE_KEY = "hx.discover.feed.v9";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -15,6 +15,7 @@
     pinterest: "Pin",
     youtube: "YT",
     tiktok: "TT",
+    web: "Web",
   };
   const FALLBACK_BRAND_ORDER = [
     "C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "T&C", "L", "D",
@@ -626,6 +627,7 @@
     const foot = el("div", "hx-ig__foot");
     const likesLine = el("p", "hx-ig__likes-line");
     likesLine.textContent = `좋아요 ${Number(item.likeCount || 0)}개`;
+    const capRow = el("div", "hx-ig__cap-row");
     const cap = el("p", "hx-ig__caption");
     const body = escapeHtml(item.captionKo || item.caption || "");
     const who = escapeHtml(handle || "");
@@ -637,6 +639,8 @@
           "이 글은 내부 AI 시스템에 의해 자동으로 번역되었습니다."
         )
       : null;
+    capRow.append(cap);
+    if (note) capRow.append(note);
 
     const comments = el("div", "hx-ig__comments");
     comments.hidden = true;
@@ -728,7 +732,7 @@
     });
 
     comments.append(cmtList, cmtForm);
-    foot.append(likesLine, cap, ...(note ? [note] : []), comments);
+    foot.append(likesLine, capRow, comments);
     a.append(head, media, actions, foot);
     return a;
   }
