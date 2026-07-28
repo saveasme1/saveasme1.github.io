@@ -101,6 +101,28 @@
     return Boolean(state.member && state.member.role === "admin");
   }
 
+  function openAdminWindow(url, name = "heritageAdminShipping") {
+    const width = Math.min(1120, Math.max(720, (window.screen?.availWidth || 1200) - 80));
+    const height = Math.min(920, Math.max(640, (window.screen?.availHeight || 900) - 80));
+    const left = Math.max(0, Math.round((window.screenX || 0) + ((window.outerWidth || width) - width) / 2));
+    const top = Math.max(0, Math.round((window.screenY || 0) + ((window.outerHeight || height) - height) / 2));
+    const features =
+      `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    let win = null;
+    try {
+      win = window.open(url, name, features);
+    } catch (_) {
+      win = null;
+    }
+    if (win) {
+      try {
+        win.focus();
+      } catch (_) {}
+      return win;
+    }
+    return window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   async function api(path, options = {}) {
     const response = await fetch(`${API}${path}`, {
       credentials: "include",
@@ -259,7 +281,10 @@
       window.openGongbangBoardDetail("shipping", item);
       return;
     }
-    location.href = `/admin/shipping/?edit=${encodeURIComponent(item.id)}`;
+    openAdminWindow(
+      `/admin/shipping/?edit=${encodeURIComponent(item.id)}`,
+      "heritageAdminShippingEdit"
+    );
   }
 
   function observeCards() {
@@ -632,11 +657,16 @@
     renderList();
   });
   els.write?.addEventListener("click", () => {
+    if (!isAdmin()) {
+      showToast("글쓰기 권한이 없습니다.", { tone: "error" });
+      return;
+    }
+    // Prefer in-page write dialog when available (landing / shipping pages)
     if (typeof window.openGongbangBoardWriter === "function") {
       window.openGongbangBoardWriter("shipping");
       return;
     }
-    showToast("글쓰기 권한이 없습니다.", { tone: "error" });
+    openAdminWindow("/admin/shipping/", "heritageAdminShipping");
   });
   window.addEventListener("resize", placeShippingTools);
   window.addEventListener("gongbang:auth-changed", (event) => {

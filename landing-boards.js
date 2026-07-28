@@ -231,10 +231,23 @@
     dialog.actions.hidden = !canManage;
     if (!canManage) return;
 
-    const edit = document.createElement("a");
+    const edit = document.createElement("button");
+    edit.type = "button";
     edit.className = "detail-action";
-    edit.href = `${boards[state.currentType].adminPath}?edit=${encodeURIComponent(state.current.id)}`;
     edit.textContent = "수정";
+    edit.addEventListener("click", () => {
+      const url = `${boards[state.currentType].adminPath}?edit=${encodeURIComponent(state.current.id)}`;
+      const width = Math.min(1120, Math.max(720, (window.screen?.availWidth || 1200) - 80));
+      const height = Math.min(920, Math.max(640, (window.screen?.availHeight || 900) - 80));
+      const left = Math.max(0, Math.round((window.screenX || 0) + ((window.outerWidth || width) - width) / 2));
+      const top = Math.max(0, Math.round((window.screenY || 0) + ((window.outerHeight || height) - height) / 2));
+      const win = window.open(
+        url,
+        `heritageAdmin${state.currentType}Edit`,
+        `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+      );
+      if (!win) window.open(url, "_blank", "noopener,noreferrer");
+    });
 
     const remove = document.createElement("button");
     remove.type = "button";
@@ -351,7 +364,7 @@
     }
     writer.form.reset();
     writer.form.elements.boardType.value = type;
-    writer.title.textContent = type === "shipping" ? "실시간 출고 작성" : "공지사항 작성";
+    writer.title.textContent = type === "shipping" ? "최종검수 작성" : "공지사항 작성";
     writer.status.textContent = "";
     writer.submit.disabled = false;
     writerHtmlEditor?.reset?.();

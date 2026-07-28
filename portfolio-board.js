@@ -115,6 +115,29 @@
     location.href = "/landing.html?open=mypage";
   }
 
+  function openAdminWindow(url, name = "heritageAdminPortfolio") {
+    const width = Math.min(1120, Math.max(720, (window.screen?.availWidth || 1200) - 80));
+    const height = Math.min(920, Math.max(640, (window.screen?.availHeight || 900) - 80));
+    const left = Math.max(0, Math.round((window.screenX || 0) + ((window.outerWidth || width) - width) / 2));
+    const top = Math.max(0, Math.round((window.screenY || 0) + ((window.outerHeight || height) - height) / 2));
+    const features =
+      `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    let win = null;
+    try {
+      win = window.open(url, name, features);
+    } catch (_) {
+      win = null;
+    }
+    if (win) {
+      try {
+        win.focus();
+      } catch (_) {}
+      return win;
+    }
+    // Keep current page; open a new tab if popup is blocked
+    return window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   function applyAuthMember(member, accessToken) {
     if (accessToken) {
       try { sessionStorage.setItem(TOKEN_KEY, accessToken); } catch (_) {}
@@ -175,7 +198,8 @@
       showToast("글쓰기 권한이 없습니다.", { tone: "error" });
       return;
     }
-    location.href = "/admin/portfolio/";
+    // Keep portfolio page; write UI opens in a separate window
+    openAdminWindow("/admin/portfolio/", "heritageAdminPortfolio");
   }
 
   async function api(path, options = {}) {
@@ -507,15 +531,24 @@
     els.actions.hidden = !canManage;
     if (!canManage) return;
 
-    const edit = document.createElement("a");
+    const edit = document.createElement("button");
+    edit.type = "button";
     edit.className = "detail-action";
-    edit.href = `/admin/portfolio/?edit=${encodeURIComponent(state.current.id)}`;
     edit.textContent = "수정";
+    edit.addEventListener("click", () => {
+      openAdminWindow(
+        `/admin/portfolio/?edit=${encodeURIComponent(state.current.id)}`,
+        "heritageAdminPortfolioEdit"
+      );
+    });
 
-    const manage = document.createElement("a");
+    const manage = document.createElement("button");
+    manage.type = "button";
     manage.className = "detail-action";
-    manage.href = "/admin/portfolio/";
     manage.textContent = "관리자";
+    manage.addEventListener("click", () => {
+      openAdminWindow("/admin/portfolio/", "heritageAdminPortfolio");
+    });
 
     els.actions.append(edit, manage);
   }

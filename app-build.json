@@ -1,9 +1,8 @@
 {
-  "build": "20260728-pwa52",
-  "version": "v1.11.8",
+  "build": "20260728-pwa53",
+  "version": "v1.11.9",
   "notes": [
-    "Fix RECENT UPDATE click (externalId + touch pause)",
-    "Hide back button on home",
-    "Tighter mobile hero dots"
+    "Write/edit opens admin in popup, not same-tab redirect",
+    "Shipping write keeps in-page dialog when available"
   ]
 }

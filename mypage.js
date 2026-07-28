@@ -242,8 +242,11 @@
         const edit = document.createElement(item.editHref ? "a" : "button");
         edit.className = "mp-btn";
         edit.textContent = "수정";
-        if (item.editHref) edit.href = item.editHref;
-        else {
+        if (item.editHref) {
+          edit.href = item.editHref;
+          edit.target = "_blank";
+          edit.rel = "noopener noreferrer";
+        } else {
           edit.type = "button";
           edit.addEventListener("click", () => openEdit(item));
         }
@@ -289,7 +292,8 @@
       if (item.board === "reviews") {
         await api(`/reviews/${item.id}`, { method: "DELETE" });
       } else {
-        location.href = item.editHref || `/admin/${item.board}/`;
+        const url = item.editHref || `/admin/${item.board}/`;
+        window.open(url, "_blank", "noopener,noreferrer");
         return;
       }
       state.items = state.items.filter((row) => !(row.board === item.board && String(row.id) === String(item.id)));
