@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v7";
+  const CACHE_KEY = "hx.discover.feed.v8";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -565,9 +565,7 @@
     setAvatar(av, handle, item.profilePictureUrl || item.avatar, item.platform, item.brandCode);
 
     const meta = el("div", "hx-ig__meta");
-    meta.innerHTML =
-      `<strong>${escapeHtml(handle || plat)}</strong>` +
-      (item.typeKo ? `<span>${escapeHtml(item.typeKo)}</span>` : "");
+    meta.innerHTML = `<strong>${escapeHtml(handle || plat)}</strong>`;
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt));
     head.append(av, meta, time);
     head.addEventListener("click", () => openUrl(profile));
@@ -608,7 +606,7 @@
     )}</b>`;
     const moreBtn = el("button", "hx-ig__more");
     moreBtn.type = "button";
-    moreBtn.textContent = "원문";
+    moreBtn.textContent = "원문 보기";
     moreBtn.addEventListener("click", () => openUrl(item.permalink));
     actions.append(likeBtn, cmtBtn, moreBtn);
 
@@ -632,6 +630,13 @@
     const body = escapeHtml(item.captionKo || item.caption || "");
     const who = escapeHtml(handle || "");
     cap.innerHTML = (who ? `<strong>${who}</strong> ` : "") + `<span class="hx-ig__seed">${body}</span>`;
+    const note = item.translated
+      ? el(
+          "p",
+          "hx-ig__ai-note",
+          "이 글은 내부 AI 시스템에 의해 자동으로 번역되었습니다."
+        )
+      : null;
 
     const comments = el("div", "hx-ig__comments");
     comments.hidden = true;
@@ -723,7 +728,7 @@
     });
 
     comments.append(cmtList, cmtForm);
-    foot.append(likesLine, cap, comments);
+    foot.append(likesLine, cap, ...(note ? [note] : []), comments);
     a.append(head, media, actions, foot);
     return a;
   }

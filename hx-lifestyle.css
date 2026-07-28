@@ -1523,15 +1523,32 @@ html.is-pwa {
 }
 #hxDiscover .hx-ig__meta span,
 #hxDiscover .hx-ig__time,
-#hxDiscover .hx-ig__more,
 #hxDiscover .hx-ig__cmt-edit,
 #hxDiscover .hx-ig__cmt-del {
   color: #8e8e8e !important;
+}
+#hxDiscover .hx-ig__more {
+  color: #0095f6 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  background: rgba(0, 149, 246, 0.08) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+}
+#hxDiscover .hx-ig__ai-note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #8e8e8e !important;
+  letter-spacing: -0.02em;
 }
 #hxDiscover .hx-ig__like,
 #hxDiscover .hx-ig__cmt-toggle,
 #hxDiscover .hx-ig__more {
   color: #262626 !important;
+}
+#hxDiscover .hx-ig__more {
+  color: #0095f6 !important;
 }
 #hxDiscover .hx-ig__heart {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23262626' stroke-width='1.8'%3E%3Cpath d='M12 20s-7-4.4-7-9.2A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7 3.8C19 15.6 12 20 12 20z'/%3E%3C/svg%3E") !important;

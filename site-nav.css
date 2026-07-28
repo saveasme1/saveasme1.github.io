@@ -628,6 +628,10 @@ body.has-gb-top-brand {
 
   }
 
+  body[data-auth-state="in"] .gb-bottom-nav__item[data-nav="mypage"] {
+    color: #ff8236;
+  }
+
   .gb-bottom-nav__item:active {
 
     opacity: .85;
@@ -730,6 +734,9 @@ body.gb-chrome-paper .gb-bottom-nav.is-scrolling {
     color: var(--gb-chrome-muted);
   }
   body.gb-chrome-paper .gb-bottom-nav__item.is-active {
+    color: var(--gb-chrome-accent);
+  }
+  body.gb-chrome-paper[data-auth-state="in"] .gb-bottom-nav__item[data-nav="mypage"] {
     color: var(--gb-chrome-accent);
   }
 }

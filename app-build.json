@@ -1,9 +1,9 @@
-{
+﻿{
   "build": "20260728-pwa61",
-  "version": "v1.12.1",
+  "version": "v1.12.2",
   "notes": [
-    "Discover white Instagram UI",
-    "Fix member login token for comments",
-    "More civilian jewelry wear collection"
+    "Block vestiaire/bags/wrong BO sources",
+    "MZ captions stay close to original",
+    "Discover UI: AI note, 원문 보기, 1h sync"
   ]
 }
