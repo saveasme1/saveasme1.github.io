@@ -1,9 +1,8 @@
 {
-  "build": "20260727-pwa27",
-  "version": "v1.9.7",
+  "build": "20260728-pwa28",
+  "version": "v1.9.8",
   "notes": [
-    "발견: 포폴 브랜드 해외 인스타 착용·코디만",
-    "플리커·뮤지엄·시계 제외 / 귀걸이·팔찌·목걸이·반지",
-    "C·VCA·CL 등 IG 핸들 큐레이션 + HX_WEAR_FEED_API"
+    "Discover wear: MakerBridge Instagram API (HX_WEAR_FEED_API)",
+    "큐레이션 + /api/handmade/v1/ig-wear 이미지 피드"
   ]
 }

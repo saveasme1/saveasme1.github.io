@@ -101,8 +101,9 @@
   }
 
   async function loadBackend(brands) {
-    const base = String(window.HX_WEAR_FEED_API || "").replace(/\/$/, "");
-    if (!base) return [];
+    const base = String(
+      window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1"
+    ).replace(/\/$/, "");
     try {
       const res = await fetch(`${base}/ig-wear`, {
         method: "POST",
@@ -124,8 +125,12 @@
   }
 
   function normalize(row, brands) {
-    const code = String(row.brandCode || row.brand || "").trim();
-    const brand = brands[code];
+    let code = String(row.brandCode || row.brand || "").trim();
+    let brand = brands[code];
+    if (!brand && (row.source === "instagram" || code === "IG")) {
+      brand = { en: "Instagram", ko: "인스타" };
+      code = code || "IG";
+    }
     if (!brand) return null;
     const type = String(row.type || "").toLowerCase();
     if (!TYPES.has(type)) return null;
@@ -184,6 +189,7 @@
       });
     } catch (_) {}
     if (!portfolioCodes.size) Object.keys(brands).forEach((c) => portfolioCodes.add(c));
+    portfolioCodes.add("IG"); // Instagram API unbranded wear cards
 
     const merged = [];
     const seen = new Set();
