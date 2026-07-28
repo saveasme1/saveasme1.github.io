@@ -1,9 +1,9 @@
 {
-  "build": "20260728-pwa71",
-  "version": "v1.12.8",
+  "build": "20260728-pwa73",
+  "version": "v1.12.11",
   "notes": [
-    "Center category chips",
-    "Portfolio likes + mypage liked list",
-    "Mobile/tablet mypage 5 per page"
+    "Main NEW WEAR rings use post images again",
+    "Blank profile only on Discover feed scrapes",
+    "Mobile AI note on its own line"
   ]
 }

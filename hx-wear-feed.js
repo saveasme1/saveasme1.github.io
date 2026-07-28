@@ -261,10 +261,13 @@
   function isScrapedAnonProfile(platform, primaryUrl, source) {
     const p = String(platform || "").toLowerCase();
     const s = String(source || "").toLowerCase();
+    // Instagram / official social posts keep real (or brand) avatars
+    if (p === "instagram" || p === "youtube" || p === "tiktok") return false;
+    // Web-search scrapes only → blank white (no invented brand pics)
     if (p === "web") return true;
     if (/^web_/.test(s) || /web_(ddg|bing|google|search)/i.test(s)) return true;
-    // Pinterest / random-site scrapes without a real profile photo → blank white
-    if ((p === "pinterest" || p === "web") && !primaryUrl) return true;
+    // Pinterest without a real profile photo → blank
+    if (p === "pinterest" && !String(primaryUrl || "").trim()) return true;
     return false;
   }
 
@@ -277,7 +280,6 @@
 
   function setAvatar(av, handle, primaryUrl, platform, brandCode, source) {
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
-    // Do not invent brand/stock avatars for web/Pinterest scrapes
     if (isScrapedAnonProfile(platform, primaryUrl, source)) {
       paintBlankAvatar(av);
       return;
@@ -297,7 +299,15 @@
 
     const tryNext = (i) => {
       if (i >= candidates.length) {
-        paintBlankAvatar(av);
+        // Official / IG: keep letter mark — never force blank white
+        av.classList.remove("hx-ig__avatar--blank");
+        av.classList.add("hx-ig__avatar--letter");
+        av.innerHTML = "";
+        av.textContent = (
+          (brandCode && String(brandCode).replace(/[^A-Za-z]/g, "").slice(0, 1)) ||
+          h.slice(0, 1) ||
+          (PLATFORM_LABEL[platform] || "?").slice(0, 1)
+        ).toUpperCase();
         return;
       }
       av.classList.remove("hx-ig__avatar--letter", "hx-ig__avatar--blank");

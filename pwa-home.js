@@ -592,20 +592,14 @@
     }
   }
 
-  function isScrapedAnonStory(item) {
-    const platform = String(item.platform || "").toLowerCase();
-    const source = String(item.source || "").toLowerCase();
-    if (platform === "web") return true;
-    if (/^web_/.test(source) || /web_(ddg|bing|google|search)/i.test(source)) return true;
-    const profile = item.profilePictureUrl || item.profileImage || item.avatar || "";
-    if ((platform === "pinterest" || platform === "web") && !profile) return true;
-    return false;
-  }
-
   function storyAvatarUrl(item) {
-    // Never use post/jewelry image as a fake profile photo
-    if (isScrapedAnonStory(item)) return "";
-    return assetUrl(item.profilePictureUrl || item.profileImage || item.avatar || "");
+    // Main NEW WEAR rings show the post image (not profile photo)
+    const media =
+      item.image ||
+      item.thumbnail ||
+      (Array.isArray(item.mediaUrls) && item.mediaUrls[0]) ||
+      "";
+    return assetUrl(media);
   }
 
   function storyLabel(item) {
@@ -1117,18 +1111,12 @@
         const b = document.createElement("button");
         b.type = "button";
         b.className = "pwa-stories__item is-live" + (i === 0 ? " is-new" : "");
-        const img = storyAvatarUrl(item);
+        const img = storyAvatarUrl(item) || assetUrl(MEDIA.look[i % MEDIA.look.length].src);
         const label = storyLabel(item);
-        if (img) {
-          b.innerHTML =
-            `<span class="pwa-stories__ring"><img src="${img}" alt="" loading="lazy"></span>` +
-            `<span class="pwa-stories__lab">${label}</span>`;
-          protect(b.querySelector("img"));
-        } else {
-          b.innerHTML =
-            `<span class="pwa-stories__ring pwa-stories__ring--blank" aria-hidden="true"></span>` +
-            `<span class="pwa-stories__lab">${label}</span>`;
-        }
+        b.innerHTML =
+          `<span class="pwa-stories__ring"><img src="${img}" alt="" loading="lazy"></span>` +
+          `<span class="pwa-stories__lab">${label}</span>`;
+        protect(b.querySelector("img"));
         b.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
