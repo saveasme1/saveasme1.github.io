@@ -948,6 +948,7 @@
       `<div class="pwa-dropbar__left">` +
       `<p class="pwa-sec__eyebrow">HERITAGE OPENING EVENT</p>` +
       `<strong>헤리티지 리뉴얼 기념 이벤트 마감까지</strong>` +
+      `<p class="pwa-sec__eyebrow" style="margin-top:4px;opacity:.72">~ 2026.08.08 24:00</p>` +
       `</div>` +
       `<div class="pwa-dropbar__clock" id="pwaDropClock" aria-live="polite">` +
       `<span data-h>--</span><i>:</i><span data-m>--</span><i>:</i><span data-s>--</span>` +
@@ -957,9 +958,8 @@
 
     function tickDropClock() {
       const now = new Date();
-      const end = new Date(now);
-      end.setHours(21, 0, 0, 0);
-      if (now >= end) end.setDate(end.getDate() + 1);
+      // 2026-08-08 24:00 KST == 2026-08-09 00:00 KST
+      const end = new Date("2026-08-09T00:00:00+09:00");
       let sec = Math.max(0, Math.floor((end - now) / 1000));
       const h = String(Math.floor(sec / 3600)).padStart(2, "0");
       sec %= 3600;

@@ -1,8 +1,7 @@
 {
-  "build": "20260728-pwa53",
-  "version": "v1.11.9",
+  "build": "20260728-pwa54",
+  "version": "v1.11.10",
   "notes": [
-    "Write/edit opens admin in popup, not same-tab redirect",
-    "Shipping write keeps in-page dialog when available"
+    "Event deadline: 2026-08-08 24:00 KST"
   ]
 }

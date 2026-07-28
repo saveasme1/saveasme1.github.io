@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa53";
+  const APP_BUILD = "20260728-pwa54";
   const APP_VERSION = "v1.10.12";
   const RELEASE_NOTES = ["한글 깨짐 복구", "최종검수·스냅 명칭 변경"];
   const BUILD_KEY = "hx.pwa.build";
