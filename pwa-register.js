@@ -2,7 +2,7 @@
   "use strict";
 
   const APP_BUILD = "20260728-pwa37";
-  const APP_VERSION = "v1.10.6";
+  const APP_VERSION = "v1.10.7";
   const RELEASE_NOTES = [
     "업데이트 팝업 무한 반복 수정",
     "발견: 게시물 원본 이미지·@계정 표시",
@@ -22,6 +22,7 @@
   let updateOffered = false;
   let remoteNotes = null;
   let pendingRemoteBuild = "";
+  let updateProgressLock = false;
 
   async function emergencyFixMojibake() {
     if (sessionStorage.getItem(RECOVER_KEY) === "1") return false;
@@ -353,7 +354,9 @@
       if (typeof onSecondary === "function") onSecondary();
     };
     primary.onclick = () => {
-      closeDialog();
+      // Update flow keeps the dialog as a progress panel — don't dismiss first.
+      const keepOpen = typeof onPrimary === "function" && primaryLabel === "업데이트";
+      if (!keepOpen) closeDialog();
       if (typeof onPrimary === "function") onPrimary();
     };
     wrap.hidden = false;
@@ -401,6 +404,7 @@
   function applyUpdate() {
     userApprovedUpdate = true;
     updateOffered = true;
+    updateProgressLock = true;
     const chip = document.getElementById("pwaUpdateChip");
     if (chip) chip.hidden = true;
 
@@ -452,6 +456,7 @@
       showStatus("ready", "업데이트 완료 · 앱을 다시 불러옵니다");
       await sleep(900);
 
+      updateProgressLock = false;
       if (!refreshing) {
         refreshing = true;
         location.reload();
@@ -606,6 +611,8 @@
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!userApprovedUpdate) return;
     if (refreshing) return;
+    // Wait for progress UI minimum time — applyUpdate will reload.
+    if (updateProgressLock) return;
     refreshing = true;
     location.reload();
   });
