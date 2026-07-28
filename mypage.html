@@ -27,17 +27,17 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260728-pwa72">
+  <link rel="manifest" href="manifest.webmanifest?v=20260728-pwa71">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
-  <link rel="stylesheet" href="handmade-reviews.css?v=20260728-pwa72">
-  <link rel="stylesheet" href="site-nav.css?v=20260728-pwa72">
-  <link rel="stylesheet" href="mypage.css?v=20260728-pwa72">
-  <link rel="stylesheet" href="pwa-app.css?v=20260728-pwa72">
+  <link rel="stylesheet" href="handmade-reviews.css?v=20260728-pwa71">
+  <link rel="stylesheet" href="site-nav.css?v=20260728-pwa71">
+  <link rel="stylesheet" href="mypage.css?v=20260728-pwa71">
+  <link rel="stylesheet" href="pwa-app.css?v=20260728-pwa71">
 </head>
 <body>
   <script>
@@ -81,15 +81,26 @@
 
   <div class="atmosphere" aria-hidden="true"></div>
   <main class="mp-shell">
-    <header class="mp-head">
-      <h1>내가 작성한 글</h1>
-    </header>
-    <div class="mp-toolbar">
-      <nav class="mp-tabs" id="mpTabs" aria-label="게시판 탭"></nav>
-      <p class="mp-status" id="mpStatus" aria-live="polite">불러오는 중…</p>
-    </div>
-    <section class="mp-list" id="mpList" aria-label="내 게시글 목록"></section>
-    <nav class="mp-pager" id="mpPager" aria-label="페이지"></nav>
+    <section class="mp-section" aria-labelledby="mpMineTitle">
+      <header class="mp-head">
+        <h1 id="mpMineTitle">내가 작성한 글</h1>
+      </header>
+      <div class="mp-toolbar">
+        <nav class="mp-tabs" id="mpTabs" aria-label="게시판 탭"></nav>
+        <p class="mp-status" id="mpStatus" aria-live="polite">불러오는 중…</p>
+      </div>
+      <section class="mp-list" id="mpList" aria-label="내 게시글 목록"></section>
+      <nav class="mp-pager" id="mpPager" aria-label="내 글 페이지"></nav>
+    </section>
+
+    <section class="mp-section mp-section--liked" aria-labelledby="mpLikedTitle">
+      <header class="mp-head">
+        <h1 id="mpLikedTitle">좋아요 누른 포트폴리오</h1>
+      </header>
+      <p class="mp-status" id="mpLikedStatus" aria-live="polite"></p>
+      <section class="mp-list mp-liked-list" id="mpLikedList" aria-label="좋아요 누른 포트폴리오"></section>
+      <nav class="mp-pager" id="mpLikedPager" aria-label="좋아요 포트폴리오 페이지"></nav>
+    </section>
   </main>
 
   <dialog class="review-dialog write-dialog" id="mpEditDialog">
@@ -109,11 +120,11 @@
     </form>
   </dialog>
 
-  <script src="time-kr.js?v=20260728-pwa72"></script>
-  <script src="html-editor.js?v=20260728-pwa72"></script>
-  <script src="mypage.js?v=20260728-pwa72"></script>
-  <script src="gongbang-auth.js?v=20260728-pwa72"></script>
-  <script src="site-nav.js?v=20260728-pwa72"></script>
-  <script src="pwa-register.js?v=20260728-pwa72"></script>
+  <script src="time-kr.js?v=20260728-pwa71"></script>
+  <script src="html-editor.js?v=20260728-pwa71"></script>
+  <script src="mypage.js?v=20260728-pwa71"></script>
+  <script src="gongbang-auth.js?v=20260728-pwa71"></script>
+  <script src="site-nav.js?v=20260728-pwa71"></script>
+  <script src="pwa-register.js?v=20260728-pwa71"></script>
 </body>
 </html>

@@ -4,7 +4,6 @@
   const API_BASE = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const API_ORIGIN = new URL(API_BASE).origin;
   const TOKEN_KEY = "gongbang171.adminToken";
-  const PAGE_SIZE = 10;
   const BOARDS = [
     { board: "portfolio", label: "포트폴리오" },
     { board: "reviews", label: "고객후기" },
@@ -18,6 +17,9 @@
     list: $("mpList"),
     tabs: $("mpTabs"),
     pager: $("mpPager"),
+    likedStatus: $("mpLikedStatus"),
+    likedList: $("mpLikedList"),
+    likedPager: $("mpLikedPager"),
     dialog: $("mpEditDialog"),
     form: $("mpEditForm"),
     formStatus: $("mpEditStatus"),
@@ -29,8 +31,18 @@
     items: [],
     tab: "all",
     page: 1,
+    liked: [],
+    likedPage: 1,
   };
   let htmlEditor = null;
+
+  function pageSize() {
+    try {
+      return window.matchMedia("(max-width: 1099px)").matches ? 5 : 10;
+    } catch (_) {
+      return 5;
+    }
+  }
 
   function ensureEditor() {
     if (htmlEditor || !els.form?.elements.body) return htmlEditor;
@@ -140,6 +152,37 @@
     ];
   }
 
+  async function loadLikedPortfolios() {
+    const liked = await api("/portfolio/likes/mine?limit=400");
+    const ids = (liked.items || []).map((row) => String(row.portfolioId));
+    if (!ids.length) return [];
+    const portfolio = await loadBoardJson("portfolio");
+    const byId = new Map(portfolio.map((item) => [String(item.id), item]));
+    return ids
+      .map((id) => {
+        const item = byId.get(id);
+        if (!item) {
+          return {
+            id,
+            title: "삭제되었거나 비공개된 작품",
+            cover: "",
+            category: "",
+            date: "",
+            missing: true,
+          };
+        }
+        return {
+          id: item.id,
+          title: item.title,
+          cover: item.cover || item.image || item.images?.[0] || "",
+          category: item.category || "",
+          date: item.sortAt || item.uploadedAt || item.publishedAt || "",
+          missing: false,
+        };
+      })
+      .filter((row) => !row.missing);
+  }
+
   function filteredItems() {
     if (state.tab === "all") return state.items;
     return state.items.filter((item) => item.board === state.tab);
@@ -150,9 +193,10 @@
     els.tabs.replaceChildren();
     const tabs = [{ board: "all", label: "전체" }, ...BOARDS];
     tabs.forEach((tab) => {
-      const count = tab.board === "all"
-        ? state.items.length
-        : state.items.filter((item) => item.board === tab.board).length;
+      const count =
+        tab.board === "all"
+          ? state.items.length
+          : state.items.filter((item) => item.board === tab.board).length;
       const button = document.createElement("button");
       button.type = "button";
       button.className = `mp-tab${state.tab === tab.board ? " is-active" : ""}`;
@@ -160,15 +204,15 @@
       button.addEventListener("click", () => {
         state.tab = tab.board;
         state.page = 1;
-        render();
+        renderMine();
       });
       els.tabs.append(button);
     });
   }
 
-  function renderPager(totalPages) {
-    if (!els.pager) return;
-    els.pager.replaceChildren();
+  function renderPager(el, totalPages, currentPage, onPage) {
+    if (!el) return;
+    el.replaceChildren();
     if (totalPages <= 1) return;
     const add = (label, page, disabled = false, active = false) => {
       const button = document.createElement("button");
@@ -176,29 +220,27 @@
       button.textContent = label;
       button.disabled = disabled;
       if (active) button.classList.add("is-active");
-      button.addEventListener("click", () => {
-        state.page = page;
-        renderListOnly();
-      });
-      els.pager.append(button);
+      button.addEventListener("click", () => onPage(page));
+      el.append(button);
     };
-    add("‹", Math.max(1, state.page - 1), state.page <= 1);
+    add("‹", Math.max(1, currentPage - 1), currentPage <= 1);
     const windowSize = 5;
-    let start = Math.max(1, state.page - Math.floor(windowSize / 2));
+    let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
     let end = Math.min(totalPages, start + windowSize - 1);
     start = Math.max(1, end - windowSize + 1);
     for (let page = start; page <= end; page += 1) {
-      add(String(page), page, false, page === state.page);
+      add(String(page), page, false, page === currentPage);
     }
-    add("›", Math.min(totalPages, state.page + 1), state.page >= totalPages);
+    add("›", Math.min(totalPages, currentPage + 1), currentPage >= totalPages);
   }
 
-  function renderListOnly() {
+  function renderMineList() {
     const items = filteredItems();
-    const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    const size = pageSize();
+    const totalPages = Math.max(1, Math.ceil(items.length / size));
     if (state.page > totalPages) state.page = totalPages;
-    const start = (state.page - 1) * PAGE_SIZE;
-    const pageItems = items.slice(start, start + PAGE_SIZE);
+    const start = (state.page - 1) * size;
+    const pageItems = items.slice(start, start + size);
 
     els.list.replaceChildren();
     if (!pageItems.length) {
@@ -234,7 +276,7 @@
         title.title = item.title || "";
         const meta = document.createElement("span");
         meta.className = "mp-meta";
-        meta.textContent = formatDate(item.date);
+        meta.textContent = `${item.boardLabel || ""} · ${formatDate(item.date)}`.replace(/^ · /, "");
         titleWrap.append(title, meta);
 
         const actions = document.createElement("div");
@@ -264,13 +306,86 @@
       });
     }
 
-    els.status.textContent = `내 글 ${items.length}개`;
-    renderPager(totalPages);
+    els.status.textContent = `내 글 ${items.length}개 · ${size}개씩`;
+    renderPager(els.pager, totalPages, state.page, (page) => {
+      state.page = page;
+      renderMineList();
+    });
   }
 
-  function render() {
+  function renderLikedList() {
+    if (!els.likedList) return;
+    const items = state.liked;
+    const size = pageSize();
+    const totalPages = Math.max(1, Math.ceil(items.length / size) || 1);
+    if (state.likedPage > totalPages) state.likedPage = totalPages;
+    const start = (state.likedPage - 1) * size;
+    const pageItems = items.slice(start, start + size);
+
+    els.likedList.replaceChildren();
+    if (!pageItems.length) {
+      const empty = document.createElement("p");
+      empty.className = "mp-empty";
+      empty.textContent = "좋아요 누른 포트폴리오가 없습니다.";
+      els.likedList.append(empty);
+    } else {
+      pageItems.forEach((item) => {
+        const row = document.createElement("a");
+        row.className = "mp-row mp-row--link";
+        row.href = `/portfolio.html?id=${encodeURIComponent(item.id)}`;
+
+        const thumb = document.createElement("div");
+        thumb.className = "mp-thumb";
+        if (item.cover) {
+          const img = document.createElement("img");
+          img.src = imageUrl(item.cover);
+          img.alt = "";
+          img.loading = "lazy";
+          thumb.append(img);
+        }
+
+        const body = document.createElement("div");
+        body.className = "mp-body";
+        const main = document.createElement("div");
+        main.className = "mp-main";
+
+        const titleWrap = document.createElement("div");
+        titleWrap.className = "mp-title-wrap";
+        const title = document.createElement("strong");
+        title.className = "mp-title";
+        title.textContent = item.title || "(제목 없음)";
+        const meta = document.createElement("span");
+        meta.className = "mp-meta";
+        const bits = [item.category, formatDate(item.date)].filter(Boolean);
+        meta.textContent = bits.join(" · ");
+        titleWrap.append(title, meta);
+
+        const heart = document.createElement("span");
+        heart.className = "mp-liked-mark";
+        heart.textContent = "♥";
+        heart.setAttribute("aria-hidden", "true");
+
+        main.append(titleWrap, heart);
+        body.append(main);
+        row.append(thumb, body);
+        els.likedList.append(row);
+      });
+    }
+
+    if (els.likedStatus) {
+      els.likedStatus.textContent = items.length
+        ? `좋아요 ${items.length}개 · ${size}개씩`
+        : "";
+    }
+    renderPager(els.likedPager, totalPages, state.likedPage, (page) => {
+      state.likedPage = page;
+      renderLikedList();
+    });
+  }
+
+  function renderMine() {
     renderTabs();
-    renderListOnly();
+    renderMineList();
   }
 
   function openEdit(item) {
@@ -296,8 +411,10 @@
         window.open(url, "_blank", "noopener,noreferrer");
         return;
       }
-      state.items = state.items.filter((row) => !(row.board === item.board && String(row.id) === String(item.id)));
-      render();
+      state.items = state.items.filter(
+        (row) => !(row.board === item.board && String(row.id) === String(item.id))
+      );
+      renderMine();
       toast("삭제되었습니다.");
     } catch (error) {
       toast(error.message || String(error), "error");
@@ -325,7 +442,7 @@
   }
 
   async function boot(showLoading = true) {
-    if (showLoading) els.status.textContent = "불러오는 중…";
+    if (showLoading && els.status) els.status.textContent = "불러오는 중…";
     try {
       const me = await api("/auth/me");
       if (!me.member) throw new Error("로그인이 필요합니다.");
@@ -334,13 +451,19 @@
       window.dispatchEvent(new CustomEvent("gongbang:auth-changed", { detail: { member: me.member } }));
 
       const isAdmin = me.member.role === "admin";
-      const [reviews, managed] = await Promise.all([
+      const [reviews, managed, liked] = await Promise.all([
         loadMyReviews(me.member.id),
         loadManagedBoards(isAdmin),
+        loadLikedPortfolios().catch(() => []),
       ]);
-      state.items = [...reviews, ...managed].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      state.items = [...reviews, ...managed].sort((a, b) =>
+        String(b.date || "").localeCompare(String(a.date || ""))
+      );
+      state.liked = liked;
       state.page = 1;
-      render();
+      state.likedPage = 1;
+      renderMine();
+      renderLikedList();
     } catch (error) {
       document.body.dataset.authState = "out";
       location.replace("/landing.html?open=mypage");
@@ -349,5 +472,12 @@
 
   els.cancel?.addEventListener("click", () => els.dialog.close());
   els.form?.addEventListener("submit", submitEdit);
+  window.addEventListener("resize", () => {
+    clearTimeout(window.__mpPageSizeTimer);
+    window.__mpPageSizeTimer = window.setTimeout(() => {
+      renderMineList();
+      renderLikedList();
+    }, 180);
+  });
   boot();
 })();

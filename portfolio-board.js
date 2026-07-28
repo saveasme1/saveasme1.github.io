@@ -46,6 +46,7 @@
     slideCount: 0,
     opened: false,
     loaded: false,
+    likes: {},
   };
 
   const assetUrl = (value) => {
@@ -632,6 +633,78 @@
     return payload;
   }
 
+  async function requireMember() {
+    let member = state.member || window.getGongbangMember?.() || null;
+    if (!member) {
+      try {
+        const payload = window.GongbangAuth?.fetchMe
+          ? await window.GongbangAuth.fetchMe()
+          : await api("/auth/me");
+        member = payload.member || null;
+        if (member) {
+          state.member = member;
+          if (payload.accessToken) sessionStorage.setItem(TOKEN_KEY, payload.accessToken);
+          window.dispatchEvent(
+            new CustomEvent("gongbang:auth-changed", { detail: { member } })
+          );
+        }
+      } catch (_) {}
+    }
+    if (member) return member;
+    if (typeof window.openGongbangAuth === "function") window.openGongbangAuth("login");
+    throw new Error("login_required");
+  }
+
+  async function syncLikesForItems(items) {
+    const ids = [...new Set(items.map((item) => String(item.id || "")).filter(Boolean))].slice(0, 80);
+    if (!ids.length) return;
+    try {
+      const data = await api(`/portfolio/likes/stats?ids=${ids.map(encodeURIComponent).join(",")}`);
+      const likes = data.likes || {};
+      ids.forEach((id) => {
+        const row = likes[id] || { likeCount: 0, likedByMe: false };
+        state.likes[id] = {
+          likeCount: Number(row.likeCount || 0),
+          likedByMe: !!row.likedByMe,
+        };
+      });
+    } catch (_) {
+      /* keep prior */
+    }
+  }
+
+  function likeStateOf(id) {
+    return state.likes[String(id)] || { likeCount: 0, likedByMe: false };
+  }
+
+  function paintLikeButton(btn, id) {
+    if (!btn) return;
+    const info = likeStateOf(id);
+    btn.classList.toggle("is-on", !!info.likedByMe);
+    btn.setAttribute("aria-pressed", info.likedByMe ? "true" : "false");
+    const count = btn.querySelector(".pf-like__count");
+    if (count) count.textContent = info.likeCount > 0 ? String(info.likeCount) : "";
+  }
+
+  async function togglePortfolioLike(id, btn) {
+    try {
+      await requireMember();
+      const result = await api(`/portfolio/${encodeURIComponent(id)}/like`, {
+        method: "POST",
+        body: "{}",
+      });
+      state.likes[String(id)] = {
+        likeCount: Number(result.likeCount || 0),
+        likedByMe: !!result.likedByMe,
+      };
+      paintLikeButton(btn, id);
+    } catch (error) {
+      if (error.message !== "login_required") {
+        alert(error.message || "좋아요 실패");
+      }
+    }
+  }
+
   function publishedAt(item) {
     return item.sortAt || item.uploadedAt || item.createdAt || item.publishedAt || "";
   }
@@ -788,13 +861,20 @@
       return;
     }
 
+    syncLikesForItems(pageItems).then(() => {
+      els.grid.querySelectorAll(".pf-like[data-id]").forEach((btn) => {
+        paintLikeButton(btn, btn.dataset.id);
+      });
+    });
+
     pageItems.forEach((item) => {
       const article = document.createElement("article");
       article.className = "pf-card";
 
-      const thumb = document.createElement("button");
-      thumb.type = "button";
+      const thumb = document.createElement("div");
       thumb.className = "pf-thumb";
+      thumb.setAttribute("role", "button");
+      thumb.tabIndex = 0;
       thumb.setAttribute("aria-label", `${brandText(item.title)} 상세 보기`);
 
       if (item.category) {
@@ -803,6 +883,20 @@
         tag.textContent = item.category;
         thumb.append(tag);
       }
+
+      const likeBtn = document.createElement("button");
+      likeBtn.type = "button";
+      likeBtn.className = "pf-like";
+      likeBtn.dataset.id = String(item.id);
+      likeBtn.setAttribute("aria-label", "좋아요");
+      likeBtn.innerHTML = `<span class="pf-like__icon" aria-hidden="true">♥</span><span class="pf-like__count"></span>`;
+      paintLikeButton(likeBtn, item.id);
+      likeBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        togglePortfolioLike(item.id, likeBtn);
+      });
+      thumb.append(likeBtn);
 
       const img = document.createElement("img");
       img.src = assetUrl(item.cover || item.image);
@@ -837,7 +931,14 @@
         : `조회 ${Number(item.viewCount) || 0}`;
       meta.textContent = `${formatDate(publishedAt(item))} · ${viewsText}`;
 
-      thumb.addEventListener("click", () => openDetail(item));
+      const open = () => openDetail(item);
+      thumb.addEventListener("click", open);
+      thumb.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open();
+        }
+      });
       article.append(thumb, title, meta);
       els.grid.append(article);
     });
