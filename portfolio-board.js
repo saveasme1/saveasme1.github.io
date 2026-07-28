@@ -206,43 +206,123 @@
   };
   const textToBase64 = (value) => bytesToBase64(new TextEncoder().encode(value));
 
-  function ensureWriter() {
-    if (state.writer) return state.writer;
-    let root = $("portfolioWriteDialog");
-    if (!root) {
-      root = document.createElement("dialog");
-      root.id = "portfolioWriteDialog";
-      root.className = "review-dialog write-dialog";
-      root.innerHTML = `
-        <form id="portfolioWriteForm">
-          <input type="hidden" name="editId" value="">
-          <h2 id="portfolioWriteTitle">포트폴리오 작성</h2>
-          <label>카테고리<select name="category" required></select></label>
-          <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
-          <label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
-          <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
-          <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
-          <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
-          <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
-          <div class="review-dialog-actions">
-            <button type="button" id="portfolioWriteCancel">취소</button>
-            <button class="primary" type="submit" id="portfolioWriteSubmit">등록하기</button>
-          </div>
-        </form>`;
-      document.body.append(root);
+  function clearWriterMedia(writer) {
+    if (!writer) return;
+    if (writer.cover?.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
+    (writer.details || []).forEach((detail) => {
+      if (detail.preview?.startsWith("blob:")) URL.revokeObjectURL(detail.preview);
+    });
+    writer.cover = { path: "", file: null, preview: "" };
+    writer.details = [];
+  }
+
+  function renderWriterCover(writer) {
+    const preview = writer.coverPreview;
+    if (!preview) return;
+    const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
+    preview.classList.toggle("is-empty", !url);
+    preview.textContent = url ? "" : "대표 이미지 없음";
+    preview.style.backgroundImage = url ? `url("${url}")` : "";
+  }
+
+  function renderWriterDetails(writer) {
+    const grid = writer.detailGrid;
+    if (!grid) return;
+    grid.replaceChildren();
+    if (!writer.details.length) {
+      const empty = document.createElement("p");
+      empty.className = "pf-writer-empty";
+      empty.textContent = "추가 이미지가 없습니다. + 이미지 추가로 여러 장을 계속 붙일 수 있습니다.";
+      grid.append(empty);
+      return;
     }
-    const form = $("portfolioWriteForm");
+    writer.details.forEach((detail, index) => {
+      const card = document.createElement("div");
+      card.className = "pf-writer-thumb";
+      const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
+      card.style.backgroundImage = url ? `url("${url}")` : "";
+
+      const order = document.createElement("span");
+      order.className = "pf-writer-order";
+      order.textContent = String(index + 1);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "pf-writer-remove";
+      remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+      remove.textContent = "×";
+      remove.addEventListener("click", () => {
+        const [removed] = writer.details.splice(index, 1);
+        if (removed?.preview?.startsWith("blob:")) URL.revokeObjectURL(removed.preview);
+        renderWriterDetails(writer);
+      });
+
+      card.append(order, remove);
+      grid.append(card);
+    });
+  }
+
+  function ensureWriter() {
+    if (state.writer?.root?.isConnected && state.writer.coverPreview && state.writer.detailGrid) {
+      return state.writer;
+    }
+    state.writer?.root?.remove?.();
+    state.writer = null;
+
+    const root = document.createElement("dialog");
+    root.id = "portfolioWriteDialog";
+    root.className = "review-dialog write-dialog pf-write-dialog";
+    root.innerHTML = `
+      <form id="portfolioWriteForm">
+        <input type="hidden" name="editId" value="">
+        <h2 id="portfolioWriteTitle">포트폴리오 작성</h2>
+        <label>카테고리<select name="category" required></select></label>
+        <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
+        <label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
+        <section class="pf-writer-images">
+          <div class="pf-writer-block">
+            <div class="pf-writer-heading">
+              <strong>대표 이미지</strong>
+              <span>목록에 가장 먼저 보이는 이미지</span>
+            </div>
+            <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
+            <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+          </div>
+          <div class="pf-writer-block">
+            <div class="pf-writer-heading">
+              <strong>추가 이미지</strong>
+              <span>여러 번 눌러 계속 추가할 수 있습니다</span>
+            </div>
+            <label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
+          </div>
+        </section>
+        <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수입니다. 추가 이미지는 제한 없이 붙일 수 있습니다.</p>
+        <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
+        <div class="review-dialog-actions">
+          <button type="button" id="portfolioWriteCancel">취소</button>
+          <button class="primary" type="submit" id="portfolioWriteSubmit">등록하기</button>
+        </div>
+      </form>`;
+    document.body.append(root);
+
+    const form = root.querySelector("#portfolioWriteForm");
     const writer = {
       root,
       form,
-      title: $("portfolioWriteTitle"),
-      status: $("portfolioWriteStatus"),
-      submit: $("portfolioWriteSubmit"),
-      cancel: $("portfolioWriteCancel"),
-      help: $("portfolioWriteHelp"),
+      title: root.querySelector("#portfolioWriteTitle"),
+      status: root.querySelector("#portfolioWriteStatus"),
+      submit: root.querySelector("#portfolioWriteSubmit"),
+      cancel: root.querySelector("#portfolioWriteCancel"),
+      help: root.querySelector("#portfolioWriteHelp"),
+      coverPreview: root.querySelector("#portfolioCoverPreview"),
+      detailGrid: root.querySelector("#portfolioDetailGrid"),
       htmlEditor: window.GongbangHtmlEditor?.mount(form?.elements?.content),
       editing: null,
+      cover: { path: "", file: null, preview: "" },
+      details: [],
     };
+
     const categorySelect = form.elements.category;
     categorySelect.replaceChildren();
     (state.categories.length ? state.categories : CATEGORIES).forEach((category) => {
@@ -251,7 +331,27 @@
       option.textContent = category;
       categorySelect.append(option);
     });
+
     writer.cancel.addEventListener("click", () => writer.root.close());
+    writer.root.addEventListener("close", () => {
+      // keep media until reopen clears — reopen calls clear/setup
+    });
+    form.elements.cover.addEventListener("change", () => {
+      const file = form.elements.cover.files?.[0];
+      if (!file) return;
+      if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
+      writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file) };
+      form.elements.cover.value = "";
+      renderWriterCover(writer);
+    });
+    form.elements.images.addEventListener("change", () => {
+      const files = [...(form.elements.images.files || [])];
+      files.forEach((file) => {
+        writer.details.push({ path: "", file, preview: URL.createObjectURL(file) });
+      });
+      form.elements.images.value = "";
+      renderWriterDetails(writer);
+    });
     form.addEventListener("submit", submitWriter);
     state.writer = writer;
     return writer;
@@ -266,6 +366,7 @@
     const form = writer.form;
     form.reset();
     writer.htmlEditor?.reset?.();
+    clearWriterMedia(writer);
     writer.editing = editItem || null;
     writer.status.textContent = "";
     writer.submit.disabled = false;
@@ -285,12 +386,21 @@
     if (editItem) {
       writer.title.textContent = "포트폴리오 수정";
       writer.submit.textContent = "저장하기";
-      writer.help.textContent = "대표/추가 이미지를 새로 고르면 교체됩니다. 비워두면 기존 이미지를 유지합니다.";
+      writer.help.textContent = "이미지를 새로 고르면 교체·추가됩니다. ×로 삭제할 수 있습니다.";
       form.elements.editId.value = editItem.id || "";
       form.elements.category.value = cats.includes(editItem.category) ? editItem.category : cats[0];
       form.elements.title.value = editItem.title || "";
       form.elements.content.value = editItem.content || "";
-      form.elements.cover.required = false;
+      writer.cover = {
+        path: String(editItem.image || editItem.cover || ""),
+        file: null,
+        preview: "",
+      };
+      writer.details = (Array.isArray(editItem.images) ? editItem.images : [])
+        .map(String)
+        .filter(Boolean)
+        .filter((path) => path !== writer.cover.path)
+        .map((path) => ({ path, file: null, preview: "" }));
       if (writer.htmlEditor?.setMode) {
         writer.htmlEditor.setMode(
           window.GongbangHtmlEditor?.looksLikeHtml?.(editItem.content) ? "source" : "text"
@@ -299,11 +409,13 @@
     } else {
       writer.title.textContent = "포트폴리오 작성";
       writer.submit.textContent = "등록하기";
-      writer.help.textContent = "대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.";
+      writer.help.textContent = "대표 이미지는 필수입니다. 추가 이미지는 + 이미지 추가로 여러 장을 계속 붙이세요.";
       form.elements.editId.value = "";
       form.elements.category.value = cats[0] || "C";
-      form.elements.cover.required = true;
     }
+
+    renderWriterCover(writer);
+    renderWriterDetails(writer);
     writer.root.showModal();
   }
 
@@ -363,31 +475,27 @@
     event.preventDefault();
     const writer = ensureWriter();
     const form = event.currentTarget;
-    const coverFile = form.elements.cover.files[0];
-    const detailFiles = [...form.elements.images.files];
     const editing = writer.editing;
-    if (!editing && !coverFile) {
+    if (!editing && !writer.cover.file && !writer.cover.path) {
       writer.status.textContent = "대표 이미지를 선택해 주세요.";
-      return;
-    }
-    if (detailFiles.length > 8) {
-      writer.status.textContent = "추가 이미지는 최대 8장까지 등록할 수 있습니다.";
       return;
     }
     writer.submit.disabled = true;
     try {
       const id = editing?.id || `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-      let cover = editing ? String(editing.image || editing.cover || "") : "";
-      if (coverFile) {
+      let cover = writer.cover.path || "";
+      if (writer.cover.file) {
         writer.status.textContent = "대표 이미지 업로드 중…";
-        cover = await uploadPortfolioImage(coverFile, id, "cover");
+        cover = await uploadPortfolioImage(writer.cover.file, id, "cover");
       }
-      let images = editing ? (Array.isArray(editing.images) ? [...editing.images] : []) : [];
-      if (detailFiles.length) {
-        images = [];
-        for (let index = 0; index < detailFiles.length; index += 1) {
-          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${detailFiles.length}`;
-          images.push(await uploadPortfolioImage(detailFiles[index], id, "detail", index + 1));
+      const images = [];
+      for (let index = 0; index < writer.details.length; index += 1) {
+        const detail = writer.details[index];
+        if (detail.file) {
+          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${writer.details.length}`;
+          images.push(await uploadPortfolioImage(detail.file, id, "detail", index + 1));
+        } else if (detail.path) {
+          images.push(detail.path);
         }
       }
 
@@ -458,6 +566,7 @@
         state.current = item;
         openDetail(item);
       }
+      clearWriterMedia(writer);
       writer.root.close();
       form.reset();
       writer.editing = null;

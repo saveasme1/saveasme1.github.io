@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa56";
+  const APP_BUILD = "20260728-pwa57";
   const APP_VERSION = "v1.11.9";
   const RELEASE_NOTES = ["발견 이미지 복구", "한글 깨짐 복구"];
   const BUILD_KEY = "hx.pwa.build";
