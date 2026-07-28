@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa75",
-  "version": "v1.12.10",
+  "build": "20260728-pwa76",
+  "version": "v1.12.11",
   "notes": [
-    "Restore portfolio PDF download on landing"
+    "Fix PDF download iframe"
   ]
 }
