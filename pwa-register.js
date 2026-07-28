@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa58";
+  const APP_BUILD = "20260728-pwa59";
   const APP_VERSION = "v1.12.0";
   const RELEASE_NOTES = ["발견 인스타형 UI", "하트·댓글", "MZ 캡션"];
   const BUILD_KEY = "hx.pwa.build";
