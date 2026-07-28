@@ -1,1 +1,8 @@
-{"build":"20260728-pwa66","version":"v1.12.4","notes":["Fix Discover feed JS encoding"]}
+{
+  "build": "20260728-pwa66",
+  "version": "v1.12.5",
+  "notes": [
+    "MZ caption tone",
+    "AI note copy"
+  ]
+}
