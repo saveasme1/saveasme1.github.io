@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa38";
+  const APP_BUILD = "20260728-pwa39";
   const APP_VERSION = "v1.10.8";
   const RELEASE_NOTES = [
     "업데이트 팝업 무한 반복 수정",

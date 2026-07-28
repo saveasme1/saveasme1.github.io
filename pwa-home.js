@@ -70,7 +70,7 @@
     { go: "reviews", label: "후기", ico: "reviews" },
   ];
 
-  const RANK_SNAP_KEY = "hx.pwa.hotRank.v1";
+  const RANK_SNAP_KEY = "hx.pwa.hotRank.v2";
 
   function appQuery() {
     return /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
@@ -102,24 +102,42 @@
 
   function loadRankSnap() {
     try {
-      const raw = JSON.parse(localStorage.getItem(RANK_SNAP_KEY) || "{}");
-      return raw && typeof raw === "object" ? raw : {};
+      const raw = JSON.parse(localStorage.getItem(RANK_SNAP_KEY) || "null");
+      if (!raw || typeof raw !== "object") return { ranks: {}, views: {}, at: 0 };
+      if (raw.ranks && typeof raw.ranks === "object") {
+        return {
+          ranks: raw.ranks,
+          views: raw.views && typeof raw.views === "object" ? raw.views : {},
+          at: Number(raw.at) || 0,
+        };
+      }
+      // legacy flat map
+      return { ranks: raw, views: {}, at: 0 };
     } catch (_) {
-      return {};
+      return { ranks: {}, views: {}, at: 0 };
     }
   }
 
-  function saveRankSnap(map) {
+  function saveRankSnap(payload) {
     try {
-      localStorage.setItem(RANK_SNAP_KEY, JSON.stringify(map || {}));
+      localStorage.setItem(
+        RANK_SNAP_KEY,
+        JSON.stringify({
+          ranks: payload.ranks || {},
+          views: payload.views || {},
+          at: Date.now(),
+        })
+      );
     } catch (_) {}
   }
 
   function rankDeltaHtml(prevRank, curRank) {
-    if (!prevRank || prevRank < 1) {
+    const prev = Number(prevRank) || 0;
+    const cur = Number(curRank) || 0;
+    if (!prev || prev < 1) {
       return `<span class="pwa-rank__delta is-new">NEW</span>`;
     }
-    const diff = prevRank - curRank;
+    const diff = prev - cur;
     if (diff > 0) return `<span class="pwa-rank__delta is-up">${diff} UP</span>`;
     if (diff < 0) return `<span class="pwa-rank__delta is-down">${Math.abs(diff)} DOWN</span>`;
     return `<span class="pwa-rank__delta is-same">—</span>`;
@@ -500,20 +518,48 @@
     } catch (_) {
       viewsMap = {};
     }
+    // Fallback: direct views API if board-meta missing/empty
+    if ((!viewsMap || !Object.keys(viewsMap).length) && items.length) {
+      try {
+        const base = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
+        const ids = items
+          .map((x) => String(x.id || "").trim())
+          .filter(Boolean)
+          .slice(0, 200);
+        const params = new URLSearchParams({ board: "portfolio", ids: ids.join(",") });
+        const res = await fetch(`${base}/views?${params}`, { credentials: "include", cache: "no-store" });
+        const payload = await res.json().catch(() => ({}));
+        if (res.ok && payload.views) viewsMap = payload.views;
+      } catch (_) {}
+    }
 
     const withViews = items.map((item) => ({
       ...item,
       _views: Number(viewsMap[String(item.id)] || 0),
     }));
-    const ranked = withViews.slice().sort((a, b) => b._views - a._views || String(a.id).localeCompare(String(b.id)));
+    const ranked = withViews
+      .slice()
+      .sort((a, b) => b._views - a._views || String(a.id).localeCompare(String(b.id)));
     const topRanked = ranked.slice(0, 5);
-    const prevSnap = loadRankSnap();
-    const nextSnap = {};
-    topRanked.forEach((item, i) => {
-      nextSnap[String(item.id)] = i + 1;
+
+    // Baseline = catalog order. Session snap (previous view ranks) used when available
+    // so revisits show real movement; first paint still shows UP/DOWN vs list order.
+    const catalogRanks = {};
+    items.forEach((item, i) => {
+      if (item?.id) catalogRanks[String(item.id)] = i + 1;
     });
-    // Persist after paint so this visit’s deltas use previous snapshot
-    setTimeout(() => saveRankSnap(nextSnap), 0);
+    const viewRanks = {};
+    ranked.forEach((item, i) => {
+      if (item?.id) viewRanks[String(item.id)] = i + 1;
+    });
+    const prevSnap = loadRankSnap();
+    const hasPrev = prevSnap.ranks && Object.keys(prevSnap.ranks).length > 0;
+    const prevRanks = hasPrev ? prevSnap.ranks : catalogRanks;
+    const nextViews = {};
+    withViews.forEach((item) => {
+      if (item?.id) nextViews[String(item.id)] = Number(item._views) || 0;
+    });
+    setTimeout(() => saveRankSnap({ ranks: viewRanks, views: nextViews }), 800);
 
     const mostViewed = ranked[0] || items[0] || null;
     const risingFifth = topRanked[4] || topRanked[topRanked.length - 1] || mostViewed;
@@ -1131,12 +1177,30 @@
         const cat = item.category || "";
         const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
         const id = String(item.id || "");
-        const prev = Number(prevSnap[id] || 0);
+        const curRank = Number(viewRanks[id] || i + 1);
+        let prevRank = Number(prevRanks[id] || 0);
+        // If stored prev equals current (no session change), fall back to catalog
+        // so view-based 가감 still shows.
+        if (!prevRank || prevRank === curRank) {
+          const catalog = Number(catalogRanks[id] || 0);
+          if (catalog && catalog !== curRank) prevRank = catalog;
+        }
+        // View growth vs last snap → nudge UP when rank flat
+        const prevViews = Number(prevSnap.views?.[id] || 0);
+        const curViews = Number(item._views || 0);
+        let deltaHtml = rankDeltaHtml(prevRank, curRank);
+        if (deltaHtml.includes("is-same") && curViews > prevViews && prevViews > 0) {
+          const grow = Math.min(99, Math.max(1, curViews - prevViews));
+          deltaHtml = `<span class="pwa-rank__delta is-up">${grow} UP</span>`;
+        } else if (deltaHtml.includes("is-same") && prevViews > curViews && curViews >= 0 && prevViews > 0) {
+          const drop = Math.min(99, Math.max(1, prevViews - curViews));
+          deltaHtml = `<span class="pwa-rank__delta is-down">${drop} DOWN</span>`;
+        }
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
           `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
-          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"} · 조회 ${Number(item._views || 0).toLocaleString("ko-KR")}</i></span>` +
-          rankDeltaHtml(prev, i + 1);
+          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"} · 조회 ${curViews.toLocaleString("ko-KR")}</i></span>` +
+          deltaHtml;
         protect(row.querySelector("img"));
         row.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
         rankList.append(row);
