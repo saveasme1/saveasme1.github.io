@@ -868,7 +868,7 @@ body.has-gb-bottom-nav .toast-stack {
 }
 .portfolio-inline .pf-rail {
   position: sticky;
-  top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+  top: var(--gb-top-offset);
   z-index: 30;
   box-sizing: border-box;
   width: 100%;
@@ -948,7 +948,7 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .portfolio-inline .pf-rail {
     position: sticky !important;
-    top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px)) !important;
+    top: var(--gb-top-offset) !important;
     left: auto !important;
     right: auto !important;
     box-sizing: border-box !important;

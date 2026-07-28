@@ -437,6 +437,11 @@
       header.classList.toggle("is-compact", compact);
       document.body.classList.toggle("has-gb-top-compact", compact);
       document.documentElement.style.setProperty("--gb-top-h", compact ? "44px" : "48px");
+      // Measure real painted height so sticky category rails clear the top bar
+      const h = Math.ceil(header.getBoundingClientRect().height || 0);
+      if (h > 0) {
+        document.documentElement.style.setProperty("--gb-top-offset", `${h}px`);
+      }
     };
     window.addEventListener(
       "scroll",
@@ -445,7 +450,10 @@
       },
       { passive: true }
     );
+    window.addEventListener("resize", syncTopHeight, { passive: true });
+    window.addEventListener("orientationchange", () => setTimeout(syncTopHeight, 50));
     syncTopHeight();
+    requestAnimationFrame(syncTopHeight);
     bindChromeScroll();
   }
   function injectBottomNav() {

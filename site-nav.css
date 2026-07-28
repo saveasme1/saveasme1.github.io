@@ -1,5 +1,6 @@
 :root {
   --gb-top-h: 48px;
+  --gb-top-offset: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
 }
 
 /* Global thin sticky brand + MO/TB bottom nav */
@@ -24,7 +25,9 @@
 
   align-items: center;
 
-  height: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+
+  height: var(--gb-top-offset);
 
   padding:
 
@@ -424,7 +427,7 @@ body.gb-chrome-paper .gb-top-brand__back:focus-visible {
 
 
 body.has-gb-top-brand {
-  padding-top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px)) !important;
+  padding-top: var(--gb-top-offset) !important;
 }
 
 

@@ -1,8 +1,9 @@
 {
-  "build": "20260728-pwa77",
-  "version": "v1.12.12",
+  "build": "20260728-pwa78",
+  "version": "v1.12.15",
   "notes": [
-    "Block full PDF download temporarily",
-    "Add C/B summary PDF download"
+    "Clear category chips under top bar",
+    "Measure real top bar height",
+    "Keep C/B visible on MO/TB"
   ]
 }

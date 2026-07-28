@@ -84,7 +84,7 @@
 
 .pf-rail {
   position: sticky;
-  top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+  top: var(--gb-top-offset);
   z-index: 20;
   box-sizing: border-box;
   width: 100%;
@@ -565,7 +565,7 @@
     max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
-    top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px)) !important;
+    top: var(--gb-top-offset) !important;
     padding: 0 0 8px !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -703,7 +703,7 @@
   }
   .pf-rail {
     position: sticky;
-    top: calc(56px + env(safe-area-inset-top, 0px));
+    top: var(--gb-top-offset);
     margin: 0;
     padding: 18px 14px;
     border: 1px solid var(--pf-line);
@@ -784,11 +784,11 @@ body.pf-body.has-gb-top-brand .pf-shell {
   padding-top: 12px;
 }
 body.pf-body.has-gb-top-brand .pf-rail {
-  top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+  top: var(--gb-top-offset);
 }
 @media (min-width: 1100px) {
   body.pf-body.has-gb-top-brand .pf-rail {
-    top: calc(var(--gb-top-h, 56px) + env(safe-area-inset-top, 0px));
+    top: var(--gb-top-offset);
   }
 }
 body.pf-body.has-gb-bottom-nav .pf-shell {

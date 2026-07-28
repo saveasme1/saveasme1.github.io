@@ -650,7 +650,7 @@ body.review-lock { overflow: hidden; }
   .reviews-toolbar,
   .board-inline-panel .reviews-toolbar {
     position: sticky;
-    top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+    top: var(--gb-top-offset);
     z-index: 28;
     display: flex;
     align-items: center;
