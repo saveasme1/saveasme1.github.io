@@ -242,6 +242,40 @@
     return items;
   }
 
+  function targetPostId() {
+    try {
+      const q = new URLSearchParams(location.search).get("post");
+      if (q) return q;
+      const m = String(location.hash || "").match(/^#(?:post-|hx-post-)?(.+)$/);
+      return m ? decodeURIComponent(m[1]) : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function scrollToPost(feedRoot) {
+    const postId = targetPostId();
+    if (!postId || !feedRoot) return;
+    const safe = postId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    let node = document.getElementById("hx-post-" + safe);
+    if (!node) {
+      node = Array.from(feedRoot.querySelectorAll("[data-post-id]")).find(
+        (el) => el.getAttribute("data-post-id") === postId
+      );
+    }
+    if (!node) return;
+    const run = () => {
+      const topOffset =
+        (Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gb-top-h")) || 48) +
+        72;
+      const y = node.getBoundingClientRect().top + window.scrollY - topOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      node.classList.add("is-target");
+      setTimeout(() => node.classList.remove("is-target"), 2200);
+    };
+    requestAnimationFrame(() => setTimeout(run, 120));
+  }
+
   function playInline(mediaEl, item) {
     const isVideo = /video|reel|short/i.test(item.mediaType);
     if (!isVideo) {
@@ -289,9 +323,14 @@
 
   function cardNode(item) {
     const a = el("article", "hx-ig__card");
+    const postId = String(item.id || "");
     a.dataset.brand = item.brandCode || "";
     a.dataset.platform = item.platform;
     a.dataset.media = item.mediaType;
+    if (postId) {
+      a.dataset.postId = postId;
+      a.id = "hx-post-" + postId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
 
     const handle = String(item.handle || item.platform).replace(/^@/, "");
     const profile = profileUrl(item.platform, handle) || item.permalink;

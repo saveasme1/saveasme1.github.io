@@ -358,7 +358,9 @@
     const header = document.createElement("header");
     header.className = "gb-top-brand";
     header.innerHTML = `
-      <span class="gb-top-brand__spacer" aria-hidden="true"></span>
+      <button type="button" class="gb-top-brand__back" aria-label="뒤로가기" title="뒤로가기">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       <a class="gb-top-brand__link" href="${HOME}" aria-label="HERITAGE 홈으로">
         <span class="gb-top-brand__glow" aria-hidden="true"></span>
         <span class="gb-top-brand__text">HERITAGE</span>
@@ -367,6 +369,15 @@
       <div class="gb-top-brand__auth" aria-label="계정 메뉴"></div>`;
     document.body.prepend(header);
     document.body.classList.add("has-gb-top-brand");
+    header.querySelector(".gb-top-brand__back")?.addEventListener("click", () => {
+      try {
+        if (window.history.length > 1) {
+          history.back();
+          return;
+        }
+      } catch (_) {}
+      goHome();
+    });
     header.querySelector(".gb-top-brand__link").addEventListener("click", (event) => {
       if (!isLandingPage()) return;
       event.preventDefault();

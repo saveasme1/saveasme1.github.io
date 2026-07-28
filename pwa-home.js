@@ -479,6 +479,67 @@
     return el;
   }
 
+
+  function wearApiBase() {
+    return String(window.HX_WEAR_FEED_API || window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
+  }
+
+  async function loadDiscoverStories(limit) {
+    if (window.HxWearFeed && typeof window.HxWearFeed.buildFeed === "function") {
+      try {
+        const rows = await window.HxWearFeed.buildFeed(false, "all");
+        if (Array.isArray(rows) && rows.length) return rows.slice(0, limit);
+      } catch (_) {}
+    }
+    try {
+      const q = new URLSearchParams({
+        brand: "all",
+        limit: String(Math.max(limit, 20)),
+        sort: "latest",
+      });
+      const res = await fetch(`${wearApiBase()}/discover/feed?${q}`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const rows = Array.isArray(data.items) ? data.items : [];
+        if (rows.length) return rows.slice(0, limit);
+      }
+    } catch (_) {}
+    try {
+      const res = await fetch(`./hx-ig-wear.json?v=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data.items || []).slice(0, limit);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function storyAvatarUrl(item) {
+    return assetUrl(
+      item.profilePictureUrl || item.profileImage || item.avatar || item.image || item.thumbnail || ""
+    );
+  }
+
+  function storyLabel(item) {
+    const handle = String(item.handle || item.profileUsername || "").replace(/^@/, "").trim();
+    if (handle) return `@${handle}`;
+    const name = String(item.displayName || item.profileName || item.brandName || "").trim();
+    return name || "WEAR";
+  }
+
+  function openDiscoverPost(postId) {
+    const parts = [];
+    if (/[?&]app=1(?:&|$)/.test(location.search) || document.documentElement.classList.contains("is-pwa")) {
+      parts.push("app=1");
+    }
+    if (postId) parts.push(`post=${encodeURIComponent(postId)}`);
+    const q = parts.length ? `?${parts.join("&")}` : "";
+    location.href = `./discover.html${q}`;
+  }
+
   async function boot() {
     const host = ensureHost();
     if (!host) return;
@@ -888,30 +949,45 @@
         .join("")}</div></div>`;
     host.append(pulse);
 
-    // —— Story rings ——
+    // —— Story rings (Discover recent wear) ——
     const stories = document.createElement("section");
     stories.className = "pwa-stories";
-    stories.setAttribute("aria-label", "스타일 스토리");
-    const storyItems = [
-      { src: MEDIA.look[0].src, label: "NEW", go: "portfolio" },
-      { src: MEDIA.look[1].src, label: "WEAR", go: "portfolio" },
-      { src: MEDIA.look[2].src, label: "GOLD", go: "gold" },
-      { src: MEDIA.look[4].src, label: "AI", go: "search" },
-      { src: MEDIA.look[5].src, label: "QC", go: "shipping" },
-      { src: MEDIA.look[3].src, label: "SNAP", go: "reviews" },
-    ];
-    storyItems.forEach((s, i) => {
+    stories.setAttribute("aria-label", "NEW WEAR");
+    const storyCount = window.matchMedia("(min-width: 1025px)").matches ? 10 : 6;
+    // placeholders while loading
+    for (let i = 0; i < storyCount; i += 1) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "pwa-stories__item" + (i === 0 ? " is-new" : "");
-      b.dataset.go = s.go;
+      b.disabled = true;
       b.innerHTML =
-        `<span class="pwa-stories__ring"><img src="${assetUrl(s.src)}" alt="" loading="lazy"></span>` +
-        `<span class="pwa-stories__lab">${s.label}</span>`;
+        `<span class="pwa-stories__ring"><img src="${assetUrl(MEDIA.look[i % MEDIA.look.length].src)}" alt="" loading="lazy"></span>` +
+        `<span class="pwa-stories__lab">${["NEW","WEAR","GOLD","OUT","REAL","LIVE"][i % 6]}</span>`;
       protect(b.querySelector("img"));
       stories.append(b);
-    });
+    }
     host.append(stories);
+    loadDiscoverStories(storyCount).then((rows) => {
+      if (!rows.length) return;
+      stories.replaceChildren();
+      rows.forEach((item, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "pwa-stories__item is-live" + (i === 0 ? " is-new" : "");
+        const img = storyAvatarUrl(item) || assetUrl(MEDIA.look[i % MEDIA.look.length].src);
+        const label = storyLabel(item);
+        b.innerHTML =
+          `<span class="pwa-stories__ring"><img src="${img}" alt="" loading="lazy"></span>` +
+          `<span class="pwa-stories__lab">${label}</span>`;
+        protect(b.querySelector("img"));
+        b.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openDiscoverPost(item.id || "");
+        });
+        stories.append(b);
+      });
+    });
 
     // —— AI Search (refined equal CTAs) ——
     const aiSec = document.createElement("section");

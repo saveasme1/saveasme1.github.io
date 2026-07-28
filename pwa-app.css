@@ -827,11 +827,22 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 0 auto;
   padding: 2px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #c9a66b, #fff3, #7a5a2e);
+  background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4, #f58529);
+  background-size: 300% 300%;
+  animation: pwaStoryRing 4.5s linear infinite;
 }
 
-.pwa-stories__item.is-new .pwa-stories__ring {
-  background: linear-gradient(135deg, #ef4444, #c9a66b, #fbbf24);
+.pwa-stories__item.is-new .pwa-stories__ring,
+.pwa-stories__item.is-live .pwa-stories__ring {
+  background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #f09433);
+  background-size: 300% 300%;
+  animation: pwaStoryRing 3.2s linear infinite;
+}
+
+@keyframes pwaStoryRing {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .pwa-stories__ring img {
@@ -846,10 +857,14 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 .pwa-stories__lab {
   display: block;
   margin-top: 6px;
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: Syne, Archivo, sans-serif;
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.02em;
   color: var(--pwa-muted);
 }
 
@@ -1932,7 +1947,7 @@ body.board-standalone .reviews-heading {
 /* ?? PC PWA shell: app column, not stretched mobile ?? */
 @media (min-width: 1025px) {
   html.is-pwa {
-    --pwa-shell: 720px;
+    --pwa-shell: 840px;
     --pwa-gutter: 28px;
     --pwa-tab-h: 58px;
   }

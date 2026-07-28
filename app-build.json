@@ -1,9 +1,9 @@
-﻿{
+{
   "build": "20260728-pwa45",
-  "version": "v1.11.1",
+  "version": "v1.10.14",
   "notes": [
-    "발견탭 주얼리 전용 필터",
-    "브랜드 칩만 유지",
-    "영상 탭 내 재생"
+    "PC shell wider + always back button",
+    "Discover brand chips sticky under top bar",
+    "Home stories from Discover feed + IG ring motion"
   ]
 }
