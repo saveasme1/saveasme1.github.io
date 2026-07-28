@@ -1,38 +1,31 @@
 {
-  "version": 2,
+  "version": 3,
   "updated": "2026-07-28",
-  "note": "포트폴리오·발견탭 공통 브랜드 코드",
+  "note": "포트폴리오 취급 브랜드만. 발견탭·검색 공통.",
   "codes": {
     "C": { "en": "Cartier", "ko": "까르띠에", "aliases": ["cartier"] },
-    "VCA": { "en": "Van Cleef & Arpels", "ko": "반클리프", "aliases": ["van cleef", "vca", "알함브라"] },
     "B": { "en": "Bulgari", "ko": "불가리", "aliases": ["bulgari", "bvlgari"] },
-    "CM": { "en": "Chaumet", "ko": "쇼메", "aliases": ["chaumet"] },
-    "T&C": { "en": "Tiffany & Co", "ko": "티파니", "aliases": ["tiffany", "t&c"] },
-    "H": { "en": "Hermes", "ko": "에르메스", "aliases": ["hermes", "hermès"] },
-    "HW": { "en": "Harry Winston", "ko": "해리 윈스턴", "aliases": ["harry winston"] },
+    "VCA": { "en": "Van Cleef & Arpels", "ko": "반클리프", "aliases": ["van cleef", "vca", "알함브라"] },
     "BO": { "en": "Boucheron", "ko": "부쉐론", "aliases": ["boucheron"] },
-    "PG": { "en": "Piaget", "ko": "피아제", "aliases": ["piaget"] },
-    "GF": { "en": "Graff", "ko": "그라프", "aliases": ["graff"] },
-    "CHP": { "en": "Chopard", "ko": "쇼파드", "aliases": ["chopard"] },
-    "MK": { "en": "Mikimoto", "ko": "미키모토", "aliases": ["mikimoto"] },
-    "PO": { "en": "Pomellato", "ko": "포멜라토", "aliases": ["pomellato"] },
-    "DB": { "en": "De Beers", "ko": "드비어스", "aliases": ["de beers"] },
-    "MS": { "en": "Messika", "ko": "메시카", "aliases": ["messika"] },
-    "D": { "en": "Damiani", "ko": "다미아니", "aliases": ["damiani"] },
-    "RS": { "en": "Repossi", "ko": "레포시", "aliases": ["repossi"] },
-    "F": { "en": "Fred", "ko": "프레드", "aliases": ["fred", "force 10"] },
+    "CM": { "en": "Chaumet", "ko": "쇼메", "aliases": ["chaumet"] },
+    "C&H": { "en": "Chrome Hearts", "ko": "크롬하츠", "aliases": ["chrome hearts"] },
     "CL": { "en": "Chanel", "ko": "샤넬", "aliases": ["chanel"] },
     "G": { "en": "Gucci", "ko": "구찌", "aliases": ["gucci"] },
-    "L": { "en": "Louis Vuitton", "ko": "루이비통", "aliases": ["louis vuitton", "lv"] },
+    "H": { "en": "Hermes", "ko": "에르메스", "aliases": ["hermes", "hermès"] },
     "P": { "en": "Prada", "ko": "프라다", "aliases": ["prada"] },
-    "C&H": { "en": "Chrome Hearts", "ko": "크롬하츠", "aliases": ["chrome hearts"] }
+    "F": { "en": "Fred", "ko": "프레드", "aliases": ["fred", "force 10"] },
+    "T&C": { "en": "Tiffany & Co", "ko": "티파니", "aliases": ["tiffany", "t&c"] },
+    "L": { "en": "Louis Vuitton", "ko": "루이비통", "aliases": ["louis vuitton", "lv"] },
+    "D": { "en": "Damiani", "ko": "다미아니", "aliases": ["damiani"] }
   },
   "code_aliases": {
     "CH": "C&H",
+    "CANDH": "C&H",
+    "T&CO": "T&C",
     "TCO": "T&C",
     "TC": "T&C",
+    "T": "T&C",
     "BV": "B",
-    "BVLGARI": "B",
-    "T": "T&C"
+    "BVLGARI": "B"
   }
 }

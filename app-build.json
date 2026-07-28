@@ -1,9 +1,7 @@
-{
-  "build": "20260728-pwa48",
-  "version": "v1.11.4",
+﻿{
+  "build": "20260728-pwa49",
+  "version": "v1.11.5",
   "notes": [
-    "Fix hero slider product click → portfolio detail",
-    "Fix swipe false-blocking taps",
-    "portfolio.html?id= deep-link openDetail"
+    "발견탭 브랜드: 포트폴리오 취급만"
   ]
 }

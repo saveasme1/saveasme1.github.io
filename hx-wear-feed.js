@@ -16,32 +16,23 @@
     tiktok: "TT",
   };
   const FALLBACK_BRAND_ORDER = [
-    "C", "VCA", "B", "CM", "T&C", "H", "HW", "BO", "PG", "GF", "CHP", "MK", "PO", "DB", "MS", "D", "RS", "F", "CL", "G", "L", "P", "C&H",
+    "C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "T&C", "L", "D",
   ];
   const BRAND_AVATAR = {
     C: "cartier",
-    VCA: "vancleefarpels",
     B: "bvlgari",
-    CM: "chaumetofficial",
-    "T&C": "tiffanyandco",
-    H: "hermes",
-    HW: "harrywinston",
+    VCA: "vancleefarpels",
     BO: "boucheron",
-    PG: "piaget",
-    GF: "graff",
-    CHP: "chopard",
-    MK: "mikimoto",
-    PO: "pomellato",
-    DB: "debeers",
-    MS: "messika",
-    D: "damianiofficial",
-    RS: "repossi",
-    F: "fredjewelry",
+    CM: "chaumetofficial",
+    "C&H": "chromeheartsofficial",
     CL: "chanelofficial",
     G: "gucci",
-    L: "louisvuitton",
+    H: "hermes",
     P: "prada",
-    "C&H": "chromeheartsofficial",
+    F: "fredjewelry",
+    "T&C": "tiffanyandco",
+    L: "louisvuitton",
+    D: "damianiofficial",
   };
 
   function el(tag, cls, html) {
