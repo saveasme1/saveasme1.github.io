@@ -93,6 +93,7 @@ const PRECACHE = [
   "./hx-external-sources.json",
   "./hx-youtube-curated.json",
   "./site-nav.js",
+  "./gongbang-auth.js",
   "./brand-codes.js",
   "./brand-codes.json",
   "./portfolio-board.js",
