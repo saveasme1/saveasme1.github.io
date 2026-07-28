@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa70";
+  const APP_BUILD = "20260728-pwa71";
   const APP_VERSION = "v1.12.1";
-  const RELEASE_NOTES = ["UTF-8 title fix", "Taller hero slider", "Discover @username cleanup"];
+  const RELEASE_NOTES = ["Mobile AI note on next line", "UTF-8 title fix", "Taller hero slider"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

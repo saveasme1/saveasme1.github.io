@@ -1538,28 +1538,50 @@ html.is-pwa {
 }
 #hxDiscover .hx-ig__cap-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   margin: 0;
 }
 #hxDiscover .hx-ig__cap-row .hx-ig__caption {
-  flex: 1 1 auto;
+  flex: none;
+  width: 100%;
   min-width: 0;
   margin: 0;
 }
 #hxDiscover .hx-ig__ai-note {
-  flex: 0 0 7.6rem;
-  max-width: 7.6rem;
-  margin: 1px 0 0 auto;
+  display: block;
+  flex: none;
+  width: 100%;
+  max-width: none;
+  margin: 2px 0 0;
   padding: 0;
   font-size: 10px !important;
   line-height: 1.35;
   font-weight: 400;
   color: #9a9a9a !important;
   opacity: 1;
-  text-align: right;
+  text-align: left;
   letter-spacing: -0.03em;
   word-break: keep-all;
+}
+@media (min-width: 768px) {
+  #hxDiscover .hx-ig__cap-row {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  #hxDiscover .hx-ig__cap-row .hx-ig__caption {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  #hxDiscover .hx-ig__ai-note {
+    flex: 0 0 7.6rem;
+    width: auto;
+    max-width: 7.6rem;
+    margin: 1px 0 0 auto;
+    text-align: right;
+  }
 }
 #hxDiscover .hx-ig__more {
   color: #0095f6 !important;
