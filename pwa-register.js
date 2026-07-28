@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa57";
-  const APP_VERSION = "v1.11.9";
-  const RELEASE_NOTES = ["발견 이미지 복구", "한글 깨짐 복구"];
+  const APP_BUILD = "20260728-pwa58";
+  const APP_VERSION = "v1.12.0";
+  const RELEASE_NOTES = ["발견 인스타형 UI", "하트·댓글", "MZ 캡션"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

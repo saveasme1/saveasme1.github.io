@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v5";
-  const CACHE_TTL_MS = 8 * 60 * 1000;
+  const CACHE_KEY = "hx.discover.feed.v6";
+  const CACHE_TTL_MS = 5 * 60 * 1000;
   const TYPE_KO = {
     ring: "반지",
     bracelet: "브레이슬릿",
@@ -35,11 +35,157 @@
     D: "damianiofficial",
   };
 
+  const state = {
+    member: null,
+    meLoaded: false,
+  };
+
   function el(tag, cls, html) {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
     if (html != null) n.innerHTML = html;
     return n;
+  }
+
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function api(path, options = {}) {
+    const headers = { Accept: "application/json", ...(options.headers || {}) };
+    if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+    const res = await fetch(`${apiBase()}${path}`, {
+      credentials: "include",
+      mode: "cors",
+      ...options,
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  async function ensureMember({ force = false } = {}) {
+    if (state.meLoaded && !force) return state.member;
+    try {
+      const data = await api("/auth/me");
+      state.member = data.member || null;
+    } catch (_) {
+      state.member = null;
+    }
+    state.meLoaded = true;
+    return state.member;
+  }
+
+  function ensureAuthDialog() {
+    if (document.getElementById("hxDiscoverAuthDialog")) return;
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<dialog class="review-dialog auth-dialog" id="hxDiscoverAuthDialog" data-mode="login">
+        <form id="hxDiscoverAuthForm" data-mode="login">
+          <div class="auth-tabs" role="tablist">
+            <button type="button" class="auth-tab is-active" data-hx-auth-tab="login" role="tab">로그인</button>
+            <button type="button" class="auth-tab" data-hx-auth-tab="register" role="tab">회원가입</button>
+          </div>
+          <div class="auth-panel" data-hx-auth-panel="login">
+            <h2>로그인</h2>
+            <p class="auth-desc">하트·댓글은 로그인 후 이용할 수 있어요.</p>
+          </div>
+          <div class="auth-panel" data-hx-auth-panel="register" hidden>
+            <h2>회원가입</h2>
+            <p class="auth-desc">가입 후 관리자 승인이 필요할 수 있어요.</p>
+          </div>
+          <label class="auth-field">아이디
+            <input id="hxDiscoverUsername" autocomplete="username" minlength="4" maxlength="30" required placeholder="아이디">
+          </label>
+          <label class="auth-field">비밀번호
+            <input id="hxDiscoverPassword" type="password" autocomplete="current-password" minlength="12" maxlength="128" required placeholder="비밀번호">
+          </label>
+          <p class="review-dialog-status" id="hxDiscoverAuthStatus" aria-live="polite"></p>
+          <div class="review-dialog-actions auth-actions">
+            <button type="button" data-hx-auth-close>취소</button>
+            <button class="primary" type="submit" id="hxDiscoverAuthSubmit">로그인</button>
+          </div>
+        </form>
+      </dialog>`
+    );
+    const dlg = document.getElementById("hxDiscoverAuthDialog");
+    const form = document.getElementById("hxDiscoverAuthForm");
+    dlg.querySelectorAll("[data-hx-auth-close]").forEach((b) =>
+      b.addEventListener("click", () => dlg.close())
+    );
+    dlg.querySelectorAll("[data-hx-auth-tab]").forEach((b) =>
+      b.addEventListener("click", () => openDiscoverAuth(b.getAttribute("data-hx-auth-tab")))
+    );
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const mode = form.dataset.mode || "login";
+      const status = document.getElementById("hxDiscoverAuthStatus");
+      const username = document.getElementById("hxDiscoverUsername").value.trim();
+      const password = document.getElementById("hxDiscoverPassword").value;
+      status.textContent = "처리 중…";
+      status.classList.remove("error");
+      try {
+        const path = mode === "register" ? "/auth/register" : "/auth/login";
+        const data = await api(path, {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+        });
+        state.member = data.member || null;
+        state.meLoaded = true;
+        status.textContent = mode === "register" ? "가입 신청 완료" : "로그인 완료";
+        dlg.close();
+        window.dispatchEvent(new CustomEvent("gongbang:auth-changed", { detail: { member: state.member } }));
+      } catch (e) {
+        status.textContent = e.message || "실패";
+        status.classList.add("error");
+      }
+    });
+  }
+
+  function openDiscoverAuth(mode = "login") {
+    if (typeof window.openGongbangAuth === "function") {
+      window.openGongbangAuth(mode);
+      return;
+    }
+    ensureAuthDialog();
+    const dlg = document.getElementById("hxDiscoverAuthDialog");
+    const form = document.getElementById("hxDiscoverAuthForm");
+    const next = mode === "register" ? "register" : "login";
+    form.dataset.mode = next;
+    dlg.dataset.mode = next;
+    dlg.querySelectorAll("[data-hx-auth-tab]").forEach((b) => {
+      b.classList.toggle("is-active", b.getAttribute("data-hx-auth-tab") === next);
+    });
+    dlg.querySelectorAll("[data-hx-auth-panel]").forEach((p) => {
+      p.hidden = p.getAttribute("data-hx-auth-panel") !== next;
+    });
+    document.getElementById("hxDiscoverAuthSubmit").textContent =
+      next === "register" ? "가입하기" : "로그인";
+    document.getElementById("hxDiscoverAuthStatus").textContent = "";
+    dlg.showModal();
+  }
+
+  async function requireMember() {
+    const m = await ensureMember();
+    if (m) return m;
+    openDiscoverAuth("login");
+    throw new Error("login_required");
+  }
+
+  function dbIdOf(item) {
+    if (item.dbId) return Number(item.dbId);
+    const n = Number(String(item.id || "").replace(/^disc-/i, ""));
+    return Number.isFinite(n) ? n : 0;
   }
 
   function apiBase() {
@@ -188,10 +334,12 @@
       headers: { Accept: "application/json" },
       cache: "no-store",
       mode: "cors",
-      credentials: "omit",
+      credentials: "include",
     });
     if (!res.ok) throw new Error(`discover feed ${res.status}`);
-    return res.json();
+    const data = await res.json();
+    if (data.member) state.member = data.member;
+    return data;
   }
 
   async function loadLegacyFallback() {
@@ -274,6 +422,10 @@
       type,
       typeKo: TYPE_KO[type] || "",
       externalId: row.externalId || shortcode || youtubeId(permalink),
+      dbId: row.dbId || Number(String(row.id || "").replace(/^disc-/i, "")) || null,
+      likeCount: Number(row.likeCount || 0),
+      commentCount: Number(row.commentCount || 0),
+      likedByMe: !!row.likedByMe,
     };
   }
 
@@ -380,9 +532,11 @@
   function cardNode(item) {
     const a = el("article", "hx-ig__card");
     const postId = String(item.id || "");
+    const dbId = dbIdOf(item);
     a.dataset.brand = item.brandCode || "";
     a.dataset.platform = item.platform;
     a.dataset.media = item.mediaType;
+    if (dbId) a.dataset.dbId = String(dbId);
     if (postId) {
       a.dataset.postId = postId;
       a.id = "hx-post-" + postId.replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -398,13 +552,9 @@
     setAvatar(av, handle, item.profilePictureUrl || item.avatar, item.platform, item.brandCode);
 
     const meta = el("div", "hx-ig__meta");
-    const dname = String(item.displayName || "").trim();
     meta.innerHTML =
-      `<strong>${handle ? `@${handle}` : dname || plat}</strong>` +
-      (dname && handle && dname.toLowerCase() !== handle.toLowerCase()
-        ? `<em class="hx-ig__name">${dname}</em>`
-        : "") +
-      `<span>${item.brandCode || ""}${item.typeKo ? ` · ${item.typeKo}` : ""}</span>`;
+      `<strong>${escapeHtml(handle || plat)}</strong>` +
+      (item.typeKo ? `<span>${escapeHtml(item.typeKo)}</span>` : "");
     const time = el("time", "hx-ig__time", relativeTimeKo(item.publishedAt));
     head.append(av, meta, time);
     head.addEventListener("click", () => openUrl(profile));
@@ -426,32 +576,142 @@
           return;
         }
         media.classList.add("hx-ig__media--ph");
-        media.innerHTML = `<div class="hx-ig__ph"><b>${handle || plat}</b><em>원문 보기</em></div>`;
+        media.innerHTML = `<div class="hx-ig__ph"><b>${escapeHtml(handle || plat)}</b><em>원문 보기</em></div>`;
       });
     }
     media.addEventListener("click", () => playInline(media, item));
 
+    const actions = el("div", "hx-ig__actions");
+    const likeBtn = el("button", "hx-ig__like" + (item.likedByMe ? " is-on" : ""));
+    likeBtn.type = "button";
+    likeBtn.setAttribute("aria-label", "좋아요");
+    likeBtn.innerHTML = `<span class="hx-ig__heart" aria-hidden="true"></span><b class="hx-ig__like-count">${Number(
+      item.likeCount || 0
+    )}</b>`;
+    const cmtBtn = el("button", "hx-ig__cmt-toggle");
+    cmtBtn.type = "button";
+    cmtBtn.innerHTML = `<span aria-hidden="true">💬</span><b class="hx-ig__cmt-count">${Number(
+      item.commentCount || 0
+    )}</b>`;
+    const moreBtn = el("button", "hx-ig__more");
+    moreBtn.type = "button";
+    moreBtn.textContent = "원문";
+    moreBtn.addEventListener("click", () => openUrl(item.permalink));
+    actions.append(likeBtn, cmtBtn, moreBtn);
+
+    likeBtn.addEventListener("click", async () => {
+      try {
+        await requireMember();
+        const r = await api(`/discover/posts/${dbId}/like`, { method: "POST", body: "{}" });
+        likeBtn.classList.toggle("is-on", !!r.likedByMe);
+        likeBtn.querySelector(".hx-ig__like-count").textContent = String(r.likeCount || 0);
+        item.likedByMe = !!r.likedByMe;
+        item.likeCount = r.likeCount || 0;
+      } catch (e) {
+        if (e.message !== "login_required") alert(e.message || "좋아요 실패");
+      }
+    });
+
     const foot = el("div", "hx-ig__foot");
+    const likesLine = el("p", "hx-ig__likes-line");
+    likesLine.textContent = `좋아요 ${Number(item.likeCount || 0)}개`;
     const cap = el("p", "hx-ig__caption");
-    const body = String(item.captionKo || item.caption || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    cap.innerHTML = `<span class="hx-ig__seed">${body}</span>`;
-    if (item.brandCode) {
-      const badge = el("b", "hx-ig__badge");
-      badge.textContent = item.brandCode;
-      cap.prepend(badge, document.createTextNode(" "));
+    const body = escapeHtml(item.captionKo || item.caption || "");
+    const who = escapeHtml(handle || "");
+    cap.innerHTML = (who ? `<strong>${who}</strong> ` : "") + `<span class="hx-ig__seed">${body}</span>`;
+
+    const comments = el("div", "hx-ig__comments");
+    comments.hidden = true;
+    const cmtList = el("div", "hx-ig__cmt-list");
+    const cmtForm = el("form", "hx-ig__cmt-form");
+    cmtForm.innerHTML =
+      `<input name="body" maxlength="500" placeholder="댓글 달기…" autocomplete="off">` +
+      `<button type="submit">게시</button>`;
+
+    async function refreshComments() {
+      try {
+        const data = await api(`/discover/posts/${dbId}/comments?limit=40`);
+        cmtList.replaceChildren();
+        (data.items || []).forEach((c) => {
+          const row = el("div", "hx-ig__cmt");
+          row.dataset.id = String(c.id);
+          row.innerHTML =
+            `<strong>${escapeHtml(c.username || "")}</strong> ` +
+            `<span class="hx-ig__cmt-body">${escapeHtml(c.body)}</span>`;
+          if (c.mine || (state.member && Number(c.memberId) === Number(state.member.id))) {
+            const tools = el("span", "hx-ig__cmt-tools");
+            const edit = el("button", "hx-ig__cmt-edit");
+            edit.type = "button";
+            edit.textContent = "수정";
+            const del = el("button", "hx-ig__cmt-del");
+            del.type = "button";
+            del.textContent = "삭제";
+            edit.addEventListener("click", async () => {
+              const next = prompt("댓글 수정", c.body);
+              if (next == null) return;
+              try {
+                await requireMember();
+                await api(`/discover/comments/${c.id}`, {
+                  method: "PUT",
+                  body: JSON.stringify({ body: next }),
+                });
+                await refreshComments();
+              } catch (e) {
+                if (e.message !== "login_required") alert(e.message || "수정 실패");
+              }
+            });
+            del.addEventListener("click", async () => {
+              if (!confirm("이 댓글을 삭제할까요?")) return;
+              try {
+                await requireMember();
+                await api(`/discover/comments/${c.id}`, { method: "DELETE" });
+                item.commentCount = Math.max(0, Number(item.commentCount || 1) - 1);
+                cmtBtn.querySelector(".hx-ig__cmt-count").textContent = String(item.commentCount);
+                await refreshComments();
+              } catch (e) {
+                if (e.message !== "login_required") alert(e.message || "삭제 실패");
+              }
+            });
+            tools.append(edit, del);
+            row.append(tools);
+          }
+          cmtList.append(row);
+        });
+        item.commentCount = (data.items || []).length;
+        cmtBtn.querySelector(".hx-ig__cmt-count").textContent = String(item.commentCount);
+        likesLine.textContent = `좋아요 ${Number(item.likeCount || 0)}개`;
+      } catch (_) {}
     }
-    const by = el("div", "hx-ig__by");
-    by.innerHTML = `<span></span>`;
-    const linkBtn = el("button", "hx-ig__src");
-    linkBtn.type = "button";
-    linkBtn.textContent = "원문";
-    linkBtn.addEventListener("click", () => openUrl(item.permalink));
-    by.append(linkBtn);
-    foot.append(cap, by);
-    a.append(head, media, foot);
+
+    cmtBtn.addEventListener("click", async () => {
+      comments.hidden = !comments.hidden;
+      if (!comments.hidden) await refreshComments();
+    });
+
+    cmtForm.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const input = cmtForm.querySelector("input");
+      const text = String(input.value || "").trim();
+      if (!text) return;
+      try {
+        await requireMember();
+        await api(`/discover/posts/${dbId}/comments`, {
+          method: "POST",
+          body: JSON.stringify({ body: text }),
+        });
+        input.value = "";
+        item.commentCount = Number(item.commentCount || 0) + 1;
+        cmtBtn.querySelector(".hx-ig__cmt-count").textContent = String(item.commentCount);
+        comments.hidden = false;
+        await refreshComments();
+      } catch (e) {
+        if (e.message !== "login_required") alert(e.message || "댓글 실패");
+      }
+    });
+
+    comments.append(cmtList, cmtForm);
+    foot.append(likesLine, cap, comments);
+    a.append(head, media, actions, foot);
     return a;
   }
 
@@ -544,6 +804,7 @@
     }
 
     brands = await loadBrandMap().catch(() => ({}));
+    await ensureMember().catch(() => null);
     buildChips();
     await reload();
     return true;

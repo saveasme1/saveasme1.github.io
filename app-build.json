@@ -1,8 +1,9 @@
 {
-  "build": "20260728-pwa57",
-  "version": "v1.11.9",
+  "build": "20260728-pwa58",
+  "version": "v1.12.0",
   "notes": [
-    "Discover: restore local wear-media images for IG posts",
-    "한글 깨짐 복구"
+    "Discover Instagram-like UI",
+    "Likes + comments (login required)",
+    "MZ Korean captions"
   ]
 }
