@@ -4,8 +4,10 @@
   const API = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const TOKEN_KEY = "gongbang171.adminToken";
   const DATA_PATH = "portfolio-data.json";
+  const DRAFT_PATH = "portfolio-draft.json";
   const BOARD = "portfolio";
   const PAGE_SIZE = 12;
+  const CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
   const $ = (id) => document.getElementById(id);
 
   const els = {
@@ -193,13 +195,279 @@
     return Boolean(state.member && state.member.role === "admin");
   }
 
-  function openWriter() {
+  const decodeBase64 = (value) =>
+    new TextDecoder().decode(Uint8Array.from(atob(String(value || "").replace(/\s/g, "")), (char) => char.charCodeAt(0)));
+  const bytesToBase64 = (bytes) => {
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(binary);
+  };
+  const textToBase64 = (value) => bytesToBase64(new TextEncoder().encode(value));
+
+  function ensureWriter() {
+    if (state.writer) return state.writer;
+    let root = $("portfolioWriteDialog");
+    if (!root) {
+      root = document.createElement("dialog");
+      root.id = "portfolioWriteDialog";
+      root.className = "review-dialog write-dialog";
+      root.innerHTML = `
+        <form id="portfolioWriteForm">
+          <input type="hidden" name="editId" value="">
+          <h2 id="portfolioWriteTitle">포트폴리오 작성</h2>
+          <label>카테고리<select name="category" required></select></label>
+          <label>제목<input name="title" minlength="2" maxlength="160" required placeholder="게시글/상품 제목"></label>
+          <label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="상품 설명이나 작업 내용을 입력하세요."></textarea></label>
+          <label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+          <label>추가 이미지 (최대 8장)<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+          <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.</p>
+          <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
+          <div class="review-dialog-actions">
+            <button type="button" id="portfolioWriteCancel">취소</button>
+            <button class="primary" type="submit" id="portfolioWriteSubmit">등록하기</button>
+          </div>
+        </form>`;
+      document.body.append(root);
+    }
+    const form = $("portfolioWriteForm");
+    const writer = {
+      root,
+      form,
+      title: $("portfolioWriteTitle"),
+      status: $("portfolioWriteStatus"),
+      submit: $("portfolioWriteSubmit"),
+      cancel: $("portfolioWriteCancel"),
+      help: $("portfolioWriteHelp"),
+      htmlEditor: window.GongbangHtmlEditor?.mount(form?.elements?.content),
+      editing: null,
+    };
+    const categorySelect = form.elements.category;
+    categorySelect.replaceChildren();
+    (state.categories.length ? state.categories : CATEGORIES).forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      categorySelect.append(option);
+    });
+    writer.cancel.addEventListener("click", () => writer.root.close());
+    form.addEventListener("submit", submitWriter);
+    state.writer = writer;
+    return writer;
+  }
+
+  function openWriter(editItem = null) {
     if (!isAdmin()) {
       showToast("글쓰기 권한이 없습니다.", { tone: "error" });
       return;
     }
-    // Keep portfolio page; write UI opens in a separate window
-    openAdminWindow("/admin/portfolio/", "heritageAdminPortfolio");
+    const writer = ensureWriter();
+    const form = writer.form;
+    form.reset();
+    writer.htmlEditor?.reset?.();
+    writer.editing = editItem || null;
+    writer.status.textContent = "";
+    writer.submit.disabled = false;
+
+    const categorySelect = form.elements.category;
+    const cats = state.categories.length ? state.categories : CATEGORIES;
+    if (categorySelect.options.length !== cats.length) {
+      categorySelect.replaceChildren();
+      cats.forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categorySelect.append(option);
+      });
+    }
+
+    if (editItem) {
+      writer.title.textContent = "포트폴리오 수정";
+      writer.submit.textContent = "저장하기";
+      writer.help.textContent = "대표/추가 이미지를 새로 고르면 교체됩니다. 비워두면 기존 이미지를 유지합니다.";
+      form.elements.editId.value = editItem.id || "";
+      form.elements.category.value = cats.includes(editItem.category) ? editItem.category : cats[0];
+      form.elements.title.value = editItem.title || "";
+      form.elements.content.value = editItem.content || "";
+      form.elements.cover.required = false;
+      if (writer.htmlEditor?.setMode) {
+        writer.htmlEditor.setMode(
+          window.GongbangHtmlEditor?.looksLikeHtml?.(editItem.content) ? "source" : "text"
+        );
+      }
+    } else {
+      writer.title.textContent = "포트폴리오 작성";
+      writer.submit.textContent = "등록하기";
+      writer.help.textContent = "대표 이미지는 필수이며 추가 이미지는 최대 8장입니다.";
+      form.elements.editId.value = "";
+      form.elements.category.value = cats[0] || "C";
+      form.elements.cover.required = true;
+    }
+    writer.root.showModal();
+  }
+
+  async function readManaged(path, optional = false) {
+    const params = new URLSearchParams({ path, _: Date.now() });
+    if (optional) params.set("optional", "1");
+    const payload = await api(`/admin/files?${params}`);
+    if (!payload.file) return null;
+    return {
+      value: JSON.parse(decodeBase64(payload.file.content)),
+      sha: payload.file.sha,
+    };
+  }
+
+  async function putManaged(path, content, message, sha = "") {
+    return api("/admin/files", {
+      method: "PUT",
+      body: JSON.stringify({ path, content, message, sha }),
+    });
+  }
+
+  async function uploadPortfolioImage(file, id, role, index = 0) {
+    if (file.size > 8 * 1024 * 1024) {
+      throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+    }
+    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg";
+    const suffix = index ? `-${index}` : "";
+    const path = `portfolio/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
+    const content = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+    await putManaged(path, content, `portfolio: upload ${id} ${role}${suffix}`);
+    return path;
+  }
+
+  function sortNewest(items) {
+    return [...items].sort((a, b) => {
+      const aTime = Date.parse(a.sortAt || a.uploadedAt || 0) || 0;
+      const bTime = Date.parse(b.sortAt || b.uploadedAt || 0) || 0;
+      return bTime - aTime || String(b.id).localeCompare(String(a.id));
+    });
+  }
+
+  function toPublishedItem(item) {
+    const cover = String(item.cover || item.image || "");
+    return {
+      id: String(item.id || ""),
+      category: CATEGORIES.includes(item.category) ? item.category : "ETC",
+      title: String(item.title || ""),
+      content: String(item.content || ""),
+      image: cover,
+      images: (Array.isArray(item.images) ? item.images : []).map(String).filter(Boolean).filter((path) => path !== cover),
+      uploadedAt: item.uploadedAt || item.createdAt || new Date().toISOString(),
+      sortAt: item.sortAt || item.uploadedAt || item.createdAt || new Date().toISOString(),
+    };
+  }
+
+  async function submitWriter(event) {
+    event.preventDefault();
+    const writer = ensureWriter();
+    const form = event.currentTarget;
+    const coverFile = form.elements.cover.files[0];
+    const detailFiles = [...form.elements.images.files];
+    const editing = writer.editing;
+    if (!editing && !coverFile) {
+      writer.status.textContent = "대표 이미지를 선택해 주세요.";
+      return;
+    }
+    if (detailFiles.length > 8) {
+      writer.status.textContent = "추가 이미지는 최대 8장까지 등록할 수 있습니다.";
+      return;
+    }
+    writer.submit.disabled = true;
+    try {
+      const id = editing?.id || `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+      let cover = editing ? String(editing.image || editing.cover || "") : "";
+      if (coverFile) {
+        writer.status.textContent = "대표 이미지 업로드 중…";
+        cover = await uploadPortfolioImage(coverFile, id, "cover");
+      }
+      let images = editing ? (Array.isArray(editing.images) ? [...editing.images] : []) : [];
+      if (detailFiles.length) {
+        images = [];
+        for (let index = 0; index < detailFiles.length; index += 1) {
+          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${detailFiles.length}`;
+          images.push(await uploadPortfolioImage(detailFiles[index], id, "detail", index + 1));
+        }
+      }
+
+      writer.status.textContent = "게시글을 저장하고 공개하는 중…";
+      const [publishedFile, draftFile] = await Promise.all([
+        readManaged(DATA_PATH, true),
+        readManaged(DRAFT_PATH, true),
+      ]);
+      const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
+      const existing = editing || (publishedFile?.value?.items || []).find((entry) => entry.id === id);
+      const item = toPublishedItem({
+        ...(existing || {}),
+        id,
+        category: form.elements.category.value,
+        title: form.elements.title.value.trim(),
+        content: form.elements.content.value.trim(),
+        image: cover,
+        cover,
+        images: images.filter((path) => path && path !== cover),
+        uploadedAt: existing?.uploadedAt || now,
+        sortAt: now,
+        updatedAt: now,
+        origin: existing?.origin || "admin",
+      });
+
+      const baseItems = publishedFile?.value?.items || state.items || [];
+      const nextItems = sortNewest([item, ...baseItems.filter((entry) => entry.id !== id)]);
+      const published = {
+        version: 3,
+        updatedAt: now,
+        publishedAt: now,
+        source: publishedFile?.value?.source || draftFile?.value?.source || "",
+        categories: state.categories.length ? state.categories : CATEGORIES,
+        items: nextItems,
+      };
+      const draftItems = draftFile?.value?.items || baseItems;
+      const draft = {
+        version: 3,
+        updatedAt: now,
+        source: draftFile?.value?.source || published.source,
+        categories: published.categories,
+        items: sortNewest([item, ...draftItems.filter((entry) => entry.id !== id)].map((entry) => ({
+          ...entry,
+          cover: entry.cover || entry.image,
+          updatedAt: entry.id === id ? now : entry.updatedAt || entry.uploadedAt || now,
+          origin: entry.origin || "admin",
+        }))),
+      };
+
+      await putManaged(
+        DRAFT_PATH,
+        textToBase64(JSON.stringify(draft)),
+        `portfolio draft: ${editing ? "update" : "create"} ${id}`,
+        draftFile?.sha || ""
+      );
+      await putManaged(
+        DATA_PATH,
+        textToBase64(JSON.stringify(published)),
+        `portfolio: ${editing ? "update" : "publish"} ${id}`,
+        publishedFile?.sha || ""
+      );
+
+      state.items = published.items;
+      state.page = 1;
+      renderCats();
+      renderList();
+      if (editing && state.current?.id === id) {
+        state.current = item;
+        openDetail(item);
+      }
+      writer.root.close();
+      form.reset();
+      writer.editing = null;
+      showToast(editing ? "포트폴리오가 수정되었습니다." : "포트폴리오가 등록되었습니다.", { tone: "success" });
+      api("/admin/portfolio/pdf/build", { method: "POST", body: "{}" }).catch(() => {});
+    } catch (error) {
+      writer.status.textContent = error.message || "저장에 실패했습니다.";
+    } finally {
+      writer.submit.disabled = false;
+    }
   }
 
   async function api(path, options = {}) {
@@ -536,18 +804,16 @@
     edit.className = "detail-action";
     edit.textContent = "수정";
     edit.addEventListener("click", () => {
-      openAdminWindow(
-        `/admin/portfolio/?edit=${encodeURIComponent(state.current.id)}`,
-        "heritageAdminPortfolioEdit"
-      );
+      openWriter(state.current);
     });
 
     const manage = document.createElement("button");
     manage.type = "button";
     manage.className = "detail-action";
-    manage.textContent = "관리자";
+    manage.textContent = "전체관리";
     manage.addEventListener("click", () => {
-      openAdminWindow("/admin/portfolio/", "heritageAdminPortfolio");
+      // Same tab keeps PWA/session cookies; popup opens a bare browser without login
+      location.assign("/admin/portfolio/");
     });
 
     els.actions.append(edit, manage);
@@ -783,7 +1049,7 @@
       updateCarousel();
     }
   });
-  els.write?.addEventListener("click", openWriter);
+  els.write?.addEventListener("click", () => openWriter());
   els.openButton?.addEventListener("click", openPortfolioPanel);
   els.closeButton?.addEventListener("click", () => closePortfolioPanel());
   window.addEventListener("gongbang:auth-changed", (event) => {
