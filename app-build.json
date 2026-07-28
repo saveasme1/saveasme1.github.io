@@ -1,9 +1,9 @@
 {
   "build": "20260728-pwa59",
-  "version": "v1.12.0",
+  "version": "v1.12.1",
   "notes": [
-    "Discover Instagram-like UI",
-    "Likes + comments (login required)",
-    "MZ Korean captions"
+    "Discover white Instagram UI",
+    "Fix member login token for comments",
+    "More civilian jewelry wear collection"
   ]
 }

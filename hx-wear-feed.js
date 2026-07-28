@@ -1,8 +1,9 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v6";
+  const CACHE_KEY = "hx.discover.feed.v7";
   const CACHE_TTL_MS = 5 * 60 * 1000;
+  const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
     ring: "반지",
     bracelet: "브레이슬릿",
@@ -57,7 +58,13 @@
 
   async function api(path, options = {}) {
     const headers = { Accept: "application/json", ...(options.headers || {}) };
-    if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+    if (options.body && !(options.body instanceof FormData) && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+    try {
+      const tok = sessionStorage.getItem(TOKEN_KEY);
+      if (tok) headers.Authorization = `Bearer ${tok}`;
+    } catch (_) {}
     const res = await fetch(`${apiBase()}${path}`, {
       credentials: "include",
       mode: "cors",
@@ -142,6 +149,11 @@
         });
         state.member = data.member || null;
         state.meLoaded = true;
+        if (data.accessToken) {
+          try {
+            sessionStorage.setItem(TOKEN_KEY, data.accessToken);
+          } catch (_) {}
+        }
         status.textContent = mode === "register" ? "가입 신청 완료" : "로그인 완료";
         dlg.close();
         window.dispatchEvent(new CustomEvent("gongbang:auth-changed", { detail: { member: state.member } }));
@@ -176,7 +188,8 @@
   }
 
   async function requireMember() {
-    const m = await ensureMember();
+    let m = state.member;
+    if (!m) m = await ensureMember({ force: true });
     if (m) return m;
     openDiscoverAuth("login");
     throw new Error("login_required");

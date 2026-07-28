@@ -1492,31 +1492,104 @@ html.is-pwa {
   box-shadow: 0 0 0 4px rgba(201, 166, 107, 0.12);
 }
 
-/* Discover IG social UI overrides (keep after legacy rules) */
-.hx-ig__actions {
+/* Discover — Instagram WHITE theme */
+.hx-page#hxDiscover,
+#hxDiscover {
+  background: #fafafa !important;
+  color: #262626 !important;
+}
+#hxDiscover .hx-ig {
+  background: #fafafa !important;
+  max-width: 470px;
+}
+#hxDiscover .hx-ig__card {
+  background: #fff !important;
+  border: 1px solid #dbdbdb !important;
+  border-radius: 0;
+  border-bottom: 1px solid #dbdbdb !important;
+  margin-bottom: 12px;
+}
+#hxDiscover .hx-ig__head {
+  color: #262626 !important;
+  background: #fff !important;
+}
+#hxDiscover .hx-ig__meta strong,
+#hxDiscover .hx-ig__likes-line,
+#hxDiscover .hx-ig__caption,
+#hxDiscover .hx-ig__caption strong,
+#hxDiscover .hx-ig__cmt,
+#hxDiscover .hx-ig__cmt strong {
+  color: #262626 !important;
+}
+#hxDiscover .hx-ig__meta span,
+#hxDiscover .hx-ig__time,
+#hxDiscover .hx-ig__more,
+#hxDiscover .hx-ig__cmt-edit,
+#hxDiscover .hx-ig__cmt-del {
+  color: #8e8e8e !important;
+}
+#hxDiscover .hx-ig__like,
+#hxDiscover .hx-ig__cmt-toggle,
+#hxDiscover .hx-ig__more {
+  color: #262626 !important;
+}
+#hxDiscover .hx-ig__heart {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23262626' stroke-width='1.8'%3E%3Cpath d='M12 20s-7-4.4-7-9.2A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7 3.8C19 15.6 12 20 12 20z'/%3E%3C/svg%3E") !important;
+}
+#hxDiscover .hx-ig__like.is-on .hx-ig__heart {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ed4956' stroke='%23ed4956' stroke-width='1.2'%3E%3Cpath d='M12 20s-7-4.4-7-9.2A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7 3.8C19 15.6 12 20 12 20z'/%3E%3C/svg%3E") !important;
+}
+#hxDiscover .hx-ig__media {
+  background: #f0f0f0 !important;
+  aspect-ratio: 1 / 1 !important;
+}
+#hxDiscover .hx-ig__comments {
+  border-top: 1px solid #efefef !important;
+}
+#hxDiscover .hx-ig__cmt-form input {
+  background: #fafafa !important;
+  color: #262626 !important;
+  border: 1px solid #dbdbdb !important;
+}
+#hxDiscover .hx-ig__cmt-form button {
+  color: #0095f6 !important;
+}
+#hxDiscover .hx-ig-filters,
+#hxDiscover .hx-chips {
+  background: rgba(250, 250, 250, 0.96) !important;
+  border-bottom: 1px solid #dbdbdb !important;
+  top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
+}
+#hxDiscover .hx-chips button {
+  background: #fff !important;
+  color: #262626 !important;
+  border: 1px solid #dbdbdb !important;
+}
+#hxDiscover .hx-chips button.is-on {
+  background: #262626 !important;
+  color: #fff !important;
+  border-color: #262626 !important;
+}
+#hxDiscover .hx-empty {
+  color: #8e8e8e !important;
+}
+#hxDiscover .hx-ig__actions {
   display: flex !important;
 }
-.hx-ig__seed {
+#hxDiscover .hx-ig__seed {
   display: inline !important;
   margin: 0 !important;
   font-size: inherit !important;
   color: inherit !important;
-  font-weight: 450 !important;
+  font-weight: 400 !important;
 }
-.hx-ig__caption {
-  font-size: 14px !important;
-  color: rgba(255, 255, 255, 0.92) !important;
-}
-.hx-ig__by,
-.hx-ig__src,
-.hx-ig__badge {
+#hxDiscover .hx-ig__by,
+#hxDiscover .hx-ig__src,
+#hxDiscover .hx-ig__badge {
   display: none !important;
 }
-.hx-ig-filters {
-  top: calc(var(--gb-top-h, 48px) + env(safe-area-inset-top, 0px));
-  background: rgba(0, 0, 0, 0.92) !important;
-}
-.hx-page#hxDiscover,
-#hxDiscover {
-  background: #000;
+#hxDiscover .hx-ig__avatar {
+  border-color: #dbdbdb !important;
+  background: #efefef !important;
+  color: #262626 !important;
 }
