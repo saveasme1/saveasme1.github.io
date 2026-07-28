@@ -119,11 +119,15 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-hero-slider {
   cursor: default;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .pwa-hero-slider__track {
   position: absolute;
   inset: 0;
+  touch-action: pan-y;
 }
 
 .pwa-hero-slider__slide {
@@ -140,6 +144,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   pointer-events: none;
   transition: opacity 0.7s var(--pwa-ease);
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
 }
 
 .pwa-hero-slider__slide.is-on {
@@ -154,26 +159,69 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-hero-slider__dots {
   position: absolute;
-  left: 18px;
-  bottom: 12px;
-  z-index: 3;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 4;
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  pointer-events: auto;
 }
 
 .pwa-hero-slider__dots button {
-  width: 6px;
-  height: 6px;
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: rgba(255, 255, 255, 0.35);
+  background: transparent;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.pwa-hero-slider__dots button.is-on {
-  width: 18px;
+.pwa-hero-slider__dots button::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.pwa-hero-slider__dots button.is-on::after {
+  width: 22px;
   background: #f0d09a;
+}
+
+@media (max-width: 1024px) {
+  .pwa-hero-slider__dots {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    gap: 2px;
+  }
+
+  .pwa-hero-slider__dots button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .pwa-hero-slider__dots button::after {
+    width: 9px;
+    height: 9px;
+  }
+
+  .pwa-hero-slider__dots button.is-on::after {
+    width: 24px;
+  }
 }
 
 .pwa-hero:active .pwa-hero__media img {

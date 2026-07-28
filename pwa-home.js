@@ -616,6 +616,7 @@
     host.append(hero);
 
     let slideIdx = 0;
+    let autoTimer = 0;
     function goSlide(next) {
       if (!slides.length) return;
       slideIdx = ((next % slides.length) + slides.length) % slides.length;
@@ -626,14 +627,73 @@
         el.classList.toggle("is-on", i === slideIdx);
       });
     }
+    function restartAuto() {
+      if (autoTimer) clearInterval(autoTimer);
+      if (slides.length <= 1) return;
+      autoTimer = setInterval(() => goSlide(slideIdx + 1), 4800);
+    }
     dots.addEventListener("click", (event) => {
       const dot = event.target.closest("[data-dot]");
       if (!dot) return;
+      event.preventDefault();
+      event.stopPropagation();
       goSlide(Number(dot.dataset.dot) || 0);
+      restartAuto();
     });
-    if (slides.length > 1) {
-      setInterval(() => goSlide(slideIdx + 1), 4800);
+
+    // Touch / pointer swipe → next / prev slide
+    let swipe = { x: 0, y: 0, active: false, moved: false, locked: false };
+    const SWIPE_MIN = 42;
+    function onPointerDown(event) {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      swipe = {
+        x: event.clientX,
+        y: event.clientY,
+        active: true,
+        moved: false,
+        locked: false,
+        id: event.pointerId,
+      };
     }
+    function onPointerMove(event) {
+      if (!swipe.active || swipe.id !== event.pointerId) return;
+      const dx = event.clientX - swipe.x;
+      const dy = event.clientY - swipe.y;
+      if (!swipe.locked && Math.abs(dx) + Math.abs(dy) > 8) {
+        swipe.locked = Math.abs(dx) > Math.abs(dy);
+      }
+      if (swipe.locked && Math.abs(dx) > 12) swipe.moved = true;
+    }
+    function onPointerUp(event) {
+      if (!swipe.active || swipe.id !== event.pointerId) return;
+      const dx = event.clientX - swipe.x;
+      const dy = event.clientY - swipe.y;
+      const wasSwipe = swipe.moved && Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(dy);
+      swipe.active = false;
+      if (!wasSwipe) return;
+      event.preventDefault();
+      event.stopPropagation();
+      goSlide(dx < 0 ? slideIdx + 1 : slideIdx - 1);
+      restartAuto();
+    }
+    hero.addEventListener("pointerdown", onPointerDown, { passive: true });
+    hero.addEventListener("pointermove", onPointerMove, { passive: true });
+    hero.addEventListener("pointerup", onPointerUp);
+    hero.addEventListener("pointercancel", () => {
+      swipe.active = false;
+    });
+    // Block slide tap navigation right after a swipe
+    track.addEventListener(
+      "click",
+      (event) => {
+        if (!swipe.moved) return;
+        event.preventDefault();
+        event.stopPropagation();
+        swipe.moved = false;
+      },
+      true
+    );
+    restartAuto();
 
     // Category + peek
     const catsWrap = document.createElement("section");
