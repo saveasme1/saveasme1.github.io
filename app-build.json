@@ -1,9 +1,9 @@
-{
-  "build": "20260728-pwa45",
-  "version": "v1.10.14",
+﻿{
+  "build": "20260728-pwa46",
+  "version": "v1.11.2",
   "notes": [
-    "PC shell wider + always back button",
-    "Discover brand chips sticky under top bar",
-    "Home stories from Discover feed + IG ring motion"
+    "발견탭 배경 구분",
+    "브랜드 프로필사진 복원",
+    "착용·코디 위주 수집"
   ]
 }
