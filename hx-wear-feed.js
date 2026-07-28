@@ -106,8 +106,13 @@
     const h = String(handle || "").replace(/^@/, "").trim().toLowerCase();
     const candidates = [
       primaryUrl,
+      absUrl(`./wear-media/avatars/ig-real/${h}.jpg`),
       absUrl(`./wear-media/avatars/${h}.jpg`),
       absUrl(`./wear-media/avatars/${h}.png`),
+      // last: MakerBridge official IG CDN cache (not brand favicon)
+      h
+        ? `${String(window.HX_WEAR_FEED_API || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "")}/ig-avatar?u=${encodeURIComponent(h)}&b=1`
+        : "",
     ].filter(Boolean);
 
     const tryNext = (i) => {
