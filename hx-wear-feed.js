@@ -561,7 +561,8 @@
       a.id = "hx-post-" + postId.replace(/[^a-zA-Z0-9_-]/g, "_");
     }
 
-    const handle = String(item.handle || item.platform).replace(/^@/, "");
+    const rawHandle = String(item.handle || item.platform || "").replace(/^@/, "");
+    const handle = rawHandle.replace(/_[a-f0-9]{4,8}$/i, "") || rawHandle;
     const profile = profileUrl(item.platform, handle) || item.permalink;
     const plat = PLATFORM_LABEL[item.platform] || item.platform;
 

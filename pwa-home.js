@@ -599,17 +599,23 @@
   }
 
   function storyLabel(item) {
-    const handle = String(item.handle || item.profileUsername || "").replace(/^@/, "").trim();
-    if (handle && !/^(ddg|bing|google|web)_wear$/i.test(handle)) {
-      // web handles like site_abc12 → show brand if present, else @site
-      if (String(item.platform || "").toLowerCase() === "web" && item.brandCode) {
-        return String(item.brandCode);
-      }
-      return `@${handle.replace(/_[a-f0-9]{4,}$/i, "").slice(0, 12)}`;
+    const handle = String(item.handle || item.profileUsername || "")
+      .replace(/^@/, "")
+      .trim();
+    if (handle) {
+      // Strip hash suffix from web handles (site_a1b2c → site) for display
+      const pretty = handle
+        .replace(/_[a-f0-9]{4,8}$/i, "")
+        .replace(/^(ddg|bing|google|web)_wear$/i, "")
+        .trim();
+      if (pretty) return `@${pretty.slice(0, 14)}`;
+      return `@${handle.slice(0, 14)}`;
     }
-    if (item.brandCode) return String(item.brandCode);
-    const name = String(item.displayName || item.profileName || item.brandName || "").trim();
-    return name || "WEAR";
+    const name = String(item.displayName || item.profileName || "").trim();
+    if (name && !/^(Google Images|Bing Images|Web Wear)$/i.test(name)) {
+      return `@${name.replace(/\s+/g, "").slice(0, 14)}`;
+    }
+    return "@wear";
   }
 
   function openDiscoverPost(postId) {

@@ -1,9 +1,9 @@
 {
-  "build": "20260728-pwa69",
-  "version": "v1.12.7",
+  "build": "20260728-pwa70",
+  "version": "v1.12.8",
   "notes": [
-    "AI note more visible light gray",
-    "Pass translated flag",
-    "MZ v3 tone"
+    "UTF-8 title/offline copy restored",
+    "Hero slider taller for vertical jewelry",
+    "Discover feed @username cleanup"
   ]
 }
