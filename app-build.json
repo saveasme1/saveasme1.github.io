@@ -1,9 +1,8 @@
 {
-  "build": "20260728-pwa76",
-  "version": "v1.12.14",
+  "build": "20260728-pwa77",
+  "version": "v1.12.12",
   "notes": [
-    "Fix category chips C/B cut off on mobile/tablet",
-    "Restore IG profile photos from server cache",
-    "Blank profile for web scrapes only"
+    "Block full PDF download temporarily",
+    "Add C/B summary PDF download"
   ]
 }

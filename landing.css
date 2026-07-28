@@ -166,6 +166,13 @@ body.has-gb-top-brand .landing {
   letter-spacing: 0.08em;
 }
 
+.action-dl-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .action-dl {
   display: inline-flex;
   align-items: center;
@@ -187,6 +194,11 @@ body.has-gb-top-brand .landing {
   -webkit-appearance: none;
   appearance: none;
   transition: color .18s var(--soft), border-color .18s var(--soft), background .18s var(--soft);
+}
+.action-dl.is-muted {
+  opacity: 0.55;
+  border-color: rgba(245, 242, 238, 0.16);
+  background: rgba(245, 242, 238, 0.05);
 }
 .action-dl:hover,
 .action-dl:focus-visible {

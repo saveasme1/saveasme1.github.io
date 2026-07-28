@@ -38,21 +38,21 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260728-pwa76">
+  <link rel="manifest" href="manifest.webmanifest?v=20260728-pwa77">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
-  <link rel="stylesheet" href="handmade-reviews.css?v=20260728-pwa76">
-  <link rel="stylesheet" href="landing.css?v=20260728-pwa76">
-  <link rel="stylesheet" href="portfolio-board.css?v=20260728-pwa76">
-  <link rel="stylesheet" href="site-nav.css?v=20260728-pwa76">
+  <link rel="stylesheet" href="handmade-reviews.css?v=20260728-pwa77">
+  <link rel="stylesheet" href="landing.css?v=20260728-pwa77">
+  <link rel="stylesheet" href="portfolio-board.css?v=20260728-pwa77">
+  <link rel="stylesheet" href="site-nav.css?v=20260728-pwa77">
   <link rel="stylesheet" href="tryon-overlay.css?v=20260727-tryon49">
-  <link rel="stylesheet" href="price-trend-panel.css?v=20260728-pwa76">
-  <link rel="stylesheet" href="pwa-app.css?v=20260728-pwa76">
-  <link rel="stylesheet" href="hx-lifestyle.css?v=20260728-pwa76">
+  <link rel="stylesheet" href="price-trend-panel.css?v=20260728-pwa77">
+  <link rel="stylesheet" href="pwa-app.css?v=20260728-pwa77">
+  <link rel="stylesheet" href="hx-lifestyle.css?v=20260728-pwa77">
 </head>
 <body>
   <script>
@@ -107,12 +107,20 @@
         <span class="action-kicker">Portfolio</span>
         <span class="action-title-row">
           <strong>포트폴리오 보기</strong>
-          <button
-            type="button"
-            class="action-dl"
-            id="portfolioPdfDownload"
-            aria-label="포트폴리오 PDF 다운로드"
-          >다운로드</button>
+          <span class="action-dl-group">
+            <button
+              type="button"
+              class="action-dl is-muted"
+              id="portfolioPdfDownload"
+              aria-label="포트폴리오 전체 다운로드 (준비 중)"
+            >다운로드</button>
+            <button
+              type="button"
+              class="action-dl"
+              id="portfolioPdfSummary"
+              aria-label="C·B 요약 포트폴리오 PDF 다운로드"
+            >요약 다운로드</button>
+          </span>
         </span>
         <span class="action-hint">웹에서 본 헤리티지 포트폴리오를 확인합니다</span>
       </button>
@@ -351,34 +359,45 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
   <script>window.JEWELRY_PRICE_API = "https://app.0-1.co.kr/api/jewelry-price/v1";</script>
-  <script src="time-kr.js?v=20260728-pwa76"></script>
-  <script src="board-meta.js?v=20260728-pwa76"></script>
-  <script src="html-editor.js?v=20260728-pwa76"></script>
-  <script src="brand-codes.js?v=20260728-pwa76"></script>
-  <script src="price-trend-panel.js?v=20260728-pwa76"></script>
-  <script src="gongbang-auth.js?v=20260728-pwa76"></script>
-  <script src="portfolio-board.js?v=20260728-pwa76"></script>
-  <script src="handmade-reviews.js?v=20260728-pwa76"></script>
-  <script src="landing-boards.js?v=20260728-pwa76"></script>
-  <script src="shipping-board.js?v=20260728-pwa76"></script>
-  <script src="site-nav.js?v=20260728-pwa76"></script>
+  <script src="time-kr.js?v=20260728-pwa77"></script>
+  <script src="board-meta.js?v=20260728-pwa77"></script>
+  <script src="html-editor.js?v=20260728-pwa77"></script>
+  <script src="brand-codes.js?v=20260728-pwa77"></script>
+  <script src="price-trend-panel.js?v=20260728-pwa77"></script>
+  <script src="gongbang-auth.js?v=20260728-pwa77"></script>
+  <script src="portfolio-board.js?v=20260728-pwa77"></script>
+  <script src="handmade-reviews.js?v=20260728-pwa77"></script>
+  <script src="landing-boards.js?v=20260728-pwa77"></script>
+  <script src="shipping-board.js?v=20260728-pwa77"></script>
+  <script src="site-nav.js?v=20260728-pwa77"></script>
   <script src="tryon-overlay.js?v=20260727-tryon49"></script>
-  <script src="hx-store.js?v=20260728-pwa76"></script>
-  <script src="hx-catalog.js?v=20260728-pwa76"></script>
-  <script src="hx-content.js?v=20260728-pwa76"></script>
-  <script src="hx-extras.js?v=20260728-pwa76"></script>
-  <script src="hx-today.js?v=20260728-pwa76"></script>
+  <script src="hx-store.js?v=20260728-pwa77"></script>
+  <script src="hx-catalog.js?v=20260728-pwa77"></script>
+  <script src="hx-content.js?v=20260728-pwa77"></script>
+  <script src="hx-extras.js?v=20260728-pwa77"></script>
+  <script src="hx-today.js?v=20260728-pwa77"></script>
   <script>window.HX_WEAR_FEED_API = "https://app.0-1.co.kr/api/handmade/v1";</script>
-  <script src="hx-wear-feed.js?v=20260728-pwa76"></script>
-  <script src="hx-discover.js?v=20260728-pwa76"></script>
-  <script src="pwa-home.js?v=20260728-pwa76"></script>
-  <script src="pwa-register.js?v=20260728-pwa76"></script>
+  <script src="hx-wear-feed.js?v=20260728-pwa77"></script>
+  <script src="hx-discover.js?v=20260728-pwa77"></script>
+  <script src="pwa-home.js?v=20260728-pwa77"></script>
+  <script src="pwa-register.js?v=20260728-pwa77"></script>
   <script>
     (function () {
-      var btn = document.getElementById("portfolioPdfDownload");
-      if (!btn) return;
+      var fullBtn = document.getElementById("portfolioPdfDownload");
+      var summaryBtn = document.getElementById("portfolioPdfSummary");
+      var SUMMARY_API = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf/summary";
 
-      var API = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
+      if (fullBtn) {
+        function blockFull(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          // Temporary: full PDF download disabled
+          window.open("about:blank", "_blank", "noopener,noreferrer");
+        }
+        fullBtn.addEventListener("click", blockFull);
+      }
+
+      if (!summaryBtn) return;
 
       function ensureFrame() {
         var frame = document.getElementById("portfolioDownloadFrame");
@@ -393,14 +412,14 @@
         return frame;
       }
 
-      function flashProgress() {
+      function flashProgress(message) {
         var panel = document.getElementById("portfolioProgress");
         var status = document.getElementById("portfolioStatus");
         var percent = document.getElementById("portfolioPercent");
         var bar = document.getElementById("portfolioBar");
         if (!panel) return;
         panel.hidden = false;
-        if (status) status.textContent = "다운로드를 시작했습니다.";
+        if (status) status.textContent = message || "요약 다운로드를 시작했습니다.";
         if (percent) percent.textContent = "↓";
         if (bar) bar.style.width = "100%";
         window.setTimeout(function () {
@@ -411,15 +430,14 @@
         }, 3200);
       }
 
-      function startDownload(event) {
+      function startSummaryDownload(event) {
         event.preventDefault();
         event.stopPropagation();
-        // Hidden iframe + API Content-Disposition:attachment — no new tab / no about:blank
-        ensureFrame().src = API + "?_=" + Date.now();
-        flashProgress();
+        ensureFrame().src = SUMMARY_API + "?_=" + Date.now();
+        flashProgress("C·B 요약 PDF 다운로드를 시작했습니다.");
       }
 
-      btn.addEventListener("click", startDownload);
+      summaryBtn.addEventListener("click", startSummaryDownload);
     })();
   </script>
 </body>
