@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v12";
+  const CACHE_KEY = "hx.discover.feed.v13";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -636,7 +636,7 @@
       ? el(
           "p",
           "hx-ig__ai-note",
-          "이 글은 내부 AI 시스템에 의해 자동으로 번역되었습니다."
+          "이 글은 자체 AI 시스템에 의해 번역되었습니다."
         )
       : null;
     capRow.append(cap);
