@@ -1,7 +1,9 @@
 {
-  "build": "20260728-pwa76",
-  "version": "v1.12.11",
+  "build": "20260728-pwa75",
+  "version": "v1.12.13",
   "notes": [
-    "Fix PDF download iframe"
+    "Restore IG profile photos from server cache",
+    "Web scrapes stay blank profile (not post thumb)",
+    "Prefer Instagram posts in Discover mix"
   ]
 }
