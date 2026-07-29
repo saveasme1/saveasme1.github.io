@@ -163,7 +163,7 @@
             </div>
             <div class="price-trend-panel__body">
               <div class="price-trend-panel__chart-wrap">
-                <canvas data-pt-canvas aria-label="가격 히스토리 차트"></canvas>
+                <canvas data-pt-canvas aria-label="최고가·최저가 가격 추세 차트"></canvas>
                 <p class="price-trend-panel__chart-empty" hidden>수집된 실측 가격 포인트가 없어 그래프를 표시하지 않습니다.</p>
               </div>
               <div class="price-trend-panel__sellers">
@@ -386,7 +386,7 @@
       this.renderChart(data.history || [], data.sellers || []);
     }
 
-    renderChart(history) {
+    renderChart(history, sellers = []) {
       const wrap = this.root.querySelector(".price-trend-panel__chart-wrap");
       const points = (history || []).filter((h) => {
         const p = Number(h?.price);
@@ -402,8 +402,35 @@
         this.chart = null;
       }
 
+      // Day buckets → 최고가 / 최저가 separate series on one chart.
+      const byDay = new Map();
+      const pushPoint = (iso, price, meta = {}) => {
+        const p = Number(price);
+        if (!Number.isFinite(p) || p <= 0 || !iso) return;
+        const day = String(iso).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+        const row = byDay.get(day) || { day, low: p, high: p, samples: [] };
+        row.low = Math.min(row.low, p);
+        row.high = Math.max(row.high, p);
+        row.samples.push({ ...meta, price: p, observed_at: iso });
+        byDay.set(day, row);
+      };
+      points.forEach((h) => pushPoint(h.observed_at, h.price, h));
+      // Fold current seller quotes into latest day so high/low reflect live spread.
+      (sellers || []).forEach((row) => {
+        const iso =
+          row.last_seen_at ||
+          row.observed_at ||
+          row.updated_at ||
+          points[points.length - 1]?.observed_at ||
+          new Date().toISOString();
+        pushPoint(iso, row.price, row);
+      });
+
+      const series = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+
       let empty = wrap.querySelector(".price-trend-panel__chart-empty");
-      if (!points.length) {
+      if (!series.length) {
         this.els.canvas.style.display = "none";
         if (!empty) {
           empty = document.createElement("p");
@@ -418,17 +445,19 @@
       this.els.canvas.style.display = "block";
       if (empty) empty.hidden = true;
 
-      const labels = points.map((h) => {
+      const labels = series.map((row) => {
         try {
-          return new Date(h.observed_at).toLocaleDateString("ko-KR", {
+          return new Date(`${row.day}T12:00:00`).toLocaleDateString("ko-KR", {
             month: "numeric",
             day: "numeric",
           });
         } catch {
-          return String(h.observed_at).slice(0, 10);
+          return row.day.slice(5);
         }
       });
-      const values = points.map((h) => Number(h.price));
+      const highs = series.map((row) => row.high);
+      const lows = series.map((row) => row.low);
+      const multiDay = series.length > 1;
 
       this.chart = new window.Chart(this.els.canvas.getContext("2d"), {
         type: "line",
@@ -436,15 +465,30 @@
           labels,
           datasets: [
             {
-              label: "실측가(원화)",
-              data: values,
-              borderColor: "#1a1714",
-              backgroundColor: "rgba(26,23,20,0.08)",
-              fill: points.length > 1,
-              tension: points.length > 2 ? 0.25 : 0,
-              pointRadius: points.length === 1 ? 5 : 3,
+              label: "최고가",
+              data: highs,
+              borderColor: "#b42318",
+              backgroundColor: "rgba(180, 35, 24, 0.10)",
+              borderWidth: 2,
+              fill: "+1",
+              tension: multiDay ? 0.25 : 0,
+              pointRadius: series.length === 1 ? 5 : 3,
               pointHoverRadius: 6,
-              showLine: points.length > 1,
+              pointBackgroundColor: "#b42318",
+              showLine: multiDay || highs[0] !== lows[0],
+            },
+            {
+              label: "최저가",
+              data: lows,
+              borderColor: "#1a6b4a",
+              backgroundColor: "rgba(26, 107, 74, 0.10)",
+              borderWidth: 2,
+              fill: false,
+              tension: multiDay ? 0.25 : 0,
+              pointRadius: series.length === 1 ? 5 : 3,
+              pointHoverRadius: 6,
+              pointBackgroundColor: "#1a6b4a",
+              showLine: multiDay || highs[0] !== lows[0],
             },
           ],
         },
@@ -452,38 +496,38 @@
           responsive: true,
           maintainAspectRatio: false,
           resizeDelay: 50,
+          interaction: { mode: "index", intersect: false },
           layout: { padding: { top: 4, right: 6, bottom: 2, left: 2 } },
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              position: "top",
+              align: "end",
+              labels: {
+                boxWidth: 10,
+                boxHeight: 10,
+                usePointStyle: true,
+                pointStyle: "line",
+                color: "#4a4641",
+                font: { size: 11, weight: "600" },
+                padding: 12,
+              },
+            },
             tooltip: {
               callbacks: {
                 title: (items) => {
                   const i = items?.[0]?.dataIndex ?? 0;
-                  const h = points[i];
-                  try {
-                    return new Date(h.observed_at).toLocaleString("ko-KR");
-                  } catch {
-                    return String(h?.observed_at || "");
-                  }
+                  const row = series[i];
+                  return row?.day || "";
                 },
-                label: (ctx) => {
-                  const h = points[ctx.dataIndex] || {};
-                  const site = originMeta(h);
-                  const cur = String(h.original_currency || site.siteCurrency || "KRW").toUpperCase();
-                  const lines = [];
-                  if (site.overseas && cur !== "KRW" && h.original_amount != null) {
-                    lines.push(`출처통화 ${formatFx(h.original_amount, cur)}`);
-                    lines.push(`단순원화환산(실 구매가격 X) ${won(h.price)}`);
-                    if (h.fx_rate) {
-                      lines.push(`환율 1 ${cur} ≈ ${Number(h.fx_rate).toLocaleString("ko-KR")}원`);
-                    }
-                  } else {
-                    lines.push(`원화 ${won(h.price)}`);
-                  }
-                  if (h.domain || h.seller_name) {
-                    lines.push(`출처 ${h.seller_name || h.domain}`);
-                  }
-                  return lines;
+                label: (ctx) => `${ctx.dataset.label}: ${won(ctx.parsed.y)}`,
+                afterBody: (items) => {
+                  const i = items?.[0]?.dataIndex ?? 0;
+                  const row = series[i];
+                  if (!row) return [];
+                  const spread = row.high - row.low;
+                  if (!(spread > 0)) return ["당일 최고·최저가 동일"];
+                  return [`차이 ${won(spread)}`];
                 },
               },
             },
@@ -491,7 +535,7 @@
           scales: {
             x: {
               ticks: {
-                maxTicksLimit: Math.min(6, Math.max(1, points.length)),
+                maxTicksLimit: Math.min(6, Math.max(1, series.length)),
                 color: "#6b6762",
                 font: { size: 10 },
               },
