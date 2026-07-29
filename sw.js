@@ -1,5 +1,5 @@
 /* Heritage PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260728-pwa84";
+const CACHE_VERSION = "hx-pwa-v20260728-pwa85";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -184,15 +184,17 @@ async function precacheAll() {
 }
 
 self.addEventListener("install", (event) => {
-  // Do not auto skipWaiting on updates ??client asks the customer first.
-  event.waitUntil(precacheAll());
+  // Activate immediately so MO/TB PWA stops serving stale HTML/JS shells.
+  event.waitUntil(precacheAll().then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_VERSION && k !== RUNTIME_CACHE).map((k) => caches.delete(k)))
+      )
       .then(() => self.clients.claim())
       .then(() => broadcast({ type: "PWA_STATUS", state: "activated" }))
   );
@@ -333,6 +335,24 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => matchIgnoringSearch(req).then((hit) => hit || offlineShell()))
+    );
+    return;
+  }
+
+  // HTML / JS / CSS must be network-first — stale SW cache was killing 가격추세.
+  if (/\.(html?|js|css|webmanifest)$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })
+        .then((res) => {
+          if (res && res.ok) {
+            caches.open(CACHE_VERSION).then((c) => {
+              c.put(req, res.clone());
+              c.put(url.origin + url.pathname, res.clone());
+            });
+          }
+          return res;
+        })
+        .catch(() => matchIgnoringSearch(req))
     );
     return;
   }

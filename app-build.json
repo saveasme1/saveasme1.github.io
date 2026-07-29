@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa84",
-  "version": "v1.12.18",
+  "build": "20260728-pwa85",
+  "version": "v1.12.19",
   "notes": [
-    "Fix price trend on portfolio.html"
+    "Force price trend fix + network-first SW"
   ]
 }

@@ -35,9 +35,7 @@
 }
 
 .price-trend-panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.42s var(--pt-ease);
+  display: none;
   margin-top: 0;
   width: 100%;
   max-width: 100%;
@@ -45,12 +43,11 @@
   box-sizing: border-box;
 }
 .price-trend-panel.is-open {
-  grid-template-rows: 1fr;
+  display: block;
   margin-top: 16px;
 }
 .price-trend-panel__inner {
-  overflow: hidden;
-  min-height: 0;
+  overflow: visible;
   min-width: 0;
   max-width: 100%;
 }

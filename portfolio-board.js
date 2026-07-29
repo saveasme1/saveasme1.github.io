@@ -1086,7 +1086,6 @@
 
   function ensurePricePanel() {
     if (state.pricePanel) return state.pricePanel;
-    if (!window.HeritagePriceTrendPanel) return null;
     if (!els.priceMount) {
       const mount = document.createElement("div");
       mount.id = "priceTrendMount";
@@ -1099,6 +1098,7 @@
       }
       els.priceMount = mount;
     }
+    if (!window.HeritagePriceTrendPanel) return null;
     state.pricePanel = new window.HeritagePriceTrendPanel(els.priceMount, {
       getProduct: () => {
         const item = state.current;
@@ -1120,6 +1120,46 @@
       },
     });
     return state.pricePanel;
+  }
+
+  function loadPriceTrendAssets() {
+    if (window.HeritagePriceTrendPanel) return Promise.resolve(true);
+    if (!window.JEWELRY_PRICE_API) {
+      window.JEWELRY_PRICE_API = "https://app.0-1.co.kr/api/jewelry-price/v1";
+    }
+    const bust = "20260728-pwa85";
+    if (!document.querySelector('link[href*="price-trend-panel.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `./price-trend-panel.css?v=${bust}`;
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('script[src*="price-trend-panel.js"]')) {
+      return new Promise((resolve) => {
+        const s = document.createElement("script");
+        s.src = `./price-trend-panel.js?v=${bust}`;
+        s.onload = () => resolve(!!window.HeritagePriceTrendPanel);
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+      });
+    }
+    return Promise.resolve(!!window.HeritagePriceTrendPanel);
+  }
+
+  async function togglePriceTrend() {
+    if (!window.HeritagePriceTrendPanel) {
+      const ok = await loadPriceTrendAssets();
+      if (!ok) {
+        showToast("가격추세 모듈을 불러오지 못했습니다. 앱을 새로고침 해 주세요.", { tone: "error" });
+        return false;
+      }
+    }
+    const live = ensurePricePanel();
+    if (!live) {
+      showToast("가격추세 패널을 열 수 없습니다.", { tone: "error" });
+      return false;
+    }
+    return live.toggle();
   }
 
   async function openDetail(item) {
@@ -1171,10 +1211,7 @@
           path,
           image: imageAbs,
         },
-        onPriceTrend: () => {
-          const live = ensurePricePanel();
-          return live ? live.toggle() : false;
-        },
+        onPriceTrend: () => togglePriceTrend(),
       });
     }
     if (window.GongbangHtmlEditor) {

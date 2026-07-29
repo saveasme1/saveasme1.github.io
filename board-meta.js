@@ -121,10 +121,14 @@
       priceBtn.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (typeof options.onPriceTrend === "function") {
-          const open = options.onPriceTrend();
-          priceBtn.setAttribute("aria-expanded", open ? "true" : "false");
-        }
+        if (typeof options.onPriceTrend !== "function") return;
+        Promise.resolve(options.onPriceTrend())
+          .then((open) => {
+            priceBtn.setAttribute("aria-expanded", open ? "true" : "false");
+          })
+          .catch(() => {
+            priceBtn.setAttribute("aria-expanded", "false");
+          });
       });
       actions.append(priceBtn);
     }
