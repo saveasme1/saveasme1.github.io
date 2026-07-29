@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa82",
-  "version": "v1.12.16",
+  "build": "20260728-pwa83",
+  "version": "v1.12.17",
   "notes": [
-    "summary download once only"
+    "MO/TB orientation: sticky device landscape only"
   ]
 }

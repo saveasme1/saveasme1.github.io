@@ -2277,3 +2277,41 @@ html:not(.is-pwa) body.has-gb-bottom-nav {
     min-height: 500px;
   }
 }
+
+/*
+ * PWA MO/TB: keep portrait layout until the device is actually landscape.
+ * Prevents keyboard / chrome / micro-tilt from flipping 가로·세로 arrangement.
+ */
+html.is-pwa.is-device-portrait .actions {
+  grid-template-columns: 1fr !important;
+}
+html.is-pwa.is-device-portrait .landing {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+html.is-pwa.is-device-portrait .pwa-reviews {
+  grid-template-columns: 1fr !important;
+}
+html.is-pwa.is-device-portrait .gb-bottom-nav {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+}
+html.is-pwa.is-device-portrait .gb-bottom-nav__bar {
+  width: 100% !important;
+  max-width: none !important;
+}
+html.is-pwa.is-device-portrait .gb-top-brand {
+  padding-left: max(12px, env(safe-area-inset-left)) !important;
+  padding-right: max(12px, env(safe-area-inset-right)) !important;
+}
+
+/* Landscape only when device orientation is landscape (manual rotate). */
+html.is-pwa.is-device-landscape .actions {
+  grid-template-columns: 1fr 1fr;
+}
+

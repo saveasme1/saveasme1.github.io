@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa82";
+  const APP_BUILD = "20260728-pwa83";
   const APP_VERSION = "v1.12.1";
   const RELEASE_NOTES = ["Category chips clear top bar", "Real top bar height sync", "C/B visible on mobile"];
   const BUILD_KEY = "hx.pwa.build";
@@ -86,6 +86,95 @@
   markPwaMode();
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", markPwaMode);
+  }
+
+  /**
+   * MO/TB PWA: bind layout to real device orientation only.
+   * Avoid viewport width/height (keyboard / chrome can fake "landscape").
+   * Debounce + sticky so micro tilts do not flip 가로/세로 layouts.
+   */
+  function bindDeviceOrientationClass() {
+    if (!isPwaMode()) return;
+    const root = document.documentElement;
+    let timer = 0;
+    let stickyLand = null;
+    let pendingLand = null;
+
+    function isMoTbShell() {
+      try {
+        if (window.matchMedia("(pointer: fine) and (hover: hover)").matches) {
+          const shortSide = Math.min(window.screen.width || 0, window.screen.height || 0);
+          if (shortSide >= 1100) return false;
+        }
+      } catch (_) {}
+      return true;
+    }
+
+    function readLandscape() {
+      try {
+        const type = String((window.screen && screen.orientation && screen.orientation.type) || "");
+        if (type.indexOf("landscape") === 0) return true;
+        if (type.indexOf("portrait") === 0) return false;
+      } catch (_) {}
+      const w = Number(window.innerWidth) || 0;
+      const h = Number(window.innerHeight) || 1;
+      const ratio = w / h;
+      if (stickyLand === true) return ratio >= 0.95;
+      if (stickyLand === false) return ratio > 1.2;
+      return ratio > 1.15;
+    }
+
+    function commit(next) {
+      stickyLand = next;
+      pendingLand = next;
+      root.classList.toggle("is-device-landscape", next);
+      root.classList.toggle("is-device-portrait", !next);
+    }
+
+    function apply(force) {
+      if (!isMoTbShell()) {
+        root.classList.remove("is-device-landscape", "is-device-portrait");
+        stickyLand = null;
+        pendingLand = null;
+        return;
+      }
+      const next = readLandscape();
+      if (force || stickyLand === null) {
+        commit(next);
+        return;
+      }
+      if (next === stickyLand) {
+        pendingLand = next;
+        return;
+      }
+      // Two agreeing samples required before flipping (stops auto flip-flop).
+      if (pendingLand === next) {
+        commit(next);
+        return;
+      }
+      pendingLand = next;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => apply(false), 280);
+    }
+
+    function schedule() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => apply(false), 360);
+    }
+
+    apply(true);
+    window.addEventListener("orientationchange", schedule, { passive: true });
+    try {
+      if (screen.orientation && screen.orientation.addEventListener) {
+        screen.orientation.addEventListener("change", schedule);
+      }
+    } catch (_) {}
+    window.addEventListener("resize", schedule, { passive: true });
+  }
+
+  bindDeviceOrientationClass();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindDeviceOrientationClass);
   }
 
   function ensureAppCss() {
