@@ -1086,7 +1086,19 @@
 
   function ensurePricePanel() {
     if (state.pricePanel) return state.pricePanel;
-    if (!els.priceMount || !window.HeritagePriceTrendPanel) return null;
+    if (!window.HeritagePriceTrendPanel) return null;
+    if (!els.priceMount) {
+      const mount = document.createElement("div");
+      mount.id = "priceTrendMount";
+      if (els.content && els.content.parentElement) {
+        els.content.insertAdjacentElement("afterend", mount);
+      } else if (els.meta && els.meta.parentElement) {
+        els.meta.parentElement.append(mount);
+      } else {
+        return null;
+      }
+      els.priceMount = mount;
+    }
     state.pricePanel = new window.HeritagePriceTrendPanel(els.priceMount, {
       getProduct: () => {
         const item = state.current;
@@ -1159,7 +1171,10 @@
           path,
           image: imageAbs,
         },
-        onPriceTrend: () => (panel ? panel.toggle() : false),
+        onPriceTrend: () => {
+          const live = ensurePricePanel();
+          return live ? live.toggle() : false;
+        },
       });
     }
     if (window.GongbangHtmlEditor) {

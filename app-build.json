@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa83",
-  "version": "v1.12.17",
+  "build": "20260728-pwa84",
+  "version": "v1.12.18",
   "notes": [
-    "MO/TB orientation: sticky device landscape only"
+    "Fix price trend on portfolio.html"
   ]
 }
