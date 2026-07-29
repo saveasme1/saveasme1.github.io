@@ -757,7 +757,7 @@
         body: "{}",
       })
         .then(() => {
-          els.syncState.textContent = `배포 완료 · ${published.items.length}개 · PDF 백그라운드 갱신 중 (요약 C·B → /portfolio/portfolio-summary.pdf, 전체 → /portfolio/portfolio-latest.pdf)`;
+          els.syncState.textContent = `배포 완료 · ${published.items.length}개 · PDF 백그라운드 갱신 중 (요약 브랜드별5 → /portfolio/portfolio-summary.pdf, 전체 → /portfolio/portfolio-latest.pdf)`;
         })
         .catch(() => {
           els.syncState.textContent = `배포 완료 · ${published.items.length}개 · 기존 PDF 유지`;

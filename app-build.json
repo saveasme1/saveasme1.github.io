@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa80",
-  "version": "v1.12.14",
+  "build": "20260728-pwa81",
+  "version": "v1.12.15",
   "notes": [
-    "TEMP hide: 5 items per brand"
+    "summary PDF: all brands, 5 each"
   ]
 }
