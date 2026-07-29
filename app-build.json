@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa81",
-  "version": "v1.12.15",
+  "build": "20260728-pwa82",
+  "version": "v1.12.16",
   "notes": [
-    "summary PDF: all brands, 5 each"
+    "summary download once only"
   ]
 }
