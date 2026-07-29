@@ -1,8 +1,7 @@
 {
-  "build": "20260728-pwa79",
-  "version": "v1.12.13",
+  "build": "20260728-pwa80",
+  "version": "v1.12.14",
   "notes": [
-    "Keep PDF chips inside portfolio card",
-    "Fix summary download (no iframe / XFO)"
+    "TEMP hide: 5 items per brand"
   ]
 }

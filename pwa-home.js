@@ -251,6 +251,24 @@
 
   const RECENT_KEY = "hx.pwa.recent";
   const WISH_KEY = "hx.pwa.wish";
+  /**
+   * TEMP hide (not delete): max items shown per brand in portfolio peeks.
+   * Restore later: set TEMP_PER_BRAND_LIMIT = 0.
+   */
+  const TEMP_PER_BRAND_LIMIT = 5;
+
+  function capPerBrand(items) {
+    const limit = Number(TEMP_PER_BRAND_LIMIT);
+    if (!Number.isFinite(limit) || limit <= 0) return items;
+    const counts = Object.create(null);
+    return items.filter((item) => {
+      const cat = String(item.category || "ETC");
+      const n = counts[cat] || 0;
+      if (n >= limit) return false;
+      counts[cat] = n + 1;
+      return true;
+    });
+  }
 
   function loadIdList(key) {
     try {
@@ -926,7 +944,9 @@
       const rail = peek.querySelector("#pwaPeekRail");
       if (!rail) return;
       const list =
-        code === "ALL" ? items.slice(0, 16) : items.filter((x) => x.category === code).slice(0, 16);
+        code === "ALL"
+          ? capPerBrand(items)
+          : items.filter((x) => x.category === code).slice(0, TEMP_PER_BRAND_LIMIT > 0 ? TEMP_PER_BRAND_LIMIT : items.length);
       rail.classList.remove("is-play");
       rail.innerHTML = "";
       if (!list.length) {

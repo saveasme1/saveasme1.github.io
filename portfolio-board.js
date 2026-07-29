@@ -6,8 +6,13 @@
   const DATA_PATH = "portfolio-data.json";
   const DRAFT_PATH = "portfolio-draft.json";
   const BOARD = "portfolio";
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 5;
   const CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
+  /**
+   * TEMP hide (not delete): max items shown per brand category.
+   * Restore later: set TEMP_PER_BRAND_LIMIT = 0 (or Infinity).
+   */
+  const TEMP_PER_BRAND_LIMIT = 5;
   const $ = (id) => document.getElementById(id);
 
   const els = {
@@ -709,9 +714,23 @@
     return item.sortAt || item.uploadedAt || item.createdAt || item.publishedAt || "";
   }
 
+  /** Newest-first list already — hide extras per brand without removing source data. */
+  function capPerBrand(items) {
+    const limit = Number(TEMP_PER_BRAND_LIMIT);
+    if (!Number.isFinite(limit) || limit <= 0) return items;
+    const counts = Object.create(null);
+    return items.filter((item) => {
+      const cat = String(item.category || "ETC");
+      const n = counts[cat] || 0;
+      if (n >= limit) return false;
+      counts[cat] = n + 1;
+      return true;
+    });
+  }
+
   function filteredItems() {
     const query = ((els.search && els.search.value) || "").trim().toLowerCase();
-    return state.items.filter((item) => {
+    return capPerBrand(state.items).filter((item) => {
       if (state.category !== "ALL" && item.category !== state.category) return false;
       if (!query) return true;
       return `${item.title} ${item.content || ""} ${item.category || ""}`.toLowerCase().includes(query);
