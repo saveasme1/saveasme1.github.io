@@ -188,8 +188,42 @@
 }
 .price-trend-panel__flag {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+.price-trend-panel__flag-img {
+  display: block;
+  width: 24px;
+  height: 18px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(22, 21, 19, 0.12);
+  background: #eee;
+}
+.price-trend-panel__flag-emoji {
   font-size: 16px;
   line-height: 1;
+}
+.price-trend-panel__flag-code {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #5c5852;
+}
+.price-trend-panel__price-fx {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--pt-ink);
+  letter-spacing: -0.02em;
+}
+.price-trend-panel__price-krw {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  color: #5c5852;
 }
 .price-trend-panel__seller-name {
   font-size: 13px;

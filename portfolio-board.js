@@ -1127,7 +1127,7 @@
     if (!window.JEWELRY_PRICE_API) {
       window.JEWELRY_PRICE_API = "https://app.0-1.co.kr/api/jewelry-price/v1";
     }
-    const bust = "20260728-pwa87";
+    const bust = "20260728-pwa88";
     if (!document.querySelector('link[href*="price-trend-panel.css"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";

@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa87",
-  "version": "v1.12.21",
+  "build": "20260728-pwa88",
+  "version": "v1.12.22",
   "notes": [
-    "Chart: high/avg/low stock-style colors"
+    "Seller flag image + local currency"
   ]
 }
