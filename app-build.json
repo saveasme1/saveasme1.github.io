@@ -1,7 +1,7 @@
 {
-  "build": "20260728-pwa86",
-  "version": "v1.12.20",
+  "build": "20260728-pwa87",
+  "version": "v1.12.21",
   "notes": [
-    "Price chart: high/low dual lines"
+    "Chart: high/avg/low stock-style colors"
   ]
 }

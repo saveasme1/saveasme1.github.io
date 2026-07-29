@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa86";
+  const APP_BUILD = "20260728-pwa87";
   const APP_VERSION = "v1.12.1";
   const RELEASE_NOTES = ["Category chips clear top bar", "Real top bar height sync", "C/B visible on mobile"];
   const BUILD_KEY = "hx.pwa.build";

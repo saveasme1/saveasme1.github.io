@@ -163,7 +163,7 @@
             </div>
             <div class="price-trend-panel__body">
               <div class="price-trend-panel__chart-wrap">
-                <canvas data-pt-canvas aria-label="최고가·최저가 가격 추세 차트"></canvas>
+                <canvas data-pt-canvas aria-label="최고가·평균가·최저가 가격 추세 차트"></canvas>
                 <p class="price-trend-panel__chart-empty" hidden>수집된 실측 가격 포인트가 없어 그래프를 표시하지 않습니다.</p>
               </div>
               <div class="price-trend-panel__sellers">
@@ -402,16 +402,18 @@
         this.chart = null;
       }
 
-      // Day buckets → 최고가 / 최저가 separate series on one chart.
+      // Day buckets → 최고가 / 평균가 / 최저가 (stock-style multi-line).
       const byDay = new Map();
       const pushPoint = (iso, price, meta = {}) => {
         const p = Number(price);
         if (!Number.isFinite(p) || p <= 0 || !iso) return;
         const day = String(iso).slice(0, 10);
         if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-        const row = byDay.get(day) || { day, low: p, high: p, samples: [] };
+        const row = byDay.get(day) || { day, low: p, high: p, sum: 0, count: 0, samples: [] };
         row.low = Math.min(row.low, p);
         row.high = Math.max(row.high, p);
+        row.sum += p;
+        row.count += 1;
         row.samples.push({ ...meta, price: p, observed_at: iso });
         byDay.set(day, row);
       };
@@ -427,7 +429,12 @@
         pushPoint(iso, row.price, row);
       });
 
-      const series = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+      const series = [...byDay.values()]
+        .map((row) => ({
+          ...row,
+          avg: row.count ? row.sum / row.count : row.low,
+        }))
+        .sort((a, b) => a.day.localeCompare(b.day));
 
       let empty = wrap.querySelector(".price-trend-panel__chart-empty");
       if (!series.length) {
@@ -456,8 +463,10 @@
         }
       });
       const highs = series.map((row) => row.high);
+      const avgs = series.map((row) => row.avg);
       const lows = series.map((row) => row.low);
       const multiDay = series.length > 1;
+      const hasSpread = series.some((row) => row.high !== row.low);
 
       this.chart = new window.Chart(this.els.canvas.getContext("2d"), {
         type: "line",
@@ -467,28 +476,43 @@
             {
               label: "최고가",
               data: highs,
-              borderColor: "#b42318",
-              backgroundColor: "rgba(180, 35, 24, 0.10)",
+              borderColor: "#c62828",
+              backgroundColor: "rgba(198, 40, 40, 0.08)",
               borderWidth: 2,
-              fill: "+1",
+              // Fill down to 최저가 (index +2) — band like a range chart.
+              fill: hasSpread ? "+2" : false,
               tension: multiDay ? 0.25 : 0,
-              pointRadius: series.length === 1 ? 5 : 3,
+              pointRadius: series.length === 1 ? 5 : 2.5,
               pointHoverRadius: 6,
-              pointBackgroundColor: "#b42318",
-              showLine: multiDay || highs[0] !== lows[0],
+              pointBackgroundColor: "#c62828",
+              showLine: true,
+            },
+            {
+              label: "평균가",
+              data: avgs,
+              borderColor: "#6b6762",
+              backgroundColor: "transparent",
+              borderWidth: 2,
+              borderDash: [5, 4],
+              fill: false,
+              tension: multiDay ? 0.25 : 0,
+              pointRadius: series.length === 1 ? 4 : 0,
+              pointHoverRadius: 5,
+              pointBackgroundColor: "#6b6762",
+              showLine: true,
             },
             {
               label: "최저가",
               data: lows,
-              borderColor: "#1a6b4a",
-              backgroundColor: "rgba(26, 107, 74, 0.10)",
+              borderColor: "#1565c0",
+              backgroundColor: "rgba(21, 101, 192, 0.08)",
               borderWidth: 2,
               fill: false,
               tension: multiDay ? 0.25 : 0,
-              pointRadius: series.length === 1 ? 5 : 3,
+              pointRadius: series.length === 1 ? 5 : 2.5,
               pointHoverRadius: 6,
-              pointBackgroundColor: "#1a6b4a",
-              showLine: multiDay || highs[0] !== lows[0],
+              pointBackgroundColor: "#1565c0",
+              showLine: true,
             },
           ],
         },
@@ -526,8 +550,8 @@
                   const row = series[i];
                   if (!row) return [];
                   const spread = row.high - row.low;
-                  if (!(spread > 0)) return ["당일 최고·최저가 동일"];
-                  return [`차이 ${won(spread)}`];
+                  if (!(spread > 0)) return ["당일 최고·최저·평균가 동일"];
+                  return [`차이(최고−최저) ${won(spread)}`];
                 },
               },
             },
