@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>케어 서비스 · Bon Heritage</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3f3f3;
+      --ink: #141414;
+      --body: #1f1f1f;
+      --blue: #2a66b0;
+      --footer: #2a2a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #dcdcdc;
+    }
+    body {
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      padding: clamp(12px, 3vw, 28px);
+    }
+    .banner {
+      width: min(100%, 1000px);
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 10px 32px rgba(0,0,0,.08);
+    }
+    .logo {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(14px, 2.2vw, 16px);
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+      color: var(--ink);
+      line-height: 1;
+      text-align: center;
+    }
+    .top {
+      text-align: center;
+      padding: clamp(24px, 4vw, 36px) clamp(18px, 5vw, 48px) clamp(12px, 2vw, 18px);
+    }
+    .top .logo { margin-bottom: clamp(10px, 2vw, 14px); }
+    .jewel {
+      width: clamp(32px, 5vw, 40px);
+      height: clamp(32px, 5vw, 40px);
+      margin: 0 auto 12px;
+      color: #1a1a1a;
+      display: block;
+    }
+    .top h1 {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: clamp(12px, 2vw, 16px);
+      color: #111;
+    }
+    .lead, .promise {
+      font-size: clamp(14px, 2.2vw, 17px);
+      line-height: 1.7;
+      color: var(--body);
+      word-break: keep-all;
+      font-weight: 500;
+    }
+    .promise { margin-top: clamp(10px, 2vw, 14px); }
+    .promise strong { color: #111; font-weight: 800; }
+    .promise .blue { color: var(--blue); font-weight: 700; }
+
+    .list { padding: clamp(8px, 2vw, 14px) clamp(18px, 6vw, 56px) clamp(16px, 3vw, 24px); }
+    .item { margin-bottom: clamp(14px, 2.5vw, 20px); }
+    .item:last-child { margin-bottom: 0; }
+    .item__head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .check svg { width: 12px; height: 12px; display: block; }
+    .item h2 {
+      font-size: clamp(16px, 2.6vw, 20px);
+      font-weight: 800;
+      color: #111;
+    }
+    .item p {
+      font-size: clamp(13.5px, 2.1vw, 16px);
+      line-height: 1.7;
+      color: var(--body);
+      word-break: keep-all;
+      padding-left: 32px;
+      font-weight: 500;
+    }
+    .foot {
+      background: var(--footer);
+      color: #fff;
+      text-align: center;
+      padding: clamp(16px, 3vw, 22px) clamp(16px, 4vw, 32px);
+      font-size: clamp(14px, 2.2vw, 16.5px);
+      line-height: 1.6;
+      word-break: keep-all;
+      font-weight: 500;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: clamp(14px, 2.5vw, 20px);
+    }
+    .brand__rule {
+      width: 32px;
+      height: 1.5px;
+      background: var(--ink);
+      opacity: 0.6;
+    }
+
+    @media (max-width: 560px) {
+      .item p { padding-left: 0; }
+      .lead br, .promise br, .foot br { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <article class="banner" id="banner">
+    <header class="top">
+      <p class="logo">BON HERITAGE</p>
+      <svg class="jewel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 3h12l4 6-10 13L2 9Z" />
+        <path d="M11 3 8 9l4 13 4-13-3-6" />
+        <path d="M2 9h20" />
+      </svg>
+      <h1>케어 서비스</h1>
+      <p class="lead">
+        최고급 세공 기술로 완성된 주얼리의 적절한 관리 방법과<br />
+        주의사항을 미리 확인하시고,<br />
+        제품 본연의 아름다움을 변함없이 오랫동안 간직하시기를 바랍니다.<br />
+        필요한경우, 고객님의 소중한 주얼리가 지닌 아름다움을<br />
+        되찾을 수 있도록 서비스를 제공하고 있습니다.
+      </p>
+      <p class="promise">
+        <strong>본 헤리티지(Bon Heritage)</strong>에서 제작한 주얼리는 우수한 전문 기술과 열정으로<br />
+        <span class="blue">최상의 서비스를 제공할 것을 약속드립니다.</span>
+      </p>
+    </header>
+
+    <section class="list">
+      <div class="item">
+        <div class="item__head">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2 4.8 8.7 9.8 3.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h2>간단한 세척</h2>
+        </div>
+        <p>주얼리의 표면에 묻은 불순물과 먼지, 지문을 제거합니다. 주얼리 표면에 매우 미세한 흠집이 있더라도 폴리싱 작업을 통해 제거할 수 있습니다.</p>
+      </div>
+      <div class="item">
+        <div class="item__head">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2 4.8 8.7 9.8 3.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h2>초음파 세척</h2>
+        </div>
+        <p>초음파 세척을 거친 주얼리는 오염 물질이 깨끗이 제거되어 처음 구매했을 때와 같은 완벽한 광채를 찾게 됩니다. 단, 펄, 코랄, 코인, 에메랄드 제품에는 적용되지 않습니다.</p>
+      </div>
+      <div class="item">
+        <div class="item__head">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2 4.8 8.7 9.8 3.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h2>폴리싱</h2>
+        </div>
+        <p>주얼리 본래의 광택과 가치를 되살려주는 작업으로 외관에 있는 미세한 흠집까지 모두 제거합니다. 화이트골드 소재의 제품은 세척 또는 폴리싱 작업과 함께 로듐 도금 과정이 추가됩니다.</p>
+      </div>
+      <div class="item">
+        <div class="item__head">
+          <span class="check" aria-hidden="true">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2 4.8 8.7 9.8 3.4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h2>본 헤리티지(Bon Heritage) 케어서비스(A/S)</h2>
+        </div>
+        <p>주얼리 제품을 착용하며 발생할 수 있는 모든 문제에 대비하여 최상의 서비스를 제공합니다. 예를들어, 보석과 잠금장치, 클립과 같은 부품이 부러진 경우! 상황에 맞게 접합 작업 또는 부품 교체를 통해 주얼리의 완벽한 모습을 되찾아드립니다.</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <strong>본 헤리티지(Bon Heritage)</strong>에서 구매하신 주얼리 제품에 필요한<br />
+      서비스를 받아보실 수 있습니다.
+    </footer>
+    <div class="brand" aria-label="Bon Heritage">
+      <p class="logo">BON HERITAGE</p>
+      <span class="brand__rule" aria-hidden="true"></span>
+    </div>
+  </article>
+</body>
+</html>

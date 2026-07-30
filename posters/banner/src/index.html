@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Banner · Bon Heritage</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Pretendard, sans-serif;
+      background: #111;
+      color: #eee;
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(17,17,17,.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #2a2a2a;
+      padding: 12px clamp(12px, 3vw, 20px);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    .brand span {
+      font-family: Georgia, serif;
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+      font-size: 13px;
+    }
+    .brand small {
+      color: #999;
+      letter-spacing: 0;
+      text-indent: 0;
+      font-weight: 500;
+      font-size: 12px;
+    }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    a {
+      color: #ddd;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 8px 12px;
+      border: 1px solid #333;
+      border-radius: 999px;
+    }
+    a:hover, a.is-on { background: #fff; color: #111; border-color: #fff; }
+    .frame-wrap {
+      padding: clamp(12px, 3vw, 20px);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    iframe {
+      width: 100%;
+      height: min(85vh, 1200px);
+      min-height: 560px;
+      border: 0;
+      background: #fff;
+      border-radius: 8px;
+    }
+    .links {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 clamp(12px, 3vw, 20px) 24px;
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      color: #aaa;
+      word-break: break-all;
+    }
+    .links a { color: #9ec1ff; border: 0; padding: 0; border-radius: 0; }
+    @media (max-width: 640px) {
+      iframe { min-height: 70vh; height: 75vh; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>BON HERITAGE</span>
+      <small>배너 코드 · 반응형 미리보기</small>
+    </div>
+    <nav>
+      <a href="account.html" data-src="account.html" class="is-on">주문 전 필독</a>
+      <a href="care.html" data-src="care.html">케어 서비스</a>
+      <a href="delivery.html" data-src="delivery.html">배송안내</a>
+    </nav>
+  </header>
+  <div class="frame-wrap">
+    <iframe id="frame" src="account.html" title="banner preview"></iframe>
+  </div>
+  <div class="links">
+    <div>미리보기 허브: <a href="./index.html">/posters/banner/src/</a></div>
+    <div>account HTML: <a href="./account.html">account.html</a> · PNG <a href="../account.png">account.png</a></div>
+    <div>care HTML: <a href="./care.html">care.html</a> · PNG <a href="../care.png">care.png</a></div>
+    <div>delivery HTML: <a href="./delivery.html">delivery.html</a> · PNG <a href="../delivery.png">delivery.png</a></div>
+  </div>
+  <script>
+    const frame = document.getElementById("frame");
+    const links = [...document.querySelectorAll("nav a")];
+    links.forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        links.forEach((x) => x.classList.remove("is-on"));
+        a.classList.add("is-on");
+        frame.src = a.dataset.src;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>주문 전 필독 사항 · Bon Heritage</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #141414;
+      --text: #1f1f1f;
+      --line: #ddd8d0;
+      --soft: #f3f0eb;
+      --accent: #8b5a3c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #e8e6e2;
+    }
+    body {
+      font-family: Pretendard, "Apple SD Gothic Neo", sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      padding: clamp(12px, 3vw, 28px);
+    }
+    .banner {
+      width: min(100%, 1000px);
+      background: #fff;
+      padding: clamp(24px, 4vw, 40px) clamp(18px, 4.5vw, 44px) clamp(24px, 3vw, 36px);
+      box-shadow: 0 10px 32px rgba(0,0,0,.08);
+    }
+    .logo {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(14px, 2.2vw, 16px);
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+      color: var(--ink);
+      line-height: 1;
+      text-align: center;
+    }
+    .hero {
+      text-align: center;
+      padding-bottom: clamp(14px, 2vw, 18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .hero .logo { margin-bottom: clamp(12px, 2vw, 16px); }
+    .hero h1 {
+      font-size: clamp(24px, 4.2vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .intro {
+      margin-top: clamp(12px, 2vw, 16px);
+      font-size: clamp(14px, 2.2vw, 17px);
+      line-height: 1.75;
+      color: var(--text);
+      font-weight: 500;
+      word-break: keep-all;
+    }
+    .intro strong { color: var(--ink); font-weight: 800; }
+
+    .articles { padding-top: 6px; }
+    .article {
+      display: grid;
+      grid-template-columns: clamp(44px, 8vw, 56px) 1fr;
+      gap: clamp(10px, 2vw, 16px);
+      padding: clamp(12px, 2vw, 16px) 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .article:last-child { border-bottom: 0; }
+    .article__num {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(22px, 3.5vw, 28px);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .article__body p {
+      font-size: clamp(14px, 2.1vw, 17px);
+      line-height: 1.75;
+      word-break: keep-all;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .article__body p + p { margin-top: 8px; }
+    .hl { color: var(--accent); font-weight: 700; }
+
+    .pay {
+      margin-top: clamp(10px, 2vw, 14px);
+      background: var(--soft);
+      border: 1px solid var(--line);
+      padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 24px);
+      text-align: center;
+    }
+    .pay__label { font-size: clamp(13px, 2vw, 15px); color: var(--text); margin-bottom: 10px; font-weight: 500; }
+    .pay__bank {
+      font-size: clamp(18px, 3.2vw, 24px);
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+    .pay__holder {
+      font-size: clamp(15px, 2.4vw, 18px);
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .pay__after { font-size: clamp(13px, 2vw, 15px); color: var(--text); font-weight: 500; }
+
+    .fields {
+      border: 1px solid var(--line);
+      border-top: 0;
+      padding: clamp(14px, 2.5vw, 18px) clamp(16px, 4vw, 36px);
+    }
+    .fields__row {
+      display: grid;
+      grid-template-columns: clamp(56px, 12vw, 72px) 1fr;
+      align-items: end;
+      gap: 12px;
+      max-width: 420px;
+      margin: 0 auto 12px;
+      font-size: clamp(14px, 2.2vw, 16px);
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .fields__row:last-child { margin-bottom: 0; }
+    .fields__row i {
+      display: block;
+      height: 1.5px;
+      background: #bdb6ab;
+      margin-bottom: 4px;
+      font-style: normal;
+    }
+
+    .thanks {
+      text-align: center;
+      padding: clamp(14px, 2.5vw, 18px) 4px 8px;
+      font-size: clamp(13.5px, 2.1vw, 16px);
+      line-height: 1.75;
+      color: var(--text);
+      word-break: keep-all;
+      font-weight: 500;
+    }
+    .thanks strong { color: var(--ink); font-weight: 800; }
+
+    .legal {
+      margin-top: clamp(10px, 2vw, 14px);
+      padding-top: clamp(12px, 2vw, 16px);
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+    .legal h3 {
+      font-size: clamp(14px, 2.2vw, 16px);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .legal p {
+      font-size: clamp(12.5px, 2vw, 14.5px);
+      line-height: 1.75;
+      color: var(--text);
+      word-break: keep-all;
+      font-weight: 500;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding-top: clamp(18px, 3vw, 28px);
+    }
+    .brand__rule {
+      width: 32px;
+      height: 1.5px;
+      background: var(--ink);
+      opacity: 0.6;
+    }
+
+    @media (max-width: 560px) {
+      .article { grid-template-columns: 40px 1fr; }
+      .legal br { display: none; }
+      .intro br { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <article class="banner" id="banner">
+    <header class="hero">
+      <p class="logo">BON HERITAGE</p>
+      <h1>주문 전 필독 사항</h1>
+      <p class="intro">
+        저희 <strong>본 헤리티지(Bon Heritage)</strong>은 한국금거래소에서 사용 되어지는<br />
+        순도 99.99%의 금으로 제작 되어지고 있습니다.
+      </p>
+    </header>
+
+    <section class="articles">
+      <div class="article">
+        <div class="article__num">01</div>
+        <div class="article__body">
+          <p>
+            <span class="hl">18K 14K는 제품을 새로 제작할 경우</span> 처음부터 핸드메이드로 제작되기 때문에
+            말씀드린 중량에서 <span class="hl">오차 범위가 발생할 수 있습니다</span>
+            (발생되는 경우 빠지는 중량은 주문하실 때 시세, 추가되는 중량은 출고날 시세에 맞춰 +/-를 현금화로 해드리고 있습니다.)
+          </p>
+        </div>
+      </div>
+      <div class="article">
+        <div class="article__num">02</div>
+        <div class="article__body">
+          <p>
+            일반적으로 공장에서 대량으로 찍어내는 제품이 아니라
+            <span class="hl">손으로 하나하나 만들기 때문에 일정에 따라 배송일은 조금씩 변경</span>이 될 수 있으며
+            딜레이가 될 시 최장기간 영업일 기준 <span class="hl">100일 소요 되고 있습니다.</span>
+            (주문서 작성 시 안내해드린 출고 예정일에 최대한 맞춰드리고 있으니 양해 부탁드립니다)
+          </p>
+        </div>
+      </div>
+      <div class="article">
+        <div class="article__num">03</div>
+        <div class="article__body">
+          <p>
+            기성품이 아닌
+            <span class="hl">주문 제작 주얼리 제품이므로 어떠한 이유에도 교환 및 환불은 절대 불가합니다</span>
+            (ex. 딜레이사유, 단순 변심, 디자인변경)
+          </p>
+        </div>
+      </div>
+      <div class="article">
+        <div class="article__num">04</div>
+        <div class="article__body">
+          <p>
+            출고 시 제품에 이상이 있거나 퀄리티가 떨어진다고 판단이 되시면
+            <span class="hl">이 부분들은 보완 및 새로 작업</span>이 들어가시는 점 참조 부탁드립니다.
+          </p>
+        </div>
+      </div>
+      <div class="article">
+        <div class="article__num">05</div>
+        <div class="article__body">
+          <p>
+            만약 제작과정에서
+            <span class="hl">지연사유로 환불을 요구할 시 금, 은, 다이아몬드 등 원자재 시세는 국제적/시장적 요인에 따라 변동되는 자산으로, 당사는 그 변동에 대한 보상·배상 책임을 지지 않습니다.</span>
+          </p>
+          <p>
+            <span class="hl">주문 진행 중 불가피한 사정으로 제작이 지연될 수 있으며, 지연에 따른 손해배상(시간적·경제적 보상)은 불가합니다.</span>
+            단, 제작 진행 상황은 고객님께 성실히 안내드립니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="pay">
+      <p class="pay__label">이에 동의 하시면</p>
+      <p class="pay__bank">신한은행 110-442-586426</p>
+      <p class="pay__holder">예금주 정현아</p>
+      <p class="pay__after">으로 입금 하신 후</p>
+    </div>
+
+    <div class="fields">
+      <div class="fields__row"><span>성함</span><i></i></div>
+      <div class="fields__row"><span>연락처</span><i></i></div>
+      <div class="fields__row"><span>주소</span><i></i></div>
+    </div>
+
+    <p class="thanks">
+      꼭 남겨주셔야 누락이 안되세요.<br />
+      다시 한번, 저희 <strong>본 헤리티지(Bon Heritage)</strong>을 믿고 주문해주셔서 감사드립니다.
+    </p>
+
+    <section class="legal">
+      <h3>동의 사항</h3>
+      <p>
+        2017년부터 법이 개정되어, 판매자가 공지한 사항을 숙지하지 못했다고<br />
+        하더라도 구매와 동시에 동의하는 것으로 판단됩니다.<br />
+        소비자보호법 21조 5항에 의거 판매자가 소비자에게 취소/환불에 대해<br />
+        불가피하게 내용을 미리 고지 후 확인 된 주문건은 소비자와 합의한<br />
+        상태에서 거래가 성사된 것으로 간주하며 교환/환불/취소 의무가 없다는 점<br />
+        확인해주세요.
+      </p>
+    </section>
+
+    <footer class="brand" aria-label="Bon Heritage">
+      <p class="logo">BON HERITAGE</p>
+      <span class="brand__rule" aria-hidden="true"></span>
+    </footer>
+  </article>
+</body>
+</html>

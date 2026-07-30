@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>배송안내 · Bon Heritage</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f0f0f0;
+      --bar: #2a2a2a;
+      --ink: #141414;
+      --accent: #c96a3d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #dcdcdc;
+    }
+    body {
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      padding: clamp(12px, 3vw, 28px);
+    }
+    .banner {
+      width: min(100%, 1000px);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      padding-top: clamp(48px, 10vw, 96px);
+      box-shadow: 0 10px 32px rgba(0,0,0,.08);
+    }
+    .logo {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(16px, 2.6vw, 20px);
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+      color: var(--ink);
+      line-height: 1;
+      text-align: center;
+    }
+    .title {
+      background: var(--bar);
+      color: #fff;
+      text-align: center;
+      font-size: clamp(30px, 5.5vw, 46px);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      padding: clamp(16px, 3vw, 22px) 16px;
+    }
+    .section { padding: clamp(18px, 3.5vw, 26px) clamp(16px, 4vw, 36px) 6px; }
+    .tab-row {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: clamp(12px, 2vw, 16px);
+    }
+    .tab {
+      background: var(--bar);
+      color: #fff;
+      font-size: clamp(18px, 3.2vw, 26px);
+      font-weight: 800;
+      padding: clamp(10px, 1.8vw, 12px) clamp(18px, 3.5vw, 34px) clamp(10px, 1.8vw, 12px) clamp(14px, 2.5vw, 24px);
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 100%, 0 100%);
+      white-space: nowrap;
+    }
+    .tab-line {
+      flex: 1;
+      height: 2px;
+      background: #6a635c;
+      transform: translateY(-1px);
+    }
+    ul { list-style: none; }
+    li {
+      position: relative;
+      padding-left: clamp(18px, 3vw, 26px);
+      margin-bottom: clamp(12px, 2vw, 16px);
+      font-size: clamp(15px, 2.6vw, 22px);
+      line-height: 1.55;
+      word-break: keep-all;
+      color: var(--ink);
+      font-weight: 650;
+    }
+    li:last-child { margin-bottom: 0; }
+    li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: clamp(7px, 1.2vw, 9px);
+      height: clamp(7px, 1.2vw, 9px);
+      border-radius: 50%;
+      background: #1a1a1a;
+    }
+    .hl { color: var(--accent); font-weight: 800; }
+    .note {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(14px, 2.2vw, 18px);
+      color: #222;
+      font-weight: 500;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: clamp(22px, 4vw, 32px) 16px clamp(32px, 6vw, 48px);
+      margin-top: auto;
+    }
+    .brand__rule {
+      width: 36px;
+      height: 1.5px;
+      background: var(--ink);
+      opacity: 0.65;
+    }
+  </style>
+</head>
+<body>
+  <article class="banner" id="banner">
+    <header class="title">배송안내</header>
+
+    <section class="section">
+      <div class="tab-row">
+        <div class="tab">택배 배송</div>
+        <div class="tab-line" aria-hidden="true"></div>
+      </div>
+      <ul>
+        <li>저희는 로젠택배를 주거래처로 협약이 맺어있습니다.</li>
+        <li>모든 택배는 <span class="hl">무상으로 진행및 귀금속안전보험</span> 을 시행하고 있습니다.</li>
+        <li>제품 배송 도중 생기는 사고와 파손은 택배사에서 <span class="hl">100%책임제</span> 에 배송 해드리고 있으니 우려하시는 일 없이 배송지로 안전하게 잘 도착하실겁니다.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <div class="tab-row">
+        <div class="tab">퀵배송</div>
+        <div class="tab-line" aria-hidden="true"></div>
+      </div>
+      <ul>
+        <li>수도권 및 경기도권은 오토바이 퀵으로 당일배송 가능하며 이상 지역은 터미널 퀵 배송으로 가능합니다.</li>
+        <li>퀵배송을 원할 시 주문하실 때 미리 말씀 부탁드리겠습니다.</li>
+        <li>
+          퀵 배송의 대한 비용은 <span class="hl">고객부담</span> 이며 퀵 결제대금에서 -2,500원(<span class="hl">본 헤리티지(Bon Heritage)부담</span>)을 제외하여 측정 되어집니다.
+          <span class="note">(거리에 따라서 비용은 상이할 수 있습니다.)</span>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="brand" aria-label="Bon Heritage">
+      <p class="logo">BON HERITAGE</p>
+      <span class="brand__rule" aria-hidden="true"></span>
+    </footer>
+  </article>
+</body>
+</html>
