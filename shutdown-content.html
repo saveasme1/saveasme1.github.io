@@ -3,14 +3,12 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.full3";
-      try {
-        if (sessionStorage.getItem(KEY) === "1") return;
-      } catch (_) {}
+      var KEY = "hx.pwa.forceNuke.full4";
+      try { if (sessionStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
         var u = new URL(location.href);
-        u.searchParams.set("_pwa", "20260806-full3");
+        u.searchParams.set("_pwa", "20260806-full4");
         location.replace(u.href);
       };
       var tasks = [];
@@ -28,11 +26,16 @@
           }));
         }
       } catch (_) {}
+      try {
+        localStorage.removeItem("hx.pwa.build");
+        localStorage.removeItem("hx.pwa.activatedBuild");
+        localStorage.removeItem("hx.pwa.updateSnooze");
+      } catch (_) {}
       Promise.all(tasks).then(done).catch(done);
     })();
   </script>
 
-  <meta charset="utf-8" />
+<meta charset="utf-8" />
   <!-- cache-bust: 20260720-call3 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />

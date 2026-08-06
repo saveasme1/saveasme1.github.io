@@ -14,7 +14,7 @@
 
   const BOARD = "portfolio";
 
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 9999; // show full list (was 5 — looked like TEMP cap)
 
   const CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
 

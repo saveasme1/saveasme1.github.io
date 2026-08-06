@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260806-full3";
-  const APP_VERSION = "v1.12.25";
-  const RELEASE_NOTES = ["Force full portfolio (clear SW cache)"];
+  const APP_BUILD = "20260806-full4";
+  const APP_VERSION = "v1.12.26";
+  const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
@@ -628,7 +628,7 @@
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.20260806-full3.json`, location.href);
+      const url = new URL(`./app-build.20260806-full4.json`, location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
       const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
