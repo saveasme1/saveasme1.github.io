@@ -7,8 +7,8 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-  <meta name="guide-build" content="20260724-pdf1">
-  <!-- cache-bust: 20260724-pdf1 -->
+  <meta name="guide-build" content="20260806-fullpdf1">
+  <!-- cache-bust: 20260806-fullpdf1 -->
   <title>본 헤리티지</title>
   <meta name="theme-color" content="#161513">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -109,18 +109,19 @@
           <strong>포트폴리오 보기</strong>
           <span class="action-dl-group">
             <span
-              class="action-dl is-muted"
+              class="action-dl"
               id="portfolioPdfDownload"
               role="button"
               tabindex="0"
-              aria-label="포트폴리오 전체 다운로드 (준비 중)"
-            >다운로드</span>
+              aria-label="포트폴리오 전체 다운로드"
+            >전체 다운로드</span>
             <span
-              class="action-dl"
+              class="action-dl is-muted"
               id="portfolioPdfSummary"
               role="button"
               tabindex="0"
-              aria-label="브랜드별 요약 포트폴리오 PDF 다운로드"
+              aria-label="브랜드별 요약 포트폴리오 PDF (비활성)"
+              hidden
             >요약 다운로드</span>
           </span>
         </span>
@@ -387,7 +388,7 @@
     (function () {
       var fullBtn = document.getElementById("portfolioPdfDownload");
       var summaryBtn = document.getElementById("portfolioPdfSummary");
-      var SUMMARY_API = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf/summary";
+      var FULL_API = "https://app.0-1.co.kr/api/handmade/v1/portfolio/pdf";
 
       function bindChip(el, handler) {
         if (!el) return;
@@ -398,16 +399,6 @@
         });
       }
 
-      if (fullBtn) {
-        bindChip(fullBtn, function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          window.open("about:blank", "_blank", "noopener,noreferrer");
-        });
-      }
-
-      if (!summaryBtn) return;
-
       function flashProgress(message) {
         var panel = document.getElementById("portfolioProgress");
         var status = document.getElementById("portfolioStatus");
@@ -415,7 +406,7 @@
         var bar = document.getElementById("portfolioBar");
         if (!panel) return;
         panel.hidden = false;
-        if (status) status.textContent = message || "요약 다운로드를 시작했습니다.";
+        if (status) status.textContent = message || "전체 포트폴리오 다운로드를 시작했습니다.";
         if (percent) percent.textContent = "↓";
         if (bar) bar.style.width = "100%";
         window.setTimeout(function () {
@@ -439,17 +430,18 @@
         a.remove();
       }
 
-      function startSummaryDownload(event) {
+      function startFullDownload(event) {
         event.preventDefault();
         event.stopPropagation();
-        flashProgress("브랜드별 요약 PDF 다운로드를 시작했습니다.");
+        flashProgress("전체 포트폴리오 PDF 다운로드를 시작했습니다.");
         triggerHrefDownload(
-          SUMMARY_API + "?_=" + String(Date.now()),
-          "공방171_포트폴리오_요약.pdf"
+          FULL_API + "?_=" + String(Date.now()),
+          "공방171_포트폴리오.pdf"
         );
       }
 
-      bindChip(summaryBtn, startSummaryDownload);
+      if (fullBtn) bindChip(fullBtn, startFullDownload);
+      // summary chip kept hidden
     })();
   </script>
 </body>
