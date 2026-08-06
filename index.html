@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function () {
+      var KEY = "hx.pwa.forceNuke.full3";
+      try {
+        if (sessionStorage.getItem(KEY) === "1") return;
+      } catch (_) {}
+      try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
+      var done = function () {
+        var u = new URL(location.href);
+        u.searchParams.set("_pwa", "20260806-full3");
+        location.replace(u.href);
+      };
+      var tasks = [];
+      try {
+        if (window.caches) {
+          tasks.push(caches.keys().then(function (ks) {
+            return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+      } catch (_) {}
+      try {
+        if (navigator.serviceWorker) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+      } catch (_) {}
+      Promise.all(tasks).then(done).catch(done);
+    })();
+  </script>
+
   <meta charset="utf-8" />
   <!-- cache-bust: 20260725-gongbang171-root2 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />

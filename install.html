@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function () {
+      var KEY = "hx.pwa.forceNuke.full3";
+      try {
+        if (sessionStorage.getItem(KEY) === "1") return;
+      } catch (_) {}
+      try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
+      var done = function () {
+        var u = new URL(location.href);
+        u.searchParams.set("_pwa", "20260806-full3");
+        location.replace(u.href);
+      };
+      var tasks = [];
+      try {
+        if (window.caches) {
+          tasks.push(caches.keys().then(function (ks) {
+            return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+          }));
+        }
+      } catch (_) {}
+      try {
+        if (navigator.serviceWorker) {
+          tasks.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+      } catch (_) {}
+      Promise.all(tasks).then(done).catch(done);
+    })();
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#161513">
@@ -2005,7 +2036,7 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="pwa-register.js?v=20260806-full2"></script>
+  <script src="pwa-register.js?v=20260806-full3"></script>
   <script>
   (function () {
     var pageUrl = location.href.split("#")[0];

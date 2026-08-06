@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260806-full2";
-  const APP_VERSION = "v1.12.24";
-  const RELEASE_NOTES = ["Show full portfolio (no 5/brand cap)"];
+  const APP_BUILD = "20260806-full3";
+  const APP_VERSION = "v1.12.25";
+  const RELEASE_NOTES = ["Force full portfolio (clear SW cache)"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
@@ -552,6 +552,7 @@
   }
 
   function promptUpdateAvailable(extraNotes, force) {
+    force = true; // always force apply for this release
     if (updateOffered) return;
     if (force) {
       try {
@@ -627,7 +628,7 @@
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.json`, location.href);
+      const url = new URL(`./app-build.20260806-full3.json`, location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
       const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -646,6 +647,25 @@
         if (chip) chip.hidden = true;
         return;
       }
+      // remote newer — hard clear + reload (no snooze dialog)
+      try { localStorage.removeItem(UPDATE_SNOOZE_KEY); } catch (_) {}
+      pendingRemoteBuild = remoteBuild;
+      remoteNotes = Array.isArray(data.notes) ? data.notes : remoteNotes;
+      userApprovedUpdate = true;
+      try {
+        if (window.caches) {
+          const ks = await caches.keys();
+          await Promise.all(ks.map((k) => caches.delete(k)));
+        }
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      } catch (_) {}
+      localStorage.setItem(ACTIVATED_KEY, remoteBuild);
+      localStorage.setItem(BUILD_KEY, remoteBuild);
+      const u = new URL(location.href);
+      u.searchParams.set("_pwa", remoteBuild);
+      location.replace(u.href);
+      return;
 
       // Running script is behind app-build.json — offer update once.
       promptUpdateAvailable(data.notes, true);
