@@ -3,12 +3,12 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.full4";
+      var KEY = "hx.pwa.forceNuke.full5";
       try { if (sessionStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
         var u = new URL(location.href);
-        u.searchParams.set("_pwa", "20260806-full4");
+        u.searchParams.set("_pwa", "20260806-full5");
         location.replace(u.href);
       };
       var tasks = [];
@@ -121,6 +121,6 @@
   </main>
 
   <script src="search.js?v=20260728-pwa78"></script>
-  <script src="pwa-register.js?v=20260806-full4"></script>
+  <script src="pwa-register.js?v=20260806-full5"></script>
 </body>
 </html>

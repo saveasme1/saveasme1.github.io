@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260806-full4";
-  const APP_VERSION = "v1.12.26";
+  const APP_BUILD = "20260806-full5";
+  const APP_VERSION = "v1.12.27";
   const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -628,7 +628,7 @@
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.20260806-full4.json`, location.href);
+      const url = new URL(`./app-build.20260806-full5.json`, location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
       const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });

@@ -14,7 +14,18 @@
 
   const BOARD = "portfolio";
 
-  const PAGE_SIZE = 9999; // show full list (was 5 — looked like TEMP cap)
+  const PAGE_SIZE_MOBILE = 6;
+  const PAGE_SIZE_TABLET = 8;
+  const PAGE_SIZE_DESKTOP = 12;
+
+  function pageSizeForViewport() {
+    const w = window.innerWidth || 0;
+    if (w >= 1024) return PAGE_SIZE_DESKTOP;
+    if (w >= 768) return PAGE_SIZE_TABLET;
+    return PAGE_SIZE_MOBILE;
+  }
+
+  let PAGE_SIZE = pageSizeForViewport(); // show full list (was 5 — looked like TEMP cap)
 
   const CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
 
@@ -26,7 +37,7 @@
 
    */
 
-  const TEMP_PER_BRAND_LIMIT = 0; // full portfolio restored // full portfolio restored
+  const TEMP_PER_BRAND_LIMIT = 0; // unlocked: show all items per brand // full portfolio restored // full portfolio restored
 
   const $ = (id) => document.getElementById(id);
 
@@ -1433,6 +1444,7 @@
   /** Newest-first list already — hide extras per brand without removing source data. */
 
   function capPerBrand(items) {
+    // TEMP brand cap removed — full catalog like PDF
     return items;
   }
   function filteredItems() {
@@ -2871,6 +2883,24 @@
 
     }
 
+  }
+
+  
+  // Responsive page size: mobile 6 / tablet 8 / desktop 12
+  if (!window.__hxPageSizeResizeBound) {
+    window.__hxPageSizeResizeBound = true;
+    let resizeTimer = 0;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const next = pageSizeForViewport();
+        if (next === PAGE_SIZE) return;
+        PAGE_SIZE = next;
+        state.page = 1;
+        if (typeof render === "function") render();
+        else if (typeof renderGrid === "function") renderGrid();
+      }, 120);
+    });
   }
 
   openFromQuery();
