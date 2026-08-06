@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260806-full1";
-  const APP_VERSION = "v1.12.23";
-  const RELEASE_NOTES = ["Full portfolio restore", "Full PDF download unlocked"];
+  const APP_BUILD = "20260806-full2";
+  const APP_VERSION = "v1.12.24";
+  const RELEASE_NOTES = ["Show full portfolio (no 5/brand cap)"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

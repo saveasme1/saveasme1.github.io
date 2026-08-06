@@ -1,8 +1,7 @@
 {
-  "build": "20260806-full1",
-  "version": "v1.12.23",
+  "build": "20260806-full2",
+  "version": "v1.12.24",
   "notes": [
-    "Full portfolio restore",
-    "Full PDF download unlocked"
+    "Show full portfolio (no 5/brand cap)"
   ]
 }
