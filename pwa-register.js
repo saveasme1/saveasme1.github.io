@@ -1,9 +1,9 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260728-pwa88";
-  const APP_VERSION = "v1.12.1";
-  const RELEASE_NOTES = ["Category chips clear top bar", "Real top bar height sync", "C/B visible on mobile"];
+  const APP_BUILD = "20260806-full1";
+  const APP_VERSION = "v1.12.23";
+  const RELEASE_NOTES = ["Full portfolio restore", "Full PDF download unlocked"];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";

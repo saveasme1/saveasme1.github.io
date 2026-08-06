@@ -1,7 +1,8 @@
 {
-  "build": "20260728-pwa88",
-  "version": "v1.12.22",
+  "build": "20260806-full1",
+  "version": "v1.12.23",
   "notes": [
-    "Seller flag image + local currency"
+    "Full portfolio restore",
+    "Full PDF download unlocked"
   ]
 }

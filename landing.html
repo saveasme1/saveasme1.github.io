@@ -383,7 +383,7 @@
   <script src="hx-wear-feed.js?v=20260728-pwa88"></script>
   <script src="hx-discover.js?v=20260728-pwa88"></script>
   <script src="pwa-home.js?v=20260728-pwa88"></script>
-  <script src="pwa-register.js?v=20260728-pwa88"></script>
+  <script src="pwa-register.js?v=20260806-full1"></script>
   <script>
     (function () {
       var fullBtn = document.getElementById("portfolioPdfDownload");
@@ -418,12 +418,23 @@
       }
 
       function triggerHrefDownload(url, filename) {
+        var standalone = false;
+        try {
+          standalone =
+            window.matchMedia("(display-mode: standalone)").matches ||
+            window.matchMedia("(display-mode: fullscreen)").matches ||
+            window.matchMedia("(display-mode: minimal-ui)").matches ||
+            window.navigator.standalone === true;
+        } catch (_) {}
+        // PWA/standalone often blocks target=_blank; same-window navigation triggers download.
+        if (standalone) {
+          location.href = url;
+          return;
+        }
         var a = document.createElement("a");
         a.href = url;
         a.rel = "noopener";
         if (filename) a.setAttribute("download", filename);
-        // Cross-origin attachment downloads cannot use hidden iframe (X-Frame-Options).
-        // Open as top-level navigation in a new tab so Content-Disposition can fire.
         a.target = "_blank";
         document.body.appendChild(a);
         a.click();
