@@ -255,7 +255,7 @@
    * TEMP hide (not delete): max items shown per brand in portfolio peeks.
    * Restore later: set TEMP_PER_BRAND_LIMIT = 0.
    */
-  const TEMP_PER_BRAND_LIMIT = 5;
+  const TEMP_PER_BRAND_LIMIT = 10; // PWA main brand peek
 
   function capPerBrand(items) {
     const limit = Number(TEMP_PER_BRAND_LIMIT);
