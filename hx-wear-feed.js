@@ -363,7 +363,7 @@
   async function loadDiscoverApi(brand) {
     const q = new URLSearchParams({
       brand: brand || "all",
-      limit: "80",
+      limit: "120",
       sort: "latest",
     });
     const res = await fetch(`${apiBase()}/discover/feed?${q}`, {
