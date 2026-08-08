@@ -64,7 +64,8 @@
     { go: "discover", label: "발견", ico: "portfolio" },
     { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
     { go: "shipping", label: "최종검수", ico: "shipping" },
-    { go: "gold", label: "금시세", ico: "gold" },
+    // TEMP hide gold menu — restore: uncomment
+    // { go: "gold", label: "금시세", ico: "gold" },
     { go: "search", label: "AI검색", ico: "search" },
     { go: "reviews", label: "스냅", ico: "reviews" },
   ];
@@ -225,7 +226,10 @@
       return;
     }
     if (key === "search") return void (location.href = `./search.html${appQuery()}`);
-    if (key === "gold") return void (location.href = "./heritage-gold/");
+    if (key === "gold") {
+      if (TEMP_HIDE_GOLD) return;
+      return void (location.href = "./heritage-gold/");
+    }
     if (key === "reviews") return void (location.href = `./reviews.html${appQuery()}`);
     if (key === "shipping") return void (location.href = `./shipping.html${appQuery()}`);
     if (key === "event") return void (location.href = `./opening-event.html${appQuery()}`);
@@ -255,6 +259,9 @@
    * TEMP hide (not delete): max items shown per brand in portfolio peeks.
    * Restore later: set TEMP_PER_BRAND_LIMIT = 0.
    */
+  /** TEMP hide gold section/menu — restore: set false */
+  const TEMP_HIDE_GOLD = true;
+
   const TEMP_PER_BRAND_LIMIT = 10; // PWA main brand peek
 
   function capPerBrand(items) {
@@ -1260,113 +1267,224 @@
       e.target.value = "";
     });
 
-    // —— Gold market (KREAM-clean number UI) ——
-    const market = document.createElement("section");
-    market.className = "pwa-market";
-    market.innerHTML =
-      `<div class="pwa-market__head">` +
-      `<div><p class="pwa-sec__eyebrow">MARKET</p><h2>오늘의 금시세</h2></div>` +
-      `<a href="./heritage-gold/">자세히</a>` +
-      `</div>` +
-      `<div class="pwa-market__card">` +
-      `<div class="pwa-market__top">` +
-      `<span class="pwa-market__live" id="pwaGoldLive"><i></i>LIVE</span>` +
-      `<button type="button" class="pwa-market__refresh" id="pwaGoldRefresh" aria-label="새로고침">↻</button>` +
-      `</div>` +
-      `<div class="pwa-market__units" id="pwaGoldUnits" role="tablist">` +
-      `<button type="button" data-unit="don" class="is-on">1돈</button>` +
-      `<button type="button" data-unit="g">1g</button>` +
-      `<button type="button" data-unit="k14">14K</button>` +
-      `<button type="button" data-unit="k18">18K</button>` +
-      `</div>` +
-      `<div class="pwa-market__pricewrap">` +
-      `<strong class="pwa-market__price" id="pwaGoldPrice">—</strong>` +
-      `<span class="pwa-market__won">원</span>` +
-      `</div>` +
-      `<p class="pwa-market__sub" id="pwaGoldSub">순금 1돈 · 3.75g · 참고용</p>` +
-      `<svg class="pwa-market__spark" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">` +
-      `<path id="pwaGoldSpark" fill="none" stroke="currentColor" stroke-width="1.5"></path>` +
-      `</svg>` +
-      `<div class="pwa-market__row">` +
-      `<span id="pwaGoldMeta">시세 확인 중</span>` +
-      `<a href="./heritage-gold/">시세 페이지</a>` +
-      `</div>` +
-      `</div>`;
-    host.append(market);
 
-    let goldInfo = readGoldCache();
-    let goldUnit = "don";
+    // TEMP hide gold market — restore: set TEMP_HIDE_GOLD = false
+    if (!TEMP_HIDE_GOLD) {
+        // —— Gold market (KREAM-clean number UI) ——
 
-    function paintGold(info) {
-      const priceEl = document.getElementById("pwaGoldPrice");
-      const subEl = document.getElementById("pwaGoldSub");
-      const metaEl = document.getElementById("pwaGoldMeta");
-      const liveEl = document.getElementById("pwaGoldLive");
-      const sparkEl = document.getElementById("pwaGoldSpark");
-      if (!priceEl) return;
-      if (!info) {
-        priceEl.textContent = "—";
-        if (subEl) subEl.textContent = "시세를 불러오는 중";
-        return;
-      }
-      const map = {
-        don: { v: info.don, label: "순금 1돈 · 3.75g · 참고용" },
-        g: { v: info.perG, label: "순금 1g · 참고용" },
-        k14: { v: info.don * 0.585, label: "14K 함량 환산 · 1돈 기준" },
-        k18: { v: info.don * 0.75, label: "18K 함량 환산 · 1돈 기준" },
-      };
-      const cur = map[goldUnit] || map.don;
-      priceEl.textContent = Math.round(cur.v).toLocaleString("ko-KR");
-      if (subEl) subEl.textContent = cur.label;
-      if (metaEl) {
-        const t = new Date(info.at || Date.now());
-        const src = info.source === "cache" ? "캐시" : "LIVE";
-        metaEl.textContent = `${src} · ${t.toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })} 기준`;
-      }
-      if (liveEl) {
-        liveEl.innerHTML = info.source === "cache" ? "<i></i>CACHE" : "<i></i>LIVE";
-        liveEl.classList.toggle("is-cache", info.source === "cache");
-      }
-      if (sparkEl) {
-        let series = goldSeries();
-        if (series.length < 2) {
-          const base = info.don;
-          series = Array.from({ length: 10 }, (_, i) => base * (1 + Math.sin(i / 2.2) * 0.004));
+        const market = document.createElement("section");
+
+        market.className = "pwa-market";
+
+        market.innerHTML =
+
+          `<div class="pwa-market__head">` +
+
+          `<div><p class="pwa-sec__eyebrow">MARKET</p><h2>오늘의 금시세</h2></div>` +
+
+          `<a href="./heritage-gold/">자세히</a>` +
+
+          `</div>` +
+
+          `<div class="pwa-market__card">` +
+
+          `<div class="pwa-market__top">` +
+
+          `<span class="pwa-market__live" id="pwaGoldLive"><i></i>LIVE</span>` +
+
+          `<button type="button" class="pwa-market__refresh" id="pwaGoldRefresh" aria-label="새로고침">↻</button>` +
+
+          `</div>` +
+
+          `<div class="pwa-market__units" id="pwaGoldUnits" role="tablist">` +
+
+          `<button type="button" data-unit="don" class="is-on">1돈</button>` +
+
+          `<button type="button" data-unit="g">1g</button>` +
+
+          `<button type="button" data-unit="k14">14K</button>` +
+
+          `<button type="button" data-unit="k18">18K</button>` +
+
+          `</div>` +
+
+          `<div class="pwa-market__pricewrap">` +
+
+          `<strong class="pwa-market__price" id="pwaGoldPrice">—</strong>` +
+
+          `<span class="pwa-market__won">원</span>` +
+
+          `</div>` +
+
+          `<p class="pwa-market__sub" id="pwaGoldSub">순금 1돈 · 3.75g · 참고용</p>` +
+
+          `<svg class="pwa-market__spark" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">` +
+
+          `<path id="pwaGoldSpark" fill="none" stroke="currentColor" stroke-width="1.5"></path>` +
+
+          `</svg>` +
+
+          `<div class="pwa-market__row">` +
+
+          `<span id="pwaGoldMeta">시세 확인 중</span>` +
+
+          `<a href="./heritage-gold/">시세 페이지</a>` +
+
+          `</div>` +
+
+          `</div>`;
+
+        host.append(market);
+
+
+
+        let goldInfo = readGoldCache();
+
+        let goldUnit = "don";
+
+
+
+        function paintGold(info) {
+
+          const priceEl = document.getElementById("pwaGoldPrice");
+
+          const subEl = document.getElementById("pwaGoldSub");
+
+          const metaEl = document.getElementById("pwaGoldMeta");
+
+          const liveEl = document.getElementById("pwaGoldLive");
+
+          const sparkEl = document.getElementById("pwaGoldSpark");
+
+          if (!priceEl) return;
+
+          if (!info) {
+
+            priceEl.textContent = "—";
+
+            if (subEl) subEl.textContent = "시세를 불러오는 중";
+
+            return;
+
+          }
+
+          const map = {
+
+            don: { v: info.don, label: "순금 1돈 · 3.75g · 참고용" },
+
+            g: { v: info.perG, label: "순금 1g · 참고용" },
+
+            k14: { v: info.don * 0.585, label: "14K 함량 환산 · 1돈 기준" },
+
+            k18: { v: info.don * 0.75, label: "18K 함량 환산 · 1돈 기준" },
+
+          };
+
+          const cur = map[goldUnit] || map.don;
+
+          priceEl.textContent = Math.round(cur.v).toLocaleString("ko-KR");
+
+          if (subEl) subEl.textContent = cur.label;
+
+          if (metaEl) {
+
+            const t = new Date(info.at || Date.now());
+
+            const src = info.source === "cache" ? "캐시" : "LIVE";
+
+            metaEl.textContent = `${src} · ${t.toLocaleTimeString("ko-KR", {
+
+              hour: "2-digit",
+
+              minute: "2-digit",
+
+            })} 기준`;
+
+          }
+
+          if (liveEl) {
+
+            liveEl.innerHTML = info.source === "cache" ? "<i></i>CACHE" : "<i></i>LIVE";
+
+            liveEl.classList.toggle("is-cache", info.source === "cache");
+
+          }
+
+          if (sparkEl) {
+
+            let series = goldSeries();
+
+            if (series.length < 2) {
+
+              const base = info.don;
+
+              series = Array.from({ length: 10 }, (_, i) => base * (1 + Math.sin(i / 2.2) * 0.004));
+
+            }
+
+            sparkEl.setAttribute("d", sparkPath(series));
+
+          }
+
         }
-        sparkEl.setAttribute("d", sparkPath(series));
-      }
+
+
+
+        if (goldInfo) paintGold({ ...goldInfo, source: "cache" });
+
+
+
+        async function refreshGold() {
+
+          const liveEl = document.getElementById("pwaGoldLive");
+
+          if (liveEl) liveEl.innerHTML = "<i></i>…";
+
+          goldInfo = await fetchGoldDon();
+
+          paintGold(goldInfo);
+
+        }
+
+        refreshGold();
+
+
+
+        market.querySelector("#pwaGoldRefresh")?.addEventListener("click", (e) => {
+
+          e.stopPropagation();
+
+          refreshGold();
+
+        });
+
+        market.querySelector("#pwaGoldUnits")?.addEventListener("click", (e) => {
+
+          const btn = e.target.closest("button[data-unit]");
+
+          if (!btn) return;
+
+          e.stopPropagation();
+
+          goldUnit = btn.getAttribute("data-unit") || "don";
+
+          market.querySelectorAll("#pwaGoldUnits button").forEach((b) => b.classList.remove("is-on"));
+
+          btn.classList.add("is-on");
+
+          paintGold(goldInfo);
+
+        });
+
+
+
+        // Style / wearing — hidden (발견·착용 코디 정리와 함께)
+
+        // Recent viewed — hidden
+
+        // Wishlist — keep if user has items? User didn't ask to hide wish; leave.
     }
 
-    if (goldInfo) paintGold({ ...goldInfo, source: "cache" });
-
-    async function refreshGold() {
-      const liveEl = document.getElementById("pwaGoldLive");
-      if (liveEl) liveEl.innerHTML = "<i></i>…";
-      goldInfo = await fetchGoldDon();
-      paintGold(goldInfo);
-    }
-    refreshGold();
-
-    market.querySelector("#pwaGoldRefresh")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      refreshGold();
-    });
-    market.querySelector("#pwaGoldUnits")?.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-unit]");
-      if (!btn) return;
-      e.stopPropagation();
-      goldUnit = btn.getAttribute("data-unit") || "don";
-      market.querySelectorAll("#pwaGoldUnits button").forEach((b) => b.classList.remove("is-on"));
-      btn.classList.add("is-on");
-      paintGold(goldInfo);
-    });
-
-    // Style / wearing — hidden (발견·착용 코디 정리와 함께)
-    // Recent viewed — hidden
-    // Wishlist — keep if user has items? User didn't ask to hide wish; leave.
     const wishIds = loadIdList(WISH_KEY).map(String);
     const wishItems = wishIds
       .map((id) => items.find((x) => String(x.id) === id))

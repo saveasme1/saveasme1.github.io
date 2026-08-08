@@ -3,12 +3,12 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.full6";
+      var KEY = "hx.pwa.forceNuke.hide1";
       try { if (sessionStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
         var u = new URL(location.href);
-        u.searchParams.set("_pwa", "20260806-full6");
+        u.searchParams.set("_pwa", "20260806-hide1");
         location.replace(u.href);
       };
       var tasks = [];
@@ -83,6 +83,6 @@
   <script src="hx-discover.js?v=20260728-pwa88"></script>
   <script src="gongbang-auth.js?v=20260728-pwa88"></script>
   <script src="site-nav.js?v=20260728-pwa88"></script>
-  <script src="pwa-register.js?v=20260806-full6"></script>
+  <script src="pwa-register.js?v=20260806-hide1"></script>
 </body>
 </html>
