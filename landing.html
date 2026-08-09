@@ -3,12 +3,12 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.gbcal1";
+      var KEY = "hx.pwa.forceNuke.gbcal2";
       try { if (sessionStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
         var u = new URL(location.href);
-        u.searchParams.set("_pwa", "20260809-gbcal1");
+        u.searchParams.set("_pwa", "20260809-gbcal2");
         location.replace(u.href);
       };
       var tasks = [];
@@ -41,8 +41,8 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-  <meta name="guide-build" content="20260809-gbcal1">
-  <!-- cache-bust: 20260809-gbcal1 -->
+  <meta name="guide-build" content="20260809-gbcal2">
+  <!-- cache-bust: 20260809-gbcal2 -->
   <title>본 헤리티지</title>
   <meta name="theme-color" content="#161513">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -69,7 +69,7 @@
         else if (open === "shipping") location.replace("./shipping.html" + app);
         else if (open === "reviews") location.replace("./reviews.html" + app);
         else if (open === "discover") location.replace("./discover.html" + app);
-        else if (open === "groupbuy") {/* stay; panel script opens */}
+        else if (open === "groupbuy") location.replace("./groupbuy.html" + app);
       } catch (e) {}
     })();
   </script>
@@ -82,12 +82,12 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css">
   <link rel="stylesheet" href="handmade-reviews.css?v=20260728-pwa88">
   <link rel="stylesheet" href="landing.css?v=20260728-pwa88">
-  <link rel="stylesheet" href="portfolio-board.css?v=20260809-gbcal1">
+  <link rel="stylesheet" href="portfolio-board.css?v=20260809-gbcal2">
   <link rel="stylesheet" href="site-nav.css?v=20260728-pwa88">
   <link rel="stylesheet" href="tryon-overlay.css?v=20260727-tryon49">
   <link rel="stylesheet" href="price-trend-panel.css?v=20260728-pwa88">
   <link rel="stylesheet" href="pwa-app.css?v=20260728-pwa88">
-  <link rel="stylesheet" href="groupbuy-calendar.css?v=20260809-gbcal1">
+  <link rel="stylesheet" href="groupbuy-calendar.css?v=20260809-gbcal2">
   <link rel="stylesheet" href="hx-lifestyle.css?v=20260728-pwa88">
 </head>
 <body>
@@ -181,11 +181,11 @@
         <strong>공지사항</strong>
         <span class="action-hint">본 헤리티지의 새로운 소식과 중요 안내</span>
       </button>
-      <button type="button" class="action action-groupbuy" id="groupbuyOpen">
+      <a class="action action-groupbuy" id="groupbuyOpen" href="./groupbuy.html">
         <span class="action-kicker">GROUP BUY</span>
         <strong>공동구매</strong>
         <span class="action-hint">기간별 공동구매 일정을 달력으로 확인합니다</span>
-      </button>
+      </a>
       <a class="action action-search" href="./search.html">
         <span class="action-kicker">AI SEARCH</span>
         <span class="action-title-row">
@@ -311,17 +311,6 @@
       </div>
     </section>
 
-    <section class="board-inline-panel gb-cal-panel" id="groupbuyPanel" hidden aria-label="공동구매">
-      <div class="reviews-heading">
-        <div>
-          <h2>공동구매</h2>
-          <p class="reviews-sub">본 헤리티지 공동구매 일정을 달력으로 확인하세요.</p>
-        </div>
-        <button type="button" class="reviews-close" id="groupbuyClose">메뉴닫기</button>
-      </div>
-      <div id="groupbuyMount" data-gb-cal-root="1"></div>
-    </section>
-
     <section class="board-inline-panel" id="noticesPanel" hidden aria-label="공지사항">
       <div class="reviews-heading">
         <div>
@@ -424,9 +413,9 @@
   <script src="brand-codes.js?v=20260728-pwa88"></script>
   <script src="price-trend-panel.js?v=20260728-pwa88"></script>
   <script src="gongbang-auth.js?v=20260728-pwa88"></script>
-  <script src="portfolio-board.js?v=20260809-gbcal1"></script>
+  <script src="portfolio-board.js?v=20260809-gbcal2"></script>
   <script src="handmade-reviews.js?v=20260728-pwa88"></script>
-  <script src="landing-boards.js?v=20260809-gbcal1"></script>
+  <script src="landing-boards.js?v=20260809-gbcal2"></script>
   <script src="shipping-board.js?v=20260728-pwa88"></script>
   <script src="site-nav.js?v=20260728-pwa88"></script>
   <script src="tryon-overlay.js?v=20260727-tryon49"></script>
@@ -438,39 +427,9 @@
   <script>window.HX_WEAR_FEED_API = "https://app.0-1.co.kr/api/handmade/v1";</script>
   <script src="hx-wear-feed.js?v=20260728-pwa88"></script>
   <script src="hx-discover.js?v=20260728-pwa88"></script>
-  <script src="groupbuy-calendar.js?v=20260809-gbcal1"></script>
-  <script src="pwa-home.js?v=20260809-gbcal1"></script>
-  <script src="pwa-register.js?v=20260809-gbcal1"></script>
-  <script>
-    (function () {
-      var openBtn = document.getElementById("groupbuyOpen");
-      var closeBtn = document.getElementById("groupbuyClose");
-      var panel = document.getElementById("groupbuyPanel");
-      var mount = document.getElementById("groupbuyMount");
-      if (!openBtn || !panel || !mount) return;
-      function hideOthers() {
-        ["portfolioPanel", "reviews", "shippingPanel", "noticesPanel"].forEach(function (id) {
-          var el = document.getElementById(id);
-          if (el) el.hidden = true;
-        });
-      }
-      function openPanel() {
-        hideOthers();
-        panel.hidden = false;
-        if (!mount._gbCal && window.GroupbuyCalendar) {
-          mount._gbCal = window.GroupbuyCalendar.mount(mount);
-        } else if (mount._gbCal) {
-          mount._gbCal.refresh();
-        }
-        panel.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      openBtn.addEventListener("click", openPanel);
-      if (closeBtn) closeBtn.addEventListener("click", function () { panel.hidden = true; });
-      try {
-        if (new URLSearchParams(location.search).get("open") === "groupbuy") openPanel();
-      } catch (e) {}
-    })();
-  </script>
+  <script src="groupbuy-calendar.js?v=20260809-gbcal2"></script>
+  <script src="pwa-home.js?v=20260809-gbcal2"></script>
+  <script src="pwa-register.js?v=20260809-gbcal2"></script>
   <script>
     (function () {
       var fullBtn = document.getElementById("portfolioPdfDownload");

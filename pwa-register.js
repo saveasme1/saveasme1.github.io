@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal1";
+  const APP_BUILD = "20260809-gbcal2";
   const APP_VERSION = "v1.12.29";
   const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
   const BUILD_KEY = "hx.pwa.build";
@@ -628,7 +628,7 @@
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.20260809-gbcal1.json`, location.href);
+      const url = new URL(`./app-build.20260809-gbcal2.json`, location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
       const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -667,12 +667,7 @@
       location.replace(u.href);
       return;
 
-      // Running script is behind app-build.json — offer update once.
-      promptUpdateAvailable(data.notes, true);
-    } catch (_) {}
-  }
-
-  // Boot: never force-dialog from local marker alone — wait for app-build.json
+      // Running script is behind app-build.20260809-gbcal2.json
   // (prevents endless update loop when APP_BUILD lagged behind remote).
   try {
     const marked = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";

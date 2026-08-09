@@ -641,13 +641,13 @@
     host.innerHTML =
       `<div class="gb-cal__head">` +
       `<div class="gb-cal__title-wrap">` +
-      `<p class="gb-cal__eyebrow">GROUP BUY</p>` +
-      `<h2 class="gb-cal__title">공동구매 <span class="gb-cal__month-num" data-month></span></h2>` +
+      `<p class="gb-cal__eyebrow">특별 EVENT</p>` +
+      `<h2 class="gb-cal__title"><span data-ym></span></h2>` +
       `</div>` +
       `<div class="gb-cal__tools">` +
       `<div class="gb-cal__nav">` +
-      `<button type="button" data-nav="-1" aria-label="이전 달">‹</button>` +
-      `<button type="button" data-nav="1" aria-label="다음 달">›</button>` +
+      `<button type="button" data-nav="-1" aria-label="이전 달">◀</button>` +
+      `<button type="button" data-nav="1" aria-label="다음 달">▶</button>` +
       `</div>` +
       `<button type="button" class="gb-cal__write" data-write hidden>글쓰기</button>` +
       `</div></div>` +
@@ -666,7 +666,7 @@
     const gridEl = host.querySelector("[data-grid]");
     const labelsEl = host.querySelector("[data-labels]");
     const statusEl = host.querySelector("[data-status]");
-    const monthEl = host.querySelector("[data-month]");
+    const ymEl = host.querySelector("[data-ym]");
     const writeBtn = host.querySelector("[data-write]");
 
     function setStatus(msg) {
@@ -675,7 +675,7 @@
     }
 
     function render() {
-      monthEl.textContent = String(state.month);
+      ymEl.textContent = `${state.year}.${pad2(state.month)}`;
       const cells = buildMonthCells(state.year, state.month);
       const today = todayKey();
       gridEl.replaceChildren();
@@ -714,11 +714,12 @@
           const el = document.createElement("div");
           el.className = "gb-cal__label";
           el.textContent = seg.label;
-          const left = sr.left - gridRect.left + 2;
-          const width = er.right - sr.left - 4;
-          const top = sr.bottom - gridRect.top - 16 - seg.lane * 20;
+          const left = sr.left - gridRect.left + 1;
+          const width = er.right - sr.left - 2;
+          // Sit just under the day number / above the thumb stack
+          const top = sr.top - gridRect.top + 30 + seg.lane * 16;
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(24, width)}px`;
+          el.style.width = `${Math.max(22, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
           labelsEl.append(el);
         });
