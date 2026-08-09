@@ -846,13 +846,17 @@
             })();
           const nextBtn = dayBtns[idx + 1];
           let coverX;
+          let size = thumbSize;
           if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
             const nr = nextBtn.getBoundingClientRect();
-            coverX = (br.right + nr.left) / 2 - gridRect.left;
+            const gutter = Math.max(0, nr.left - br.right);
+            coverX = br.right - gridRect.left + gutter / 2;
+            size = Math.min(thumbSize, Math.max(20, gutter + 6));
           } else {
             coverX = br.right - gridRect.left - 1;
+            size = Math.min(thumbSize, 24);
           }
-          coverX += stack * 6;
+          coverX += stack * 5;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -860,11 +864,11 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = barTop + (barH - thumbSize) / 2 + stack * 6;
+          const top = barTop + (barH - size) / 2 + stack * 5;
           cover.style.left = `${coverX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
-          cover.style.width = `${thumbSize}px`;
-          cover.style.height = `${thumbSize}px`;
+          cover.style.width = `${size}px`;
+          cover.style.height = `${size}px`;
           coversEl.append(cover);
         });
       });

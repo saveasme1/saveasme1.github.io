@@ -35,9 +35,9 @@
 }
 
 .gb-cal {
-  --cell-h: 36px;
-  --gb-bar-h: 20px;
-  --gb-thumb: 34px;
+  --cell-h: 32px;
+  --gb-bar-h: 18px;
+  --gb-thumb: 26px;
   --gb-name-h: 10px;
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
@@ -141,19 +141,25 @@
 .gb-cal__rule {
   height: 1px;
   background: var(--gb-cal-line);
-  margin: 4px 0 4px;
+  margin: 3px 0 2px;
 }
 
 .gb-cal__week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
-  margin-bottom: 0;
+  margin: 0 0 1px;
+  padding: 0;
   text-align: center;
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
   color: var(--gb-cal-muted);
+}
+
+.gb-cal__week span {
+  display: block;
+  padding: 0;
 }
 
 .gb-cal__week span:first-child {
@@ -174,6 +180,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
+  margin-top: 0;
   position: relative;
   z-index: 3;
   overflow: visible;
@@ -219,8 +226,8 @@
 .gb-cal__num {
   position: relative;
   z-index: 5;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
   font-size: var(--gb-num-size);
@@ -653,16 +660,16 @@
     padding: 20px 16px 28px;
   }
   .gb-cal {
-    --cell-h: 48px;
-    --gb-bar-h: 22px;
-    --gb-thumb: 42px;
-    --gb-name-h: 12px;
-    --gb-num-size: 13px;
+    --cell-h: 36px;
+    --gb-bar-h: 20px;
+    --gb-thumb: 30px;
+    --gb-name-h: 11px;
+    --gb-num-size: 12px;
     padding: 12px 12px 10px;
   }
   .gb-cal__num {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
   .gb-cal__name {
     font-size: 10px;
@@ -683,10 +690,10 @@
     padding: 24px 16px 32px;
   }
   .gb-cal {
-    --cell-h: 50px;
-    --gb-bar-h: 22px;
-    --gb-thumb: 44px;
-    --gb-name-h: 12px;
+    --cell-h: 38px;
+    --gb-bar-h: 20px;
+    --gb-thumb: 32px;
+    --gb-name-h: 11px;
     --gb-num-size: 13px;
     padding: 12px 14px 10px;
   }
