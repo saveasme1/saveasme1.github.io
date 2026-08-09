@@ -778,7 +778,10 @@
         const segs = labelSegments(state.items, cells);
         const filledDays = new Set();
 
-        // 1) Paint capsules ON the date numbers (Chuseok-calendar style).
+        // Bar tops by start date (for cover straddle).
+        const barTopByStart = new Map();
+
+        // 1) Paint capsules ON the date numbers.
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
@@ -800,7 +803,7 @@
             numRect.top -
             gridRect.top +
             (numRect.height - barH) / 2 +
-            seg.lane * (barH + 4);
+            seg.lane * (barH + 3);
           bar.style.left = `${Math.max(0, left)}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
           bar.style.top = `${Math.max(0, top)}px`;
@@ -811,14 +814,25 @@
             filledDays.add(i);
           }
 
-          // Product name under the painted date bar (first segment of the week run).
+          if (seg.roundLeft) {
+            barTopByStart.set(seg.item.startDate, top);
+          }
+
+          // Product name under the painted date bar.
           const name = document.createElement("div");
           name.className = "gb-cal__name";
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
-          name.style.left = `${Math.max(0, left)}px`;
-          name.style.width = `${Math.max(40, width)}px`;
-          name.style.top = `${top + barH + 2 + seg.lane * 2}px`;
+          const nameLeft = Math.max(0, left);
+          let nameWidth = Math.max(40, width);
+          // Keep title clear of the start-day cover that straddles the capsule.
+          if (seg.roundLeft && seg.item.cover) {
+            const inset = Math.min(thumbSize * 0.55, Math.max(18, width * 0.35));
+            name.style.paddingLeft = `${inset}px`;
+          }
+          name.style.left = `${nameLeft}px`;
+          name.style.width = `${nameWidth}px`;
+          name.style.top = `${top + barH + 1}px`;
           name.style.height = `${nameH}px`;
           namesEl.append(name);
         });
@@ -828,7 +842,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Product cover circle under the date (start day; may overflow cell).
+        // 2) Cover straddles the capsule (top into bar; numbers/names stay above).
         const coverLane = new Map();
         state.items.forEach((it) => {
           if (!it.cover) return;
@@ -849,14 +863,17 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const left = br.left - gridRect.left + br.width / 2 + stack * 10;
-          // Below date paint + name line; may overflow the day cell.
-          const top = numRect.bottom - gridRect.top + nameH + 10 + stack * 12;
+          const left = br.left - gridRect.left + br.width / 2 + stack * 8;
+          const barTop =
+            barTopByStart.has(it.startDate)
+              ? barTopByStart.get(it.startDate)
+              : numRect.top - gridRect.top + (numRect.height - barH) / 2;
+          // ~30% of the circle sits on the capsule.
+          const top = barTop + barH - thumbSize * 0.3 + stack * 8;
           cover.style.left = `${left}px`;
           cover.style.top = `${top}px`;
           cover.style.width = `${thumbSize}px`;
           cover.style.height = `${thumbSize}px`;
-          cover.style.zIndex = String(3 + stack);
           coversEl.append(cover);
         });
       });
