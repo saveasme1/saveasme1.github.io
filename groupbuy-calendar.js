@@ -817,26 +817,35 @@
             });
           }
 
-          // Product name once (event start only) — beside cover, never overlapping.
+          // Product name once at event start — never covers date numbers.
           if (!seg.roundLeft) return;
           const name = document.createElement("div");
           name.className = "gb-cal__name";
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
           const barRight = left + width;
-          const startCenter = sr.left - gridRect.left + sr.width / 2;
-          let nameLeft = left;
-          let nameTop = top + barH + 1;
-          let nameWidth = Math.max(40, width);
+          // Cover sits between start day and next day (see below).
+          const betweenX = (() => {
+            const nextBtn = dayBtns[seg.startIdx + 1];
+            if (
+              nextBtn &&
+              Math.floor(seg.startIdx / 7) === Math.floor((seg.startIdx + 1) / 7)
+            ) {
+              const nr = nextBtn.getBoundingClientRect();
+              return (sr.right + nr.left) / 2 - gridRect.left;
+            }
+            return sr.right - gridRect.left - 2;
+          })();
+          let nameLeft = left + 4;
+          let nameTop = top + barH + 2;
+          let nameWidth = Math.max(40, width - 8);
           if (seg.item.cover) {
-            // Name starts to the right of the cover circle.
-            nameLeft = startCenter + thumbSize / 2 + 6;
+            nameLeft = betweenX + thumbSize / 2 + 6;
             nameWidth = Math.max(28, barRight - nameLeft);
             if (nameWidth < 52) {
-              // Short span: put title under the cover instead of beside.
-              nameLeft = left;
-              nameWidth = Math.max(40, width);
-              nameTop = top + barH + thumbSize * 0.62;
+              nameLeft = left + 4;
+              nameWidth = Math.max(40, width - 8);
+              nameTop = top + barH + thumbSize * 0.7;
             }
           }
           name.style.left = `${Math.max(0, nameLeft)}px`;
@@ -851,7 +860,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover on start day, straddles capsule; sits left of the product name.
+        // 2) Cover between start date and next date — below capsule, never over numbers.
         const coverLane = new Map();
         state.items.forEach((it) => {
           if (!it.cover) return;
@@ -871,6 +880,15 @@
               const numRect = numEl ? numEl.getBoundingClientRect() : br;
               return numRect.top - gridRect.top + (numRect.height - barH) / 2;
             })();
+          const nextBtn = dayBtns[idx + 1];
+          let coverX;
+          if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
+            const nr = nextBtn.getBoundingClientRect();
+            coverX = (br.right + nr.left) / 2 - gridRect.left;
+          } else {
+            coverX = br.right - gridRect.left - 2;
+          }
+          coverX += stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -878,10 +896,9 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          // Center of start-day cell (name is laid out to the right of this).
-          const left = br.left - gridRect.left + br.width / 2 + stack * 8;
-          const top = barTop + barH - thumbSize * 0.28 + stack * 8;
-          cover.style.left = `${left}px`;
+          // Slightly tuck under capsule bottom; stay clear of date numbers.
+          const top = barTop + barH - thumbSize * 0.12 + stack * 8;
+          cover.style.left = `${coverX}px`;
           cover.style.top = `${top}px`;
           cover.style.width = `${thumbSize}px`;
           cover.style.height = `${thumbSize}px`;
