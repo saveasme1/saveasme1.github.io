@@ -254,24 +254,24 @@
     return cells;
   }
 
-  // Refined muted jewelry tones (low chroma, no neon salmon).
+  // Date-fill capsules (solid, white day numbers).
   const EVENT_COLORS = [
-    { bg: "#c48b7e", ink: "#fff" },
-    { bg: "#7d8f9a", ink: "#fff" },
-    { bg: "#9a8b76", ink: "#fff" },
-    { bg: "#7f9486", ink: "#fff" },
-    { bg: "#9a8492", ink: "#fff" },
-    { bg: "#a88866", ink: "#fff" },
-    { bg: "#6f848c", ink: "#fff" },
-    { bg: "#a07a74", ink: "#fff" },
-    { bg: "#7a8a7c", ink: "#fff" },
-    { bg: "#8a7d96", ink: "#fff" },
-    { bg: "#b08a64", ink: "#fff" },
-    { bg: "#6d8296", ink: "#fff" },
-    { bg: "#967484", ink: "#fff" },
-    { bg: "#84907a", ink: "#fff" },
-    { bg: "#a0927a", ink: "#fff" },
-    { bg: "#78849a", ink: "#fff" },
+    { bg: "#e8873a", ink: "#fff", name: "#c45a22" },
+    { bg: "#3d5a80", ink: "#fff", name: "#2f4a6e" },
+    { bg: "#c45c6a", ink: "#fff", name: "#a34452" },
+    { bg: "#5a8f7b", ink: "#fff", name: "#3f6f5d" },
+    { bg: "#8b6b4a", ink: "#fff", name: "#6e5338" },
+    { bg: "#6b5b95", ink: "#fff", name: "#534675" },
+    { bg: "#d17a45", ink: "#fff", name: "#b05f30" },
+    { bg: "#4a7c9b", ink: "#fff", name: "#35637f" },
+    { bg: "#b85c49", ink: "#fff", name: "#944536" },
+    { bg: "#6a8f4e", ink: "#fff", name: "#517038" },
+    { bg: "#9a6b8a", ink: "#fff", name: "#7a536c" },
+    { bg: "#c9a227", ink: "#fff", name: "#9a7a12" },
+    { bg: "#5c6b8a", ink: "#fff", name: "#44526e" },
+    { bg: "#a86b4c", ink: "#fff", name: "#865338" },
+    { bg: "#4f8a8b", ink: "#fff", name: "#3a6c6d" },
+    { bg: "#8a5a5a", ink: "#fff", name: "#6e4343" },
   ];
 
   function seededShuffle(list, seed) {
@@ -712,18 +712,20 @@
       `<div class="gb-cal__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
       `<div class="gb-cal__grid-wrap">` +
       `<div class="gb-cal__grid" data-grid></div>` +
+      `<div class="gb-cal__bars" data-bars aria-hidden="true"></div>` +
       `<div class="gb-cal__covers" data-covers aria-hidden="true"></div>` +
-      `<div class="gb-cal__labels" data-labels aria-hidden="true"></div>` +
+      `<div class="gb-cal__names" data-names aria-hidden="true"></div>` +
       `</div>` +
       `<div class="gb-cal__foot">` +
-      `<p class="gb-cal__note">날짜를 탭하면 해당일 공동구매를 볼 수 있어요. 기간 일정은 아래 라벨로 표시됩니다.</p>` +
+      `<p class="gb-cal__note">날짜를 탭하면 해당일 공동구매를 볼 수 있어요. 기간은 날짜에 색으로 표시됩니다.</p>` +
       `<span class="gb-cal__brand">본 헤리티지</span>` +
       `</div>` +
       `<p class="gb-cal__status" data-status aria-live="polite"></p>`;
 
     const gridEl = host.querySelector("[data-grid]");
+    const barsEl = host.querySelector("[data-bars]");
     const coversEl = host.querySelector("[data-covers]");
-    const labelsEl = host.querySelector("[data-labels]");
+    const namesEl = host.querySelector("[data-names]");
     const statusEl = host.querySelector("[data-status]");
     const ymEl = host.querySelector("[data-ym]");
     const writeBtn = host.querySelector("[data-write]");
@@ -759,19 +761,74 @@
         gridEl.append(btn);
       });
 
+      barsEl.replaceChildren();
       coversEl.replaceChildren();
-      labelsEl.replaceChildren();
+      namesEl.replaceChildren();
       requestAnimationFrame(() => {
         const gridRect = gridEl.getBoundingClientRect();
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
-        const labelH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 18;
+        const barH =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-h")) || 30;
+        const nameH =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 14;
         const thumbSize =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 64;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 63;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
+        const segs = labelSegments(state.items, cells);
+        const filledDays = new Set();
 
-        // Circles on the start date (may overflow the cell).
+        // 1) Paint capsules ON the date numbers (Chuseok-calendar style).
+        segs.forEach((seg) => {
+          const startBtn = dayBtns[seg.startIdx];
+          const endBtn = dayBtns[seg.endIdx];
+          if (!startBtn || !endBtn) return;
+          const sr = startBtn.getBoundingClientRect();
+          const er = endBtn.getBoundingClientRect();
+          const numEl = startBtn.querySelector(".gb-cal__num");
+          const numRect = numEl ? numEl.getBoundingClientRect() : sr;
+          const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
+          const bar = document.createElement("div");
+          bar.className = "gb-cal__bar";
+          if (seg.roundLeft) bar.classList.add("is-round-left");
+          if (seg.roundRight) bar.classList.add("is-round-right");
+          bar.style.background = color.bg;
+          const padX = 2;
+          const left = sr.left - gridRect.left + padX;
+          const width = er.right - sr.left - padX * 2;
+          const top =
+            numRect.top -
+            gridRect.top +
+            (numRect.height - barH) / 2 +
+            seg.lane * (barH + 4);
+          bar.style.left = `${Math.max(0, left)}px`;
+          bar.style.width = `${Math.max(barH, width)}px`;
+          bar.style.top = `${Math.max(0, top)}px`;
+          bar.style.height = `${barH}px`;
+          barsEl.append(bar);
+
+          for (let i = seg.startIdx; i <= seg.endIdx; i += 1) {
+            filledDays.add(i);
+          }
+
+          // Product name under the painted date bar (first segment of the week run).
+          const name = document.createElement("div");
+          name.className = "gb-cal__name";
+          name.textContent = seg.label;
+          name.style.color = color.name || color.bg;
+          name.style.left = `${Math.max(0, left)}px`;
+          name.style.width = `${Math.max(40, width)}px`;
+          name.style.top = `${top + barH + 2 + seg.lane * 2}px`;
+          name.style.height = `${nameH}px`;
+          namesEl.append(name);
+        });
+
+        filledDays.forEach((i) => {
+          const num = dayBtns[i] && dayBtns[i].querySelector(".gb-cal__num");
+          if (num) num.classList.add("is-filled");
+        });
+
+        // 2) Product cover circle under the date (start day; may overflow cell).
         const coverLane = new Map();
         state.items.forEach((it) => {
           if (!it.cover) return;
@@ -793,44 +850,14 @@
           img.loading = "lazy";
           cover.append(img);
           const left = br.left - gridRect.left + br.width / 2 + stack * 10;
-          const top = numRect.bottom - gridRect.top + 1 + stack * 8;
+          // Below date paint + name line; may overflow the day cell.
+          const top = numRect.bottom - gridRect.top + nameH + 10 + stack * 12;
           cover.style.left = `${left}px`;
           cover.style.top = `${top}px`;
           cover.style.width = `${thumbSize}px`;
           cover.style.height = `${thumbSize}px`;
           cover.style.zIndex = String(3 + stack);
           coversEl.append(cover);
-        });
-
-        // Product name bars at the bottom of the day row.
-        const segs = labelSegments(state.items, cells);
-        segs.forEach((seg) => {
-          const startBtn = dayBtns[seg.startIdx];
-          const endBtn = dayBtns[seg.endIdx];
-          if (!startBtn || !endBtn) return;
-          const sr = startBtn.getBoundingClientRect();
-          const er = endBtn.getBoundingClientRect();
-          const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
-          const el = document.createElement("div");
-          el.className = "gb-cal__label";
-          if (seg.roundLeft) el.classList.add("is-round-left");
-          if (seg.roundRight) el.classList.add("is-round-right");
-          el.style.setProperty("--gb-event-bg", color.bg);
-          el.style.setProperty("--gb-event-ink", color.ink);
-          el.style.background = color.bg;
-          el.style.color = color.ink;
-          const text = document.createElement("span");
-          text.className = "gb-cal__label-text";
-          text.textContent = seg.label;
-          el.append(text);
-          const left = sr.left - gridRect.left;
-          const width = er.right - sr.left;
-          const top = sr.bottom - gridRect.top - labelH - 3 - seg.lane * (labelH + 3);
-          el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(36, width)}px`;
-          el.style.top = `${Math.max(0, top)}px`;
-          el.style.height = `${labelH}px`;
-          labelsEl.append(el);
         });
       });
     }
