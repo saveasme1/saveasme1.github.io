@@ -254,6 +254,61 @@
     return cells;
   }
 
+  // Soft jewelry-friendly palette (bg uses alpha for date-underlay look).
+  const EVENT_COLORS = [
+    { bg: "rgba(232, 145, 132, 0.78)", ink: "#fff" },
+    { bg: "rgba(120, 156, 186, 0.78)", ink: "#fff" },
+    { bg: "rgba(168, 140, 110, 0.8)", ink: "#fff" },
+    { bg: "rgba(140, 168, 142, 0.78)", ink: "#fff" },
+    { bg: "rgba(186, 142, 168, 0.78)", ink: "#fff" },
+    { bg: "rgba(196, 154, 98, 0.8)", ink: "#fff" },
+    { bg: "rgba(112, 140, 150, 0.8)", ink: "#fff" },
+    { bg: "rgba(176, 120, 118, 0.8)", ink: "#fff" },
+    { bg: "rgba(128, 150, 128, 0.8)", ink: "#fff" },
+    { bg: "rgba(150, 132, 176, 0.78)", ink: "#fff" },
+    { bg: "rgba(190, 140, 96, 0.8)", ink: "#fff" },
+    { bg: "rgba(100, 132, 160, 0.8)", ink: "#fff" },
+    { bg: "rgba(160, 118, 132, 0.8)", ink: "#fff" },
+    { bg: "rgba(132, 148, 118, 0.8)", ink: "#fff" },
+    { bg: "rgba(170, 150, 120, 0.8)", ink: "#3a2f24" },
+    { bg: "rgba(118, 128, 156, 0.8)", ink: "#fff" },
+  ];
+
+  function seededShuffle(list, seed) {
+    const arr = list.slice();
+    let s = seed >>> 0;
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      const j = s % (i + 1);
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  function monthOverlaps(it, year, month) {
+    const keys = eachDateKey(it.startDate, it.endDate);
+    const prefix = `${year}-${pad2(month)}-`;
+    return keys.some((k) => k.startsWith(prefix));
+  }
+
+  function colorsForMonth(items, year, month) {
+    const visible = items
+      .filter((it) => monthOverlaps(it, year, month))
+      .slice()
+      .sort((a, b) =>
+        String(a.startDate).localeCompare(String(b.startDate)) ||
+        String(a.id).localeCompare(String(b.id))
+      );
+    const palette = seededShuffle(EVENT_COLORS, year * 100 + month + visible.length * 17);
+    const map = new Map();
+    visible.forEach((it, index) => {
+      map.set(it.id, palette[index % palette.length]);
+    });
+    return map;
+  }
+
   function labelSegments(items, cells) {
     const indexOf = new Map(cells.map((c, i) => [c.key, i]));
     const segs = [];
@@ -289,7 +344,6 @@
           endIdx,
           lane,
           label: it.title,
-          // Circle cover only once per event (first week segment), not every day.
           showCover: firstSeg && !!it.cover,
         });
         firstSeg = false;
@@ -674,6 +728,11 @@
       ymEl.textContent = `${state.year}.${pad2(state.month)}`;
       const cells = buildMonthCells(state.year, state.month);
       const today = todayKey();
+      const colorMap = colorsForMonth(state.items, state.year, state.month);
+      const eventDays = new Set();
+      state.items.forEach((it) => {
+        eachDateKey(it.startDate, it.endDate).forEach((k) => eventDays.add(k));
+      });
       gridEl.replaceChildren();
       cells.forEach((cell) => {
         const btn = document.createElement("button");
@@ -682,6 +741,7 @@
         if (cell.out) btn.classList.add("is-out");
         if (cell.sun) btn.classList.add("is-sun");
         if (cell.key === today) btn.classList.add("is-today");
+        if (!cell.out && eventDays.has(cell.key)) btn.classList.add("has-event");
         btn.innerHTML = `<span class="gb-cal__num">${cell.day}</span>`;
         btn.addEventListener("click", () => {
           if (cell.out) return;
@@ -695,8 +755,8 @@
         const gridRect = gridEl.getBoundingClientRect();
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
-        const thumbSize =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 44;
+        const labelH =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 28;
         const segs = labelSegments(state.items, cells);
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
@@ -704,8 +764,11 @@
           if (!startBtn || !endBtn) return;
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
+          const color = colorMap.get(seg.item.id) || EVENT_COLORS[0];
           const el = document.createElement("div");
-          el.className = `gb-cal__label${seg.showCover ? "" : " is-bare"}`;
+          el.className = `gb-cal__label${seg.showCover ? "" : " is-cont"}`;
+          el.style.background = color.bg;
+          el.style.color = color.ink;
           const text = document.createElement("span");
           text.className = "gb-cal__label-text";
           text.textContent = seg.label;
@@ -722,10 +785,10 @@
           }
           const left = sr.left - gridRect.left + 1;
           const width = er.right - sr.left - 2;
-          // Under day number; title left + circle on the right of the bar
-          const top = sr.top - gridRect.top + 30 + seg.lane * (thumbSize + 6);
+          // Overlay on top of the day number (semi-transparent bar)
+          const top = sr.top - gridRect.top + 1 + seg.lane * (labelH + 3);
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(seg.showCover ? thumbSize + 28 : 22, width)}px`;
+          el.style.width = `${Math.max(seg.showCover ? labelH + 36 : 24, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
           labelsEl.append(el);
         });
