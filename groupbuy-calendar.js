@@ -256,22 +256,14 @@
 
   // Date-fill capsules (solid, white day numbers).
   const EVENT_COLORS = [
-    { bg: "#e8873a", ink: "#fff", name: "#c45a22" },
-    { bg: "#3d5a80", ink: "#fff", name: "#2f4a6e" },
-    { bg: "#c45c6a", ink: "#fff", name: "#a34452" },
-    { bg: "#5a8f7b", ink: "#fff", name: "#3f6f5d" },
-    { bg: "#8b6b4a", ink: "#fff", name: "#6e5338" },
-    { bg: "#6b5b95", ink: "#fff", name: "#534675" },
-    { bg: "#d17a45", ink: "#fff", name: "#b05f30" },
-    { bg: "#4a7c9b", ink: "#fff", name: "#35637f" },
-    { bg: "#b85c49", ink: "#fff", name: "#944536" },
-    { bg: "#6a8f4e", ink: "#fff", name: "#517038" },
-    { bg: "#9a6b8a", ink: "#fff", name: "#7a536c" },
-    { bg: "#c9a227", ink: "#fff", name: "#9a7a12" },
-    { bg: "#5c6b8a", ink: "#fff", name: "#44526e" },
-    { bg: "#a86b4c", ink: "#fff", name: "#865338" },
-    { bg: "#4f8a8b", ink: "#fff", name: "#3a6c6d" },
-    { bg: "#8a5a5a", ink: "#fff", name: "#6e4343" },
+    { bg: "#e07a54", ink: "#fff", name: "#b85a38" },
+    { bg: "#5b7c99", ink: "#fff", name: "#3d5f7a" },
+    { bg: "#c96b7a", ink: "#fff", name: "#a34f5d" },
+    { bg: "#6a9a82", ink: "#fff", name: "#4a7560" },
+    { bg: "#9a8268", ink: "#fff", name: "#75604a" },
+    { bg: "#7a6b9e", ink: "#fff", name: "#5c5080" },
+    { bg: "#d4925c", ink: "#fff", name: "#a86f3a" },
+    { bg: "#5a8fa8", ink: "#fff", name: "#3d7088" },
   ];
 
   function seededShuffle(list, seed) {
@@ -721,6 +713,7 @@
     const barsEl = host.querySelector("[data-bars]");
     const coversEl = host.querySelector("[data-covers]");
     const namesEl = host.querySelector("[data-names]");
+    const gridWrap = host.querySelector(".gb-cal__grid-wrap");
     const ymEl = host.querySelector("[data-ym]");
     const writeBtn = host.querySelector("[data-write]");
 
@@ -762,19 +755,22 @@
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
         const barH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-h")) || 30;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-h")) || 20;
         const nameH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 14;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 11;
         const thumbSize =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 63;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 36;
+        const stackGap =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 3;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
         const segs = labelSegments(state.items, cells);
         const filledDays = new Set();
+        if (gridWrap) gridWrap.classList.toggle("has-events", segs.length > 0);
 
-        // Bar tops by start date (for cover straddle).
         const barTopByStart = new Map();
+        const coverLane = new Map();
 
-        // 1) Paint capsules ON the date numbers.
+        // 1) Capsule bars on date numbers + product name directly below.
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
@@ -788,15 +784,16 @@
           bar.className = "gb-cal__bar";
           if (seg.roundLeft) bar.classList.add("is-round-left");
           if (seg.roundRight) bar.classList.add("is-round-right");
+          if (seg.roundLeft && seg.roundRight) bar.classList.add("is-solo");
           bar.style.background = color.bg;
-          const padX = 2;
+          const padX = 1;
           const left = sr.left - gridRect.left + padX;
           const width = er.right - sr.left - padX * 2;
           const top =
             numRect.top -
             gridRect.top +
             (numRect.height - barH) / 2 +
-            seg.lane * (barH + 3);
+            seg.lane * (barH + nameH + stackGap + 4);
           bar.style.left = `${Math.max(0, left)}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
           bar.style.top = `${Math.max(0, top)}px`;
@@ -808,49 +805,17 @@
           }
 
           if (seg.roundLeft) {
-            barTopByStart.set(seg.item.startDate, {
-              top,
-              startLeft: sr.left - gridRect.left,
-              startWidth: sr.width,
-              barLeft: left,
-              barWidth: width,
-            });
+            barTopByStart.set(seg.item.startDate, { top, left, width, barH });
           }
 
-          // Product name once at event start — never covers date numbers.
           if (!seg.roundLeft) return;
           const name = document.createElement("div");
           name.className = "gb-cal__name";
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
-          const barRight = left + width;
-          // Cover sits between start day and next day (see below).
-          const betweenX = (() => {
-            const nextBtn = dayBtns[seg.startIdx + 1];
-            if (
-              nextBtn &&
-              Math.floor(seg.startIdx / 7) === Math.floor((seg.startIdx + 1) / 7)
-            ) {
-              const nr = nextBtn.getBoundingClientRect();
-              return (sr.right + nr.left) / 2 - gridRect.left;
-            }
-            return sr.right - gridRect.left - 2;
-          })();
-          let nameLeft = left + 4;
-          let nameTop = top + barH + 2;
-          let nameWidth = Math.max(40, width - 8);
-          if (seg.item.cover) {
-            nameLeft = betweenX + thumbSize / 2 + 6;
-            nameWidth = Math.max(28, barRight - nameLeft);
-            if (nameWidth < 52) {
-              nameLeft = left + 4;
-              nameWidth = Math.max(40, width - 8);
-              nameTop = top + barH + thumbSize * 0.7;
-            }
-          }
-          name.style.left = `${Math.max(0, nameLeft)}px`;
-          name.style.width = `${nameWidth}px`;
-          name.style.top = `${nameTop}px`;
+          name.style.left = `${Math.max(0, left)}px`;
+          name.style.width = `${Math.max(32, width)}px`;
+          name.style.top = `${top + barH + stackGap}px`;
           name.style.height = `${nameH}px`;
           namesEl.append(name);
         });
@@ -860,8 +825,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover between start date and next date — below capsule, never over numbers.
-        const coverLane = new Map();
+        // 2) Cover image above capsule bar (start day only).
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -869,8 +833,8 @@
           const dayBtn = dayBtns[idx];
           const cell = cells[idx];
           if (!dayBtn || !cell || cell.out) return;
-          const stack = coverLane.get(idx) || 0;
-          coverLane.set(idx, stack + 1);
+          const stack = coverLane.get(it.startDate) || 0;
+          coverLane.set(it.startDate, stack + 1);
           const br = dayBtn.getBoundingClientRect();
           const anchor = barTopByStart.get(it.startDate);
           const barTop =
@@ -880,15 +844,7 @@
               const numRect = numEl ? numEl.getBoundingClientRect() : br;
               return numRect.top - gridRect.top + (numRect.height - barH) / 2;
             })();
-          const nextBtn = dayBtns[idx + 1];
-          let coverX;
-          if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
-            const nr = nextBtn.getBoundingClientRect();
-            coverX = (br.right + nr.left) / 2 - gridRect.left;
-          } else {
-            coverX = br.right - gridRect.left - 2;
-          }
-          coverX += stack * 8;
+          const coverCenterX = br.left - gridRect.left + br.width / 2;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -896,10 +852,9 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          // Slightly tuck under capsule bottom; stay clear of date numbers.
-          const top = barTop + barH - thumbSize * 0.12 + stack * 8;
-          cover.style.left = `${coverX}px`;
-          cover.style.top = `${top}px`;
+          const top = barTop - thumbSize - stackGap - stack * (thumbSize * 0.35);
+          cover.style.left = `${coverCenterX}px`;
+          cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${thumbSize}px`;
           cover.style.height = `${thumbSize}px`;
           coversEl.append(cover);
