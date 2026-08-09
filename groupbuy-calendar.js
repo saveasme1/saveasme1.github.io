@@ -254,17 +254,99 @@
     return cells;
   }
 
-  // Date-fill capsules (solid, white day numbers).
+  const KAKAO_URL =
+    (window.GongbangBoardMeta && window.GongbangBoardMeta.KAKAO_URL) ||
+    "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
+
+  // Muted luxury palette — fits dark PWA shell.
   const EVENT_COLORS = [
-    { bg: "#e07a54", ink: "#fff", name: "#b85a38" },
-    { bg: "#5b7c99", ink: "#fff", name: "#3d5f7a" },
-    { bg: "#c96b7a", ink: "#fff", name: "#a34f5d" },
-    { bg: "#6a9a82", ink: "#fff", name: "#4a7560" },
-    { bg: "#9a8268", ink: "#fff", name: "#75604a" },
-    { bg: "#7a6b9e", ink: "#fff", name: "#5c5080" },
-    { bg: "#d4925c", ink: "#fff", name: "#a86f3a" },
-    { bg: "#5a8fa8", ink: "#fff", name: "#3d7088" },
+    { bg: "#7a6355", ink: "#fff", name: "#c9a66b" },
+    { bg: "#556272", ink: "#fff", name: "#9eb0c4" },
+    { bg: "#725662", ink: "#fff", name: "#d4a8b4" },
+    { bg: "#4f6359", ink: "#fff", name: "#9cb8a6" },
+    { bg: "#6a5c72", ink: "#fff", name: "#b8a8cc" },
+    { bg: "#756952", ink: "#fff", name: "#c8b888" },
+    { bg: "#5a6478", ink: "#fff", name: "#a8b4cc" },
+    { bg: "#6b5e50", ink: "#fff", name: "#c9a66b" },
   ];
+
+  function coverBox(coverEl) {
+    const left = Number.parseFloat(coverEl.style.left) || 0;
+    const top = Number.parseFloat(coverEl.style.top) || 0;
+    const size = Number.parseFloat(coverEl.style.width) || 0;
+    return {
+      left: left - size / 2,
+      right: left + size / 2,
+      top,
+      bottom: top + size,
+    };
+  }
+
+  function nameBox(nameEl) {
+    const left = Number.parseFloat(nameEl.style.left) || 0;
+    const top = Number.parseFloat(nameEl.style.top) || 0;
+    const width = Number.parseFloat(nameEl.style.width) || 0;
+    const height = Number.parseFloat(nameEl.style.height) || 0;
+    const pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
+    return {
+      left: left + pad,
+      right: left + width,
+      top,
+      bottom: top + height,
+      pad,
+      width,
+    };
+  }
+
+  function boxesOverlap(a, b, margin = 2) {
+    return !(
+      a.right + margin < b.left ||
+      a.left - margin > b.right ||
+      a.bottom + margin < b.top ||
+      a.top - margin > b.bottom
+    );
+  }
+
+  function resolveCoverNameCollisions(namesEl, coversEl) {
+    const names = [...namesEl.children];
+    const covers = [...coversEl.children];
+    if (!names.length || !covers.length) return;
+
+    names.forEach((nameEl) => {
+      let pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
+      const ownKey = nameEl.dataset.eventKey || "";
+      covers.forEach((coverEl) => {
+        if ((coverEl.dataset.eventKey || "") === ownKey) return;
+        let box = nameBox(nameEl);
+        if (!boxesOverlap(box, coverBox(coverEl))) return;
+        const cover = coverBox(coverEl);
+        const need = Math.ceil(cover.right - box.left + 4);
+        if (need > 0) pad = Math.max(pad, need);
+      });
+      if (pad > 0) {
+        nameEl.style.paddingLeft = `${pad}px`;
+        nameEl.style.textAlign = "left";
+      }
+    });
+
+    covers.forEach((coverEl) => {
+      const ownKey = coverEl.dataset.eventKey || "";
+      let top = Number.parseFloat(coverEl.style.top) || 0;
+      let shifted = false;
+      names.forEach((nameEl) => {
+        if ((nameEl.dataset.eventKey || "") === ownKey) return;
+        const box = nameBox(nameEl);
+        const cover = coverBox(coverEl);
+        if (!boxesOverlap(box, cover)) return;
+        const lift = Math.ceil(box.top - cover.bottom + 3);
+        if (lift < 0) {
+          top = Math.max(0, top + lift);
+          shifted = true;
+        }
+      });
+      if (shifted) coverEl.style.top = `${top}px`;
+    });
+  }
 
   function seededShuffle(list, seed) {
     const arr = list.slice();
@@ -422,7 +504,10 @@
               .join("")}</div>`
           : "") +
         `<div class="gb-cal-sheet__body">` +
-        `<h3></h3><p></p></div>`;
+        `<h3></h3><p></p></div>` +
+        `<div class="gb-cal-sheet__foot">` +
+        `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
+        `</div>`;
       card.querySelector("h3").textContent = item.title;
       card.querySelector("p").textContent = item.content || "";
       card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
@@ -834,12 +919,19 @@
           if (!seg.roundLeft) return;
           const name = document.createElement("div");
           name.className = "gb-cal__name";
+          name.dataset.eventKey = eventKey(seg.item);
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
           name.style.left = `${Math.max(0, left)}px`;
           name.style.width = `${Math.max(32, width)}px`;
           name.style.top = `${top + barH + stackGap}px`;
           name.style.height = `${nameH}px`;
+          if (seg.item.cover && coverSize) {
+            const namePad = Math.min(Math.round(coverSize * 0.5), Math.max(18, width * 0.34));
+            name.style.paddingLeft = `${namePad}px`;
+            name.style.textAlign = "left";
+            name.style.boxSizing = "border-box";
+          }
           namesEl.append(name);
         });
 
@@ -848,7 +940,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover in gutter before start day; bottom slightly above bar midpoint.
+        // 2) Cover in gutter before start day; kept above name row.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -861,9 +953,8 @@
           const anchor = barTopByStart.get(it.startDate);
           if (!anchor) return;
           const size = anchor.coverSize || Math.min(thumbSize, 36);
-          const barH = anchor.barH || 16;
-          const coverLift =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-lift")) || 1;
+          const coverAbove =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-above")) || 2;
           const gutterBias =
             Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-gutter-bias")) || 0.68;
           const br = dayBtn.getBoundingClientRect();
@@ -878,10 +969,11 @@
             coverX = br.left - gridRect.left - size * 0.12;
           }
           coverX -= stack * 6;
-          const bottomY = anchor.top + barH * 0.5 - coverLift;
+          const bottomY = anchor.top - coverAbove;
           const top = bottomY - size + stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
+          cover.dataset.eventKey = eventKey(it);
           const img = document.createElement("img");
           img.src = assetUrl(it.cover);
           img.alt = it.title || "";
@@ -893,6 +985,8 @@
           cover.style.height = `${size}px`;
           coversEl.append(cover);
         });
+
+        resolveCoverNameCollisions(namesEl, coversEl);
       });
     }
 

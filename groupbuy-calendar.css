@@ -23,15 +23,16 @@
 }
 
 :root {
-  --gb-cal-bg: #fafafa;
-  --gb-cal-ink: #1c1b1a;
-  --gb-cal-muted: #9a9590;
-  --gb-cal-sun: #d64541;
-  --gb-cal-line: rgba(28, 27, 26, 0.08);
-  --gb-cal-label: #c48b7e;
+  --gb-cal-bg: #141414;
+  --gb-cal-ink: #f5f0e8;
+  --gb-cal-muted: rgba(245, 240, 232, 0.52);
+  --gb-cal-sun: #c9786b;
+  --gb-cal-line: rgba(255, 255, 255, 0.1);
+  --gb-cal-label: #8b6f5c;
   --gb-cal-label-ink: #fff;
   --gb-cal-radius: 14px;
   --gb-cal-font-body: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --gb-cal-gold: #c9a66b;
 }
 
 .gb-cal {
@@ -46,7 +47,7 @@
   --gb-date-gap: 6px;
   --gb-date-pad-y: 6px;
   --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
-  --gb-cover-lift: 1px;
+  --gb-cover-above: 2px;
   --gb-gutter-bias: 0.68;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
@@ -54,7 +55,7 @@
   border: 1px solid var(--gb-cal-line);
   border-radius: var(--gb-cal-radius);
   padding: 10px 8px 8px;
-  box-shadow: none;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
   position: relative;
   width: 100%;
   box-sizing: border-box;
@@ -106,7 +107,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--gb-cal-line);
   border-radius: 999px;
   padding: 2px;
@@ -137,8 +138,8 @@
 }
 
 .gb-cal__write {
-  background: var(--gb-cal-ink);
-  color: #f7f3eb;
+  background: var(--gb-cal-gold);
+  color: #1a1510;
 }
 
 .gb-cal__write[hidden] {
@@ -286,7 +287,7 @@
   border-radius: 999px;
 }
 
-/* Product name under bar; above covers so text stays readable */
+/* Product name under bar — always above foreign covers */
 .gb-cal__names {
   position: absolute;
   left: 0;
@@ -294,7 +295,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 4;
+  z-index: 6;
   overflow: visible;
 }
 
@@ -310,9 +311,10 @@
   text-align: center;
   padding: 0 2px;
   box-sizing: border-box;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
-/* Circle thumbnail — sits on capsule bar; left cap peeks out */
+/* Circle thumbnail — gutter slot; kept above name row */
 .gb-cal__covers {
   position: absolute;
   left: 0;
@@ -320,7 +322,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 3;
+  z-index: 4;
   overflow: visible;
 }
 
@@ -330,9 +332,9 @@
   height: var(--gb-thumb);
   border-radius: 50%;
   overflow: hidden;
-  background: #ece8e3;
-  box-shadow: 0 2px 8px rgba(28, 27, 26, 0.16);
-  border: 2px solid #fff;
+  background: #2a2622;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(201, 166, 107, 0.72);
   transform: translate(-50%, 0);
 }
 
@@ -363,9 +365,10 @@
   width: min(520px, 100%);
   max-height: min(88vh, 820px);
   overflow: auto;
-  background: #faf8f5;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px 20px 14px 14px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
   animation: gbCalUp 0.28s ease;
 }
 
@@ -384,8 +387,8 @@
 .gb-cal-sheet__badge {
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
-  background: #b8897c;
+  color: #1a1510;
+  background: var(--gb-cal-gold);
   border-radius: 999px;
   padding: 4px 10px;
 }
@@ -393,7 +396,8 @@
 .gb-cal-sheet__close {
   appearance: none;
   border: 0;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--gb-cal-ink);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -406,7 +410,7 @@
   border-radius: 16px;
   overflow: hidden;
   aspect-ratio: 1 / 1;
-  background: #e7e0d4;
+  background: #1f1c18;
 }
 
 .gb-cal-sheet__hero img {
@@ -438,7 +442,7 @@
 
 .gb-cal-sheet__rail button.is-on {
   opacity: 1;
-  outline: 2px solid var(--gb-cal-ink);
+  outline: 2px solid var(--gb-cal-gold);
   outline-offset: 2px;
 }
 
@@ -449,7 +453,7 @@
 }
 
 .gb-cal-sheet__body {
-  padding: 14px 18px 22px;
+  padding: 14px 18px 10px;
 }
 
 .gb-cal-sheet__body h3 {
@@ -458,14 +462,40 @@
   font-size: clamp(1.25rem, 4vw, 1.6rem);
   font-weight: 560;
   line-height: 1.25;
+  color: var(--gb-cal-ink);
 }
 
 .gb-cal-sheet__body p {
   margin: 0;
   white-space: pre-wrap;
   line-height: 1.65;
-  color: #3a342e;
+  color: rgba(245, 240, 232, 0.78);
   font-size: 14px;
+}
+
+.gb-cal-sheet__foot {
+  padding: 0 18px 20px;
+}
+
+.gb-cal-sheet__join {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid #fee500;
+  background: #fee500;
+  color: #1a1510;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(254, 229, 0, 0.14);
+}
+
+.gb-cal-sheet__join:active {
+  filter: brightness(0.97);
 }
 
 .gb-cal-sheet__list {
@@ -477,7 +507,7 @@
 .gb-cal-sheet__item {
   appearance: none;
   border: 1px solid var(--gb-cal-line);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 14px;
   padding: 10px;
   display: grid;
@@ -667,13 +697,27 @@
     --gb-thumb: 30px;
     --gb-date-gap: 4px;
     --gb-date-pad-y: 5px;
-    --gb-cover-lift: 1px;
+    --gb-cover-above: 2px;
     --gb-gutter-bias: 0.72;
   }
 
   .gb-cal__num {
-    z-index: 6;
+    z-index: 7;
   }
+}
+
+/* PWA shell — match elevated dark commerce tone */
+html.is-pwa .gb-cal {
+  --gb-cal-bg: #141414;
+  --gb-cal-ink: #f5f5f5;
+  --gb-cal-muted: rgba(245, 245, 245, 0.52);
+  --gb-cal-line: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+}
+
+html.is-pwa .pwa-groupbuy {
+  margin: 16px 14px 20px;
 }
 
 @media (min-width: 768px) {
