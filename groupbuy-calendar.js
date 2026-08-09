@@ -254,24 +254,24 @@
     return cells;
   }
 
-  // Soft jewelry-friendly palette (bg uses alpha for date-underlay look).
+  // Refined muted jewelry tones (low chroma, no neon salmon).
   const EVENT_COLORS = [
-    { bg: "rgba(232, 145, 132, 0.78)", ink: "#fff" },
-    { bg: "rgba(120, 156, 186, 0.78)", ink: "#fff" },
-    { bg: "rgba(168, 140, 110, 0.8)", ink: "#fff" },
-    { bg: "rgba(140, 168, 142, 0.78)", ink: "#fff" },
-    { bg: "rgba(186, 142, 168, 0.78)", ink: "#fff" },
-    { bg: "rgba(196, 154, 98, 0.8)", ink: "#fff" },
-    { bg: "rgba(112, 140, 150, 0.8)", ink: "#fff" },
-    { bg: "rgba(176, 120, 118, 0.8)", ink: "#fff" },
-    { bg: "rgba(128, 150, 128, 0.8)", ink: "#fff" },
-    { bg: "rgba(150, 132, 176, 0.78)", ink: "#fff" },
-    { bg: "rgba(190, 140, 96, 0.8)", ink: "#fff" },
-    { bg: "rgba(100, 132, 160, 0.8)", ink: "#fff" },
-    { bg: "rgba(160, 118, 132, 0.8)", ink: "#fff" },
-    { bg: "rgba(132, 148, 118, 0.8)", ink: "#fff" },
-    { bg: "rgba(170, 150, 120, 0.8)", ink: "#3a2f24" },
-    { bg: "rgba(118, 128, 156, 0.8)", ink: "#fff" },
+    { bg: "#c48b7e", ink: "#fff" },
+    { bg: "#7d8f9a", ink: "#fff" },
+    { bg: "#9a8b76", ink: "#fff" },
+    { bg: "#7f9486", ink: "#fff" },
+    { bg: "#9a8492", ink: "#fff" },
+    { bg: "#a88866", ink: "#fff" },
+    { bg: "#6f848c", ink: "#fff" },
+    { bg: "#a07a74", ink: "#fff" },
+    { bg: "#7a8a7c", ink: "#fff" },
+    { bg: "#8a7d96", ink: "#fff" },
+    { bg: "#b08a64", ink: "#fff" },
+    { bg: "#6d8296", ink: "#fff" },
+    { bg: "#967484", ink: "#fff" },
+    { bg: "#84907a", ink: "#fff" },
+    { bg: "#a0927a", ink: "#fff" },
+    { bg: "#78849a", ink: "#fff" },
   ];
 
   function seededShuffle(list, seed) {
@@ -352,8 +352,6 @@
           label: it.title,
           roundLeft,
           roundRight,
-          // Circle sits on the end date (right of the final segment).
-          showCover: roundRight && !!it.cover,
         });
         runStart = null;
         runEnd = null;
@@ -714,15 +712,17 @@
       `<div class="gb-cal__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
       `<div class="gb-cal__grid-wrap">` +
       `<div class="gb-cal__grid" data-grid></div>` +
+      `<div class="gb-cal__covers" data-covers aria-hidden="true"></div>` +
       `<div class="gb-cal__labels" data-labels aria-hidden="true"></div>` +
       `</div>` +
       `<div class="gb-cal__foot">` +
-      `<p class="gb-cal__note">날짜를 탭하면 해당일 공동구매를 볼 수 있어요. 기간 일정은 분홍 라벨로 표시됩니다.</p>` +
+      `<p class="gb-cal__note">날짜를 탭하면 해당일 공동구매를 볼 수 있어요. 기간 일정은 아래 라벨로 표시됩니다.</p>` +
       `<span class="gb-cal__brand">본 헤리티지</span>` +
       `</div>` +
       `<p class="gb-cal__status" data-status aria-live="polite"></p>`;
 
     const gridEl = host.querySelector("[data-grid]");
+    const coversEl = host.querySelector("[data-covers]");
     const labelsEl = host.querySelector("[data-labels]");
     const statusEl = host.querySelector("[data-status]");
     const ymEl = host.querySelector("[data-ym]");
@@ -759,13 +759,50 @@
         gridEl.append(btn);
       });
 
+      coversEl.replaceChildren();
       labelsEl.replaceChildren();
       requestAnimationFrame(() => {
         const gridRect = gridEl.getBoundingClientRect();
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
         const labelH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 42;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 18;
+        const thumbSize =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 64;
+        const indexOf = new Map(cells.map((c, i) => [c.key, i]));
+
+        // Circles on the start date (may overflow the cell).
+        const coverLane = new Map();
+        state.items.forEach((it) => {
+          if (!it.cover) return;
+          const idx = indexOf.get(it.startDate);
+          if (idx == null) return;
+          const dayBtn = dayBtns[idx];
+          const cell = cells[idx];
+          if (!dayBtn || !cell || cell.out) return;
+          const stack = coverLane.get(idx) || 0;
+          coverLane.set(idx, stack + 1);
+          const br = dayBtn.getBoundingClientRect();
+          const numEl = dayBtn.querySelector(".gb-cal__num");
+          const numRect = numEl ? numEl.getBoundingClientRect() : br;
+          const cover = document.createElement("div");
+          cover.className = "gb-cal__cover";
+          const img = document.createElement("img");
+          img.src = assetUrl(it.cover);
+          img.alt = it.title || "";
+          img.loading = "lazy";
+          cover.append(img);
+          const left = br.left - gridRect.left + br.width / 2 + stack * 10;
+          const top = numRect.bottom - gridRect.top + 1 + stack * 8;
+          cover.style.left = `${left}px`;
+          cover.style.top = `${top}px`;
+          cover.style.width = `${thumbSize}px`;
+          cover.style.height = `${thumbSize}px`;
+          cover.style.zIndex = String(3 + stack);
+          coversEl.append(cover);
+        });
+
+        // Product name bars at the bottom of the day row.
         const segs = labelSegments(state.items, cells);
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
@@ -773,14 +810,11 @@
           if (!startBtn || !endBtn) return;
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
-          const numEl = startBtn.querySelector(".gb-cal__num");
-          const numRect = numEl ? numEl.getBoundingClientRect() : sr;
           const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
           const el = document.createElement("div");
           el.className = "gb-cal__label";
           if (seg.roundLeft) el.classList.add("is-round-left");
           if (seg.roundRight) el.classList.add("is-round-right");
-          if (seg.showCover) el.classList.add("has-thumb");
           el.style.setProperty("--gb-event-bg", color.bg);
           el.style.setProperty("--gb-event-ink", color.ink);
           el.style.background = color.bg;
@@ -789,23 +823,11 @@
           text.className = "gb-cal__label-text";
           text.textContent = seg.label;
           el.append(text);
-          if (seg.showCover) {
-            const thumb = document.createElement("span");
-            thumb.className = "gb-cal__label-thumb";
-            const img = document.createElement("img");
-            img.src = assetUrl(seg.item.cover);
-            img.alt = "";
-            img.loading = "lazy";
-            thumb.append(img);
-            el.append(thumb);
-          }
-          // Edge-to-edge within the day cells so mid-week bars look continuous.
           const left = sr.left - gridRect.left;
           const width = er.right - sr.left;
-          const top =
-            numRect.bottom - gridRect.top + 3 + seg.lane * (labelH + 4);
+          const top = sr.bottom - gridRect.top - labelH - 3 - seg.lane * (labelH + 3);
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(labelH + 24, width)}px`;
+          el.style.width = `${Math.max(36, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
           el.style.height = `${labelH}px`;
           labelsEl.append(el);
