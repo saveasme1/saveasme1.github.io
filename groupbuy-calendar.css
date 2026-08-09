@@ -35,9 +35,9 @@
 }
 
 .gb-cal {
-  --cell-h: 32px;
-  --gb-bar-h: 18px;
-  --gb-thumb: 26px;
+  --cell-h: 34px;
+  --gb-bar-h: 20px;
+  --gb-thumb: 50px;
   --gb-name-h: 10px;
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
@@ -173,6 +173,7 @@
 
 .gb-cal__grid-wrap.has-events {
   padding-top: 0;
+  padding-left: calc(var(--gb-thumb) * 0.52);
   padding-bottom: calc(var(--gb-name-h) + 4px);
 }
 
@@ -660,9 +661,9 @@
     padding: 20px 16px 28px;
   }
   .gb-cal {
-    --cell-h: 36px;
-    --gb-bar-h: 20px;
-    --gb-thumb: 30px;
+    --cell-h: 38px;
+    --gb-bar-h: 22px;
+    --gb-thumb: 52px;
     --gb-name-h: 11px;
     --gb-num-size: 12px;
     padding: 12px 12px 10px;
@@ -690,9 +691,9 @@
     padding: 24px 16px 32px;
   }
   .gb-cal {
-    --cell-h: 38px;
-    --gb-bar-h: 20px;
-    --gb-thumb: 32px;
+    --cell-h: 40px;
+    --gb-bar-h: 22px;
+    --gb-thumb: 54px;
     --gb-name-h: 11px;
     --gb-num-size: 13px;
     padding: 12px 14px 10px;

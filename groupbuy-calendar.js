@@ -825,7 +825,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Circle cover in gutter between start date and next date (never over day numbers).
+        // 2) Circle cover to the LEFT of start date (never over day numbers).
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -844,19 +844,17 @@
               const numRect = numEl ? numEl.getBoundingClientRect() : br;
               return numRect.top - gridRect.top + (numRect.height - barH) / 2;
             })();
-          const nextBtn = dayBtns[idx + 1];
-          let coverX;
-          let size = thumbSize;
-          if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
-            const nr = nextBtn.getBoundingClientRect();
-            const gutter = Math.max(0, nr.left - br.right);
-            coverX = br.right - gridRect.left + gutter / 2;
-            size = Math.min(thumbSize, Math.max(20, gutter + 6));
+          const size = thumbSize;
+          const prevBtn = dayBtns[idx - 1];
+          let coverX = br.left - gridRect.left;
+          if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
+            const pr = prevBtn.getBoundingClientRect();
+            const gutter = Math.max(0, br.left - pr.right);
+            coverX = br.left - gridRect.left - Math.min(size * 0.42, gutter * 0.55 + 2);
           } else {
-            coverX = br.right - gridRect.left - 1;
-            size = Math.min(thumbSize, 24);
+            coverX = br.left - gridRect.left - size * 0.18;
           }
-          coverX += stack * 5;
+          coverX -= stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -864,7 +862,7 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = barTop + (barH - size) / 2 + stack * 5;
+          const top = barTop + (barH - size) / 2 + stack * 8;
           cover.style.left = `${coverX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;
