@@ -787,8 +787,13 @@
           if (seg.roundLeft && seg.roundRight) bar.classList.add("is-solo");
           bar.style.background = color.bg;
           const padX = 1;
-          const left = sr.left - gridRect.left + padX;
-          const width = er.right - sr.left - padX * 2;
+          let left = sr.left - gridRect.left + padX;
+          let width = er.right - sr.left - padX * 2;
+          if (seg.roundLeft && seg.item.cover) {
+            const coverInset = Math.min(thumbSize * 0.32, 12);
+            left += coverInset;
+            width = Math.max(barH, width - coverInset);
+          }
           const top =
             numRect.top -
             gridRect.top +
@@ -847,13 +852,13 @@
           const size = Math.min(thumbSize, 38);
           const prevBtn = dayBtns[idx - 1];
           const cellLeft = br.left - gridRect.left;
-          let coverX = cellLeft - size * 0.08;
+          let coverX;
           if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
             const pr = prevBtn.getBoundingClientRect();
             const gutterMid = (pr.right + br.left) / 2 - gridRect.left;
-            coverX = Math.min(cellLeft - size * 0.06, gutterMid);
+            coverX = gutterMid - size * 0.12;
           } else {
-            coverX = cellLeft - size * 0.22;
+            coverX = cellLeft - size * 0.42;
           }
           coverX -= stack * 6;
           const cover = document.createElement("div");

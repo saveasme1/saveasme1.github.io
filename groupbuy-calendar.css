@@ -41,6 +41,7 @@
   --gb-name-h: 10px;
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
+  --gb-col-gap: 11px;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background: var(--gb-cal-bg);
@@ -147,7 +148,8 @@
 .gb-cal__week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0;
+  column-gap: var(--gb-col-gap);
+  row-gap: 0;
   margin: 0 0 1px;
   padding: 0;
   text-align: center;
@@ -179,7 +181,8 @@
 .gb-cal__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0;
+  column-gap: var(--gb-col-gap);
+  row-gap: 0;
   margin-top: 0;
   position: relative;
   z-index: 3;
@@ -663,6 +666,7 @@
     --cell-h: 34px;
     --gb-bar-h: 18px;
     --gb-thumb: 36px;
+    --gb-col-gap: 12px;
     --gb-name-h: 11px;
     --gb-num-size: 12px;
     padding: 12px 12px 10px;
@@ -693,6 +697,7 @@
     --cell-h: 36px;
     --gb-bar-h: 18px;
     --gb-thumb: 38px;
+    --gb-col-gap: 14px;
     --gb-name-h: 11px;
     --gb-num-size: 13px;
     padding: 12px 14px 10px;
