@@ -47,7 +47,7 @@
   --gb-date-gap: 6px;
   --gb-date-pad-y: 6px;
   --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
-  --gb-cover-above: 2px;
+  --gb-bar-cross: 0.4;
   --gb-gutter-bias: 0.68;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
@@ -181,7 +181,7 @@
 }
 
 .gb-cal__grid-wrap.has-events {
-  padding-bottom: calc(var(--gb-name-h) + 8px);
+  padding-bottom: calc(var(--gb-name-h) * 2 + var(--gb-stack-gap) + 10px);
 }
 
 .gb-cal__grid {
@@ -312,6 +312,10 @@
   padding: 0 2px;
   box-sizing: border-box;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.gb-cal__name.is-relocated {
+  opacity: 0.96;
 }
 
 /* Circle thumbnail — gutter slot; above foreign product names */
@@ -697,7 +701,7 @@
     --gb-thumb: 30px;
     --gb-date-gap: 4px;
     --gb-date-pad-y: 5px;
-    --gb-cover-above: 2px;
+    --gb-bar-cross: 0.4;
     --gb-gutter-bias: 0.72;
   }
 

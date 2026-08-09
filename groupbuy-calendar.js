@@ -282,46 +282,125 @@
     };
   }
 
-  function verticalOverlap(aTop, aBottom, bTop, bBottom, slack = 2) {
-    return aBottom + slack > bTop && aTop - slack < bBottom;
+  function nameRect(nameEl) {
+    const left = Number.parseFloat(nameEl.style.left) || 0;
+    const top = Number.parseFloat(nameEl.style.top) || 0;
+    const width = Number.parseFloat(nameEl.style.width) || 0;
+    const height = Number.parseFloat(nameEl.style.height) || 0;
+    const pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
+    return {
+      left: left + pad,
+      right: left + width,
+      top,
+      bottom: top + height,
+      rawLeft: left,
+      width,
+      pad,
+    };
   }
 
-  function resolveCoverNameCollisions(namesEl, coversEl) {
+  function boxesOverlap(a, b, margin = 2) {
+    return !(
+      a.right + margin < b.left ||
+      a.left - margin > b.right ||
+      a.bottom + margin < b.top ||
+      a.top - margin > b.bottom
+    );
+  }
+
+  function nameHitsForeignCover(nameEl, covers, ownKey) {
+    const box = nameRect(nameEl);
+    return covers.some((coverEl) => {
+      if ((coverEl.dataset.eventKey || "") === ownKey) return false;
+      return boxesOverlap(box, coverBox(coverEl));
+    });
+  }
+
+  function applyNameBase(nameEl) {
+    nameEl.style.left = nameEl.dataset.baseLeft || "0";
+    nameEl.style.top = nameEl.dataset.baseTop || "0";
+    nameEl.style.width = nameEl.dataset.baseWidth || "0";
+    nameEl.style.paddingLeft = nameEl.dataset.basePad || "0";
+    nameEl.style.textAlign = nameEl.dataset.baseAlign || "center";
+    nameEl.classList.remove("is-relocated");
+  }
+
+  function resolveCoverNameCollisions(namesEl, coversEl, host) {
     const names = [...namesEl.children];
     const covers = [...coversEl.children];
     if (!names.length) return;
 
+    const nameH =
+      Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 10;
+    const stackGap =
+      Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 2;
+    const laneStep = nameH + stackGap + 4;
+    const maxW = namesEl.getBoundingClientRect().width || 9999;
+
     names.forEach((nameEl) => {
       const ownKey = nameEl.dataset.eventKey || "";
-      const left = Number.parseFloat(nameEl.style.left) || 0;
-      const width = Number.parseFloat(nameEl.style.width) || 0;
-      const nameTop = Number.parseFloat(nameEl.style.top) || 0;
-      const nameBottom = nameTop + (Number.parseFloat(nameEl.style.height) || 0);
-      let pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
-      let maxRight = left + width;
+      applyNameBase(nameEl);
+      if (!nameHitsForeignCover(nameEl, covers, ownKey)) return;
 
+      const baseLeft = Number.parseFloat(nameEl.dataset.baseLeft) || 0;
+      const baseTop = Number.parseFloat(nameEl.dataset.baseTop) || 0;
+      const baseWidth = Number.parseFloat(nameEl.dataset.baseWidth) || 0;
+      const slotW = Math.min(baseWidth, Math.max(72, baseWidth * 0.42));
+      const endLeft = Math.max(0, baseLeft + baseWidth - slotW);
+
+      const trySlot = (left, top, width, align, pad = "0") => {
+        nameEl.style.left = `${left}px`;
+        nameEl.style.top = `${top}px`;
+        nameEl.style.width = `${width}px`;
+        nameEl.style.paddingLeft = pad;
+        nameEl.style.textAlign = align;
+        return !nameHitsForeignCover(nameEl, covers, ownKey);
+      };
+
+      // 1) Bar end (right side)
+      if (trySlot(endLeft, baseTop, slotW, "right")) {
+        nameEl.classList.add("is-relocated");
+        return;
+      }
+
+      // 2) One row lower, original alignment
+      if (
+        trySlot(
+          baseLeft,
+          baseTop + laneStep,
+          baseWidth,
+          nameEl.dataset.baseAlign || "center",
+          nameEl.dataset.basePad || "0"
+        )
+      ) {
+        nameEl.classList.add("is-relocated");
+        return;
+      }
+
+      // 3) One row lower + bar end
+      if (trySlot(endLeft, baseTop + laneStep, slotW, "right")) {
+        nameEl.classList.add("is-relocated");
+        return;
+      }
+
+      // 4) Skip past blocking covers on the same row
+      let shiftLeft = baseLeft;
       covers.forEach((coverEl) => {
         if ((coverEl.dataset.eventKey || "") === ownKey) return;
         const cover = coverBox(coverEl);
-        if (!verticalOverlap(nameTop, nameBottom, cover.top, cover.bottom)) return;
-
-        if (cover.left > left + pad && cover.left < maxRight) {
-          maxRight = Math.min(maxRight, cover.left - 4);
-        }
-        if (cover.right > left + pad && cover.left <= left + width) {
-          const need = Math.ceil(cover.right - left + 5);
-          pad = Math.max(pad, need);
-        }
+        applyNameBase(nameEl);
+        if (!boxesOverlap(nameRect(nameEl), cover)) return;
+        shiftLeft = Math.max(shiftLeft, cover.right + 5);
       });
-
-      const cappedWidth = Math.max(28, maxRight - left);
-      if (cappedWidth < width) {
-        nameEl.style.width = `${cappedWidth}px`;
+      const shiftedW = Math.max(40, baseLeft + baseWidth - shiftLeft);
+      if (trySlot(Math.min(shiftLeft, maxW - 40), baseTop, shiftedW, "left")) {
+        nameEl.classList.add("is-relocated");
+        return;
       }
-      if (pad > 0) {
-        nameEl.style.paddingLeft = `${pad}px`;
-        nameEl.style.textAlign = "left";
-        nameEl.style.boxSizing = "border-box";
+
+      // 5) Skip past covers, lower row
+      if (trySlot(Math.min(shiftLeft, maxW - 40), baseTop + laneStep, shiftedW, "left")) {
+        nameEl.classList.add("is-relocated");
       }
     });
   }
@@ -900,15 +979,25 @@
           name.dataset.eventKey = eventKey(seg.item);
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
-          name.style.left = `${Math.max(0, left)}px`;
-          name.style.width = `${Math.max(32, width)}px`;
-          name.style.top = `${top + barH + stackGap}px`;
+          const nameLeft = Math.max(0, left);
+          const nameWidth = Math.max(32, width);
+          const nameTop = top + barH + stackGap;
+          name.style.left = `${nameLeft}px`;
+          name.style.width = `${nameWidth}px`;
+          name.style.top = `${nameTop}px`;
           name.style.height = `${nameH}px`;
+          name.dataset.baseLeft = String(nameLeft);
+          name.dataset.baseTop = String(nameTop);
+          name.dataset.baseWidth = String(nameWidth);
+          name.dataset.basePad = "0";
+          name.dataset.baseAlign = "center";
           if (seg.item.cover && coverSize) {
-            const namePad = Math.min(Math.round(coverSize * 0.5), Math.max(18, width * 0.34));
+            const namePad = Math.min(Math.round(coverSize * 0.45), Math.max(18, width * 0.34));
             name.style.paddingLeft = `${namePad}px`;
             name.style.textAlign = "left";
             name.style.boxSizing = "border-box";
+            name.dataset.basePad = String(namePad);
+            name.dataset.baseAlign = "left";
           }
           namesEl.append(name);
         });
@@ -931,8 +1020,8 @@
           const anchor = barTopByStart.get(it.startDate);
           if (!anchor) return;
           const size = anchor.coverSize || Math.min(thumbSize, 36);
-          const coverAbove =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-above")) || 2;
+          const barCross =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-cross")) || 0.4;
           const gutterBias =
             Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-gutter-bias")) || 0.68;
           const br = dayBtn.getBoundingClientRect();
@@ -947,8 +1036,7 @@
             coverX = br.left - gridRect.left - size * 0.12;
           }
           coverX -= stack * 6;
-          const bottomY = anchor.top - coverAbove;
-          const top = bottomY - size + stack * 8;
+          const top = anchor.top - size * (1 - barCross) + stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           cover.dataset.eventKey = eventKey(it);
@@ -964,7 +1052,7 @@
           coversEl.append(cover);
         });
 
-        resolveCoverNameCollisions(namesEl, coversEl);
+        resolveCoverNameCollisions(namesEl, coversEl, host);
       });
     }
 
