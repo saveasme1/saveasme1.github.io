@@ -1,18 +1,15 @@
 {
-  "id": "/?pwa=20260809-gbcal29",
+  "id": "/?pwa=20260809-gbcal30",
   "name": "본 헤리티지",
   "short_name": "본 헤리티지",
   "description": "주문제작 주얼리 포트폴리오와 실시간 소식",
   "lang": "ko",
   "dir": "ltr",
-  "start_url": "./landing.html?_pwa=20260809-gbcal29",
+  "start_url": "./landing.html?_pwa=20260809-gbcal30",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "display_override": [
-    "standalone",
-    "minimal-ui"
-  ],
+  "display_override": ["standalone"],
   "background_color": "#0b0b0c",
   "theme_color": "#0b0b0c",
   "categories": [

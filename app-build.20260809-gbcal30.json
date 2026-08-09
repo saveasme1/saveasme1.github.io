@@ -1,0 +1,10 @@
+{
+  "build": "20260809-gbcal30",
+  "deployedAt": "2026-08-09T22:47:07.224Z",
+  "note": "PWA portrait lock + update fix (all pages)",
+  "notes": [
+    "세로 화면 고정 (회전 자체 차단)",
+    "앱 업데이트 안내 복구",
+    "공동구매 캘린더 개선"
+  ]
+}

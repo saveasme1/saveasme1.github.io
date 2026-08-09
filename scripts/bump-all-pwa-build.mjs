@@ -10,7 +10,7 @@ const PREV = process.argv[3] || "20260809-gbcal28";
 const SHORT = BUILD.replace("20260809-", "");
 
 const NOTES = [
-  "세로 화면 고정 (가로·뒤집기 차단)",
+  "세로 화면 고정 (회전 자체 차단)",
   "앱 업데이트 안내 복구",
   "공동구매 캘린더 개선",
 ];
@@ -65,6 +65,11 @@ fs.writeFileSync(`app-build.${BUILD}.json`, JSON.stringify(meta, null, 2) + "\n"
 let manifest = fs.readFileSync("manifest.webmanifest", "utf8");
 manifest = manifest.replace(/"id": "[^"]+"/, `"id": "/?pwa=${BUILD}"`);
 manifest = manifest.replace(/"start_url": "[^"]+"/, `"start_url": "./landing.html?_pwa=${BUILD}"`);
+manifest = manifest.replace(
+  /"display_override": \[\s*"standalone",\s*"minimal-ui"\s*\]/,
+  '"display_override": ["standalone"]'
+);
+manifest = manifest.replace(/"orientation": "[^"]+"/, '"orientation": "portrait-primary"');
 fs.writeFileSync("manifest.webmanifest", manifest);
 
 console.log("done", BUILD);

@@ -1,14 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal29";
+  const APP_BUILD = "20260809-gbcal30";
   const APP_VERSION = "v1.12.31";
   const RELEASE_NOTES = [
-    "세로 화면 고정 (가로·뒤집기 차단)",
+    "세로 화면 고정 (회전 자체 차단)",
     "앱 업데이트 안내 복구",
     "공동구매 캘린더 개선",
   ];
-  const PORTRAIT_LOCK_ID = "pwaPortraitLock";
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
@@ -94,61 +93,19 @@
   }
 
   /**
-   * PWA: portrait-only — manifest + Screen Orientation API + landscape blocker (iOS).
+   * PWA portrait lock — prevent rotation (not a "please rotate" overlay).
+   * Android standalone: Screen Orientation API lock.
+   * iOS / all: manifest portrait-primary + never switch to landscape layout class.
    */
   function lockPortraitOrientation() {
     if (!isPwaMode()) return;
     const root = document.documentElement;
-    root.classList.add("is-device-portrait", "portrait-lock-active");
+    root.classList.add("is-device-portrait");
+    root.classList.remove("is-device-landscape", "is-landscape-blocked", "portrait-lock-active");
 
-    function ensureLandscapeBlocker() {
-      let el = document.getElementById(PORTRAIT_LOCK_ID);
-      if (!el) {
-        el = document.createElement("div");
-        el.id = PORTRAIT_LOCK_ID;
-        el.setAttribute("role", "alert");
-        el.innerHTML =
-          '<div class="pwa-portrait-lock__inner">' +
-          "<strong>세로로 사용해 주세요</strong>" +
-          "<span>본 헤리티지 앱은 세로 화면만 지원합니다.</span>" +
-          "</div>";
-        document.documentElement.appendChild(el);
-        if (!document.getElementById("pwaPortraitLockStyle")) {
-          const st = document.createElement("style");
-          st.id = "pwaPortraitLockStyle";
-          st.textContent =
-            `#${PORTRAIT_LOCK_ID}{display:none;position:fixed;inset:0;z-index:2147483646;` +
-            "background:#0b0b0c;color:#f5f0e8;place-items:center;padding:24px;text-align:center;" +
-            'font-family:Pretendard,"Noto Sans KR",sans-serif}' +
-            `#${PORTRAIT_LOCK_ID} .pwa-portrait-lock__inner{display:grid;gap:10px;max-width:280px}` +
-            `#${PORTRAIT_LOCK_ID} strong{font-size:18px;font-weight:800;letter-spacing:-.03em}` +
-            `#${PORTRAIT_LOCK_ID} span{font-size:13px;line-height:1.5;color:rgba(245,240,232,.72)}` +
-            "@media (orientation:landscape) and (max-height:520px){" +
-            `#${PORTRAIT_LOCK_ID}{display:grid}}` +
-            "html.is-pwa.portrait-lock-active.is-landscape-blocked body{overflow:hidden}";
-          document.head.appendChild(st);
-        }
-      }
-      return el;
-    }
-
-    function readLandscape() {
-      try {
-        const type = String((screen.orientation && screen.orientation.type) || "");
-        if (type.indexOf("landscape") === 0) return true;
-        if (type.indexOf("portrait") === 0) return false;
-      } catch (_) {}
-      const w = Number(window.innerWidth) || 0;
-      const h = Number(window.innerHeight) || 1;
-      return w > h * 1.05;
-    }
-
-    function applyPortrait() {
+    function tryLock() {
       root.classList.remove("is-device-landscape");
       root.classList.add("is-device-portrait");
-      const land = readLandscape();
-      root.classList.toggle("is-landscape-blocked", land);
-      ensureLandscapeBlocker().hidden = !land;
       try {
         if (screen.orientation && typeof screen.orientation.lock === "function") {
           screen.orientation.lock("portrait-primary").catch(() => {});
@@ -156,26 +113,20 @@
       } catch (_) {}
     }
 
-    applyPortrait();
-    ["orientationchange", "resize"].forEach((ev) => {
-      window.addEventListener(ev, applyPortrait, { passive: true });
+    tryLock();
+    ["orientationchange", "resize", "focus", "pageshow"].forEach((ev) => {
+      window.addEventListener(ev, tryLock, { passive: true });
     });
     try {
       if (screen.orientation && screen.orientation.addEventListener) {
-        screen.orientation.addEventListener("change", applyPortrait);
+        screen.orientation.addEventListener("change", tryLock);
       }
     } catch (_) {}
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") applyPortrait();
+      if (document.visibilityState === "visible") tryLock();
     });
-    // Android: lock often needs a user gesture
-    const gestureLock = () => {
-      applyPortrait();
-      window.removeEventListener("touchstart", gestureLock, true);
-      window.removeEventListener("click", gestureLock, true);
-    };
-    window.addEventListener("touchstart", gestureLock, { capture: true, passive: true });
-    window.addEventListener("click", gestureLock, { capture: true });
+    window.addEventListener("touchstart", tryLock, { capture: true, passive: true });
+    window.addEventListener("click", tryLock, { capture: true });
   }
 
   lockPortraitOrientation();
