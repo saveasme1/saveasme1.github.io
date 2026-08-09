@@ -1,5 +1,5 @@
 /* Heritage PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260806-hide1";
+const CACHE_VERSION = "hx-pwa-v20260809-gbcal1";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -31,6 +31,8 @@ const PRECACHE = [
   "./price-trend-panel.css",
   "./search.css",
   "./pwa-app.css",
+  "./groupbuy-calendar.css",
+  "./groupbuy-calendar.js",
   "./pwa-home.js",
   "./hx-store.js",
   "./hx-catalog.js",

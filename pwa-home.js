@@ -1015,6 +1015,19 @@
     //   window.HxDiscover.mountHomeTeasers(host).catch(() => {});
     // }
 
+    // —— Group buy calendar (above dropbar) ——
+    const gbSec = document.createElement("section");
+    gbSec.className = "pwa-groupbuy";
+    gbSec.id = "pwaGroupbuy";
+    gbSec.setAttribute("aria-label", "공동구매");
+    const gbMount = document.createElement("div");
+    gbMount.dataset.gbCalRoot = "1";
+    gbSec.append(gbMount);
+    host.append(gbSec);
+    if (window.GroupbuyCalendar?.mount) {
+      gbMount._gbCal = window.GroupbuyCalendar.mount(gbMount);
+    }
+
     // —— Heritage opening event countdown ——
     const dropBar = document.createElement("section");
     dropBar.className = "pwa-dropbar";

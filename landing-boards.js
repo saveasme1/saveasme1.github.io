@@ -126,6 +126,8 @@
       board.section.hidden = true;
     });
     if (!except) state.active = "";
+    const gb = document.getElementById("groupbuyPanel");
+    if (gb && except !== "groupbuy") gb.hidden = true;
   }
 
   function closeDetail() {
