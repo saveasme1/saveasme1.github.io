@@ -861,7 +861,17 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = anchor.top + (anchor.barH - size) / 2 + stack * 8;
+          const numEl = dayBtn.querySelector(".gb-cal__num");
+          const numRect = numEl ? numEl.getBoundingClientRect() : dayBtn.getBoundingClientRect();
+          const numBottom = numRect.bottom - gridRect.top;
+          const coverOverlap =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-overlap")) || 0;
+          let top;
+          if (coverOverlap > 0) {
+            top = numBottom - coverOverlap - size + stack * 6;
+          } else {
+            top = anchor.top + (anchor.barH - size) / 2 + stack * 8;
+          }
           cover.style.left = `${anchor.coverX - stack * 6}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;

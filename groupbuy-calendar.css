@@ -45,6 +45,7 @@
   --gb-cap-peek: 8px;
   --gb-date-gap: 3px;
   --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
+  --gb-cover-overlap: 0px;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background: var(--gb-cal-bg);
@@ -659,6 +660,20 @@
   min-height: 1.2em;
   font-size: 12px;
   color: var(--gb-cal-muted);
+}
+
+/* Mobile: lift cover up — only ~3px nibbles date bottom; digits stay on top */
+@media (max-width: 767px) {
+  .gb-cal {
+    --gb-cover-overlap: 3px;
+    --gb-thumb: 30px;
+    --gb-date-gap: 1px;
+  }
+
+  .gb-cal__num {
+    z-index: 6;
+    text-shadow: 0 0 3px #fafafa, 0 1px 0 #fff;
+  }
 }
 
 @media (min-width: 768px) {
