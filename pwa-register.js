@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal31";
+  const APP_BUILD = "20260809-gbcal32";
   const APP_VERSION = "v1.12.31";
   const RELEASE_NOTES = [
-    "세로 화면 고정 (회전 자체 차단)",
+    "세로 고정 (커서모바일앱과 동일 방식)",
     "앱 업데이트 안내 복구",
     "공동구매 캘린더 개선",
   ];
@@ -15,6 +15,9 @@
   const DIALOG_ID = "pwaUpdateDialog";
   const RECOVER_KEY = "hx.pwa.mojibakeRecover";
   const UPDATE_SNOOZE_KEY = "hx.pwa.updateSnooze";
+  const INSTALLED_BUILD_KEY = "hx.pwa.installedBuild";
+  const MIN_INSTALL_BUILD = "20260809-gbcal31";
+  const REINSTALL_GATE_ID = "pwaReinstallGate";
 
   /** Only true after customer taps 「업데이트」 */
   let userApprovedUpdate = false;
@@ -90,6 +93,70 @@
   markPwaMode();
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", markPwaMode);
+  }
+
+  function compareBuild(a, b) {
+    return String(a || "").localeCompare(String(b || ""));
+  }
+
+  function needsReinstallGate() {
+    if (!isPwaMode()) return false;
+    if (/install\.html/i.test(location.pathname)) return false;
+    const installed = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
+    if (!installed) return true;
+    return compareBuild(installed, MIN_INSTALL_BUILD) < 0;
+  }
+
+  function ensureReinstallGateStyles() {
+    if (document.getElementById("pwaReinstallGateStyle")) return;
+    const style = document.createElement("style");
+    style.id = "pwaReinstallGateStyle";
+    style.textContent =
+      "html.is-pwa.is-pwa-reinstall-required body{overflow:hidden!important;background:#0b0b0c!important}" +
+      "html.is-pwa.is-pwa-reinstall-required #pwaHome," +
+      "html.is-pwa.is-pwa-reinstall-required .gb-bottom-nav," +
+      "html.is-pwa.is-pwa-reinstall-required .landing," +
+      "html.is-pwa.is-pwa-reinstall-required .pwa-groupbuy," +
+      "html.is-pwa.is-pwa-reinstall-required main," +
+      "html.is-pwa.is-pwa-reinstall-required .site-nav," +
+      "html.is-pwa.is-pwa-reinstall-required .atmosphere{display:none!important}" +
+      `#${REINSTALL_GATE_ID}{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:#0b0b0c;color:#f5f0e8;font-family:Pretendard,"Noto Sans KR",sans-serif}` +
+      `#${REINSTALL_GATE_ID} .pwa-reinstall__card{width:min(360px,100%);border-radius:22px;padding:24px 20px;border:1px solid rgba(201,166,107,.35);background:linear-gradient(180deg,#1c1b19,#141312);box-shadow:0 24px 60px rgba(0,0,0,.45)}` +
+      `#${REINSTALL_GATE_ID} h2{margin:0 0 10px;font-size:20px;font-weight:800;letter-spacing:-.03em}` +
+      `#${REINSTALL_GATE_ID} p{margin:0;color:rgba(245,240,232,.72);font-size:14px;line-height:1.6}` +
+      `#${REINSTALL_GATE_ID} ol{margin:14px 0 0;padding-left:18px;color:rgba(245,240,232,.78);font-size:13px;line-height:1.55}` +
+      `#${REINSTALL_GATE_ID} a{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:18px;border-radius:14px;background:linear-gradient(145deg,#f0d09a,#e8b86d 55%,#d4924a);color:#161513;font-size:15px;font-weight:800;text-decoration:none}` +
+      `#${REINSTALL_GATE_ID} a:active{filter:brightness(.97}`;
+    document.head.appendChild(style);
+  }
+
+  function showReinstallGate() {
+    if (!needsReinstallGate()) return false;
+    document.documentElement.classList.add("is-pwa-reinstall-required");
+    ensureReinstallGateStyles();
+    if (document.getElementById(REINSTALL_GATE_ID)) return true;
+    const installUrl = new URL("./install.html", location.href).href;
+    const gate = document.createElement("div");
+    gate.id = REINSTALL_GATE_ID;
+    gate.setAttribute("role", "dialog");
+    gate.setAttribute("aria-modal", "true");
+    gate.innerHTML =
+      '<div class="pwa-reinstall__card">' +
+      "<h2>앱 재설치가 필요합니다</h2>" +
+      "<p>세로 고정·최신 기능 적용을 위해 홈화면 아이콘을 삭제한 뒤 다시 설치해 주세요.</p>" +
+      "<ol>" +
+      "<li>홈화면 <strong>본 헤리티지</strong> 아이콘 길게 눌러 <strong>삭제</strong></li>" +
+      "<li>아래 버튼으로 설치 페이지 열기</li>" +
+      "<li>다시 <strong>홈 화면에 추가</strong></li>" +
+      "</ol>" +
+      `<a href="${installUrl}">재설치 안내 · 설치 페이지 열기</a>` +
+      "</div>";
+    (document.body || document.documentElement).appendChild(gate);
+    return true;
+  }
+
+  if (showReinstallGate()) {
+    window.__HX_PWA_REINSTALL_REQUIRED = true;
   }
 
   /**
@@ -656,6 +723,7 @@
   });
 
   const register = () => {
+    if (window.__HX_PWA_REINSTALL_REQUIRED) return;
     const swUrl = new URL(`sw.js?v=${APP_BUILD}`, location.href).href;
 
     navigator.serviceWorker

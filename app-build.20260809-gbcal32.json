@@ -1,0 +1,11 @@
+{
+  "build": "20260809-gbcal32",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-09T23:24:55.266Z",
+  "note": "PWA reinstall gate + analytics",
+  "notes": [
+    "재설치 안내 게이트 (기존 앱 숨김)",
+    "방문자·설치·PWA 세션 서버 집계",
+    "세로 고정 (커서모바일앱 동일)"
+  ]
+}

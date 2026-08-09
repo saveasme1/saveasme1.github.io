@@ -10,10 +10,12 @@ const PREV = process.argv[3] || "20260809-gbcal28";
 const SHORT = BUILD.replace("20260809-", "");
 
 const NOTES = [
-  "세로 고정 (커서모바일앱 rd38 동일 — 재설치 필요)",
-  "앱 업데이트 안내 복구",
-  "공동구매 캘린더 개선",
+  "재설치 안내 게이트 (기존 앱 숨김)",
+  "방문자·설치·PWA 세션 서버 집계",
+  "세로 고정 (커서모바일앱 동일)",
 ];
+
+const MIN_INSTALL_BUILD = "20260809-gbcal31";
 
 const PORTRAIT_SNIPPET = `<meta name="screen-orientation" content="portrait">`;
 
@@ -33,6 +35,17 @@ function ensurePortrait(html) {
     html = html.replace(/(<\/head>)/i, `  ${FORCE_PORTRAIT_SCRIPT}\n$1`);
   }
   return html;
+}
+
+function ensureAnalytics(html, build) {
+  if (!html.includes("pwa-register.js")) return html;
+  if (html.includes("pwa-analytics.js")) {
+    return html.replace(/pwa-analytics\.js\?v=[^"']+/g, `pwa-analytics.js?v=${build}`);
+  }
+  return html.replace(
+    /(<script src="pwa-register\.js\?v=[^"']+"><\/script>)/,
+    `<script src="pwa-analytics.js?v=${build}"></script>\n  $1`
+  );
 }
 
 function esc(s) {
@@ -60,6 +73,7 @@ for (const file of htmlFiles) {
   );
   t = t.replace(/<!-- cache-bust: [^>]+ -->/g, `<!-- cache-bust: ${BUILD} -->`);
   t = ensurePortrait(t);
+  t = ensureAnalytics(t, BUILD);
   if (t !== before) {
     fs.writeFileSync(file, t);
     console.log("bumped html", file);
@@ -68,6 +82,10 @@ for (const file of htmlFiles) {
 
 let reg = fs.readFileSync("pwa-register.js", "utf8");
 reg = reg.replace(/const APP_BUILD = "[^"]+";/, `const APP_BUILD = "${BUILD}";`);
+reg = reg.replace(
+  /const MIN_INSTALL_BUILD = "[^"]+";/,
+  `const MIN_INSTALL_BUILD = "${MIN_INSTALL_BUILD}";`
+);
 fs.writeFileSync("pwa-register.js", reg);
 
 let sw = fs.readFileSync("sw.js", "utf8");
@@ -76,8 +94,9 @@ fs.writeFileSync("sw.js", sw);
 
 const meta = {
   build: BUILD,
+  minInstallBuild: MIN_INSTALL_BUILD,
   deployedAt: new Date().toISOString(),
-  note: "PWA portrait lock + update fix (all pages)",
+  note: "PWA reinstall gate + analytics",
   notes: NOTES,
 };
 fs.writeFileSync("app-build.json", JSON.stringify(meta) + "\n");

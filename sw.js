@@ -110,6 +110,7 @@ const PRECACHE = [
   "./mypage.js",
   "./search.js",
   "./pwa-register.js",
+  "./pwa-analytics.js",
   "./tryon-overlay.js",
   "./shipping-data.json",
   "./portfolio-data.json",
