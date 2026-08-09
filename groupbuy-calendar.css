@@ -45,7 +45,8 @@
   --gb-cap-peek: 8px;
   --gb-date-gap: 3px;
   --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
-  --gb-cover-overlap: 0px;
+  --gb-bar-cross: 5px;
+  --gb-gutter-bias: 0.68;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background: var(--gb-cal-bg);
@@ -662,17 +663,17 @@
   color: var(--gb-cal-muted);
 }
 
-/* Mobile: lift cover up — only ~3px nibbles date bottom; digits stay on top */
+/* Mobile: same gutter/cross rules — capsule stays below dates */
 @media (max-width: 767px) {
   .gb-cal {
-    --gb-cover-overlap: 3px;
     --gb-thumb: 30px;
-    --gb-date-gap: 1px;
+    --gb-date-gap: 2px;
+    --gb-bar-cross: 4px;
+    --gb-gutter-bias: 0.72;
   }
 
   .gb-cal__num {
     z-index: 6;
-    text-shadow: 0 0 3px #fafafa, 0 1px 0 #fff;
   }
 }
 

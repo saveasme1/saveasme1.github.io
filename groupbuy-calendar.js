@@ -801,13 +801,11 @@
           const cellLeft = sr.left - gridRect.left + padX;
           let left = cellLeft;
           let width = er.right - sr.left - padX * 2;
-          let coverX = null;
           let coverSize = 0;
           if (seg.roundLeft && seg.item.cover) {
             coverSize = Math.min(thumbSize, 36);
-            const peek = Math.min(capPeek, coverSize * 0.28);
-            coverX = cellLeft + coverSize * 0.38;
-            left = coverX - coverSize * 0.5 - peek;
+            const peek = Math.min(capPeek, 6);
+            left = cellLeft - peek;
             width = er.right - gridRect.left - left - padX;
           }
           const baseLine = dateBaseline(seg.startIdx);
@@ -824,8 +822,8 @@
               left,
               width,
               barH,
-              coverX,
               coverSize,
+              startIdx: seg.startIdx,
             });
           }
 
@@ -841,7 +839,7 @@
           namesEl.append(name);
         });
 
-        // 2) Cover on extended capsule (below date row — dates stay clear).
+        // 2) Cover in gutter before start day (e.g. between 9–10, near 10); bottom crosses bar top.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -852,8 +850,25 @@
           const stack = coverLane.get(it.startDate) || 0;
           coverLane.set(it.startDate, stack + 1);
           const anchor = barTopByStart.get(it.startDate);
-          if (!anchor || anchor.coverX == null) return;
-          const size = anchor.coverSize || Math.min(thumbSize, 38);
+          if (!anchor) return;
+          const size = anchor.coverSize || Math.min(thumbSize, 36);
+          const barCross =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-cross")) || 5;
+          const gutterBias =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-gutter-bias")) || 0.68;
+          const br = dayBtn.getBoundingClientRect();
+          const prevBtn = dayBtns[idx - 1];
+          let coverX;
+          if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
+            const pr = prevBtn.getBoundingClientRect();
+            const g0 = pr.right - gridRect.left;
+            const g1 = br.left - gridRect.left;
+            coverX = g0 + (g1 - g0) * gutterBias;
+          } else {
+            coverX = br.left - gridRect.left - size * 0.12;
+          }
+          coverX -= stack * 6;
+          const top = anchor.top + barCross - size + stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -861,18 +876,7 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const numEl = dayBtn.querySelector(".gb-cal__num");
-          const numRect = numEl ? numEl.getBoundingClientRect() : dayBtn.getBoundingClientRect();
-          const numBottom = numRect.bottom - gridRect.top;
-          const coverOverlap =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-overlap")) || 0;
-          let top;
-          if (coverOverlap > 0) {
-            top = numBottom - coverOverlap - size + stack * 6;
-          } else {
-            top = anchor.top + (anchor.barH - size) / 2 + stack * 8;
-          }
-          cover.style.left = `${anchor.coverX - stack * 6}px`;
+          cover.style.left = `${coverX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;
           cover.style.height = `${size}px`;
