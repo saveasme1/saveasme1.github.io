@@ -1,0 +1,10 @@
+{
+  "build": "20260809-gbcal31",
+  "deployedAt": "2026-08-09T23:10:08.451Z",
+  "note": "PWA portrait lock + update fix (all pages)",
+  "notes": [
+    "세로 고정 (커서모바일앱 rd38 동일 — 재설치 필요)",
+    "앱 업데이트 안내 복구",
+    "공동구매 캘린더 개선"
+  ]
+}

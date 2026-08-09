@@ -3,7 +3,7 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.gbcal30";
+      var KEY = "hx.pwa.forceNuke.gbcal31";
       try { if (localStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { localStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
@@ -36,6 +36,7 @@
 <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="screen-orientation" content="portrait">
   <meta name="robots" content="noindex, nofollow">
   <title>본 헤리티지 · 그랜드 오픈 기념 이벤트</title>
   <meta name="theme-color" content="#161513">
@@ -56,7 +57,7 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260809-gbcal30">
+  <link rel="manifest" href="manifest.webmanifest?v=20260809-gbcal31">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
@@ -186,6 +187,9 @@
       .ev { padding-top: 96px; }
     }
   </style>
+  <script>
+    (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
+  </script>
 </head>
 <body class="ev-page">
   <main class="ev" aria-label="헤리티지 오픈 이벤트">
@@ -220,7 +224,7 @@
 
   <script src="gongbang-auth.js?v=20260728-pwa78"></script>
   <script src="site-nav.js?v=20260728-pwa78"></script>
-  <script src="pwa-register.js?v=20260809-gbcal30"></script>
+  <script src="pwa-register.js?v=20260809-gbcal31"></script>
   <script>
     (function () {
       var kakao =

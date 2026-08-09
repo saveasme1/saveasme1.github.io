@@ -3,7 +3,7 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.gbcal30";
+      var KEY = "hx.pwa.forceNuke.gbcal31";
       try { if (localStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { localStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
@@ -35,12 +35,16 @@
 
 <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="screen-orientation" content="portrait">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta http-equiv="refresh" content="0; url=/admin/">
   <link rel="canonical" href="/admin/">
   <title>공방171 포트폴리오 관리자</title>
   <script>
     location.replace("/admin/" + location.search + location.hash);
+  </script>
+  <script>
+    (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
   </script>
 </head>
 <body>

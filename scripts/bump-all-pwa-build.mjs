@@ -10,10 +10,30 @@ const PREV = process.argv[3] || "20260809-gbcal28";
 const SHORT = BUILD.replace("20260809-", "");
 
 const NOTES = [
-  "세로 화면 고정 (회전 자체 차단)",
+  "세로 고정 (커서모바일앱 rd38 동일 — 재설치 필요)",
   "앱 업데이트 안내 복구",
   "공동구매 캘린더 개선",
 ];
+
+const PORTRAIT_SNIPPET = `<meta name="screen-orientation" content="portrait">`;
+
+const FORCE_PORTRAIT_SCRIPT = `<script>
+    (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
+  </script>`;
+
+function ensurePortrait(html) {
+  if (!html.includes('name="viewport"')) return html;
+  if (!html.includes('name="screen-orientation"')) {
+    html = html.replace(
+      /(<meta name="viewport"[^>]*>)/i,
+      `$1\n  ${PORTRAIT_SNIPPET}`
+    );
+  }
+  if (!html.includes("function forcePortrait")) {
+    html = html.replace(/(<\/head>)/i, `  ${FORCE_PORTRAIT_SCRIPT}\n$1`);
+  }
+  return html;
+}
 
 function esc(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -39,6 +59,7 @@ for (const file of htmlFiles) {
     'localStorage.removeItem("hx.pwa.updateSnooze");'
   );
   t = t.replace(/<!-- cache-bust: [^>]+ -->/g, `<!-- cache-bust: ${BUILD} -->`);
+  t = ensurePortrait(t);
   if (t !== before) {
     fs.writeFileSync(file, t);
     console.log("bumped html", file);
@@ -69,7 +90,7 @@ manifest = manifest.replace(
   /"display_override": \[\s*"standalone",\s*"minimal-ui"\s*\]/,
   '"display_override": ["standalone"]'
 );
-manifest = manifest.replace(/"orientation": "[^"]+"/, '"orientation": "portrait-primary"');
+manifest = manifest.replace(/"orientation": "[^"]+"/, '"orientation": "portrait"');
 fs.writeFileSync("manifest.webmanifest", manifest);
 
 console.log("done", BUILD);

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal30";
+  const APP_BUILD = "20260809-gbcal31";
   const APP_VERSION = "v1.12.31";
   const RELEASE_NOTES = [
     "세로 화면 고정 (회전 자체 차단)",
@@ -93,9 +93,7 @@
   }
 
   /**
-   * PWA portrait lock — prevent rotation (not a "please rotate" overlay).
-   * Android standalone: Screen Orientation API lock.
-   * iOS / all: manifest portrait-primary + never switch to landscape layout class.
+   * Same as cursorphone-relay rd38 — OS portrait lock via Screen Orientation API.
    */
   function lockPortraitOrientation() {
     if (!isPwaMode()) return;
@@ -107,26 +105,33 @@
       root.classList.remove("is-device-landscape");
       root.classList.add("is-device-portrait");
       try {
-        if (screen.orientation && typeof screen.orientation.lock === "function") {
-          screen.orientation.lock("portrait-primary").catch(() => {});
+        const o = screen.orientation || screen.mozOrientation || screen.msOrientation;
+        if (o && typeof o.lock === "function") {
+          Promise.resolve(o.lock("portrait-primary")).catch(() => {
+            Promise.resolve(o.lock("portrait")).catch(() => {});
+          });
         }
+      } catch (_) {}
+      try {
+        if (typeof screen.lockOrientation === "function") screen.lockOrientation("portrait-primary");
+        if (typeof screen.mozLockOrientation === "function") screen.mozLockOrientation("portrait-primary");
+        if (typeof screen.msLockOrientation === "function") screen.msLockOrientation("portrait-primary");
       } catch (_) {}
     }
 
     tryLock();
-    ["orientationchange", "resize", "focus", "pageshow"].forEach((ev) => {
-      window.addEventListener(ev, tryLock, { passive: true });
+    window.addEventListener("orientationchange", () => {
+      setTimeout(tryLock, 30);
+      setTimeout(tryLock, 200);
     });
-    try {
-      if (screen.orientation && screen.orientation.addEventListener) {
-        screen.orientation.addEventListener("change", tryLock);
-      }
-    } catch (_) {}
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") tryLock();
+      if (!document.hidden) tryLock();
     });
-    window.addEventListener("touchstart", tryLock, { capture: true, passive: true });
-    window.addEventListener("click", tryLock, { capture: true });
+    window.addEventListener("focus", tryLock);
+    document.addEventListener("touchstart", tryLock, { passive: true, capture: true });
+    document.addEventListener("pointerdown", tryLock, { passive: true, capture: true });
+    document.addEventListener("click", tryLock, true);
+    window.setInterval(tryLock, 1500);
   }
 
   lockPortraitOrientation();
