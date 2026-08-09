@@ -815,24 +815,40 @@
           }
 
           if (seg.roundLeft) {
-            barTopByStart.set(seg.item.startDate, top);
+            barTopByStart.set(seg.item.startDate, {
+              top,
+              startLeft: sr.left - gridRect.left,
+              startWidth: sr.width,
+              barLeft: left,
+              barWidth: width,
+            });
           }
 
-          // Product name under the painted date bar.
+          // Product name once (event start only) — beside cover, never overlapping.
+          if (!seg.roundLeft) return;
           const name = document.createElement("div");
           name.className = "gb-cal__name";
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
-          const nameLeft = Math.max(0, left);
+          const barRight = left + width;
+          const startCenter = sr.left - gridRect.left + sr.width / 2;
+          let nameLeft = left;
+          let nameTop = top + barH + 1;
           let nameWidth = Math.max(40, width);
-          // Keep title clear of the start-day cover that straddles the capsule.
-          if (seg.roundLeft && seg.item.cover) {
-            const inset = Math.min(thumbSize * 0.55, Math.max(18, width * 0.35));
-            name.style.paddingLeft = `${inset}px`;
+          if (seg.item.cover) {
+            // Name starts to the right of the cover circle.
+            nameLeft = startCenter + thumbSize / 2 + 6;
+            nameWidth = Math.max(28, barRight - nameLeft);
+            if (nameWidth < 52) {
+              // Short span: put title under the cover instead of beside.
+              nameLeft = left;
+              nameWidth = Math.max(40, width);
+              nameTop = top + barH + thumbSize * 0.62;
+            }
           }
-          name.style.left = `${nameLeft}px`;
+          name.style.left = `${Math.max(0, nameLeft)}px`;
           name.style.width = `${nameWidth}px`;
-          name.style.top = `${top + barH + 1}px`;
+          name.style.top = `${nameTop}px`;
           name.style.height = `${nameH}px`;
           namesEl.append(name);
         });
@@ -842,7 +858,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover straddles the capsule (top into bar; numbers/names stay above).
+        // 2) Cover on start day, straddles capsule; sits left of the product name.
         const coverLane = new Map();
         state.items.forEach((it) => {
           if (!it.cover) return;
@@ -854,8 +870,14 @@
           const stack = coverLane.get(idx) || 0;
           coverLane.set(idx, stack + 1);
           const br = dayBtn.getBoundingClientRect();
-          const numEl = dayBtn.querySelector(".gb-cal__num");
-          const numRect = numEl ? numEl.getBoundingClientRect() : br;
+          const anchor = barTopByStart.get(it.startDate);
+          const barTop =
+            anchor?.top ??
+            (() => {
+              const numEl = dayBtn.querySelector(".gb-cal__num");
+              const numRect = numEl ? numEl.getBoundingClientRect() : br;
+              return numRect.top - gridRect.top + (numRect.height - barH) / 2;
+            })();
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -863,13 +885,9 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
+          // Center of start-day cell (name is laid out to the right of this).
           const left = br.left - gridRect.left + br.width / 2 + stack * 8;
-          const barTop =
-            barTopByStart.has(it.startDate)
-              ? barTopByStart.get(it.startDate)
-              : numRect.top - gridRect.top + (numRect.height - barH) / 2;
-          // ~30% of the circle sits on the capsule.
-          const top = barTop + barH - thumbSize * 0.3 + stack * 8;
+          const top = barTop + barH - thumbSize * 0.28 + stack * 8;
           cover.style.left = `${left}px`;
           cover.style.top = `${top}px`;
           cover.style.width = `${thumbSize}px`;
