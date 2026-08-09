@@ -825,7 +825,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover image above capsule bar (start day only).
+        // 2) Circle cover in gutter between start date and next date (never over day numbers).
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -844,7 +844,15 @@
               const numRect = numEl ? numEl.getBoundingClientRect() : br;
               return numRect.top - gridRect.top + (numRect.height - barH) / 2;
             })();
-          const coverCenterX = br.left - gridRect.left + br.width / 2;
+          const nextBtn = dayBtns[idx + 1];
+          let coverX;
+          if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
+            const nr = nextBtn.getBoundingClientRect();
+            coverX = (br.right + nr.left) / 2 - gridRect.left;
+          } else {
+            coverX = br.right - gridRect.left - 1;
+          }
+          coverX += stack * 6;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -852,8 +860,8 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = barTop - thumbSize - stackGap - stack * (thumbSize * 0.35);
-          cover.style.left = `${coverCenterX}px`;
+          const top = barTop + (barH - thumbSize) / 2 + stack * 6;
+          cover.style.left = `${coverX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${thumbSize}px`;
           cover.style.height = `${thumbSize}px`;
