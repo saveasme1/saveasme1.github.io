@@ -1,9 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal27";
-  const APP_VERSION = "v1.12.29";
-  const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
+  const APP_BUILD = "20260809-gbcal28";
+  const APP_VERSION = "v1.12.30";
+  const RELEASE_NOTES = [
+    "공동구매 캘린더 레이아웃 개선",
+    "세로 화면 고정 (가로·뒤집기 비활성)",
+    "앱 업데이트 안내 복구",
+  ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
@@ -89,92 +93,37 @@
   }
 
   /**
-   * MO/TB PWA: bind layout to real device orientation only.
-   * Avoid viewport width/height (keyboard / chrome can fake "landscape").
-   * Debounce + sticky so micro tilts do not flip 가로/세로 layouts.
+   * PWA: portrait-only — no landscape, no 180° upside-down.
    */
-  function bindDeviceOrientationClass() {
+  function lockPortraitOrientation() {
     if (!isPwaMode()) return;
     const root = document.documentElement;
-    let timer = 0;
-    let stickyLand = null;
-    let pendingLand = null;
 
-    function isMoTbShell() {
+    function applyPortrait() {
+      root.classList.add("is-device-portrait");
+      root.classList.remove("is-device-landscape");
       try {
-        if (window.matchMedia("(pointer: fine) and (hover: hover)").matches) {
-          const shortSide = Math.min(window.screen.width || 0, window.screen.height || 0);
-          if (shortSide >= 1100) return false;
+        if (screen.orientation && typeof screen.orientation.lock === "function") {
+          screen.orientation.lock("portrait-primary").catch(() => {});
         }
       } catch (_) {}
-      return true;
     }
 
-    function readLandscape() {
-      try {
-        const type = String((window.screen && screen.orientation && screen.orientation.type) || "");
-        if (type.indexOf("landscape") === 0) return true;
-        if (type.indexOf("portrait") === 0) return false;
-      } catch (_) {}
-      const w = Number(window.innerWidth) || 0;
-      const h = Number(window.innerHeight) || 1;
-      const ratio = w / h;
-      if (stickyLand === true) return ratio >= 0.95;
-      if (stickyLand === false) return ratio > 1.2;
-      return ratio > 1.15;
-    }
-
-    function commit(next) {
-      stickyLand = next;
-      pendingLand = next;
-      root.classList.toggle("is-device-landscape", next);
-      root.classList.toggle("is-device-portrait", !next);
-    }
-
-    function apply(force) {
-      if (!isMoTbShell()) {
-        root.classList.remove("is-device-landscape", "is-device-portrait");
-        stickyLand = null;
-        pendingLand = null;
-        return;
-      }
-      const next = readLandscape();
-      if (force || stickyLand === null) {
-        commit(next);
-        return;
-      }
-      if (next === stickyLand) {
-        pendingLand = next;
-        return;
-      }
-      // Two agreeing samples required before flipping (stops auto flip-flop).
-      if (pendingLand === next) {
-        commit(next);
-        return;
-      }
-      pendingLand = next;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => apply(false), 280);
-    }
-
-    function schedule() {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => apply(false), 360);
-    }
-
-    apply(true);
-    window.addEventListener("orientationchange", schedule, { passive: true });
+    applyPortrait();
+    window.addEventListener("orientationchange", applyPortrait, { passive: true });
     try {
       if (screen.orientation && screen.orientation.addEventListener) {
-        screen.orientation.addEventListener("change", schedule);
+        screen.orientation.addEventListener("change", applyPortrait);
       }
     } catch (_) {}
-    window.addEventListener("resize", schedule, { passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") applyPortrait();
+    });
   }
 
-  bindDeviceOrientationClass();
+  lockPortraitOrientation();
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindDeviceOrientationClass);
+    document.addEventListener("DOMContentLoaded", lockPortraitOrientation);
   }
 
   function ensureAppCss() {
@@ -628,10 +577,13 @@
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.20260809-gbcal12.json`, location.href);
+      const url = new URL("./app-build.json", location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
-      const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
+      const res = await fetch(url.href, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
@@ -639,7 +591,6 @@
       if (!remoteBuild) return;
       pendingRemoteBuild = remoteBuild;
 
-      // Already on remote build — never show update dialog again.
       if (remoteBuild === APP_BUILD) {
         localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
         localStorage.setItem(BUILD_KEY, APP_BUILD);
@@ -647,41 +598,12 @@
         if (chip) chip.hidden = true;
         return;
       }
-      // remote newer — hard clear + reload (no snooze dialog)
-      try { localStorage.removeItem(UPDATE_SNOOZE_KEY); } catch (_) {}
-      pendingRemoteBuild = remoteBuild;
-      remoteNotes = Array.isArray(data.notes) ? data.notes : remoteNotes;
-      userApprovedUpdate = true;
-      try {
-        if (window.caches) {
-          const ks = await caches.keys();
-          await Promise.all(ks.map((k) => caches.delete(k)));
-        }
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.unregister()));
-      } catch (_) {}
-      localStorage.setItem(ACTIVATED_KEY, remoteBuild);
-      localStorage.setItem(BUILD_KEY, remoteBuild);
-      const u = new URL(location.href);
-      u.searchParams.set("_pwa", remoteBuild);
-      location.replace(u.href);
-      return;
 
-      // Running script is behind app-build.20260809-gbcal12.json
-  // (prevents endless update loop when APP_BUILD lagged behind remote).
-  try {
-    const marked = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-    if (!marked) {
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
-    } else if (marked === APP_BUILD) {
-      /* already current for this script */
-    } else {
-      // Stale marker from older run — stamp to running script; remote check decides prompt.
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
-    }
-  } catch (_) {}
+      // Newer build on server — show update dialog (no silent reload / no reinstall).
+      updateOffered = false;
+      promptUpdateAvailable(remoteNotes || RELEASE_NOTES, true);
+    } catch (_) {}
+  }
 
   function syncOnlineState() {
     if (!navigator.onLine) showStatus("offline");

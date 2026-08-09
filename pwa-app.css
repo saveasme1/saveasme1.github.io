@@ -2310,8 +2310,13 @@ html.is-pwa.is-device-portrait .gb-top-brand {
   padding-right: max(12px, env(safe-area-inset-right)) !important;
 }
 
-/* Landscape only when device orientation is landscape (manual rotate). */
+/* PWA portrait-only — landscape layout disabled */
 html.is-pwa.is-device-landscape .actions {
   grid-template-columns: 1fr 1fr;
+}
+
+html.is-pwa.is-device-portrait .actions,
+html.is-pwa:not(.is-device-landscape) .actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
