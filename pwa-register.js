@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal19";
+  const APP_BUILD = "20260809-gbcal20";
   const APP_VERSION = "v1.12.29";
   const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
   const BUILD_KEY = "hx.pwa.build";

@@ -762,25 +762,34 @@
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 36;
         const stackGap =
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 3;
+        const dateGap =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-date-gap")) || 3;
+        const eventStack =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-event-stack")) ||
+          barH + nameH + stackGap + 2;
         const capPeek =
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cap-peek")) || 10;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
         const segs = labelSegments(state.items, cells);
-        const filledDays = new Set();
         if (gridWrap) gridWrap.classList.toggle("has-events", segs.length > 0);
 
         const barTopByStart = new Map();
         const coverLane = new Map();
 
-        // 1) Capsule bars (+ left extension for cover peek when event starts with image).
+        function dateBaseline(idx) {
+          const btn = dayBtns[idx];
+          const num = btn && btn.querySelector(".gb-cal__num");
+          const r = num ? num.getBoundingClientRect() : btn.getBoundingClientRect();
+          return r.bottom - gridRect.top;
+        }
+
+        // 1) Capsule row below dates — left extension + cover peek at event start.
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
           if (!startBtn || !endBtn) return;
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
-          const numEl = startBtn.querySelector(".gb-cal__num");
-          const numRect = numEl ? numEl.getBoundingClientRect() : sr;
           const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
           const bar = document.createElement("div");
           bar.className = "gb-cal__bar";
@@ -795,26 +804,19 @@
           let coverX = null;
           let coverSize = 0;
           if (seg.roundLeft && seg.item.cover) {
-            coverSize = Math.min(thumbSize, 38);
-            const peek = Math.min(capPeek, coverSize * 0.3);
-            coverX = cellLeft + coverSize * 0.4;
+            coverSize = Math.min(thumbSize, 36);
+            const peek = Math.min(capPeek, coverSize * 0.28);
+            coverX = cellLeft + coverSize * 0.38;
             left = coverX - coverSize * 0.5 - peek;
             width = er.right - gridRect.left - left - padX;
           }
-          const top =
-            numRect.top -
-            gridRect.top +
-            (numRect.height - barH) / 2 +
-            seg.lane * (barH + nameH + stackGap + 4);
+          const baseLine = dateBaseline(seg.startIdx);
+          const top = baseLine + dateGap + seg.lane * eventStack;
           bar.style.left = `${left}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
-          bar.style.top = `${Math.max(0, top)}px`;
+          bar.style.top = `${top}px`;
           bar.style.height = `${barH}px`;
           barsEl.append(bar);
-
-          for (let i = seg.startIdx; i <= seg.endIdx; i += 1) {
-            filledDays.add(i);
-          }
 
           if (seg.roundLeft) {
             barTopByStart.set(seg.item.startDate, {
@@ -839,12 +841,7 @@
           namesEl.append(name);
         });
 
-        filledDays.forEach((i) => {
-          const num = dayBtns[i] && dayBtns[i].querySelector(".gb-cal__num");
-          if (num) num.classList.add("is-filled");
-        });
-
-        // 2) Circle cover on top of extended capsule — left radius peeks out.
+        // 2) Cover on extended capsule (below date row — dates stay clear).
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);

@@ -35,14 +35,16 @@
 }
 
 .gb-cal {
-  --cell-h: 32px;
-  --gb-bar-h: 18px;
-  --gb-thumb: 34px;
+  --cell-h: 24px;
+  --gb-bar-h: 16px;
+  --gb-thumb: 32px;
   --gb-name-h: 10px;
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
-  --gb-col-gap: 11px;
-  --gb-cap-peek: 10px;
+  --gb-col-gap: 8px;
+  --gb-cap-peek: 8px;
+  --gb-date-gap: 3px;
+  --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background: var(--gb-cal-bg);
@@ -218,12 +220,16 @@
   color: var(--gb-cal-sun);
 }
 
-.gb-cal__day.is-today .gb-cal__num:not(.is-filled) {
+.gb-cal__day.has-event {
+  min-height: calc(22px + var(--gb-event-stack));
+}
+
+.gb-cal__day.is-today .gb-cal__num {
   box-shadow: inset 0 0 0 1.5px var(--gb-cal-ink);
   border-radius: 999px;
 }
 
-.gb-cal__day.is-today.is-sun .gb-cal__num:not(.is-filled) {
+.gb-cal__day.is-today.is-sun .gb-cal__num {
   box-shadow: inset 0 0 0 1.5px var(--gb-cal-sun);
 }
 
@@ -239,15 +245,14 @@
   letter-spacing: -0.02em;
   line-height: 1;
   color: var(--gb-cal-ink);
+  flex: 0 0 auto;
 }
 
-.gb-cal__num.is-filled {
-  color: #fff !important;
-  background: transparent !important;
+.gb-cal__day.has-event .gb-cal__num {
   font-weight: 800;
 }
 
-/* Capsule paint behind date numbers */
+/* Capsule + cover sit on row BELOW date numbers (never overlap dates) */
 .gb-cal__bars {
   position: absolute;
   left: 0;
@@ -664,13 +669,17 @@
     padding: 20px 16px 28px;
   }
   .gb-cal {
-    --cell-h: 34px;
-    --gb-bar-h: 18px;
-    --gb-thumb: 36px;
-    --gb-col-gap: 12px;
+    --cell-h: 26px;
+    --gb-bar-h: 17px;
+    --gb-thumb: 34px;
+    --gb-col-gap: 10px;
+    --gb-cap-peek: 9px;
     --gb-name-h: 11px;
     --gb-num-size: 12px;
     padding: 12px 12px 10px;
+  }
+  .gb-cal__day.has-event {
+    min-height: calc(24px + var(--gb-event-stack));
   }
   .gb-cal__num {
     width: 24px;
