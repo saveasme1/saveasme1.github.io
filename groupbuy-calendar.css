@@ -1,15 +1,25 @@
 /* Groupbuy calendar — compact, number-first (inpk-like) */
 .pwa-groupbuy {
-  margin: 18px 0 22px;
-  padding: 0 12px;
+  margin: 16px 0 20px;
+  padding: 0 10px;
   width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
   box-sizing: border-box;
 }
 
 .gb-cal-page {
-  max-width: 560px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 20px 14px 36px;
+  padding: 16px 12px 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.gb-cal-page .gb-cal,
+.pwa-groupbuy .gb-cal {
+  width: 100%;
 }
 
 :root {
@@ -26,16 +36,17 @@
 }
 
 .gb-cal {
-  --cell-h: 44px;
-  --gb-thumb: 28px;
-  --gb-label-h: 28px;
+  --cell-h: 70px;
+  --gb-thumb: 42px;
+  --gb-label-h: 42px;
+  --gb-num-size: 17px;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background:
     radial-gradient(90% 70% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
     var(--gb-cal-bg);
   border-radius: var(--gb-cal-radius);
-  padding: 16px 12px 18px;
+  padding: 14px 10px 16px;
   box-shadow: 0 6px 22px rgba(40, 30, 20, 0.07);
   position: relative;
   overflow: hidden;
@@ -166,7 +177,7 @@
   appearance: none;
   border: 0;
   background: transparent;
-  padding: 2px 0 4px;
+  padding: 2px 0 6px;
   min-height: var(--cell-h);
   display: flex;
   flex-direction: column;
@@ -176,11 +187,7 @@
   color: inherit;
   font: inherit;
   position: relative;
-  z-index: 1;
-}
-
-.gb-cal__day.has-event .gb-cal__num {
-  opacity: 0.55;
+  z-index: 3;
 }
 
 .gb-cal__day.is-out {
@@ -204,14 +211,17 @@
 }
 
 .gb-cal__num {
-  width: 28px;
-  height: 28px;
+  position: relative;
+  z-index: 4;
+  width: 30px;
+  height: 30px;
   display: grid;
   place-items: center;
-  font-size: 15px;
+  font-size: var(--gb-num-size);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
+  color: var(--gb-cal-ink);
 }
 
 .gb-cal__labels {
@@ -228,28 +238,27 @@
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   height: var(--gb-label-h);
   min-height: var(--gb-label-h);
   border-radius: 999px;
-  background: var(--gb-cal-label);
-  color: var(--gb-cal-label-ink);
-  padding: 0 3px 0 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: var(--gb-event-bg, var(--gb-cal-label));
+  color: var(--gb-event-ink, var(--gb-cal-label-ink));
+  padding: 0 4px 0 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  backdrop-filter: blur(2px);
 }
 
 .gb-cal__label-text {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);
 }
 
 .gb-cal__label-thumb {
@@ -258,9 +267,9 @@
   height: var(--gb-thumb);
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
 }
 
 .gb-cal__label-thumb img {
@@ -623,18 +632,18 @@
 
 @media (min-width: 768px) {
   .gb-cal {
-    --cell-h: 48px;
-    --gb-thumb: 30px;
-    --gb-label-h: 30px;
-    padding: 18px 16px 20px;
+    --cell-h: 78px;
+    --gb-thumb: 48px;
+    --gb-label-h: 48px;
+    --gb-num-size: 18px;
+    padding: 18px 14px 20px;
   }
   .gb-cal__num {
-    width: 28px;
-    height: 28px;
-    font-size: 15px;
+    width: 32px;
+    height: 32px;
   }
   .gb-cal__label-text {
-    font-size: 11px;
+    font-size: 12px;
   }
   .gb-cal-sheet {
     place-items: center;

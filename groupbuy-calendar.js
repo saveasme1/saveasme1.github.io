@@ -293,18 +293,23 @@
     return keys.some((k) => k.startsWith(prefix));
   }
 
+  function eventKey(it) {
+    return String(it.id || `${it.startDate}|${it.endDate}|${it.title}`);
+  }
+
   function colorsForMonth(items, year, month) {
     const visible = items
       .filter((it) => monthOverlaps(it, year, month))
       .slice()
-      .sort((a, b) =>
-        String(a.startDate).localeCompare(String(b.startDate)) ||
-        String(a.id).localeCompare(String(b.id))
+      .sort(
+        (a, b) =>
+          String(a.startDate).localeCompare(String(b.startDate)) ||
+          eventKey(a).localeCompare(eventKey(b))
       );
     const palette = seededShuffle(EVENT_COLORS, year * 100 + month + visible.length * 17);
     const map = new Map();
     visible.forEach((it, index) => {
-      map.set(it.id, palette[index % palette.length]);
+      map.set(eventKey(it), palette[index % palette.length]);
     });
     return map;
   }
@@ -756,7 +761,7 @@
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
         const labelH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 28;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-label-h")) || 42;
         const segs = labelSegments(state.items, cells);
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
@@ -764,9 +769,13 @@
           if (!startBtn || !endBtn) return;
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
-          const color = colorMap.get(seg.item.id) || EVENT_COLORS[0];
+          const numEl = startBtn.querySelector(".gb-cal__num");
+          const numRect = numEl ? numEl.getBoundingClientRect() : sr;
+          const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
           const el = document.createElement("div");
           el.className = `gb-cal__label${seg.showCover ? "" : " is-cont"}`;
+          el.style.setProperty("--gb-event-bg", color.bg);
+          el.style.setProperty("--gb-event-ink", color.ink);
           el.style.background = color.bg;
           el.style.color = color.ink;
           const text = document.createElement("span");
@@ -785,11 +794,13 @@
           }
           const left = sr.left - gridRect.left + 1;
           const width = er.right - sr.left - 2;
-          // Overlay on top of the day number (semi-transparent bar)
-          const top = sr.top - gridRect.top + 1 + seg.lane * (labelH + 3);
+          // Keep date number clear: bar sits just under the day number.
+          const top =
+            numRect.bottom - gridRect.top + 3 + seg.lane * (labelH + 4);
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(seg.showCover ? labelH + 36 : 24, width)}px`;
+          el.style.width = `${Math.max(labelH + 40, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
+          el.style.height = `${labelH}px`;
           labelsEl.append(el);
         });
       });
