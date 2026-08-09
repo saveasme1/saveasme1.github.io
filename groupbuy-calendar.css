@@ -42,6 +42,7 @@
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
   --gb-col-gap: 11px;
+  --gb-cap-peek: 10px;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
   background: var(--gb-cal-bg);
@@ -306,7 +307,7 @@
   box-sizing: border-box;
 }
 
-/* Circle thumbnail — left gutter of start date, below day number layer */
+/* Circle thumbnail — sits on capsule bar; left cap peeks out */
 .gb-cal__covers {
   position: absolute;
   left: 0;
@@ -314,7 +315,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
   overflow: visible;
 }
 
@@ -325,8 +326,8 @@
   border-radius: 50%;
   overflow: hidden;
   background: #ece8e3;
-  box-shadow: 0 1px 4px rgba(28, 27, 26, 0.1);
-  border: 1.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(28, 27, 26, 0.16);
+  border: 2px solid #fff;
   transform: translate(-50%, 0);
 }
 

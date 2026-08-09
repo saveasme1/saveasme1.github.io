@@ -762,6 +762,8 @@
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 36;
         const stackGap =
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 3;
+        const capPeek =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cap-peek")) || 10;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
         const segs = labelSegments(state.items, cells);
         const filledDays = new Set();
@@ -770,7 +772,7 @@
         const barTopByStart = new Map();
         const coverLane = new Map();
 
-        // 1) Capsule bars on date numbers + product name directly below.
+        // 1) Capsule bars (+ left extension for cover peek when event starts with image).
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
@@ -787,19 +789,24 @@
           if (seg.roundLeft && seg.roundRight) bar.classList.add("is-solo");
           bar.style.background = color.bg;
           const padX = 1;
-          let left = sr.left - gridRect.left + padX;
+          const cellLeft = sr.left - gridRect.left + padX;
+          let left = cellLeft;
           let width = er.right - sr.left - padX * 2;
+          let coverX = null;
+          let coverSize = 0;
           if (seg.roundLeft && seg.item.cover) {
-            const coverInset = Math.min(thumbSize * 0.32, 12);
-            left += coverInset;
-            width = Math.max(barH, width - coverInset);
+            coverSize = Math.min(thumbSize, 38);
+            const peek = Math.min(capPeek, coverSize * 0.3);
+            coverX = cellLeft + coverSize * 0.4;
+            left = coverX - coverSize * 0.5 - peek;
+            width = er.right - gridRect.left - left - padX;
           }
           const top =
             numRect.top -
             gridRect.top +
             (numRect.height - barH) / 2 +
             seg.lane * (barH + nameH + stackGap + 4);
-          bar.style.left = `${Math.max(0, left)}px`;
+          bar.style.left = `${left}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
           bar.style.top = `${Math.max(0, top)}px`;
           bar.style.height = `${barH}px`;
@@ -810,7 +817,14 @@
           }
 
           if (seg.roundLeft) {
-            barTopByStart.set(seg.item.startDate, { top, left, width, barH });
+            barTopByStart.set(seg.item.startDate, {
+              top,
+              left,
+              width,
+              barH,
+              coverX,
+              coverSize,
+            });
           }
 
           if (!seg.roundLeft) return;
@@ -830,7 +844,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Small circle cover left of start date — must not shift the date grid.
+        // 2) Circle cover on top of extended capsule — left radius peeks out.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -840,27 +854,9 @@
           if (!dayBtn || !cell || cell.out) return;
           const stack = coverLane.get(it.startDate) || 0;
           coverLane.set(it.startDate, stack + 1);
-          const br = dayBtn.getBoundingClientRect();
           const anchor = barTopByStart.get(it.startDate);
-          const barTop =
-            anchor?.top ??
-            (() => {
-              const numEl = dayBtn.querySelector(".gb-cal__num");
-              const numRect = numEl ? numEl.getBoundingClientRect() : br;
-              return numRect.top - gridRect.top + (numRect.height - barH) / 2;
-            })();
-          const size = Math.min(thumbSize, 38);
-          const prevBtn = dayBtns[idx - 1];
-          const cellLeft = br.left - gridRect.left;
-          let coverX;
-          if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
-            const pr = prevBtn.getBoundingClientRect();
-            const gutterMid = (pr.right + br.left) / 2 - gridRect.left;
-            coverX = gutterMid - size * 0.12;
-          } else {
-            coverX = cellLeft - size * 0.42;
-          }
-          coverX -= stack * 6;
+          if (!anchor || anchor.coverX == null) return;
+          const size = anchor.coverSize || Math.min(thumbSize, 38);
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -868,8 +864,8 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = barTop + (barH - size) / 2 + stack * 6;
-          cover.style.left = `${coverX}px`;
+          const top = anchor.top + (anchor.barH - size) / 2 + stack * 8;
+          cover.style.left = `${anchor.coverX - stack * 6}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;
           cover.style.height = `${size}px`;
