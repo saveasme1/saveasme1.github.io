@@ -698,7 +698,7 @@
     host.innerHTML =
       `<div class="gb-cal__head">` +
       `<div class="gb-cal__title-wrap">` +
-      `<p class="gb-cal__eyebrow">특별 EVENT</p>` +
+      `<p class="gb-cal__eyebrow">공동구매</p>` +
       `<h2 class="gb-cal__title"><span data-ym></span></h2>` +
       `</div>` +
       `<div class="gb-cal__tools">` +
@@ -715,24 +715,17 @@
       `<div class="gb-cal__bars" data-bars aria-hidden="true"></div>` +
       `<div class="gb-cal__covers" data-covers aria-hidden="true"></div>` +
       `<div class="gb-cal__names" data-names aria-hidden="true"></div>` +
-      `</div>` +
-      `<div class="gb-cal__foot">` +
-      `<p class="gb-cal__note">날짜를 탭하면 해당일 공동구매를 볼 수 있어요. 기간은 날짜에 색으로 표시됩니다.</p>` +
-      `<span class="gb-cal__brand">본 헤리티지</span>` +
-      `</div>` +
-      `<p class="gb-cal__status" data-status aria-live="polite"></p>`;
+      `</div>`;
 
     const gridEl = host.querySelector("[data-grid]");
     const barsEl = host.querySelector("[data-bars]");
     const coversEl = host.querySelector("[data-covers]");
     const namesEl = host.querySelector("[data-names]");
-    const statusEl = host.querySelector("[data-status]");
     const ymEl = host.querySelector("[data-ym]");
     const writeBtn = host.querySelector("[data-write]");
 
     function setStatus(msg) {
       state.status = msg || "";
-      statusEl.textContent = state.status;
     }
 
     function render() {
