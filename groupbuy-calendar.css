@@ -241,12 +241,29 @@
   gap: 6px;
   height: var(--gb-label-h);
   min-height: var(--gb-label-h);
-  border-radius: 999px;
+  /* Mid-span = flat ends; start/end round via modifiers */
+  border-radius: 0;
   background: var(--gb-event-bg, var(--gb-cal-label));
   color: var(--gb-event-ink, var(--gb-cal-label-ink));
-  padding: 0 4px 0 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 6px;
+  box-shadow: none;
   overflow: hidden;
+}
+
+.gb-cal__label.is-round-left {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+  padding-left: 10px;
+}
+
+.gb-cal__label.is-round-right {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+  padding-right: 4px;
+}
+
+.gb-cal__label.is-round-right:not(.has-thumb) {
+  padding-right: 10px;
 }
 
 .gb-cal__label-text {
@@ -279,9 +296,6 @@
   display: block;
 }
 
-.gb-cal__label.is-cont {
-  padding-right: 8px;
-}
 
 .gb-cal__foot {
   margin-top: 18px;

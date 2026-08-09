@@ -337,21 +337,24 @@
       let runStart = null;
       let runEnd = null;
       let prevIdx = null;
-      let firstSeg = true;
       const flush = () => {
         if (runStart == null) return;
         const startIdx = indexOf.get(runStart);
         const endIdx = indexOf.get(runEnd);
         const lane = takeLane(startIdx, endIdx);
+        const roundLeft = runStart === it.startDate;
+        const roundRight = runEnd === it.endDate;
         segs.push({
           item: it,
           startIdx,
           endIdx,
           lane,
           label: it.title,
-          showCover: firstSeg && !!it.cover,
+          roundLeft,
+          roundRight,
+          // Circle sits on the end date (right of the final segment).
+          showCover: roundRight && !!it.cover,
         });
-        firstSeg = false;
         runStart = null;
         runEnd = null;
         prevIdx = null;
@@ -364,6 +367,7 @@
           prevIdx = idx;
           return;
         }
+        // Keep bar continuous through weekdays/holidays; only break on week wrap.
         if (idx === prevIdx + 1 && Math.floor(idx / 7) === Math.floor(prevIdx / 7)) {
           runEnd = key;
           prevIdx = idx;
@@ -773,7 +777,10 @@
           const numRect = numEl ? numEl.getBoundingClientRect() : sr;
           const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
           const el = document.createElement("div");
-          el.className = `gb-cal__label${seg.showCover ? "" : " is-cont"}`;
+          el.className = "gb-cal__label";
+          if (seg.roundLeft) el.classList.add("is-round-left");
+          if (seg.roundRight) el.classList.add("is-round-right");
+          if (seg.showCover) el.classList.add("has-thumb");
           el.style.setProperty("--gb-event-bg", color.bg);
           el.style.setProperty("--gb-event-ink", color.ink);
           el.style.background = color.bg;
@@ -792,13 +799,13 @@
             thumb.append(img);
             el.append(thumb);
           }
-          const left = sr.left - gridRect.left + 1;
-          const width = er.right - sr.left - 2;
-          // Keep date number clear: bar sits just under the day number.
+          // Edge-to-edge within the day cells so mid-week bars look continuous.
+          const left = sr.left - gridRect.left;
+          const width = er.right - sr.left;
           const top =
             numRect.bottom - gridRect.top + 3 + seg.lane * (labelH + 4);
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(labelH + 40, width)}px`;
+          el.style.width = `${Math.max(labelH + 24, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
           el.style.height = `${labelH}px`;
           labelsEl.append(el);
