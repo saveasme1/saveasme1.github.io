@@ -179,8 +179,7 @@
 }
 
 .gb-cal__grid-wrap.has-events {
-  padding-top: 0;
-  padding-bottom: calc(var(--gb-name-h) + 4px);
+  padding-bottom: calc(var(--gb-name-h) + 8px);
 }
 
 .gb-cal__grid {
@@ -222,16 +221,12 @@
   color: var(--gb-cal-sun);
 }
 
-.gb-cal__day.has-event {
-  min-height: calc(22px + var(--gb-event-stack));
-}
-
-.gb-cal__day.is-today .gb-cal__num {
+.gb-cal__day.is-today .gb-cal__num:not(.is-filled) {
   box-shadow: inset 0 0 0 1.5px var(--gb-cal-ink);
   border-radius: 999px;
 }
 
-.gb-cal__day.is-today.is-sun .gb-cal__num {
+.gb-cal__day.is-today.is-sun .gb-cal__num:not(.is-filled) {
   box-shadow: inset 0 0 0 1.5px var(--gb-cal-sun);
 }
 
@@ -250,11 +245,13 @@
   flex: 0 0 auto;
 }
 
-.gb-cal__day.has-event .gb-cal__num {
+.gb-cal__num.is-filled {
+  color: #fff !important;
+  background: transparent !important;
   font-weight: 800;
 }
 
-/* Capsule + cover sit on row BELOW date numbers (never overlap dates) */
+/* Capsule paint behind date numbers */
 .gb-cal__bars {
   position: absolute;
   left: 0;

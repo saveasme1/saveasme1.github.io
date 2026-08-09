@@ -771,25 +771,21 @@
           Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cap-peek")) || 10;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
         const segs = labelSegments(state.items, cells);
+        const filledDays = new Set();
         if (gridWrap) gridWrap.classList.toggle("has-events", segs.length > 0);
 
         const barTopByStart = new Map();
         const coverLane = new Map();
 
-        function dateBaseline(idx) {
-          const btn = dayBtns[idx];
-          const num = btn && btn.querySelector(".gb-cal__num");
-          const r = num ? num.getBoundingClientRect() : btn.getBoundingClientRect();
-          return r.bottom - gridRect.top;
-        }
-
-        // 1) Capsule row below dates — left extension + cover peek at event start.
+        // 1) Capsule behind date numbers + product name below.
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
           if (!startBtn || !endBtn) return;
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
+          const numEl = startBtn.querySelector(".gb-cal__num");
+          const numRect = numEl ? numEl.getBoundingClientRect() : sr;
           const color = colorMap.get(eventKey(seg.item)) || EVENT_COLORS[0];
           const bar = document.createElement("div");
           bar.className = "gb-cal__bar";
@@ -808,13 +804,21 @@
             left = cellLeft - peek;
             width = er.right - gridRect.left - left - padX;
           }
-          const baseLine = dateBaseline(seg.startIdx);
-          const top = baseLine + dateGap + seg.lane * eventStack;
+          const laneStep = barH + nameH + stackGap + 4;
+          const top =
+            numRect.top -
+            gridRect.top +
+            (numRect.height - barH) / 2 +
+            seg.lane * laneStep;
           bar.style.left = `${left}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
           bar.style.top = `${top}px`;
           bar.style.height = `${barH}px`;
           barsEl.append(bar);
+
+          for (let i = seg.startIdx; i <= seg.endIdx; i += 1) {
+            filledDays.add(i);
+          }
 
           if (seg.roundLeft) {
             barTopByStart.set(seg.item.startDate, {
@@ -839,7 +843,12 @@
           namesEl.append(name);
         });
 
-        // 2) Cover in gutter before start day (e.g. between 9–10, near 10); bottom crosses bar top.
+        filledDays.forEach((i) => {
+          const num = dayBtns[i] && dayBtns[i].querySelector(".gb-cal__num");
+          if (num) num.classList.add("is-filled");
+        });
+
+        // 2) Cover in gutter before start day; bottom crosses bar top.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
