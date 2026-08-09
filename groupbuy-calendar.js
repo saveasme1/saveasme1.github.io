@@ -1,9 +1,6 @@
 (() => {
   "use strict";
 
-  const RAW =
-    window.GROUPBUY_RAW_BASE ||
-    "https://raw.githubusercontent.com/saveasme1/gongbang171_temp/main";
   const API = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(
     /\/$/,
     ""
@@ -23,10 +20,11 @@
   }
 
   function assetUrl(value) {
-    const path = String(value || "").replace(/^\/+/, "");
+    const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    return `${RAW}/${path}`;
+    // Same-origin on hand-made.kr / github.io (mirrors private gongbang uploads).
+    return `/${path.replace(/^\/+/, "")}`;
   }
 
   function pad2(n) {
@@ -148,8 +146,9 @@
   }
 
   async function fetchPublicItems() {
-    const url = `${RAW}/groupbuy-data.json?v=${Date.now()}`;
-    const res = await fetch(url, { cache: "no-store", credentials: "omit" });
+    const url = new URL("./groupbuy-data.json", location.href);
+    url.searchParams.set("v", String(Date.now()));
+    const res = await fetch(url.href, { cache: "no-store", credentials: "omit" });
     if (!res.ok) throw new Error(`공동구매 데이터를 불러오지 못했습니다 (${res.status})`);
     const data = await res.json();
     return Array.isArray(data.items) ? data.items : [];
