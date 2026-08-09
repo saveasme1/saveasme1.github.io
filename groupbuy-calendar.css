@@ -234,7 +234,7 @@
 
 .gb-cal__num {
   position: relative;
-  z-index: 5;
+  z-index: 7;
   width: 22px;
   height: 22px;
   display: grid;
@@ -287,7 +287,7 @@
   border-radius: 999px;
 }
 
-/* Product name under bar — always above foreign covers */
+/* Product name under bar — below covers so foreign names never paint over thumbnails */
 .gb-cal__names {
   position: absolute;
   left: 0;
@@ -295,7 +295,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 6;
+  z-index: 4;
   overflow: visible;
 }
 
@@ -314,7 +314,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
-/* Circle thumbnail — gutter slot; kept above name row */
+/* Circle thumbnail — gutter slot; above foreign product names */
 .gb-cal__covers {
   position: absolute;
   left: 0;
@@ -322,7 +322,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 4;
+  z-index: 6;
   overflow: visible;
 }
 

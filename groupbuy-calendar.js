@@ -282,69 +282,47 @@
     };
   }
 
-  function nameBox(nameEl) {
-    const left = Number.parseFloat(nameEl.style.left) || 0;
-    const top = Number.parseFloat(nameEl.style.top) || 0;
-    const width = Number.parseFloat(nameEl.style.width) || 0;
-    const height = Number.parseFloat(nameEl.style.height) || 0;
-    const pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
-    return {
-      left: left + pad,
-      right: left + width,
-      top,
-      bottom: top + height,
-      pad,
-      width,
-    };
-  }
-
-  function boxesOverlap(a, b, margin = 2) {
-    return !(
-      a.right + margin < b.left ||
-      a.left - margin > b.right ||
-      a.bottom + margin < b.top ||
-      a.top - margin > b.bottom
-    );
+  function verticalOverlap(aTop, aBottom, bTop, bBottom, slack = 2) {
+    return aBottom + slack > bTop && aTop - slack < bBottom;
   }
 
   function resolveCoverNameCollisions(namesEl, coversEl) {
     const names = [...namesEl.children];
     const covers = [...coversEl.children];
-    if (!names.length || !covers.length) return;
+    if (!names.length) return;
 
     names.forEach((nameEl) => {
-      let pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
       const ownKey = nameEl.dataset.eventKey || "";
+      const left = Number.parseFloat(nameEl.style.left) || 0;
+      const width = Number.parseFloat(nameEl.style.width) || 0;
+      const nameTop = Number.parseFloat(nameEl.style.top) || 0;
+      const nameBottom = nameTop + (Number.parseFloat(nameEl.style.height) || 0);
+      let pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
+      let maxRight = left + width;
+
       covers.forEach((coverEl) => {
         if ((coverEl.dataset.eventKey || "") === ownKey) return;
-        let box = nameBox(nameEl);
-        if (!boxesOverlap(box, coverBox(coverEl))) return;
         const cover = coverBox(coverEl);
-        const need = Math.ceil(cover.right - box.left + 4);
-        if (need > 0) pad = Math.max(pad, need);
+        if (!verticalOverlap(nameTop, nameBottom, cover.top, cover.bottom)) return;
+
+        if (cover.left > left + pad && cover.left < maxRight) {
+          maxRight = Math.min(maxRight, cover.left - 4);
+        }
+        if (cover.right > left + pad && cover.left <= left + width) {
+          const need = Math.ceil(cover.right - left + 5);
+          pad = Math.max(pad, need);
+        }
       });
+
+      const cappedWidth = Math.max(28, maxRight - left);
+      if (cappedWidth < width) {
+        nameEl.style.width = `${cappedWidth}px`;
+      }
       if (pad > 0) {
         nameEl.style.paddingLeft = `${pad}px`;
         nameEl.style.textAlign = "left";
+        nameEl.style.boxSizing = "border-box";
       }
-    });
-
-    covers.forEach((coverEl) => {
-      const ownKey = coverEl.dataset.eventKey || "";
-      let top = Number.parseFloat(coverEl.style.top) || 0;
-      let shifted = false;
-      names.forEach((nameEl) => {
-        if ((nameEl.dataset.eventKey || "") === ownKey) return;
-        const box = nameBox(nameEl);
-        const cover = coverBox(coverEl);
-        if (!boxesOverlap(box, cover)) return;
-        const lift = Math.ceil(box.top - cover.bottom + 3);
-        if (lift < 0) {
-          top = Math.max(0, top + lift);
-          shifted = true;
-        }
-      });
-      if (shifted) coverEl.style.top = `${top}px`;
     });
   }
 
