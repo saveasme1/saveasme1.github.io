@@ -848,7 +848,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover in gutter before start day; bottom crosses bar top.
+        // 2) Cover in gutter before start day; bottom slightly above bar midpoint.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -861,8 +861,9 @@
           const anchor = barTopByStart.get(it.startDate);
           if (!anchor) return;
           const size = anchor.coverSize || Math.min(thumbSize, 36);
-          const barCross =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-cross")) || 5;
+          const barH = anchor.barH || 16;
+          const coverLift =
+            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cover-lift")) || 1;
           const gutterBias =
             Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-gutter-bias")) || 0.68;
           const br = dayBtn.getBoundingClientRect();
@@ -877,7 +878,8 @@
             coverX = br.left - gridRect.left - size * 0.12;
           }
           coverX -= stack * 6;
-          const top = anchor.top + barCross - size + stack * 8;
+          const bottomY = anchor.top + barH * 0.5 - coverLift;
+          const top = bottomY - size + stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");

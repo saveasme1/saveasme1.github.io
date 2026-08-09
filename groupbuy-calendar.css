@@ -43,9 +43,10 @@
   --gb-stack-gap: 2px;
   --gb-col-gap: 8px;
   --gb-cap-peek: 8px;
-  --gb-date-gap: 3px;
+  --gb-date-gap: 6px;
+  --gb-date-pad-y: 6px;
   --gb-event-stack: calc(var(--gb-bar-h) + var(--gb-name-h) + var(--gb-stack-gap) + 2px);
-  --gb-bar-cross: 5px;
+  --gb-cover-lift: 1px;
   --gb-gutter-bias: 0.68;
   font-family: var(--gb-cal-font-body);
   color: var(--gb-cal-ink);
@@ -147,7 +148,7 @@
 .gb-cal__rule {
   height: 1px;
   background: var(--gb-cal-line);
-  margin: 3px 0 2px;
+  margin: 6px 0 4px;
 }
 
 .gb-cal__week {
@@ -155,7 +156,7 @@
   grid-template-columns: repeat(7, 1fr);
   column-gap: var(--gb-col-gap);
   row-gap: 0;
-  margin: 0 0 1px;
+  margin: 0 0 6px;
   padding: 0;
   text-align: center;
   font-size: 10px;
@@ -197,8 +198,8 @@
   appearance: none;
   border: 0;
   background: transparent;
-  padding: 0;
-  min-height: var(--cell-h);
+  padding: var(--gb-date-pad-y) 0;
+  min-height: calc(var(--cell-h) + var(--gb-date-pad-y) * 2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -664,8 +665,9 @@
 @media (max-width: 767px) {
   .gb-cal {
     --gb-thumb: 30px;
-    --gb-date-gap: 2px;
-    --gb-bar-cross: 4px;
+    --gb-date-gap: 4px;
+    --gb-date-pad-y: 5px;
+    --gb-cover-lift: 1px;
     --gb-gutter-bias: 0.72;
   }
 
