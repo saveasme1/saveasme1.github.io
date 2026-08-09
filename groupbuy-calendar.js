@@ -825,7 +825,7 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Circle cover to the LEFT of start date (never over day numbers).
+        // 2) Small circle cover left of start date — must not shift the date grid.
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -844,17 +844,18 @@
               const numRect = numEl ? numEl.getBoundingClientRect() : br;
               return numRect.top - gridRect.top + (numRect.height - barH) / 2;
             })();
-          const size = thumbSize;
+          const size = Math.min(thumbSize, 38);
           const prevBtn = dayBtns[idx - 1];
-          let coverX = br.left - gridRect.left;
+          const cellLeft = br.left - gridRect.left;
+          let coverX = cellLeft - size * 0.08;
           if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
             const pr = prevBtn.getBoundingClientRect();
-            const gutter = Math.max(0, br.left - pr.right);
-            coverX = br.left - gridRect.left - Math.min(size * 0.42, gutter * 0.55 + 2);
+            const gutterMid = (pr.right + br.left) / 2 - gridRect.left;
+            coverX = Math.min(cellLeft - size * 0.06, gutterMid);
           } else {
-            coverX = br.left - gridRect.left - size * 0.18;
+            coverX = cellLeft - size * 0.22;
           }
-          coverX -= stack * 8;
+          coverX -= stack * 6;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           const img = document.createElement("img");
@@ -862,7 +863,7 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          const top = barTop + (barH - size) / 2 + stack * 8;
+          const top = barTop + (barH - size) / 2 + stack * 6;
           cover.style.left = `${coverX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;
