@@ -220,14 +220,6 @@
     });
   }
 
-  function coverForDay(items, key) {
-    const hits = itemsForDay(items, key);
-    for (const it of hits) {
-      if (it.cover) return it.cover;
-    }
-    return "";
-  }
-
   function buildMonthCells(year, month) {
     const dim = daysInMonth(year, month);
     const firstKey = dayKey(year, month, 1);
@@ -285,6 +277,7 @@
       let runStart = null;
       let runEnd = null;
       let prevIdx = null;
+      let firstSeg = true;
       const flush = () => {
         if (runStart == null) return;
         const startIdx = indexOf.get(runStart);
@@ -296,7 +289,10 @@
           endIdx,
           lane,
           label: it.title,
+          // Circle cover only once per event (first week segment), not every day.
+          showCover: firstSeg && !!it.cover,
         });
+        firstSeg = false;
         runStart = null;
         runEnd = null;
         prevIdx = null;
@@ -686,12 +682,7 @@
         if (cell.out) btn.classList.add("is-out");
         if (cell.sun) btn.classList.add("is-sun");
         if (cell.key === today) btn.classList.add("is-today");
-        const cover = cell.out ? "" : coverForDay(state.items, cell.key);
-        btn.innerHTML =
-          `<span class="gb-cal__num">${cell.day}</span>` +
-          `<span class="gb-cal__thumb ${cover ? "" : "is-empty"}">` +
-          (cover ? `<img src="${assetUrl(cover)}" alt="" loading="lazy">` : "") +
-          `</span>`;
+        btn.innerHTML = `<span class="gb-cal__num">${cell.day}</span>`;
         btn.addEventListener("click", () => {
           if (cell.out) return;
           openDayPicker(state.items, cell.key);
@@ -704,6 +695,8 @@
         const gridRect = gridEl.getBoundingClientRect();
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
+        const thumbSize =
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 44;
         const segs = labelSegments(state.items, cells);
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
@@ -712,14 +705,27 @@
           const sr = startBtn.getBoundingClientRect();
           const er = endBtn.getBoundingClientRect();
           const el = document.createElement("div");
-          el.className = "gb-cal__label";
-          el.textContent = seg.label;
+          el.className = `gb-cal__label${seg.showCover ? "" : " is-bare"}`;
+          const text = document.createElement("span");
+          text.className = "gb-cal__label-text";
+          text.textContent = seg.label;
+          el.append(text);
+          if (seg.showCover) {
+            const thumb = document.createElement("span");
+            thumb.className = "gb-cal__label-thumb";
+            const img = document.createElement("img");
+            img.src = assetUrl(seg.item.cover);
+            img.alt = "";
+            img.loading = "lazy";
+            thumb.append(img);
+            el.append(thumb);
+          }
           const left = sr.left - gridRect.left + 1;
           const width = er.right - sr.left - 2;
-          // Sit just under the day number / above the thumb stack
-          const top = sr.top - gridRect.top + 30 + seg.lane * 16;
+          // Under day number; title left + circle on the right of the bar
+          const top = sr.top - gridRect.top + 30 + seg.lane * (thumbSize + 6);
           el.style.left = `${Math.max(0, left)}px`;
-          el.style.width = `${Math.max(22, width)}px`;
+          el.style.width = `${Math.max(seg.showCover ? thumbSize + 28 : 22, width)}px`;
           el.style.top = `${Math.max(0, top)}px`;
           labelsEl.append(el);
         });
