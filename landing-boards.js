@@ -187,27 +187,49 @@
     if (!img) return;
 
     const apply = () => {
-      const w = img.getBoundingClientRect().width || img.clientWidth || vp.clientWidth || 0;
-      const naturalH =
-        img.naturalWidth > 0 ? Math.round((img.naturalHeight * w) / img.naturalWidth) : 0;
-      const measured = Math.round(img.getBoundingClientRect().height || 0);
-      const h = Math.max(naturalH, measured, 0);
-      if (h < 8) return;
-      vp.style.setProperty("height", `${h}px`, "important");
+      const boxW = Math.max(
+        0,
+        (dialog.images?.clientWidth || 0) ||
+          vp.clientWidth ||
+          vp.getBoundingClientRect().width ||
+          0
+      );
+      const natW = img.naturalWidth || 0;
+      const natH = img.naturalHeight || 0;
+      if (!natW || !natH) return;
+      // Never upscale past natural pixel width (stops blurry PC blow-ups).
+      let displayW = Math.max(1, Math.min(boxW || natW, natW));
+      let displayH = Math.round((natH * displayW) / natW);
+      const maxH =
+        window.innerWidth >= 1100
+          ? Math.min(Math.round(window.innerHeight * 0.62), 560)
+          : Number.POSITIVE_INFINITY;
+      if (displayH > maxH) {
+        displayH = Math.round(maxH);
+        displayW = Math.max(1, Math.round((natW * displayH) / natH));
+      }
+      if (displayH < 8) return;
+      img.style.setProperty("width", `${displayW}px`, "important");
+      img.style.setProperty("max-width", "100%", "important");
+      img.style.setProperty("height", "auto", "important");
+      img.style.setProperty("margin", "0 auto", "important");
+      img.style.setProperty("display", "block", "important");
+      vp.style.setProperty("height", `${displayH}px`, "important");
       vp.style.setProperty("overflow", "hidden", "important");
-      tr.style.setProperty("height", `${h}px`, "important");
+      tr.style.setProperty("height", `${displayH}px`, "important");
       tr.style.setProperty("align-items", "flex-start", "important");
       slides.forEach((slide, index) => {
-        slide.style.setProperty("height", index === state.slideIndex ? `${h}px` : "auto", "important");
+        slide.style.setProperty("height", index === state.slideIndex ? `${displayH}px` : "auto", "important");
         slide.style.setProperty("overflow", "hidden", "important");
         slide.style.setProperty("display", "block", "important");
+        slide.style.setProperty("text-align", "center", "important");
       });
       const di = dialog.images;
-      if (di) di.style.setProperty("height", `${h}px`, "important");
+      if (di) di.style.setProperty("height", `${displayH}px`, "important");
       const car = vp.closest(".board-carousel");
-      if (car) car.style.setProperty("height", `${h}px`, "important");
+      if (car) car.style.setProperty("height", `${displayH}px`, "important");
       // #region agent log
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notice-fit',hypothesisId:'N2',location:'landing-boards.js:fitNoticeCarousel',message:'fit notice carousel to active slide',data:{id:state.current?.id||'',slide:state.slideIndex,slides:state.slideCount,natW:img.naturalWidth,natH:img.naturalHeight,cssH:h,vpH:Math.round(vp.getBoundingClientRect().height),blackGap:Math.round(vp.getBoundingClientRect().height-h),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'N1-N3',location:'landing-boards.js:fitNoticeCarousel',message:'fit notice no-upscale',data:{id:state.current?.id||'',slide:state.slideIndex,natW,natH,boxW,displayW,displayH,upscaled:displayW>natW,cappedByNat:displayW===natW&&boxW>natW,cappedByMaxH:displayH===Math.min(Math.round(window.innerHeight*0.62),560),dialogW:Math.round(dialog.root?.querySelector?.('.board-detail')?.getBoundingClientRect?.()?.width||0),imgCssW:img.style.width,vpH:Math.round(vp.getBoundingClientRect().height),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
     };
 

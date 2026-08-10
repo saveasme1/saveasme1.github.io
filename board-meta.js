@@ -5,32 +5,83 @@
   const KAKAO_URL = "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
   // Isolated try-on MVP (does not live under production routing logic).
   const TRYON_BASE = "https://saveasme1.github.io/heritage-tryon/studio.html";
+  const BUMP_THROTTLE_KEY = "hx.viewBump.v1";
+  const BUMP_COOLDOWN_MS = 30 * 60 * 1000; // loose: once per item / 30 min
+  const VIEWS_CACHE_KEY = "hx.viewsCache.v1";
+  const VIEWS_CACHE_TTL_MS = 10 * 60 * 1000; // loose chart refresh
 
   function formatViews(count) {
     const n = Math.max(0, Number(count) || 0);
     return `조회 ${n.toLocaleString("ko-KR")}`;
   }
 
-  async function fetchViews(board, ids) {
+  function readViewsCache(key) {
+    try {
+      const raw = JSON.parse(sessionStorage.getItem(VIEWS_CACHE_KEY) || "{}");
+      const hit = raw[key];
+      if (!hit || !hit.at || Date.now() - Number(hit.at) > VIEWS_CACHE_TTL_MS) return null;
+      return hit.views && typeof hit.views === "object" ? hit.views : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeViewsCache(key, views) {
+    try {
+      const raw = JSON.parse(sessionStorage.getItem(VIEWS_CACHE_KEY) || "{}");
+      raw[key] = { at: Date.now(), views: views || {} };
+      sessionStorage.setItem(VIEWS_CACHE_KEY, JSON.stringify(raw));
+    } catch (_) {}
+  }
+
+  async function fetchViews(board, ids, options = {}) {
     const list = [...new Set((ids || []).map((id) => String(id || "").trim()).filter(Boolean))].slice(0, 200);
     if (!board || !list.length) return {};
+    const period = String(options.period || "").toLowerCase();
+    const cacheKey = `${board}:${period || "all"}:${list.slice().sort().join(",")}`;
+    if (!options.force) {
+      const cached = readViewsCache(cacheKey);
+      if (cached) return cached;
+    }
     try {
       const params = new URLSearchParams({ board, ids: list.join(",") });
+      if (period) params.set("period", period);
       const response = await fetch(`${API_BASE}/views?${params}`, {
         credentials: "include",
         cache: "no-store",
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) return {};
-      return payload.views || {};
+      const views = payload.views || {};
+      writeViewsCache(cacheKey, views);
+      return views;
     } catch (_error) {
       return {};
+    }
+  }
+
+  function canBump(board, itemId) {
+    try {
+      const raw = JSON.parse(sessionStorage.getItem(BUMP_THROTTLE_KEY) || "{}");
+      const key = `${board}:${itemId}`;
+      const last = Number(raw[key] || 0);
+      if (last && Date.now() - last < BUMP_COOLDOWN_MS) return false;
+      raw[key] = Date.now();
+      // prune old
+      Object.keys(raw).forEach((k) => {
+        if (Date.now() - Number(raw[k] || 0) > 24 * 60 * 60 * 1000) delete raw[k];
+      });
+      sessionStorage.setItem(BUMP_THROTTLE_KEY, JSON.stringify(raw));
+      return true;
+    } catch (_) {
+      return true;
     }
   }
 
   async function bumpView(board, id) {
     const itemId = String(id || "").trim();
     if (!board || !itemId) return 0;
+    if (!canBump(board, itemId)) return 0;
     try {
       const params = new URLSearchParams({ board, id: itemId, inc: "1" });
       const response = await fetch(`${API_BASE}/views?${params}`, {

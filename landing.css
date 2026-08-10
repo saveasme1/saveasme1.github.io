@@ -1605,17 +1605,45 @@ body.board-standalone--notices .board-dialog.open .board-carousel-slide {
 }
 .board-dialog[data-board-type="notices"] .board-carousel-slide img,
 body.board-standalone--notices .board-dialog.open .board-carousel-slide img {
-  width: 100% !important;
+  width: auto !important;
   max-width: 100% !important;
   height: auto !important;
   max-height: none !important;
   object-fit: contain !important;
   object-position: top center !important;
   vertical-align: top;
+  margin: 0 auto;
+  display: block;
 }
 .board-dialog[data-board-type="notices"] .detail-copy,
 body.board-standalone--notices .board-dialog.open .detail-copy {
   flex: 0 0 auto !important;
   max-height: none !important;
   overflow: visible !important;
+}
+
+/* PC notices: smaller sheet — do not blow images up to huge dialog */
+@media (min-width: 1100px) {
+  .board-dialog[data-board-type="notices"] .board-detail,
+  body.board-standalone--notices .board-dialog.open .board-detail {
+    width: min(560px, calc(100vw - 64px)) !important;
+    max-width: min(560px, calc(100vw - 64px)) !important;
+    height: auto !important;
+    max-height: min(88vh, 820px) !important;
+  }
+  .board-dialog[data-board-type="notices"] .board-detail-body,
+  body.board-standalone--notices .board-dialog.open .board-detail-body {
+    overflow-y: auto !important;
+  }
+  .board-dialog[data-board-type="notices"] .detail-images,
+  body.board-standalone--notices .board-dialog.open .detail-images {
+    background: #1a1a1a !important;
+  }
+  .board-dialog[data-board-type="notices"] .board-carousel-slide img,
+  body.board-standalone--notices .board-dialog.open .board-carousel-slide img {
+    max-height: min(62vh, 560px) !important;
+    width: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
 }

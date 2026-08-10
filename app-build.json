@@ -1,11 +1,11 @@
-﻿{
-  "build": "20260810-gbcal66",
+{
+  "build": "20260811-gbcal67",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T15:42:00.000Z",
-  "note": "Notice carousel hug image + chart recent-growth ranking",
+  "deployedAt": "2026-08-10T16:00:00.000Z",
+  "note": "Daily chart + PC notice no-upscale",
   "notes": [
-    "공지 스와이퍼 검은 여백 제거",
-    "CHART 최근조회 기준 표시",
-    "버그 수정 및 안정성 개선"
+    "CHART: KST 오늘 조회 + 느슨한 캐시/bump",
+    "누적 조회 문구 제거",
+    "PC 공지: 원본 초과 확대 금지·시트 축소"
   ]
 }
