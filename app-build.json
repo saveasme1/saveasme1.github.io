@@ -1,11 +1,11 @@
 ﻿{
-  "build": "20260810-gbcal65",
+  "build": "20260810-gbcal66",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T15:25:00.000Z",
-  "note": "Notices tall image scroll + discover latest-first",
+  "deployedAt": "2026-08-10T15:42:00.000Z",
+  "note": "Notice carousel hug image + chart recent-growth ranking",
   "notes": [
-    "공지 긴 이미지 스크롤 보기",
-    "발견탭 최신순 상단 정렬",
+    "공지 스와이퍼 검은 여백 제거",
+    "CHART 최근조회 기준 표시",
     "버그 수정 및 안정성 개선"
   ]
 }

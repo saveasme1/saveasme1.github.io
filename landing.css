@@ -1560,7 +1560,7 @@ body.has-gb-bottom-nav .toast-stack {
   }
 }
 
-/* Notices: keep full tall images — customer scrolls the sheet to see bottom */
+/* Notices: hug active image — no min-height black void; JS sets viewport height to active slide */
 .board-dialog[data-board-type="notices"] .board-detail-body {
   overflow-x: hidden;
   overflow-y: auto;
@@ -1572,25 +1572,36 @@ body.board-standalone--notices .board-dialog.open .detail-images {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   background: #111;
 }
 .board-dialog[data-board-type="notices"] .board-carousel,
-.board-dialog[data-board-type="notices"] .board-carousel-viewport,
-.board-dialog[data-board-type="notices"] .board-carousel-track,
-.board-dialog[data-board-type="notices"] .board-carousel-slide,
-body.board-standalone--notices .board-dialog.open .board-carousel,
-body.board-standalone--notices .board-dialog.open .board-carousel-viewport,
-body.board-standalone--notices .board-dialog.open .board-carousel-track,
-body.board-standalone--notices .board-dialog.open .board-carousel-slide {
+body.board-standalone--notices .board-dialog.open .board-carousel {
   height: auto !important;
   max-height: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  background: #111;
+}
+.board-dialog[data-board-type="notices"] .board-carousel-viewport,
+body.board-standalone--notices .board-dialog.open .board-carousel-viewport {
+  /* height set inline by fitNoticeCarousel — do not force auto !important */
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  background: #111;
+}
+.board-dialog[data-board-type="notices"] .board-carousel-track,
+body.board-standalone--notices .board-dialog.open .board-carousel-track {
+  align-items: flex-start !important;
+  max-height: none !important;
 }
 .board-dialog[data-board-type="notices"] .board-carousel-slide,
 body.board-standalone--notices .board-dialog.open .board-carousel-slide {
   display: block !important;
   place-items: unset !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  background: #111;
 }
 .board-dialog[data-board-type="notices"] .board-carousel-slide img,
 body.board-standalone--notices .board-dialog.open .board-carousel-slide img {
@@ -1600,6 +1611,7 @@ body.board-standalone--notices .board-dialog.open .board-carousel-slide img {
   max-height: none !important;
   object-fit: contain !important;
   object-position: top center !important;
+  vertical-align: top;
 }
 .board-dialog[data-board-type="notices"] .detail-copy,
 body.board-standalone--notices .board-dialog.open .detail-copy {

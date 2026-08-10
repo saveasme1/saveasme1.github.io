@@ -172,6 +172,61 @@
     if (window.GongbangBoardMeta?.syncCarouselHeight) {
       window.GongbangBoardMeta.syncCarouselHeight(viewport, track, state.slideIndex);
     }
+    fitNoticeCarousel(viewport, track);
+  }
+
+  /** Notices: viewport height = active slide image only (no black void from taller siblings). */
+  function fitNoticeCarousel(viewport, track) {
+    if (state.currentType !== "notices") return;
+    const vp = viewport || dialog.images.querySelector(".board-carousel-viewport");
+    const tr = track || dialog.images.querySelector(".board-carousel-track");
+    if (!vp || !tr) return;
+    const slides = [...tr.children];
+    const active = slides[state.slideIndex];
+    const img = active?.querySelector("img");
+    if (!img) return;
+
+    const apply = () => {
+      const w = img.getBoundingClientRect().width || img.clientWidth || vp.clientWidth || 0;
+      const naturalH =
+        img.naturalWidth > 0 ? Math.round((img.naturalHeight * w) / img.naturalWidth) : 0;
+      const measured = Math.round(img.getBoundingClientRect().height || 0);
+      const h = Math.max(naturalH, measured, 0);
+      if (h < 8) return;
+      vp.style.setProperty("height", `${h}px`, "important");
+      vp.style.setProperty("overflow", "hidden", "important");
+      tr.style.setProperty("height", `${h}px`, "important");
+      tr.style.setProperty("align-items", "flex-start", "important");
+      slides.forEach((slide, index) => {
+        slide.style.setProperty("height", index === state.slideIndex ? `${h}px` : "auto", "important");
+        slide.style.setProperty("overflow", "hidden", "important");
+        slide.style.setProperty("display", "block", "important");
+      });
+      const di = dialog.images;
+      if (di) di.style.setProperty("height", `${h}px`, "important");
+      const car = vp.closest(".board-carousel");
+      if (car) car.style.setProperty("height", `${h}px`, "important");
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notice-fit',hypothesisId:'N2',location:'landing-boards.js:fitNoticeCarousel',message:'fit notice carousel to active slide',data:{id:state.current?.id||'',slide:state.slideIndex,slides:state.slideCount,natW:img.naturalWidth,natH:img.naturalHeight,cssH:h,vpH:Math.round(vp.getBoundingClientRect().height),blackGap:Math.round(vp.getBoundingClientRect().height-h),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    };
+
+    if (img.complete && img.naturalWidth) {
+      requestAnimationFrame(apply);
+    } else {
+      img.addEventListener(
+        "load",
+        () => requestAnimationFrame(apply),
+        { once: true }
+      );
+      img.addEventListener(
+        "error",
+        () => {
+          vp.style.height = "0px";
+        },
+        { once: true }
+      );
+    }
   }
 
   function renderCarousel(item) {

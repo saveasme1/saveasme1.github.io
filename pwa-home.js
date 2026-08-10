@@ -69,7 +69,7 @@
     { go: "search", label: "AI검색", ico: "search" },
   ];
 
-  const RANK_SNAP_KEY = "hx.pwa.hotRank.v2";
+  const RANK_SNAP_KEY = "hx.pwa.hotRank.v3";
 
   function appQuery() {
     return /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
@@ -792,10 +792,24 @@
       ...item,
       _views: Number(viewsMap[String(item.id)] || 0),
     }));
+    // Snap of previous visit — used for "지금 핫한" recent growth (not lifetime-only).
+    const prevSnapEarly = loadRankSnap();
+    const hasPrevViews =
+      prevSnapEarly.views && typeof prevSnapEarly.views === "object" && Object.keys(prevSnapEarly.views).length > 0;
     const ranked = withViews
       .slice()
-      .sort((a, b) => b._views - a._views || String(a.id).localeCompare(String(b.id)));
+      .sort((a, b) => {
+        if (hasPrevViews) {
+          const ga = Math.max(0, Number(a._views) - Number(prevSnapEarly.views[String(a.id)] || 0));
+          const gb = Math.max(0, Number(b._views) - Number(prevSnapEarly.views[String(b.id)] || 0));
+          if (gb !== ga) return gb - ga;
+        }
+        return b._views - a._views || String(a.id).localeCompare(String(b.id));
+      });
     const topRanked = ranked.slice(0, 5);
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'chart-rank',hypothesisId:'C1',location:'pwa-home.js:rank',message:'chart ranking basis',data:{mode:hasPrevViews?'recent-growth':'cumulative-fallback',itemCount:items.length,viewKeys:Object.keys(viewsMap||{}).length,top:topRanked.map((it)=>({id:it.id,views:it._views,growth:hasPrevViews?Math.max(0,it._views-Number(prevSnapEarly.views[String(it.id)]||0)):null,title:String(it.title||'').slice(0,40)}))},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     // Baseline = catalog order. Session snap (previous view ranks) used when available
     // so revisits show real movement; first paint still shows UP/DOWN vs list order.
@@ -807,7 +821,7 @@
     ranked.forEach((item, i) => {
       if (item?.id) viewRanks[String(item.id)] = i + 1;
     });
-    const prevSnap = loadRankSnap();
+    const prevSnap = prevSnapEarly;
     const hasPrev = prevSnap.ranks && Object.keys(prevSnap.ranks).length > 0;
     const prevRanks = hasPrev ? prevSnap.ranks : catalogRanks;
     const nextViews = {};
@@ -1631,7 +1645,7 @@
     rankSec.className = "pwa-sec";
     rankSec.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">CHART</p><h2>지금 핫한 순위</h2></div>` +
+      `<div><p class="pwa-sec__eyebrow">CHART · ${hasPrevViews ? "최근 조회" : "누적 조회"}</p><h2>지금 핫한 순위</h2></div>` +
       `<button type="button" data-go="portfolio">전체</button>` +
       `</div>`;
     const rankList = document.createElement("div");
@@ -1657,18 +1671,22 @@
         // View growth vs last snap → nudge UP when rank flat
         const prevViews = Number(prevSnap.views?.[id] || 0);
         const curViews = Number(item._views || 0);
+        const growth = Math.max(0, curViews - prevViews);
         let deltaHtml = rankDeltaHtml(prevRank, curRank);
-        if (deltaHtml.includes("is-same") && curViews > prevViews && prevViews > 0) {
-          const up = Math.max(1, curViews - prevViews);
+        if (deltaHtml.includes("is-same") && growth > 0 && prevViews > 0) {
+          const up = Math.max(1, growth);
           deltaHtml = `<span class="pwa-rank__delta is-up" aria-label="${up} up">▲${up}</span>`;
-        } else if (deltaHtml.includes("is-same") && prevViews > curViews && curViews >= 0 && prevViews > 0) {
+        } else if (deltaHtml.includes("is-same") && prevViews > curViews && prevViews > 0) {
           const down = Math.max(1, prevViews - curViews);
           deltaHtml = `<span class="pwa-rank__delta is-down" aria-label="${down} down">▼${down}</span>`;
         }
+        const viewsLine = hasPrevViews
+          ? `${cat || "PF"} · 최근 +${growth.toLocaleString("ko-KR")} · 누적 ${curViews.toLocaleString("ko-KR")}`
+          : `${cat || "PF"} · 누적 조회 ${curViews.toLocaleString("ko-KR")}`;
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
           `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
-          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"} · 조회 ${curViews.toLocaleString("ko-KR")}</i></span>` +
+          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${viewsLine}</i></span>` +
           deltaHtml;
         protect(row.querySelector("img"));
         row.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
