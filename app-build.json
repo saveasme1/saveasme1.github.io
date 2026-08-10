@@ -1,11 +1,11 @@
 {
-  "build": "20260810-gbcal59",
+  "build": "20260810-gbcal60",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T13:30:00.000Z",
-  "note": "Groupbuy writer/view PC width match shipping; cloud sync policy",
+  "deployedAt": "2026-08-10T13:50:00.000Z",
+  "note": "Groupbuy writer cover/detail preview match shipping",
   "notes": [
+    "공동구매 이미지 미리보기 수정",
     "공동구매 글쓰기·글보기 PC 폭 개선",
-    "좋아요·발견 피드 안정화",
     "버그 수정 및 안정성 개선"
   ]
 }

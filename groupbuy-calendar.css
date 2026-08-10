@@ -1012,6 +1012,20 @@ html.is-pwa .pwa-groupbuy {
 
 /* Writer width: inherit shipping .pf-write-dialog.review-dialog / .gb-write-dialog.review-dialog from portfolio-board.css + handmade-reviews.css. No local width overrides. */
 
+.gb-cal-writer .pf-writer-cover {
+  position: relative;
+  overflow: hidden;
+}
+.gb-cal-writer .pf-writer-cover img {
+  display: none !important; /* cover uses background-image like shipping */
+}
+.gb-cal-writer .pf-writer-cover .pf-writer-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+}
+
 .gb-cal-sheet__card {
   width: min(920px, 100%);
   max-width: calc(100vw - 32px);
