@@ -382,6 +382,44 @@
     }
   }
 
+  async function putManagedBatch(files, message) {
+    const startedAt = Date.now();
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:putManagedBatch',message:'batch start',data:{fileCount:files.length,paths:files.map((f)=>f.path),message},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    try {
+      const result = await api("/admin/files/batch", {
+        method: "PUT",
+        body: JSON.stringify({ files, message }),
+      });
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:putManagedBatch',message:'batch ok',data:{fileCount:files.length,ms:Date.now()-startedAt,serverMs:result?.ms||null,via:result?.via||null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      return result;
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:putManagedBatch',message:'batch fail',data:{fileCount:files.length,ms:Date.now()-startedAt,error:String(error?.message||error||'').slice(0,200)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      throw error;
+    }
+  }
+
+  async function prepareImageFile(type, file, id, role, index = 0) {
+    const prepared = await compressImageFile(file);
+    if (prepared.size > 8 * 1024 * 1024) {
+      throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+    }
+    const ext =
+      prepared.type === "image/png" ? "png" : prepared.type === "image/webp" ? "webp" : "jpg";
+    const suffix = index ? `-${index}` : "";
+    const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
+    const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:prepareImageFile',message:'prepared image',data:{path,role,srcSize:file.size,outSize:prepared.size,outType:prepared.type},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    return { path, content };
+  }
+
   async function compressImageFile(file, maxSide = 1200, quality = 0.72) {
     if (!file || !file.type || !file.type.startsWith("image/")) return file;
     try {
@@ -625,7 +663,77 @@
           : (publishedAtEl?.value ? new Date(publishedAtEl.value).toISOString() : now);
       }
 
-      writer.status.textContent = "올리는 중…";
+      const submitStartedAt = Date.now();
+      writer.status.textContent = type === "shipping" ? "이미지 준비 중…" : "올리는 중…";
+
+      if (type === "shipping") {
+        const batchFiles = [];
+        let cover = writer.cover.path || "";
+        if (writer.cover.file) {
+          const prepared = await prepareImageFile(type, writer.cover.file, id, "cover");
+          cover = prepared.path;
+          batchFiles.push({ path: prepared.path, content: prepared.content });
+        }
+        const images = [];
+        for (let index = 0; index < writer.details.length; index += 1) {
+          const detail = writer.details[index];
+          if (detail.file) {
+            const prepared = await prepareImageFile(type, detail.file, id, "detail", index + 1);
+            images.push(prepared.path);
+            batchFiles.push({ path: prepared.path, content: prepared.content });
+          } else if (detail.path) {
+            images.push(detail.path);
+          }
+        }
+        if (!cover) throw new Error("대표 이미지 업로드에 실패했습니다.");
+
+        const item = {
+          id,
+          title,
+          content,
+          cover,
+          image: cover,
+          images: images.filter((path) => path && path !== cover),
+          publishedAt,
+          updatedAt: now,
+          category,
+          origin: "admin",
+        };
+
+        writer.status.textContent = "저장 중…";
+        // Public live JSON — avoid admin GET (extra git pull ~4s). Pages-git writes ignore SHA.
+        let liveItems = [];
+        try {
+          const liveRes = await fetch(`shipping-live.json?v=${Date.now()}`, { cache: "no-store" });
+          if (liveRes.ok) {
+            const livePayload = await liveRes.json();
+            liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+          }
+        } catch (_) {
+          liveItems = [];
+        }
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping batch save start',data:{id,category,cover,publishedAt,imageCount:images.length,batchFileCount:batchFiles.length+1,liveCount:liveItems.length},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        const live = {
+          version: 1,
+          updatedAt: now,
+          items: [item, ...liveItems.filter((entry) => entry.id !== id)].slice(0, 300),
+        };
+        batchFiles.push({
+          path: "shipping-live.json",
+          content: textToBase64(JSON.stringify(live)),
+        });
+        await putManagedBatch(batchFiles, `shipping: publish ${id}`);
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping batch saved',data:{id,cover,liveCount:live.items.length,totalMs:Date.now()-submitStartedAt},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+
+        state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];
+        boards.shipping.page = 1;
+        window.openGongbangShippingPanel?.();
+        window.prependGongbangShippingItem?.(item, { clearFilters: true });
+      } else {
       let cover = writer.cover.path || "";
       if (writer.cover.file) {
         cover = await uploadImage(type, writer.cover.file, id, "cover");
@@ -655,36 +763,6 @@
         origin: "admin",
       };
 
-      if (type === "shipping") {
-        // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'E',location:'landing-boards.js:submitWriter',message:'shipping save start',data:{id,category,cover,publishedAt,imageCount:images.length,existingLoadPathSample:'shipping/uploads/imported/...'},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-        // Small overlay file — full shipping-data.json puts often fail/timeout on the API.
-        const liveFile = await readManaged("shipping-live.json", true);
-        // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'B',location:'landing-boards.js:submitWriter',message:'live read result',data:{hasFile:Boolean(liveFile),shaPrefix:String(liveFile?.sha||'').slice(0,12),itemCount:Array.isArray(liveFile?.value?.items)?liveFile.value.items.length:null},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-        const liveItems = Array.isArray(liveFile?.value?.items) ? liveFile.value.items : [];
-        const live = {
-          version: 1,
-          updatedAt: now,
-          items: [item, ...liveItems.filter((entry) => entry.id !== id)].slice(0, 300),
-        };
-        await putManagedFresh(
-          "shipping-live.json",
-          textToBase64(JSON.stringify(live)),
-          `shipping live: create ${id}`,
-          liveFile?.sha || ""
-        );
-        // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'E',location:'landing-boards.js:submitWriter',message:'shipping live saved',data:{id,cover,liveCount:live.items.length},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-
-        state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];
-        boards.shipping.page = 1;
-        window.prependGongbangShippingItem?.(item, { clearFilters: true });
-        // Do not soft-reload immediately — CDN can briefly return empty live and wipe the new card.
-      } else {
         const [publishedFile, draftFile] = await Promise.all([
           readManaged(`${type}-data.json`, true),
           readManaged(`${type}-draft.json`, true),
