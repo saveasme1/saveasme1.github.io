@@ -705,6 +705,15 @@
     renderDateStrip();
     renderList();
   };
+  window.removeGongbangShippingItem = (id) => {
+    const target = String(id || "");
+    if (!target) return;
+    state.items = (state.items || []).filter((item) => String(item?.id) !== target);
+    renderCats();
+    renderCalendar();
+    renderDateStrip();
+    renderList();
+  };
   window.refreshGongbangShippingBoard = (options = {}) => {
     state.opened = true;
     if (options.clearFilters) {

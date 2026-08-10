@@ -35,7 +35,8 @@ DNS를 GitHub Pages로 고치기 전까지는 **`saveasme1.github.io`로 확인�
   - 경로: `/var/www/makerbridge/public/uploads/handmade-shipping/{postId}/...`
   - URL: `https://app.0-1.co.kr/uploads/handmade-shipping/...`
 - **목록 메타**는 Contabo `PUT /api/handmade/v1/admin/shipping/publish` → `GET /api/handmade/v1/shipping/live`
-- 프론트: `_pwa_push/landing-boards.js` (작성), `_pwa_push/shipping-board.js` (목록)
+- **삭제**는 Contabo `DELETE /api/handmade/v1/admin/shipping/:id` (live에서 제거 + 업로드 폴더 삭제, Git 대기 없음)
+- 프론트: `_pwa_push/landing-boards.js` (작성/삭제), `_pwa_push/shipping-board.js` (목록)
 
 ### 배포 시 주의 (MakerBridge)
 

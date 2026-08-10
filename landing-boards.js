@@ -272,9 +272,26 @@
     remove.addEventListener("click", async () => {
       if (!confirm(`“${state.current.title}” 게시글을 삭제할까요?`)) return;
       remove.disabled = true;
+      const startedAt = Date.now();
       try {
         const type = state.currentType;
         const id = state.current.id;
+        if (type === "shipping") {
+          // #region agent log
+          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'shipping delete start',data:{id,title:state.current?.title||''},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+          const result = await api(`/admin/shipping/${encodeURIComponent(id)}`, { method: "DELETE" });
+          // #region agent log
+          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'shipping delete ok',data:{id,removed:result?.removed,liveCount:result?.liveCount,serverMs:result?.ms,totalMs:Date.now()-startedAt,via:result?.via},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+          state.shipping = (state.shipping || []).filter((item) => item.id !== id);
+          window.removeGongbangShippingItem?.(id);
+          closeDetail();
+          if (typeof window.showGongbangToast === "function") {
+            window.showGongbangToast("게시글을 삭제했습니다.", { tone: "success", duration: 1800 });
+          }
+          return;
+        }
         const [published, draft] = await Promise.all([
           api(`/admin/files?${new URLSearchParams({ path: `${type}-data.json`, _: Date.now() })}`),
           api(`/admin/files?${new URLSearchParams({ path: `${type}-draft.json`, _: Date.now() })}`),
@@ -305,6 +322,9 @@
         closeDetail();
         renderList(type);
       } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'delete fail',data:{error:String(error?.message||error||'').slice(0,200),totalMs:Date.now()-startedAt},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         alert(error.message);
         remove.disabled = false;
       }

@@ -1,11 +1,10 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal53";
-  const APP_VERSION = "v1.12.39";
+  const APP_BUILD = "20260810-gbcal54";
+  const APP_VERSION = "v1.12.40";
   const RELEASE_NOTES = [
-    "최종검수 글·이미지가 바로 올라갑니다",
-    "업데이트는 새 배포가 있을 때만 한 번 안내합니다",
+    "최종검수 삭제가 바로 반영됩니다",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
