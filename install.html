@@ -3,7 +3,7 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.20260810-gbcal49";
+      var KEY = "hx.pwa.forceNuke.20260810-gbcal50";
       try { if (localStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { localStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
@@ -42,7 +42,7 @@
   <meta name="robots" content="index,follow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
   <title>본 헤리티지 앱 설치</title>
-  <!-- cache-bust: 20260810-gbcal49 -->
+  <!-- cache-bust: 20260810-gbcal50 -->
   <meta name="description" content="Windows · Mac · Android · iPhone — 본 헤리티지 앱을 홈 화면·PC에 설치하세요.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="본 헤리티지">
@@ -60,7 +60,7 @@
   <meta name="twitter:title" content="본 헤리티지 앱 설치">
   <meta name="twitter:description" content="Windows · Mac · Android · iPhone에서 설치하는 링크입니다.">
   <meta name="twitter:image" content="https://hand-made.kr/icons/og-install-v20260725e.png">
-  <link rel="manifest" href="manifest.webmanifest?v=20260810-gbcal49">
+  <link rel="manifest" href="manifest.webmanifest?v=20260810-gbcal50">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="image_src" href="https://hand-made.kr/icons/og-install-v20260725e.png">
@@ -2041,8 +2041,8 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="pwa-analytics.js?v=20260810-gbcal49"></script>
-  <script src="pwa-register.js?v=20260810-gbcal49"></script>
+  <script src="pwa-analytics.js?v=20260810-gbcal50"></script>
+  <script src="pwa-register.js?v=20260810-gbcal50"></script>
   <script>
   (function () {
     var pageUrl = location.href.split("#")[0];
@@ -2231,7 +2231,7 @@
       setPcHint("설치가 완료되었습니다");
       try {
         var buildMeta = document.querySelector('meta[name="guide-build"]');
-        var build = (buildMeta && buildMeta.content) || "20260810-gbcal49";
+        var build = (buildMeta && buildMeta.content) || "20260810-gbcal50";
         localStorage.setItem("hx.pwa.installedBuild", build);
         if (window.HxPwaAnalytics && window.HxPwaAnalytics.beacon) {
           window.HxPwaAnalytics.beacon("pwa_install", { build: build, isPwa: false });

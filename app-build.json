@@ -1,10 +1,10 @@
 {
-  "build": "20260810-gbcal49",
+  "build": "20260810-gbcal50",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T12:10:00.000Z",
-  "note": "Faster shipping public-direct writes + keep live posts visible",
+  "deployedAt": "2026-08-10T12:50:00.000Z",
+  "note": "Preserve transparent PNG on shipping upload",
   "notes": [
-    "shipping 공개 repo 직행으로 업로드 가속",
-    "등록 직후 CDN 빈목록에 안 지워지게 수정"
+    "투명 PNG는 JPEG 변환하지 않음",
+    "검정 썸네일 원인 수정"
   ]
 }

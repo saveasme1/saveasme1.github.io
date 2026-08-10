@@ -395,11 +395,50 @@
       const canvas = document.createElement("canvas");
       canvas.width = cw;
       canvas.height = ch;
-      canvas.getContext("2d").drawImage(bmp, 0, 0, cw, ch);
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(bmp, 0, 0, cw, ch);
       bmp.close();
-      const blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", quality));
-      if (!blob) return file;
+
+      // Transparent PNG/WebP must stay lossless — JPEG fills alpha with black.
+      let hasAlpha = false;
+      if (file.type === "image/png" || file.type === "image/webp") {
+        try {
+          const { data } = ctx.getImageData(0, 0, cw, ch);
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] < 250) {
+              hasAlpha = true;
+              break;
+            }
+          }
+        } catch (_) {
+          hasAlpha = file.type === "image/png";
+        }
+      }
+
       const base = String(file.name || "image").replace(/\.[^.]+$/, "") || "image";
+      if (hasAlpha) {
+        const blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+        if (!blob) return file;
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'A',location:'landing-boards.js:compressImageFile',message:'keep png alpha',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        return new File([blob], `${base}.png`, { type: "image/png" });
+      }
+
+      // Opaque photos → JPEG on white (avoids black fringe from cleared canvas).
+      const flat = document.createElement("canvas");
+      flat.width = cw;
+      flat.height = ch;
+      const fctx = flat.getContext("2d");
+      fctx.fillStyle = "#ffffff";
+      fctx.fillRect(0, 0, cw, ch);
+      fctx.drawImage(canvas, 0, 0);
+      const blob = await new Promise((resolve) => flat.toBlob((b) => resolve(b), "image/jpeg", quality));
+      if (!blob) return file;
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'A',location:'landing-boards.js:compressImageFile',message:'jpeg opaque',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
     } catch (_) {
       return file;
@@ -411,11 +450,12 @@
     if (prepared.size > 8 * 1024 * 1024) {
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
-    const ext = "jpg";
+    const ext =
+      prepared.type === "image/png" ? "png" : prepared.type === "image/webp" ? "webp" : "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'D',location:'landing-boards.js:uploadImage',message:'upload path',data:{path,type,role,srcSize:file.size,outSize:prepared.size,assetPreview:`/${path}`},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'D',location:'landing-boards.js:uploadImage',message:'upload path',data:{path,type,role,srcSize:file.size,outSize:prepared.size,outType:prepared.type,assetPreview:`/${path}`},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
     const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
     await putManagedFresh(path, content, `${type}: upload ${id} ${role}${suffix}`, "");
