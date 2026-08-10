@@ -12,7 +12,7 @@ const SHORT = BUILD.replace("20260809-", "");
 const NOTES = [
   "재설치 안내 게이트 (기존 앱 숨김)",
   "방문자·설치·PWA 세션 서버 집계",
-  "세로 고정 (커서모바일앱 동일)",
+  "install.html 임시 재설치 멘트 제거",
 ];
 
 const MIN_INSTALL_BUILD = "20260809-gbcal31";
