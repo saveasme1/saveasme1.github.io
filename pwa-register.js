@@ -4,7 +4,7 @@
   const APP_BUILD = "20260810-gbcal62";
   const APP_VERSION = "v1.12.47";
   const RELEASE_NOTES = [
-    "공지사항 독립 페이지·쿼메뉴 순서 수정",
+    "공지사항 독립 페이지·퀵메뉴 순서 수정",
     "메인 배너·공지 목록 여백 개선",
     "버그 수정 및 안정성 개선",
   ];
