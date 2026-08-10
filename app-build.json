@@ -1,11 +1,11 @@
-{
-  "build": "20260811-gbcal67",
+﻿{
+  "build": "20260811-gbcal68",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:00:00.000Z",
-  "note": "Daily chart + PC notice no-upscale",
+  "deployedAt": "2026-08-10T16:10:00.000Z",
+  "note": "Fix PC hero shell + quick gap + ship/snap peek rail",
   "notes": [
-    "CHART: KST 오늘 조회 + 느슨한 캐시/bump",
-    "누적 조회 문구 제거",
-    "PC 공지: 원본 초과 확대 금지·시트 축소"
+    "PC 메인 스와이퍼 shell 안으로 복원",
+    "퀵메뉴 버튼 간격 축소",
+    "PC 최종검수/스냅 가로레일 2+peek"
   ]
 }

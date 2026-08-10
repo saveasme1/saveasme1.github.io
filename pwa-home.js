@@ -927,7 +927,8 @@
     requestAnimationFrame(() => {
       const r = hero.getBoundingClientRect();
       const cs = getComputedStyle(hero);
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pwa-ui',hypothesisId:'H10',location:'pwa-home.js:hero',message:'hero swiper metrics',data:{vw:window.innerWidth,left:Math.round(r.left),right:Math.round(r.right),w:Math.round(r.width),h:Math.round(r.height),ml:cs.marginLeft,mr:cs.marginRight,heightCss:cs.height,minH:cs.minHeight},timestamp:Date.now()})}).catch(()=>{});
+      const shellPx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--pwa-shell")) || 0;
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H10',location:'pwa-home.js:hero',message:'hero swiper metrics',data:{vw:window.innerWidth,left:Math.round(r.left),right:Math.round(r.right),w:Math.round(r.width),h:Math.round(r.height),ml:cs.marginLeft,mr:cs.marginRight,shellPx,fullBleed:r.width>shellPx+40},timestamp:Date.now()})}).catch(()=>{});
     });
     // #endregion
 
@@ -1106,9 +1107,6 @@
         `</button>`
     ).join("");
     dockSec.append(services);
-    // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pwa-ui',hypothesisId:'H9',location:'pwa-home.js:quick-menu',message:'quick menu order',data:{order:MENUS.map((m)=>m.label),go:MENUS.map((m)=>m.go),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
 
     // —— Live pulse (recent uploads across boards) ——
     const pulse = document.createElement("div");
@@ -1748,7 +1746,22 @@
     if (wishSec) host.append(wishSec);
 
     // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'pwa-home.js:boot-order',message:'home section order',data:{order:[...host.children].map((el)=>({id:el.id||'',cls:String(el.className||'').slice(0,80),h2:el.querySelector('.pwa-sec__head h2')?.textContent||el.querySelector('h2')?.textContent||''})),pulseCount:pulseEntries.length,ship:shipItems.length,gbLive:groupbuyRaw.length,notices:noticesRaw.length,aiPad:getComputedStyle(aiSec).paddingTop,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+    requestAnimationFrame(() => {
+      const bs = [...services.querySelectorAll("button")];
+      const btnGapPx =
+        bs.length >= 2
+          ? Math.round(bs[1].getBoundingClientRect().left - bs[0].getBoundingClientRect().right)
+          : null;
+      const shipCards = [...shipRail.querySelectorAll(".pwa-review")];
+      const shipRailR = shipRail.getBoundingClientRect();
+      const visibleShip = shipCards.filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.left < shipRailR.right && r.right > shipRailR.left;
+      }).length;
+      const peek3 =
+        shipCards[2] ? Math.round(Math.min(shipCards[2].getBoundingClientRect().right, shipRailR.right) - Math.max(shipCards[2].getBoundingClientRect().left, shipRailR.left)) : 0;
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H9-H11',location:'pwa-home.js:boot-order',message:'home layout metrics',data:{vw:window.innerWidth,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',dockDisplay:getComputedStyle(services).display,btnW:Math.round(bs[0]?.getBoundingClientRect()?.width||0),btnGapPx,shipDisplay:getComputedStyle(shipRail).display,shipOverflow:getComputedStyle(shipRail).overflowX,shipCardW:Math.round(shipCards[0]?.getBoundingClientRect()?.width||0),shipVisibleApprox:visibleShip,ship3PeekPx:peek3,shipCount:shipCards.length,revCount:revRail.querySelectorAll('.pwa-review').length},timestamp:Date.now()})}).catch(()=>{});
+    });
     // #endregion
 
     host.addEventListener("click", (event) => {
