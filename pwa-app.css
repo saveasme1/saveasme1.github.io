@@ -1,13 +1,13 @@
-/* PWA only — commerce app shell (KREAM / W Concept / Musinsa tone) */
+/* PWA only — paper shell (match portfolio tone) */
 html.is-pwa {
-  --pwa-bg: #0a0a0a;
-  --pwa-elevated: #141414;
-  --pwa-line: rgba(255, 255, 255, 0.08);
-  --pwa-ink: #f5f5f5;
-  --pwa-muted: rgba(245, 245, 245, 0.52);
-  --pwa-dim: rgba(245, 245, 245, 0.32);
-  --pwa-accent: #c9a66b;
-  --pwa-gold: #c9a66b;
+  --pwa-bg: #f7f5f2;
+  --pwa-elevated: #ffffff;
+  --pwa-line: rgba(22, 21, 19, 0.1);
+  --pwa-ink: #161513;
+  --pwa-muted: rgba(22, 21, 19, 0.58);
+  --pwa-dim: rgba(22, 21, 19, 0.38);
+  --pwa-accent: #9a8160;
+  --pwa-gold: #9a8160;
   --pwa-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --pwa-tab-h: 56px;
   --pwa-tab-safe: env(safe-area-inset-bottom, 0px);
@@ -61,7 +61,7 @@ html.is-pwa #pwaHome {
 /* —— Top brand bar override —— */
 html.is-pwa .gb-top-brand {
   height: calc(48px + env(safe-area-inset-top, 0px));
-  background: rgba(10, 10, 10, 0.72);
+  background: rgba(247, 245, 242, 0.94);
   border-bottom: 1px solid var(--pwa-line);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -72,7 +72,7 @@ html.is-pwa .gb-top-brand__text {
   text-indent: 0.36em;
   font-size: 11px;
   font-weight: 800;
-  color: #fff;
+  color: #161513;
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
@@ -105,7 +105,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   padding: 0;
   border: 0;
   overflow: hidden;
-  background: #111;
+  background: #ebe7e1;
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -136,7 +136,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 0;
   padding: 0;
   border: 0;
-  background: #111;
+  background: #ebe7e1;
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -379,7 +379,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 0 16px;
   padding: 16px;
   border: 1px solid var(--pwa-line);
-  background: #101010;
+  background: #ffffff;
 }
 
 .pwa-aiseek__head {
@@ -494,7 +494,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   height: 110px;
   object-fit: cover;
   display: block;
-  background: #1a1a1a;
+  background: #ebe7e1;
 }
 
 .pwa-aiseek__card span {
@@ -586,7 +586,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 0 16px;
   padding: 18px 16px 14px;
   border: 1px solid var(--pwa-line);
-  background: #0f0f0f;
+  background: #ffffff;
 }
 
 .pwa-market__top {
@@ -743,7 +743,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   padding: 10px 16px;
   border-bottom: 1px solid var(--pwa-line);
   overflow: hidden;
-  background: #0c0c0c;
+  background: #ffffff;
 }
 
 .pwa-pulse__dot {
@@ -894,7 +894,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   position: absolute;
   inset: 1.5px;
   border-radius: 50%;
-  background: #0a0a0a;
+  background: #f7f5f2;
   z-index: 1;
 }
 
@@ -925,7 +925,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   object-fit: cover;
   border: 1.5px solid #0a0a0a;
   display: block;
-  background: #161616;
+  background: #ffffff;
 }
 
 .pwa-stories__ring--blank::after {
@@ -956,7 +956,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   gap: 0;
   margin: 0 16px;
   border: 1px solid var(--pwa-line);
-  background: #101010;
+  background: #ffffff;
 }
 
 .pwa-rank__row {
@@ -992,7 +992,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   width: 52px;
   height: 64px;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ebe7e1;
 }
 
 .pwa-rank__thumb img {
@@ -1072,7 +1072,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 12px 16px 0;
   padding: 12px 14px;
   border: 1px solid var(--pwa-line);
-  background: #101010;
+  background: #ffffff;
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -1294,7 +1294,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   width: 88px;
   height: 110px;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ebe7e1;
 }
 
 .pwa-peek__thumb img {
@@ -1484,7 +1484,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ebe7e1;
   border-radius: 0;
 }
 
@@ -1737,7 +1737,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   margin: 20px 16px 0;
   padding: 14px 16px;
   border: 1px solid var(--pwa-line);
-  background: #101010;
+  background: #ffffff;
   cursor: pointer;
   width: calc(100% - 32px);
   text-align: left;
@@ -1806,7 +1806,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-ai {
   display:grid; gap:6px; width:calc(100% - 32px); margin:18px 16px 8px;
-  padding:16px 18px; border:1px solid var(--pwa-line); background:#101010;
+  padding:16px 18px; border:1px solid var(--pwa-line); background:#ffffff;
   color:inherit; text-align:left; cursor:pointer;
 }
 .pwa-ai__tag { color:var(--pwa-gold); font-family:Syne,Archivo,sans-serif; font-size:10px; font-weight:800; letter-spacing:.14em; }
@@ -1850,7 +1850,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   display: block;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ebe7e1;
 }
 
 .pwa-look__media img {
@@ -1891,7 +1891,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   display: block;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #ebe7e1;
 }
 
 .pwa-review__media img {
@@ -1917,7 +1917,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 html.is-pwa .gb-bottom-nav {
   display:block !important; left:0 !important; right:0 !important; bottom:0 !important;
   padding:0; padding-bottom:var(--pwa-tab-safe);
-  background:rgba(10,10,10,.96) !important; border:0 !important;
+  background:rgba(247,245,242,.96) !important; border:0 !important;
   border-top:1px solid var(--pwa-line) !important;
   backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
   box-shadow:none; pointer-events:auto;
@@ -1930,7 +1930,7 @@ html.is-pwa .gb-bottom-nav__bar {
 html.is-pwa .gb-bottom-nav__item {
   display:flex !important; flex-direction:column; align-items:center; justify-content:center;
   gap:0; min-height:var(--pwa-tab-h); padding:0; margin:0; border:0; border-radius:0;
-  background:transparent !important; color:rgba(245,245,245,.42) !important; transform:none !important;
+  background:transparent !important; color:rgba(22,21,19,.42) !important; transform:none !important;
 }
 html.is-pwa .gb-bottom-nav__ico,
 html.is-pwa .gb-bottom-nav__fab {
@@ -1949,10 +1949,10 @@ html.is-pwa .gb-bottom-nav__fab svg {
 html.is-pwa .gb-bottom-nav__label {
   font-size:10px; font-weight:700; line-height:1; letter-spacing:-.03em; color:inherit !important;
 }
-html.is-pwa .gb-bottom-nav__item.is-active { color:#fff !important; }
+html.is-pwa .gb-bottom-nav__item.is-active { color:#161513 !important; }
 html.is-pwa .gb-bottom-nav__item.is-active .gb-bottom-nav__label { color:var(--pwa-gold) !important; }
-html.is-pwa .gb-bottom-nav__item.is-home { color:rgba(245,245,245,.42) !important; }
-html.is-pwa .gb-bottom-nav__item.is-home.is-active { color:#fff !important; }
+html.is-pwa .gb-bottom-nav__item.is-home { color:rgba(22,21,19,.42) !important; }
+html.is-pwa .gb-bottom-nav__item.is-home.is-active { color:#161513 !important; }
 html.is-pwa .gb-bottom-nav__item.is-home.is-active .gb-bottom-nav__label { color:var(--pwa-gold) !important; }
 html.is-pwa body.has-gb-bottom-nav {
   padding-bottom:calc(var(--pwa-tab-h) + var(--pwa-tab-safe)) !important;
@@ -1968,7 +1968,7 @@ html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home.is-active .gb-bott
   color:#a67c3d !important;
 }
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home { color:rgba(22,21,19,.4) !important; }
-html.is-pwa img[data-pwa-fallback="1"] { object-fit:cover; background:#1a1a1a; }
+html.is-pwa img[data-pwa-fallback="1"] { object-fit:cover; background:#ebe7e1; }
 
 /* Portfolio page — commerce catalog (same-tab, no overlay sheet) */
 html.is-pwa body.pf-body {
@@ -2010,11 +2010,11 @@ html.is-pwa body.pf-body .pf-deck {
   to { opacity:1; transform:none; }
 }
 
-/* Standalone board pages (shipping / reviews) */
+/* Standalone board pages (shipping / reviews / groupbuy) */
 body.board-standalone {
   min-height: 100dvh;
-  background: #161513;
-  color: #f5f2ec;
+  background: #f7f5f2;
+  color: #161513;
 }
 body.board-standalone .board-standalone__main {
   padding-top: max(12px, env(safe-area-inset-top));
@@ -2038,8 +2038,8 @@ body.board-standalone .reviews-heading {
 
   html.is-pwa body {
     background:
-      radial-gradient(80% 50% at 50% 0%, rgba(201, 166, 107, 0.08), transparent 55%),
-      #050505;
+      radial-gradient(80% 50% at 50% 0%, rgba(255, 130, 54, 0.08), transparent 55%),
+      #f3f0eb;
   }
 
   html.is-pwa .landing {
@@ -2069,7 +2069,7 @@ body.board-standalone .reviews-heading {
     height: 38px !important;
     padding: 0 14px !important;
     gap: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border: 1px solid rgba(22, 21, 19, 0.14) !important;
     border-radius: 10px !important;
   }
 
@@ -2098,9 +2098,9 @@ body.board-standalone .reviews-heading {
     padding: 0 !important;
     padding-bottom: var(--pwa-tab-safe) !important;
     border: 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top: 1px solid rgba(22, 21, 19, 0.1) !important;
     border-radius: 0 !important;
-    background: rgba(10, 10, 10, 0.96) !important;
+    background: rgba(247, 245, 242, 0.96) !important;
     box-shadow: none;
     overflow: visible;
     z-index: 2500;

@@ -568,7 +568,13 @@
       card.innerHTML =
         `<div class="gb-cal-sheet__top">` +
         `<span class="gb-cal-sheet__badge">${formatRangeLabel(item.startDate, item.endDate)}</span>` +
+        `<div class="gb-cal-sheet__top-actions">` +
+        (isAdmin
+          ? `<button type="button" class="gb-cal-sheet__edit" data-edit>수정</button>` +
+            `<button type="button" class="gb-cal-sheet__delete" data-delete>삭제</button>`
+          : "") +
         `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
+        `</div>` +
         `</div>` +
         `<div class="gb-cal-sheet__hero">${
           hero ? `<img src="${assetUrl(hero)}" alt="">` : ""
@@ -584,12 +590,6 @@
           : "") +
         `<div class="gb-cal-sheet__body">` +
         `<h3></h3><p></p></div>` +
-        (isAdmin
-          ? `<div class="gb-cal-sheet__admin">` +
-            `<button type="button" class="gb-cal-sheet__edit" data-edit>수정</button>` +
-            `<button type="button" class="gb-cal-sheet__delete" data-delete>삭제</button>` +
-            `</div>`
-          : "") +
         `<div class="gb-cal-sheet__foot">` +
         `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
         `</div>`;

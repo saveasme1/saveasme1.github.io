@@ -112,7 +112,13 @@
   }
   function syncChromeTheme(name) {
     const key = name || detectActivePanel();
-    const paper = key === "portfolio" || key === "shipping";
+    const paper =
+      key === "portfolio" ||
+      key === "shipping" ||
+      key === "home" ||
+      key === "reviews" ||
+      key === "discover" ||
+      key === "groupbuy";
     document.body.classList.toggle("gb-chrome-paper", paper);
     if (!paper) {
       document.querySelectorAll(".pf-rail.is-scrolling").forEach((el) => {

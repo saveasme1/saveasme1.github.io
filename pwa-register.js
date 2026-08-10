@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal35";
+  const APP_BUILD = "20260810-gbcal36";
   const APP_VERSION = "v1.12.31";
   const RELEASE_NOTES = [
     "세로 고정 (커서모바일앱과 동일 방식)",

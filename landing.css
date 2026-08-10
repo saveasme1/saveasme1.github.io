@@ -1,12 +1,12 @@
 :root {
   --brand: #ff8236;
-  --brand-soft: rgba(255, 130, 54, 0.24);
-  --brand-line: rgba(255, 130, 54, 0.38);
-  --ink: #f5f2ee;
-  --muted: rgba(245, 242, 238, 0.58);
-  --line: rgba(245, 242, 238, 0.1);
-  --panel: rgba(24, 24, 24, 0.88);
-  --night: #0f0f0f;
+  --brand-soft: rgba(255, 130, 54, 0.16);
+  --brand-line: rgba(255, 130, 54, 0.34);
+  --ink: #161513;
+  --muted: rgba(22, 21, 19, 0.58);
+  --line: rgba(22, 21, 19, 0.1);
+  --panel: #ffffff;
+  --night: #f7f5f2;
   --ease: cubic-bezier(.22, 1, .36, 1);
   --soft: cubic-bezier(.4, 0, .2, 1);
 }
@@ -31,10 +31,8 @@ button, input, textarea { font: inherit; }
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 72% 48% at 50% -8%, rgba(255, 130, 54, .3), transparent 60%),
-    radial-gradient(circle 34% at 8% 72%, rgba(255, 130, 54, .1), transparent 72%),
-    radial-gradient(circle 30% at 94% 82%, rgba(255, 130, 54, .08), transparent 75%),
-    linear-gradient(180deg, #18130f 0%, #101010 48%, #14110f 100%);
+    radial-gradient(ellipse 55% 35% at 50% -8%, rgba(255, 130, 54, 0.12), transparent 70%),
+    linear-gradient(180deg, #faf8f5 0%, #f3f0eb 48%, #f7f5f2 100%);
 }
 
 .landing {
@@ -116,12 +114,14 @@ body.has-gb-top-brand .landing {
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  transition: transform .24s var(--ease), border-color .2s var(--soft), background .2s var(--soft);
+  box-shadow: 0 8px 24px rgba(22, 21, 19, 0.04);
+  transition: transform .24s var(--ease), border-color .2s var(--soft), background .2s var(--soft), box-shadow .2s var(--soft);
   -webkit-tap-highlight-color: transparent;
 }
 .action:hover {
   transform: translateY(-2px);
   border-color: var(--brand-line);
+  box-shadow: 0 12px 28px rgba(22, 21, 19, 0.08);
 }
 .action:active { transform: translateY(-1px); }
 .action:disabled {
@@ -187,9 +187,9 @@ body.has-gb-top-brand .landing {
   height: 18px;
   padding: 0 7px;
   border-radius: 999px;
-  border: 1px solid rgba(245, 242, 238, 0.28);
-  background: rgba(245, 242, 238, 0.1);
-  color: #f5f2ee;
+  border: 1px solid rgba(22, 21, 19, 0.16);
+  background: rgba(22, 21, 19, 0.04);
+  color: #161513;
   font: inherit;
   font-size: 9px;
   font-weight: 750;
@@ -205,8 +205,8 @@ body.has-gb-top-brand .landing {
 }
 .action-dl.is-muted {
   opacity: 0.55;
-  border-color: rgba(245, 242, 238, 0.16);
-  background: rgba(245, 242, 238, 0.05);
+  border-color: rgba(22, 21, 19, 0.12);
+  background: rgba(22, 21, 19, 0.03);
 }
 .action-portfolio .action-hint {
   display: block;
@@ -242,7 +242,7 @@ body.has-gb-top-brand .landing {
 }
 .action-notices {
   background:
-    radial-gradient(circle at 92% 10%, rgba(245, 242, 238, .055), transparent 38%),
+    radial-gradient(circle at 92% 10%, rgba(255, 130, 54, .08), transparent 38%),
     var(--panel);
 }
 
@@ -265,12 +265,12 @@ body.has-gb-top-brand .landing {
   width: min(100%, 320px);
   height: 42px;
   padding: 0 13px;
-  border: 1px solid rgba(245, 242, 238, .16);
+  border: 1px solid rgba(22, 21, 19, .12);
   border-radius: 9px;
-  background: rgba(255, 255, 255, .06);
+  background: #fff;
   color: var(--ink);
 }
-.board-inline-tools input::placeholder { color: rgba(245, 242, 238, .42); }
+.board-inline-tools input::placeholder { color: rgba(22, 21, 19, .42); }
 .board-inline-panel .shipping-grid {
   margin-top: 18px;
 }
@@ -278,38 +278,38 @@ body.has-gb-top-brand .landing {
   color: var(--ink);
 }
 .board-inline-panel .shipping-card img {
-  background: rgba(245, 242, 238, .06);
+  background: rgba(22, 21, 19, .06);
 }
 .board-inline-panel .shipping-card strong {
-  color: rgba(245, 242, 238, .88);
+  color: rgba(22, 21, 19, .88);
 }
 .board-inline-panel .shipping-card span,
 .board-inline-panel .notice-row span {
-  color: rgba(245, 242, 238, .42);
+  color: rgba(22, 21, 19, .48);
 }
 .board-inline-panel .notice-list {
   margin-top: 14px;
-  border-top-color: rgba(245, 242, 238, .12);
+  border-top-color: rgba(22, 21, 19, .1);
 }
 .board-inline-panel .notice-row {
-  border-bottom-color: rgba(245, 242, 238, .12);
+  border-bottom-color: rgba(22, 21, 19, .1);
   background: transparent;
   color: var(--ink);
 }
 .board-inline-panel .notice-row:hover {
-  background: rgba(255, 255, 255, .04);
+  background: rgba(22, 21, 19, .03);
 }
 .board-inline-panel .notice-row strong {
-  color: rgba(245, 242, 238, .86);
+  color: rgba(22, 21, 19, .9);
 }
 .board-inline-panel .board-empty {
-  color: rgba(245, 242, 238, .5);
+  color: rgba(22, 21, 19, .5);
 }
 .board-inline-panel .review-title {
-  color: rgba(245, 242, 238, .86);
+  color: rgba(22, 21, 19, .9);
 }
 .board-inline-panel .review-card-meta {
-  color: rgba(245, 242, 238, .42);
+  color: rgba(22, 21, 19, .48);
 }
 .board-inline-panel .reviews-pager button {
   border-color: var(--line);
