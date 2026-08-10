@@ -1,6 +1,15 @@
 #!/usr/bin/env node
 /**
  * Bump PWA build across ALL public HTML + core assets.
+ *
+ * Customer-facing update gate = app-build.json `build`.
+ * Always keep APP_BUILD / sw CACHE_VERSION / HTML ?v= / app-build.json in sync
+ * when you want users to see ONE update prompt for this release.
+ *
+ * Usage:
+ *   node scripts/bump-all-pwa-build.mjs 20260810-gbcal53 20260810-gbcal52
+ *
+ * See also: F:/공방171포폴프로젝트/본헤리티지-PWA-운영.md
  */
 import fs from "fs";
 import path from "path";

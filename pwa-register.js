@@ -1,10 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal52";
-  const APP_VERSION = "v1.12.38";
+  const APP_BUILD = "20260810-gbcal53";
+  const APP_VERSION = "v1.12.39";
   const RELEASE_NOTES = [
-    "최종검수 글 등록 오류를 수정했습니다",
+    "최종검수 글·이미지가 바로 올라갑니다",
+    "업데이트는 새 배포가 있을 때만 한 번 안내합니다",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -583,8 +584,14 @@
     finish();
   }
 
-  function promptUpdateAvailable(extraNotes, force) {
-    force = true; // always force apply for this release
+  function buildRank(build) {
+    const text = String(build || "");
+    const m = text.match(/gbcal(\d+)/i);
+    if (m) return Number(m[1]) || 0;
+    return 0;
+  }
+
+  function promptUpdateAvailable(extraNotes, force = false) {
     const targetBuild = String(pendingRemoteBuild || APP_BUILD);
     try {
       if (!promptedBuild) promptedBuild = localStorage.getItem(PROMPTED_BUILD_KEY) || "";
@@ -608,7 +615,7 @@
       } catch (_) {}
     } else {
       const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
-      if (Date.now() - snooze < 1000 * 60 * 5) return;
+      if (snooze && Date.now() - snooze < 1000 * 60 * 60 * 24) { showUpdateChip(); return; }
     }
 
     updateOffered = true;
@@ -680,13 +687,13 @@
       localStorage.setItem(BUILD_KEY, APP_BUILD);
       return;
     }
-    // Running script is newer than stored build — require user update (no silent stamp).
-    promptUpdateAvailable(RELEASE_NOTES, true);
+    // Customer prompts only when app-build.json is newer (checkRemoteBuild).
+
   }
 
   function needsUpdatePrompt() {
-    const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-    return activated && activated !== APP_BUILD;
+    // Customer update UI is driven only by app-build.json (checkRemoteBuild).
+    return false;
   }
 
   async function checkRemoteBuild() {
@@ -705,7 +712,7 @@
       if (!remoteBuild) return;
       pendingRemoteBuild = remoteBuild;
 
-      if (remoteBuild === APP_BUILD) {
+      if (buildRank(remoteBuild) <= buildRank(APP_BUILD)) {
         localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
         localStorage.setItem(BUILD_KEY, APP_BUILD);
         try {
@@ -718,8 +725,8 @@
         return;
       }
 
-      // Newer build on server — show update dialog (no silent reload / no reinstall).
-      promptUpdateAvailable(remoteNotes || RELEASE_NOTES, true);
+      // Only prompt when remote build is newer than the running script.
+      promptUpdateAvailable(remoteNotes || RELEASE_NOTES, false);
     } catch (_) {}
   }
 
@@ -809,16 +816,13 @@
           pendingWorker = reg.waiting;
           promptUpdateAvailable(RELEASE_NOTES, true);
         }
-        // Periodic re-check (CDN lag)
-        [2500, 8000, 20000].forEach((ms) => {
-          setTimeout(() => {
-            checkRemoteBuild();
-            reg.update().catch(() => {});
-            if (reg.waiting && navigator.serviceWorker.controller) {
-              pendingWorker = reg.waiting;
-              promptUpdateAvailable(RELEASE_NOTES, true);
-            }
-          }, ms);
+        // One delayed CDN catch-up only (no multi-minute spam).
+        setTimeout(() => {
+          checkRemoteBuild();
+          reg.update().catch(() => {});
+        }, 8000);
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) checkRemoteBuild();
         });
       })
       .catch(() => {
