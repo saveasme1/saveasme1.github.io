@@ -96,8 +96,8 @@ body.has-gb-top-brand .landing {
 
 .actions {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-top: 40px;
   animation: rise .75s var(--ease) .08s both;
 }
@@ -803,10 +803,7 @@ body.has-gb-bottom-nav .toast-stack {
 @media (min-width: 720px) {
   .landing { padding-top: 28px; }
   body.has-gb-top-brand .landing { padding-top: 22px; }
-  .actions {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
+  .actions { gap: 12px; }
   .action { min-height: 148px; align-content: center; }
 }
 

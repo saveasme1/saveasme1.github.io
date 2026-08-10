@@ -146,8 +146,9 @@
     const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    // Review/API uploads live on app host, not the static site origin.
-    if (/^\/?uploads\//i.test(path)) {
+    const clean = path.replace(/^\/+/, "");
+    // Contabo disk uploads
+    if (/^uploads\//i.test(clean)) {
       const origin = (() => {
         try {
           return new URL(window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").origin;
@@ -155,12 +156,16 @@
           return "https://app.0-1.co.kr";
         }
       })();
-      return `${origin}/${path.replace(/^\/+/, "")}`;
+      return `${origin}/${clean}`;
+    }
+    // Legacy Pages-relative board assets (notices/portfolio/shipping/groupbuy)
+    if (/^(shipping|groupbuy|portfolio|notices)\//i.test(clean)) {
+      return `https://saveasme1.github.io/${clean}`;
     }
     try {
-      return new URL(path.replace(/^\/+/, ""), location.origin + "/").href;
+      return new URL(clean, location.origin + "/").href;
     } catch (_) {
-      return "/" + path.replace(/^\/+/, "");
+      return "/" + clean;
     }
   };
 
@@ -724,6 +729,8 @@
     } catch (_) {}
 
     let groupbuyRaw = [];
+    let noticeLiveCount = 0;
+    let noticeGitCount = 0;
     try {
       const [shipLive, noticeLive, gbLive, pfLive] = await Promise.all([
         fetchBoardLive("shipping"),
@@ -731,13 +738,23 @@
         fetchBoardLive("groupbuy"),
         fetchBoardLive("portfolio"),
       ]);
+      noticeLiveCount = noticeLive.length;
+      noticeGitCount = noticesRaw.length;
       shippingRaw = mergeBoardItems(shippingRaw, shipLive);
-      noticesRaw = mergeBoardItems(noticesRaw, noticeLive);
+      // Contabo is source of truth for notices when live has items.
+      noticesRaw = noticeLive.length ? noticeLive.slice() : noticesRaw;
       groupbuyRaw = mergeBoardItems([], gbLive);
       if (Array.isArray(portfolio.items) && pfLive.length) {
         portfolio.items = mergeBoardItems(portfolio.items, pfLive);
       }
-    } catch (_) {}
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-load',hypothesisId:'H4',location:'pwa-home.js:boot',message:'pwa notices sources',data:{noticeLiveCount,noticeGitCount,finalNotices:noticesRaw.length,firstId:resolveBoardId(noticesRaw[0])||'',api:handmadeApiBase(),path:location.pathname,pwa:document.documentElement.classList.contains('is-pwa')},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-load',hypothesisId:'H5',location:'pwa-home.js:boot',message:'pwa live merge fail',data:{error:String(err?.message||err||'').slice(0,200),noticeGitCount:noticesRaw.length},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    }
 
     const items = Array.isArray(portfolio.items) ? portfolio.items.slice() : [];
     const cats =
@@ -1717,15 +1734,15 @@
       }</span>`;
     noticeSec.append(noticeBtn);
 
-    // Mount order: portfolio(cats already) → recent → feed → final → snap → notice → quick → event → groupbuy → ai → chart → wish
-    host.append(pulse, feedSec, shipSec, secRev, noticeSec, dockSec, dropBar, gbSec, aiSec, rankSec);
+    // Mount order after RECENT UPDATE: quick → AI → 발견 → CHART → 최종검수 → 스냅 → 공동구매 → 공지
+    host.append(pulse, dockSec, aiSec, feedSec, rankSec, shipSec, secRev, gbSec, noticeSec, dropBar);
     if (window.GroupbuyCalendar?.mount) {
       gbMount._gbCal = window.GroupbuyCalendar.mount(gbMount, { hideEyebrow: true });
     }
     if (wishSec) host.append(wishSec);
 
     // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'pwa-home.js:boot-order',message:'home section order',data:{order:[...host.children].map((el)=>({id:el.id||'',cls:String(el.className||'').slice(0,80),h2:el.querySelector('.pwa-sec__head h2')?.textContent||el.querySelector('h2')?.textContent||''})),pulseCount:pulseEntries.length,ship:shipItems.length,gbLive:groupbuyRaw.length,aiPad:getComputedStyle(aiSec).paddingTop,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'pwa-home.js:boot-order',message:'home section order',data:{order:[...host.children].map((el)=>({id:el.id||'',cls:String(el.className||'').slice(0,80),h2:el.querySelector('.pwa-sec__head h2')?.textContent||el.querySelector('h2')?.textContent||''})),pulseCount:pulseEntries.length,ship:shipItems.length,gbLive:groupbuyRaw.length,notices:noticesRaw.length,aiPad:getComputedStyle(aiSec).paddingTop,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
 
     host.addEventListener("click", (event) => {

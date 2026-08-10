@@ -883,31 +883,66 @@
     board.status.textContent = "불러오는 중…";
     try {
       const liveUrl = `${API}/boards/${encodeURIComponent(type)}/live?v=${Date.now()}`;
-      const [response, liveRes] = await Promise.all([
-        fetch(`${board.dataPath}?v=${Date.now()}`, { cache: "no-store" }),
-        fetch(liveUrl, { cache: "no-store" }).catch(() => null),
-      ]);
-      if (!response.ok) throw new Error("게시판 데이터를 불러오지 못했습니다.");
-      const payload = await response.json();
       let liveItems = [];
-      if (liveRes && liveRes.ok) {
-        try {
+      let liveOk = false;
+      let liveStatus = 0;
+      let gitItems = [];
+      let gitOk = false;
+      let gitStatus = 0;
+      // Contabo live first — git JSON is legacy fallback only.
+      try {
+        const liveRes = await fetch(liveUrl, { cache: "no-store", credentials: "include" });
+        liveStatus = liveRes.status;
+        liveOk = liveRes.ok;
+        if (liveRes.ok) {
           const livePayload = await liveRes.json();
           liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+        }
+      } catch (_) {
+        liveOk = false;
+      }
+      if (board.dataPath) {
+        try {
+          const response = await fetch(`${board.dataPath}?v=${Date.now()}`, { cache: "no-store" });
+          gitStatus = response.status;
+          gitOk = response.ok;
+          if (response.ok) {
+            const payload = await response.json();
+            gitItems = Array.isArray(payload?.items)
+              ? payload.items
+              : Array.isArray(payload)
+                ? payload
+                : [];
+          }
         } catch (_) {
-          liveItems = [];
+          gitOk = false;
         }
       }
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-load',hypothesisId:'H1',location:'landing-boards.js:loadBoard',message:'board load sources',data:{type,liveOk,liveStatus,liveCount:liveItems.length,gitOk,gitStatus,gitCount:gitItems.length,api:API,path:location.pathname,pwa:document.documentElement.classList.contains('is-pwa')},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      if (!liveOk && !gitOk) throw new Error("게시판 데이터를 불러오지 못했습니다.");
       const map = new Map();
-      (payload.items || []).forEach((item) => {
+      // Prefer Contabo: seed git first, then overwrite with live.
+      gitItems.forEach((item) => {
         if (item?.id) map.set(String(item.id), item);
       });
       liveItems.forEach((item) => {
         if (item?.id) map.set(String(item.id), item);
       });
-      state[type] = [...map.values()].sort(
-        (a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0)
-      );
+      // If Contabo has data, drop pure-git-only merge noise for notices (live is source of truth).
+      if (type === "notices" && liveItems.length) {
+        state[type] = liveItems.slice().sort(
+          (a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0)
+        );
+      } else {
+        state[type] = [...map.values()].sort(
+          (a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0)
+        );
+      }
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-load',hypothesisId:'H2',location:'landing-boards.js:loadBoard',message:'board load result',data:{type,finalCount:state[type].length,firstId:state[type][0]?.id||'',firstCover:String(state[type][0]?.cover||'').slice(0,80)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (window.GongbangBoardMeta?.fetchViews && state[type].length) {
         const views = await window.GongbangBoardMeta.fetchViews(
           type,
@@ -919,6 +954,9 @@
       }
       renderList(type);
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-load',hypothesisId:'H3',location:'landing-boards.js:loadBoard',message:'board load fail',data:{type,error:String(error?.message||error||'').slice(0,200),path:location.pathname},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       state[type] = [];
       board.list.innerHTML = `<p class="board-empty">${error.message}</p>`;
       board.status.textContent = error.message;
@@ -1044,7 +1082,26 @@
 
   Object.entries(boards).forEach(([type, board]) => {
     if (type === "shipping") return;
-    if (board.open) board.open.addEventListener("click", () => openBoard(type));
+    if (board.open) {
+      if (type === "notices" && String(board.open.tagName || "").toLowerCase() === "a") {
+        const q = /[?&]app=1(?:&|$)/.test(location.search) || document.documentElement.classList.contains("is-pwa")
+          ? "?app=1"
+          : "";
+        board.open.setAttribute("href", `./notices.html${q}`);
+      }
+      board.open.addEventListener("click", (event) => {
+        // Notices is a standalone page (like portfolio/shipping), not an inline landing panel.
+        if (type === "notices") {
+          const tag = String(board.open.tagName || "").toLowerCase();
+          if (tag === "a" && board.open.getAttribute("href")) return;
+          event.preventDefault();
+          const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+          location.href = `./notices.html${q}`;
+          return;
+        }
+        openBoard(type);
+      });
+    }
     if (board.close) board.close.addEventListener("click", () => closeBoard(type));
     if (board.search) board.search.addEventListener("input", () => {
       board.page = 1;
@@ -1110,7 +1167,10 @@
   const wanted = new URLSearchParams(location.search).get("open");
   if (noticesOnly) {
     openBoard("notices");
-  } else if (wanted === "shipping" || wanted === "notices") {
-    openBoard(wanted);
+  } else if (wanted === "notices") {
+    const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+    location.replace(`./notices.html${q}`);
+  } else if (wanted === "shipping") {
+    openBoard("shipping");
   }
 })();
