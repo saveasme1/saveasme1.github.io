@@ -583,6 +583,7 @@
         `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
         `</div>` +
         `</div>` +
+        `<div class="gb-cal-sheet__scroll">` +
         `<div class="gb-cal-sheet__hero${multi ? " has-nav" : ""}" data-hero>` +
         (multi
           ? `<button type="button" class="gb-cal-sheet__nav prev" data-prev aria-label="이전 이미지">‹</button>`
@@ -608,6 +609,7 @@
           : "") +
         `<div class="gb-cal-sheet__body">` +
         `<h3></h3><p></p></div>` +
+        `</div>` +
         `<div class="gb-cal-sheet__foot">` +
         `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
         `</div>`;
