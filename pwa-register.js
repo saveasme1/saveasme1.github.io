@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260811-gbcal71";
+  const APP_BUILD = "20260811-gbcal72";
   const APP_VERSION = "v1.12.47";
   const RELEASE_NOTES = [
     "공지사항 독립 페이지·퀵메뉴 순서 수정",

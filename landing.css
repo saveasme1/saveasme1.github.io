@@ -1647,3 +1647,96 @@ body.board-standalone--notices .board-dialog.open .detail-copy {
     object-fit: contain !important;
   }
 }
+
+/* Notice detail as full page (not modal) — MO/TB/PC responsive */
+body.notice-page-view {
+  overflow: auto !important;
+}
+body.notice-page-view .board-inline-panel {
+  display: none !important;
+}
+body.notice-page-view .board-dialog,
+body.notice-page-view .board-dialog.open {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 0 calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  background: #f7f5f2 !important;
+  z-index: 1 !important;
+}
+body.notice-page-view .board-dialog .board-detail,
+body.notice-page-view.board-standalone--notices .board-dialog.open .board-detail {
+  width: min(720px, 100%) !important;
+  max-width: 720px !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+}
+body.notice-page-view .board-dialog .board-detail-body,
+body.notice-page-view.board-standalone--notices .board-dialog.open .board-detail-body {
+  display: block !important;
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
+body.notice-page-view .board-dialog .detail-images,
+body.notice-page-view.board-standalone--notices .board-dialog.open .detail-images {
+  flex: none !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  background: #111 !important;
+}
+body.notice-page-view .board-close {
+  position: sticky !important;
+  top: max(10px, env(safe-area-inset-top, 0px)) !important;
+  left: 12px !important;
+  z-index: 5 !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 999px !important;
+  background: rgba(22, 21, 19, 0.78) !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+body.notice-page-view .notice-page-stack {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  background: #111;
+}
+body.notice-page-view .notice-page-stack img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  display: block !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+}
+body.notice-page-view .detail-copy {
+  padding: 18px 16px 28px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+@media (min-width: 1025px) {
+  body.notice-page-view .board-dialog .board-detail,
+  body.notice-page-view.board-standalone--notices .board-dialog.open .board-detail {
+    width: min(760px, calc(100% - 48px)) !important;
+    max-width: 760px !important;
+    margin-top: 12px !important;
+    margin-bottom: 40px !important;
+    border: 1px solid rgba(22, 21, 19, 0.1) !important;
+  }
+  body.notice-page-view .detail-copy {
+    padding: 22px 24px 36px !important;
+  }
+}

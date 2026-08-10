@@ -147,15 +147,62 @@
   }
 
   function closeDetail() {
+    if (document.body.classList.contains("notice-page-view") && noticesOnly) {
+      document.body.classList.remove("notice-page-view", "dialog-open");
+      const q = noticesListQuery();
+      location.href = `./notices.html${q ? `?${q}` : ""}`;
+      return;
+    }
     dialog.root.classList.remove("open");
     dialog.root.setAttribute("aria-hidden", "true");
     dialog.root.removeAttribute("data-board-type");
-    document.body.classList.remove("dialog-open");
+    document.body.classList.remove("dialog-open", "notice-page-view");
     dialog.images.replaceChildren();
     state.slideIndex = 0;
     state.slideCount = 0;
     state.current = null;
     state.currentType = "";
+  }
+
+  function noticesListQuery() {
+    const out = new URLSearchParams();
+    const cur = new URLSearchParams(location.search);
+    if (cur.get("app") === "1" || document.documentElement.classList.contains("is-pwa")) {
+      out.set("app", "1");
+    }
+    const pwa = cur.get("_pwa");
+    if (pwa) out.set("_pwa", pwa);
+    return out.toString();
+  }
+
+  function noticeDetailHref(id) {
+    const q = new URLSearchParams(noticesListQuery());
+    q.set("id", String(id || "").trim());
+    return `./notices.html?${q.toString()}`;
+  }
+
+  function navigateNoticeDetail(item) {
+    const id = String(item?.id || "").trim();
+    if (!id) return;
+    const curId = new URLSearchParams(location.search).get("id");
+    if (noticesOnly && curId === id) {
+      openDetailAsPage("notices", item);
+      return;
+    }
+    location.href = noticeDetailHref(id);
+  }
+
+  async function openDetailAsPage(type, item) {
+    document.body.classList.add("notice-page-view");
+    if (dialog.close) {
+      dialog.close.setAttribute("aria-label", "목록으로");
+      dialog.close.textContent = "←";
+    }
+    await openDetail(type, item);
+    window.scrollTo(0, 0);
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'NP1',location:'landing-boards.js:openDetailAsPage',message:'notice page view open',data:{id:item?.id||'',vw:window.innerWidth,pageView:document.body.classList.contains('notice-page-view'),stack:Boolean(dialog.images?.querySelector?.('.notice-page-stack')),path:location.pathname,search:location.search},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
   }
 
   function updateCarousel() {
@@ -265,6 +312,26 @@
     state.slideIndex = 0;
     state.slideCount = paths.length;
     if (!paths.length) return;
+
+    // Notice page view: stack tall images vertically (full-page scroll, no modal carousel).
+    if (
+      state.currentType === "notices" &&
+      document.body.classList.contains("notice-page-view")
+    ) {
+      const stack = document.createElement("div");
+      stack.className = "notice-page-stack";
+      paths.forEach((path, index) => {
+        const img = document.createElement("img");
+        img.src = assetUrl(path);
+        img.alt = item.title || "";
+        img.loading = index === 0 ? "eager" : "lazy";
+        img.decoding = "async";
+        if (window.GongbangProtectImage) window.GongbangProtectImage(img);
+        stack.append(img);
+      });
+      dialog.images.append(stack);
+      return;
+    }
 
     const carousel = document.createElement("div");
     carousel.className = "board-carousel";
@@ -960,7 +1027,10 @@
         row.append(number, heading, published);
       }
       if (type !== "shipping") {
-        row.addEventListener("click", () => openDetail(type, item));
+        row.addEventListener("click", () => {
+          if (type === "notices") navigateNoticeDetail(item);
+          else openDetail(type, item);
+        });
         board.list.append(row);
       }
     });
@@ -1116,7 +1186,10 @@
   };
   window.openGongbangBoardPanel = openBoard;
   window.openGongbangBoardWriter = openWriter;
-  window.openGongbangBoardDetail = (type, item) => openDetail(type, item);
+  window.openGongbangBoardDetail = (type, item) => {
+    if (type === "notices") navigateNoticeDetail(item);
+    else openDetail(type, item);
+  };
   window.closeGongbangNoticesPanel = (options = {}) => closeBoard("notices", options);
 
   function detectShippingCategory(title, content) {
@@ -1256,8 +1329,13 @@
   });
 
   const wanted = new URLSearchParams(location.search).get("open");
+  const deepNoticeId = new URLSearchParams(location.search).get("id");
   if (noticesOnly) {
-    openBoard("notices");
+    Promise.resolve(openBoard("notices")).then(() => {
+      if (!deepNoticeId) return;
+      const item = (state.notices || []).find((x) => String(x.id) === String(deepNoticeId));
+      if (item) openDetailAsPage("notices", item);
+    });
   } else if (wanted === "notices") {
     const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
     location.replace(`./notices.html${q}`);

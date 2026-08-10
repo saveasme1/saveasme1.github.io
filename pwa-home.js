@@ -201,6 +201,10 @@
       location.href = `./reviews.html${q}`;
       return;
     }
+    if (board === "notices") {
+      location.href = `./notices.html${q}`;
+      return;
+    }
   }
 
   function boardPostHref(board, id) {

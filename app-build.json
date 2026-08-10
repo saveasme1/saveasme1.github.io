@@ -1,11 +1,11 @@
 ﻿{
-  "build": "20260811-gbcal71",
+  "build": "20260811-gbcal72",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:40:00.000Z",
-  "note": "Quick inset + RECENT gap + taller PC hero",
+  "deployedAt": "2026-08-10T16:55:00.000Z",
+  "note": "Notice detail as full page with stacked images",
   "notes": [
-    "퀵메뉴 흰배경 inset (풀블리드 제거)",
-    "RECENT↔퀵메뉴 간격 MO/TB/PC",
-    "PC 히어로 스와이퍼 높이 상향"
+    "공지 글보기: 모달→페이지 전환",
+    "긴 이미지 세로 스택 스크롤",
+    "MO/TB/PC 반응형"
   ]
 }
