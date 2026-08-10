@@ -809,7 +809,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-pulse__item:hover,
 .pwa-pulse__item:focus-visible {
-  color: #fff;
+  color: #161513;
   outline: none;
 }
 
@@ -1217,7 +1217,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-cats button.is-on {
-  color: #fff;
+  color: #161513;
   font-weight: 600;
 }
 
@@ -1546,8 +1546,9 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   gap: 10px;
   margin: 6px 16px 18px;
   padding: 14px 14px 14px 16px;
-  background: linear-gradient(120deg, rgba(240, 208, 154, 0.14), rgba(28, 26, 24, 0.92) 42%, #141210);
-  border: 1px solid rgba(240, 208, 154, 0.22);
+  background: linear-gradient(120deg, rgba(255, 130, 54, 0.1), #ffffff 48%, #f7f5f2);
+  border: 1px solid rgba(22, 21, 19, 0.1);
+  color: #161513;
 }
 
 .pwa-dropbar__left .pwa-sec__eyebrow {
@@ -1572,7 +1573,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.04em;
-  color: #f0d09a;
+  color: #9a8160;
 }
 
 .pwa-dropbar__clock i {

@@ -39,9 +39,9 @@
 
     max(12px, env(safe-area-inset-left));
 
-  background: rgba(14, 12, 11, 0.78);
+  background: rgba(247, 245, 242, 0.94);
 
-  border-bottom: 1px solid rgba(245, 242, 238, 0.08);
+  border-bottom: 1px solid rgba(22, 21, 19, 0.1);
 
   backdrop-filter: blur(14px) saturate(1.15);
 
@@ -52,7 +52,7 @@
 }
 
 .gb-top-brand.is-compact {
-  background: rgba(12, 10, 9, 0.9);
+  background: rgba(247, 245, 242, 0.98);
 }
 
 .gb-top-brand.is-scrolling {
@@ -72,7 +72,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #f5f2ec;
+  color: #161513;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -117,7 +117,7 @@ body.gb-chrome-paper .gb-top-brand__back:focus-visible {
 
   padding: 0 10px;
 
-  color: #fff;
+  color: #161513;
 
   text-decoration: none;
 
@@ -161,7 +161,7 @@ body.gb-chrome-paper .gb-top-brand__back:focus-visible {
 
   text-indent: .48em;
 
-  color: #fff;
+  color: #161513;
 
   transition: letter-spacing .28s cubic-bezier(.22, 1, .36, 1), transform .28s cubic-bezier(.22, 1, .36, 1);
 
@@ -236,13 +236,13 @@ body.gb-chrome-paper .gb-top-brand__back:focus-visible {
 
   padding: 0 11px;
 
-  border: 1px solid rgba(245, 242, 238, 0.2);
+  border: 1px solid rgba(22, 21, 19, 0.16);
 
   border-radius: 8px;
 
   background: transparent;
 
-  color: rgba(245, 242, 238, 0.92);
+  color: rgba(22, 21, 19, 0.82);
 
   font: 700 12px/1 SUIT, Pretendard, sans-serif;
 
@@ -262,9 +262,9 @@ body.gb-chrome-paper .gb-top-brand__back:focus-visible {
 
 .gb-top-auth-btn:focus-visible {
 
-  border-color: rgba(245, 242, 238, 0.45);
+  border-color: rgba(22, 21, 19, 0.34);
 
-  color: #fff;
+  color: #161513;
 
 }
 
@@ -458,9 +458,9 @@ body.has-gb-top-brand {
 
     padding-bottom: env(safe-area-inset-bottom, 0);
 
-    background: rgba(18, 16, 14, 0.94);
+    background: rgba(247, 245, 242, 0.96);
 
-    border-top: 1px solid rgba(245, 242, 238, 0.12);
+    border-top: 1px solid rgba(22, 21, 19, 0.1);
 
     backdrop-filter: blur(14px);
 
@@ -530,7 +530,7 @@ body.has-gb-top-brand {
 
     background: transparent;
 
-    color: rgba(245, 242, 238, 0.58);
+    color: rgba(22, 21, 19, 0.48);
 
     text-decoration: none;
 
@@ -795,7 +795,7 @@ body.gb-chrome-paper .gb-bottom-nav.is-scrolling {
     padding: 0 2px;
     border: 0;
     background: transparent;
-    color: rgba(245, 242, 238, 0.58);
+    color: rgba(22, 21, 19, 0.48);
     cursor: pointer;
   }
   .gb-bottom-nav__ico,

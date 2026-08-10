@@ -755,6 +755,42 @@ body.review-lock { overflow: hidden; }
   .review-carousel-nav.next { right: 8px; }
 }
 
+/* PC: fit detail image + copy in one screen */
+@media (min-width: 1100px) {
+  .review-view-panel {
+    height: auto;
+    max-height: min(88vh, 780px);
+  }
+  .review-view-scroll {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .review-view-images {
+    flex: 0 0 auto !important;
+    height: min(46vh, 420px) !important;
+    max-height: min(46vh, 420px) !important;
+    min-height: 0 !important;
+  }
+  .review-carousel,
+  .review-carousel-viewport,
+  .review-carousel-track,
+  .review-carousel-slide {
+    height: 100%;
+  }
+  .review-carousel-slide img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+  .review-view-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 
 .review-view-text.html-content.is-clamped,
 .html-content.is-clamped {
