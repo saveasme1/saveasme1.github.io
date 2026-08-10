@@ -202,7 +202,9 @@
       return;
     }
     if (board === "notices") {
-      location.href = `./notices.html${q}`;
+      location.href = id
+        ? `./notice-view.html${q}`
+        : `./notices.html${parts[0] === "app=1" ? "?app=1" : parts.length ? `?${parts.filter((p) => !p.startsWith("id=")).join("&")}` : ""}`;
       return;
     }
   }
@@ -226,7 +228,10 @@
       if (id) pf.push(`id=${encodeURIComponent(id)}`);
       return `./portfolio.html${pf.length ? `?${pf.join("&")}` : ""}`;
     }
-    if (board === "notices") return `./notices.html${q}`;
+    if (board === "notices") {
+      if (id) return `./notice-view.html${q}`;
+      return `./notices.html${parts.includes("app=1") ? "?app=1" : ""}`;
+    }
     return "./landing.html" + (parts[0] === "app=1" ? "?app=1" : "");
   }
 

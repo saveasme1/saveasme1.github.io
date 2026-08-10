@@ -1,10 +1,10 @@
 ﻿{
-  "build": "20260811-gbcal73",
+  "build": "20260811-gbcal74",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T17:05:00.000Z",
-  "note": "Force notice detail page layout in JS",
+  "deployedAt": "2026-08-10T17:15:00.000Z",
+  "note": "Dedicated notice-view.html page",
   "notes": [
-    "공지 글보기: 모달 CSS 강제 해제",
-    "목록 숨김 + body 스크롤 복구"
+    "공지 글보기: notice-view.html 전용 페이지 이동",
+    "목록(notices.html)과 완전 분리"
   ]
 }
