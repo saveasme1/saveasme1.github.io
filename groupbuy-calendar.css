@@ -13,6 +13,7 @@
   padding: 16px 16px 24px;
   width: 100%;
   box-sizing: border-box;
+  border-top: 0;
 }
 
 @media (min-width: 1025px) {

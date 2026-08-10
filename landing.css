@@ -702,7 +702,12 @@ body.dialog-open { overflow: hidden; }
 }
 .reviews-close {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   min-height: 36px;
+  height: 36px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -710,7 +715,10 @@ body.dialog-open { overflow: hidden; }
   color: rgba(22, 21, 19, 0.78);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .reviews-close:hover {
   border-color: var(--brand-line);

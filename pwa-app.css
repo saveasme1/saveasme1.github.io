@@ -2033,9 +2033,25 @@ body.board-standalone .board-standalone__main {
 body.board-standalone .is-standalone {
   display: block !important;
 }
+body.board-standalone .board-inline-panel.is-standalone,
+body.board-standalone .gb-cal-page {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 12px;
+}
 body.board-standalone .reviews-heading {
   padding-left: 16px;
   padding-right: 16px;
+  align-items: center;
+}
+body.board-standalone .reviews-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-height: 36px;
+  line-height: 1;
+  text-decoration: none;
 }
 
 /* ?? PC PWA shell: app column, not stretched mobile ?? */
