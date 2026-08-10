@@ -323,7 +323,7 @@
   text-align: center;
   padding: 0 2px;
   box-sizing: border-box;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  text-shadow: none;
 }
 
 .gb-cal__name.is-relocated {
@@ -348,9 +348,9 @@
   height: var(--gb-thumb);
   border-radius: 50%;
   overflow: hidden;
-  background: #2a2622;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  border: 2px solid rgba(201, 166, 107, 0.72);
+  background: #f3f0eb;
+  box-shadow: none;
+  border: 2px solid var(--gb-cover-ring, #c8c0b4);
   transform: translate(-50%, 0);
   opacity: 1;
 }

@@ -1,5 +1,5 @@
-/* Heritage PWA — offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260810-gbcal40";
+/* Heritage PWA ??offline shell + image runtime cache + status events */
+const CACHE_VERSION = "hx-pwa-v20260810-gbcal41";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -233,8 +233,8 @@ function offlineImageResponse() {
   const svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
     '<rect width="640" height="640" fill="#2a2724"/>' +
-    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">오프라인</text>' +
-    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">아직 캐시되지 않은 이미지</text>' +
+    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">?�프?�인</text>' +
+    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">?�직 캐시?��? ?��? ?��?지</text>' +
     "</svg>";
   return new Response(svg, {
     headers: {
@@ -294,7 +294,7 @@ async function offlineShell() {
     (await caches.match("./landing.html")) ||
     (await caches.match("./offline.html")) ||
     new Response(
-      "<!doctype html><meta charset=utf-8><title>오프라인</title><body style='font-family:sans-serif;padding:24px;background:#161513;color:#fff'><h1>오프라인</h1><p>와이파이에서 앱을 다시 열어 데이터를 준비해 주세요.</p></body>",
+      "<!doctype html><meta charset=utf-8><title>?�프?�인</title><body style='font-family:sans-serif;padding:24px;background:#161513;color:#fff'><h1>?�프?�인</h1><p>?�?�파?�에???�을 ?�시 ?�어 ?�이?��? 준비해 주세??</p></body>",
       { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
     )
   );
@@ -343,7 +343,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // HTML / JS / CSS must be network-first — stale SW cache was killing 가격추세.
+  // HTML / JS / CSS must be network-first ??stale SW cache was killing 가격추??
   if (/\.(html?|js|css|webmanifest)$/i.test(url.pathname)) {
     event.respondWith(
       fetch(req, { cache: "no-store" })
@@ -405,7 +405,7 @@ self.addEventListener("fetch", (event) => {
             }
             return res;
           }
-          // Avoid serving HTML/404 as an <img> ???〓컯
+          // Avoid serving HTML/404 as an <img> ????�컯
           if (image) return cached || offlineImageResponse();
           return res;
         })

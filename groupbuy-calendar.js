@@ -1296,6 +1296,9 @@
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
           cover.dataset.eventKey = eventKey(it);
+          const ring = colorMap.get(eventKey(it)) || EVENT_COLORS[0];
+          cover.style.setProperty("--gb-cover-ring", ring.bg);
+          cover.style.borderColor = ring.bg;
           const img = document.createElement("img");
           img.src = assetUrl(it.cover);
           img.alt = it.title || "";
