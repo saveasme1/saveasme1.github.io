@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal55";
-  const APP_VERSION = "v1.12.41";
+  const APP_BUILD = "20260810-gbcal56";
+  const APP_VERSION = "v1.12.42";
   const RELEASE_NOTES = [
-    "포트폴리오·공지·공동구매도 바로 저장됩니다",
+    "버그 수정 및 안정성 개선",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -626,13 +626,13 @@
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     const customerNotes = (notes || [])
       .map((n) => String(n || "").trim())
-      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제 버튼/i.test(n));
+      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제|Contabo|Git|배포|최종검수|shipping|portfolio|공지·|바로 저장|바로 올라|운영|API|서버/i.test(n));
 
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
       body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
-      notes: customerNotes.length ? customerNotes : RELEASE_NOTES,
+      notes: customerNotes.length ? customerNotes : ["버그 수정 및 안정성 개선"],
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
