@@ -1429,6 +1429,10 @@
             coverX = br.left - gridRect.left - size * 0.12;
           }
           coverX -= stack * 6;
+          const half = size / 2;
+          const minX = half + 2;
+          const maxX = Math.max(minX, gridRect.width - half - 2);
+          const clampedX = Math.min(maxX, Math.max(minX, coverX));
           const top = anchor.top - size * (1 - barCross) + stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
@@ -1441,11 +1445,16 @@
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          cover.style.left = `${coverX}px`;
+          cover.style.left = `${clampedX}px`;
           cover.style.top = `${Math.max(0, top)}px`;
           cover.style.width = `${size}px`;
           cover.style.height = `${size}px`;
           coversEl.append(cover);
+          // #region agent log
+          if (Math.abs(clampedX - coverX) > 0.5 || clampedX <= minX + 0.5) {
+            fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'cal-layout',hypothesisId:'H7',location:'groupbuy-calendar.js:coverClamp',message:'cover position clamped',data:{title:String(it.title||'').slice(0,40),coverX:Math.round(coverX),clampedX:Math.round(clampedX),size:Math.round(size),gridW:Math.round(gridRect.width),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+          }
+          // #endregion
         });
 
         resolveCoverNameCollisions(namesEl, coversEl, host);

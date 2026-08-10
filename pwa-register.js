@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal60";
-  const APP_VERSION = "v1.12.45";
+  const APP_BUILD = "20260810-gbcal61";
+  const APP_VERSION = "v1.12.46";
   const RELEASE_NOTES = [
-    "공동구매 이미지 미리보기 수정",
-    "공동구매 글쓰기·글보기 PC 폭 개선",
+    "공동구매 달력 여백·커버 이미지 수정",
+    "상세 추가이미지 썸네일 표시 개선",
     "버그 수정 및 안정성 개선",
   ];
   const BUILD_KEY = "hx.pwa.build";
