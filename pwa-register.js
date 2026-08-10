@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal37";
-  const APP_VERSION = "v1.12.31";
+  const APP_BUILD = "20260810-gbcal38";
+  const APP_VERSION = "v1.12.32";
   const RELEASE_NOTES = [
-    "세로 고정 (커서모바일앱과 동일 방식)",
-    "앱 업데이트 안내 복구",
-    "공동구매 캘린더 개선",
+    "화면을 더 밝고 선명하게 개선했습니다",
+    "공동구매 캘린더 일정이 더 잘 보이도록 개선했습니다",
+    "상품 이미지를 넘기며 볼 수 있게 했습니다",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -16,6 +16,7 @@
   const RECOVER_KEY = "hx.pwa.mojibakeRecover";
   const UPDATE_SNOOZE_KEY = "hx.pwa.updateSnooze";
   const INSTALLED_BUILD_KEY = "hx.pwa.installedBuild";
+  const PROMPTED_BUILD_KEY = "hx.pwa.promptedBuild";
   const MIN_INSTALL_BUILD = "20260809-gbcal31";
   const REINSTALL_GATE_ID = "pwaReinstallGate";
 
@@ -24,6 +25,7 @@
   let pendingWorker = null;
   let refreshing = false;
   let updateOffered = false;
+  let promptedBuild = "";
   let remoteNotes = null;
   let pendingRemoteBuild = "";
   let updateProgressLock = false;
@@ -552,6 +554,9 @@
       localStorage.setItem(ACTIVATED_KEY, target);
       localStorage.setItem(BUILD_KEY, target);
       localStorage.removeItem(UPDATE_SNOOZE_KEY);
+      localStorage.removeItem(PROMPTED_BUILD_KEY);
+      promptedBuild = "";
+      updateOffered = false;
 
       try {
         const worker = pendingWorker;
@@ -582,7 +587,23 @@
 
   function promptUpdateAvailable(extraNotes, force) {
     force = true; // always force apply for this release
+    const targetBuild = String(pendingRemoteBuild || APP_BUILD);
+    try {
+      if (!promptedBuild) promptedBuild = localStorage.getItem(PROMPTED_BUILD_KEY) || "";
+    } catch (_) {}
+
+    if (document.getElementById(DIALOG_ID)) return;
+
+    // Same build already announced — never stack duplicate dialogs.
+    if (promptedBuild === targetBuild) {
+      try {
+        if (localStorage.getItem(UPDATE_SNOOZE_KEY)) showUpdateChip();
+      } catch (_) {}
+      return;
+    }
+
     if (updateOffered) return;
+
     if (force) {
       try {
         localStorage.removeItem(UPDATE_SNOOZE_KEY);
@@ -591,13 +612,23 @@
       const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
       if (Date.now() - snooze < 1000 * 60 * 5) return;
     }
+
     updateOffered = true;
+    promptedBuild = targetBuild;
+    try {
+      localStorage.setItem(PROMPTED_BUILD_KEY, targetBuild);
+    } catch (_) {}
+
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
+    const customerNotes = (notes || [])
+      .map((n) => String(n || "").trim())
+      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자/i.test(n));
+
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
       body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
-      notes,
+      notes: customerNotes.length ? customerNotes : RELEASE_NOTES,
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
@@ -624,7 +655,11 @@
         "font-family:Pretendard,SUIT,sans-serif;";
       chip.addEventListener("click", () => {
         updateOffered = false;
-        localStorage.removeItem(UPDATE_SNOOZE_KEY);
+        promptedBuild = "";
+        try {
+          localStorage.removeItem(PROMPTED_BUILD_KEY);
+          localStorage.removeItem(UPDATE_SNOOZE_KEY);
+        } catch (_) {}
         promptUpdateAvailable(RELEASE_NOTES, true);
       });
       document.documentElement.appendChild(chip);
@@ -648,7 +683,6 @@
       return;
     }
     // Running script is newer than stored build — require user update (no silent stamp).
-    updateOffered = false;
     promptUpdateAvailable(RELEASE_NOTES, true);
   }
 
@@ -676,13 +710,17 @@
       if (remoteBuild === APP_BUILD) {
         localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
         localStorage.setItem(BUILD_KEY, APP_BUILD);
+        try {
+          localStorage.removeItem(PROMPTED_BUILD_KEY);
+        } catch (_) {}
+        promptedBuild = "";
+        updateOffered = false;
         const chip = document.getElementById("pwaUpdateChip");
         if (chip) chip.hidden = true;
         return;
       }
 
       // Newer build on server — show update dialog (no silent reload / no reinstall).
-      updateOffered = false;
       promptUpdateAvailable(remoteNotes || RELEASE_NOTES, true);
     } catch (_) {}
   }
@@ -762,7 +800,6 @@
         await navigator.serviceWorker.ready;
 
         if (needsUpdatePrompt()) {
-          updateOffered = false;
           promptUpdateAvailable(RELEASE_NOTES, true);
         } else {
           noteBuildActivated();
@@ -771,14 +808,12 @@
         await checkRemoteBuild();
         // SW waiting worker
         if (reg.waiting && navigator.serviceWorker.controller) {
-          updateOffered = false;
           pendingWorker = reg.waiting;
           promptUpdateAvailable(RELEASE_NOTES, true);
         }
         // Periodic re-check (CDN lag)
         [2500, 8000, 20000].forEach((ms) => {
           setTimeout(() => {
-            updateOffered = false;
             checkRemoteBuild();
             reg.update().catch(() => {});
             if (reg.waiting && navigator.serviceWorker.controller) {

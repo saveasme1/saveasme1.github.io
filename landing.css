@@ -443,8 +443,9 @@ body.has-gb-top-brand .landing {
   box-sizing: border-box; display: grid; place-items: center; height: 100%;
 }
 .board-carousel-slide img {
-  display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%;
+  display: block; width: auto; height: auto; max-width: 100%; max-height: 100%;
   object-fit: contain; object-position: center center; background: #111;
+  margin: 0 auto;
 }
 .board-carousel-nav {
   position: absolute; z-index: 2; top: 50%; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%;
@@ -1173,21 +1174,32 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .detail-images {
     flex: 0 0 auto !important;
-    height: min(46vh, 420px) !important;
-    max-height: min(46vh, 420px) !important;
+    height: min(52vh, 480px) !important;
+    max-height: min(52vh, 480px) !important;
     min-height: 0 !important;
+    background: #f3f0eb;
   }
   .board-carousel,
-  .board-carousel-viewport,
+  .board-carousel-viewport {
+    height: 100%;
+    background: #f3f0eb;
+  }
   .board-carousel-track,
   .board-carousel-slide {
     height: 100%;
   }
+  .board-carousel-slide {
+    display: grid;
+    place-items: center;
+  }
   .board-carousel-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center center;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: transparent;
   }
   .detail-copy {
     flex: 1 1 auto;
@@ -1208,21 +1220,32 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .review-view-images {
     flex: 0 0 auto !important;
-    height: min(46vh, 420px) !important;
-    max-height: min(46vh, 420px) !important;
+    height: min(52vh, 480px) !important;
+    max-height: min(52vh, 480px) !important;
     min-height: 0 !important;
+    background: #f3f0eb;
   }
   .review-carousel,
-  .review-carousel-viewport,
+  .review-carousel-viewport {
+    height: 100%;
+    background: #f3f0eb;
+  }
   .review-carousel-track,
   .review-carousel-slide {
     height: 100%;
   }
+  .review-carousel-slide {
+    display: grid;
+    place-items: center;
+  }
   .review-carousel-slide img {
-    width: 100% !important;
-    height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     object-fit: contain !important;
     object-position: center center !important;
+    background: transparent !important;
   }
   .review-view-body {
     flex: 1 1 auto;
@@ -1238,14 +1261,16 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .gb-cal-sheet__hero {
     aspect-ratio: auto;
-    height: min(40vh, 340px);
-    max-height: min(40vh, 340px);
+    height: min(42vh, 360px);
+    max-height: min(42vh, 360px);
   }
   .gb-cal-sheet__hero img {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
-    background: #f3f0eb;
+    object-position: center center;
   }
 }
 

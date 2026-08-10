@@ -276,16 +276,16 @@
     (window.GongbangBoardMeta && window.GongbangBoardMeta.KAKAO_URL) ||
     "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
 
-  // Muted luxury palette — fits dark PWA shell.
+  // Bright capsule palette — readable on light paper calendar.
   const EVENT_COLORS = [
-    { bg: "#7a6355", ink: "#fff", name: "#c9a66b" },
-    { bg: "#556272", ink: "#fff", name: "#9eb0c4" },
-    { bg: "#725662", ink: "#fff", name: "#d4a8b4" },
-    { bg: "#4f6359", ink: "#fff", name: "#9cb8a6" },
-    { bg: "#6a5c72", ink: "#fff", name: "#b8a8cc" },
-    { bg: "#756952", ink: "#fff", name: "#c8b888" },
-    { bg: "#5a6478", ink: "#fff", name: "#a8b4cc" },
-    { bg: "#6b5e50", ink: "#fff", name: "#c9a66b" },
+    { bg: "#5B8DEF", ink: "#fff", name: "#2a4f9e" },
+    { bg: "#F06A8A", ink: "#fff", name: "#a8324e" },
+    { bg: "#2DB8A0", ink: "#fff", name: "#0d6b5c" },
+    { bg: "#F0A04B", ink: "#1a1208", name: "#8a4e12" },
+    { bg: "#8B7CF0", ink: "#fff", name: "#4a3d9e" },
+    { bg: "#4CAF78", ink: "#fff", name: "#1f6b3e" },
+    { bg: "#E07A5F", ink: "#fff", name: "#9a3d28" },
+    { bg: "#4A9EC8", ink: "#fff", name: "#1f5f7a" },
   ];
 
   function coverBox(coverEl) {
@@ -562,6 +562,13 @@
     const uniq = [...new Set(images.map(String))];
     let active = 0;
     const isAdmin = Boolean(runtime.admin);
+    const multi = uniq.length > 1;
+
+    const setActive = (next) => {
+      if (!uniq.length) return;
+      active = ((next % uniq.length) + uniq.length) % uniq.length;
+      paint();
+    };
 
     const paint = () => {
       const hero = uniq[active] || "";
@@ -576,10 +583,21 @@
         `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
         `</div>` +
         `</div>` +
-        `<div class="gb-cal-sheet__hero">${
-          hero ? `<img src="${assetUrl(hero)}" alt="">` : ""
-        }</div>` +
-        (uniq.length > 1
+        `<div class="gb-cal-sheet__hero${multi ? " has-nav" : ""}" data-hero>` +
+        (multi
+          ? `<button type="button" class="gb-cal-sheet__nav prev" data-prev aria-label="이전 이미지">‹</button>`
+          : "") +
+        `<div class="gb-cal-sheet__hero-frame">` +
+        (hero ? `<img src="${assetUrl(hero)}" alt="">` : "") +
+        `</div>` +
+        (multi
+          ? `<button type="button" class="gb-cal-sheet__nav next" data-next aria-label="다음 이미지">›</button>`
+          : "") +
+        (multi
+          ? `<span class="gb-cal-sheet__counter">${active + 1} / ${uniq.length}</span>`
+          : "") +
+        `</div>` +
+        (multi
           ? `<div class="gb-cal-sheet__rail">${uniq
               .map(
                 (src, i) =>
@@ -596,12 +614,66 @@
       card.querySelector("h3").textContent = item.title;
       card.querySelector("p").textContent = item.content || "";
       card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
+      card.querySelector("[data-prev]")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setActive(active - 1);
+      });
+      card.querySelector("[data-next]")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setActive(active + 1);
+      });
       card.querySelectorAll(".gb-cal-sheet__rail button").forEach((btn) => {
         btn.addEventListener("click", () => {
-          active = Number(btn.dataset.i) || 0;
-          paint();
+          setActive(Number(btn.dataset.i) || 0);
         });
       });
+      const heroEl = card.querySelector("[data-hero]");
+      if (heroEl && multi) {
+        let startX = 0;
+        let startY = 0;
+        let tracking = false;
+        heroEl.addEventListener(
+          "touchstart",
+          (e) => {
+            const t = e.changedTouches[0];
+            if (!t) return;
+            startX = t.clientX;
+            startY = t.clientY;
+            tracking = true;
+          },
+          { passive: true }
+        );
+        heroEl.addEventListener(
+          "touchend",
+          (e) => {
+            if (!tracking) return;
+            tracking = false;
+            const t = e.changedTouches[0];
+            if (!t) return;
+            const dx = t.clientX - startX;
+            const dy = t.clientY - startY;
+            if (Math.abs(dx) < 42 || Math.abs(dx) < Math.abs(dy)) return;
+            setActive(dx < 0 ? active + 1 : active - 1);
+          },
+          { passive: true }
+        );
+        let pointerX = 0;
+        let dragging = false;
+        heroEl.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "touch") return;
+          if (e.target.closest("button")) return;
+          dragging = true;
+          pointerX = e.clientX;
+          heroEl.setPointerCapture?.(e.pointerId);
+        });
+        heroEl.addEventListener("pointerup", (e) => {
+          if (!dragging) return;
+          dragging = false;
+          const dx = e.clientX - pointerX;
+          if (Math.abs(dx) < 48) return;
+          setActive(dx < 0 ? active + 1 : active - 1);
+        });
+      }
       card.querySelector("[data-edit]")?.addEventListener("click", () => {
         closeSheet();
         const dlg = createWriterDialog(runtime.onSaved);
