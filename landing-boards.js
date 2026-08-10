@@ -64,7 +64,14 @@
   };
   const writerHtmlEditor = window.GongbangHtmlEditor?.mount(writer.form?.elements.content);
 
-  if (!boards.shipping.section || !boards.notices.section || !dialog.root) return;
+  if (!dialog.root) return;
+  const noticesOnly = /notices\.html(?:$|\?)/i.test(location.pathname + location.search) ||
+    /\/notices\.html$/i.test(location.pathname);
+  if (noticesOnly) {
+    if (!boards.notices.section) return;
+  } else if (!boards.shipping.section || !boards.notices.section) {
+    return;
+  }
   if (!writer.root || !writer.form) return;
 
   const state = {
@@ -954,6 +961,11 @@
       }
       return;
     }
+    if (type === "notices" && /notices\.html$/i.test(location.pathname)) {
+      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?app=1" : "";
+      location.href = `./landing.html${q}`;
+      return;
+    }
     boards[type].section.hidden = true;
     if (state.active === type) state.active = "";
     if (state.currentType === type) closeDetail();
@@ -1096,7 +1108,9 @@
   });
 
   const wanted = new URLSearchParams(location.search).get("open");
-  if (wanted === "shipping" || wanted === "notices") {
+  if (noticesOnly) {
+    openBoard("notices");
+  } else if (wanted === "shipping" || wanted === "notices") {
     openBoard(wanted);
   }
 })();

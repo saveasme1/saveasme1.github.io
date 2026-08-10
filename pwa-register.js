@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal61";
-  const APP_VERSION = "v1.12.46";
+  const APP_BUILD = "20260810-gbcal62";
+  const APP_VERSION = "v1.12.47";
   const RELEASE_NOTES = [
-    "공동구매 달력 여백·커버 이미지 수정",
-    "상세 추가이미지 썸네일 표시 개선",
+    "공지사항 독립 페이지·쿼메뉴 순서 수정",
+    "메인 배너·공지 목록 여백 개선",
     "버그 수정 및 안정성 개선",
   ];
   const BUILD_KEY = "hx.pwa.build";

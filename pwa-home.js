@@ -61,13 +61,12 @@
   };
 
   const MENUS = [
-    { go: "discover", label: "발견", ico: "portfolio" },
     { go: "portfolio", label: "포트폴리오", ico: "portfolio" },
+    { go: "discover", label: "발견", ico: "portfolio" },
     { go: "shipping", label: "최종검수", ico: "shipping" },
-    // TEMP hide gold menu — restore: uncomment
-    // { go: "gold", label: "금시세", ico: "gold" },
-    { go: "search", label: "AI검색", ico: "search" },
     { go: "reviews", label: "스냅", ico: "reviews" },
+    { go: "groupbuy", label: "공동구매", ico: "shipping" },
+    { go: "search", label: "AI검색", ico: "search" },
   ];
 
   const RANK_SNAP_KEY = "hx.pwa.hotRank.v2";
@@ -204,10 +203,7 @@
       if (id) pf.push(`id=${encodeURIComponent(id)}`);
       return `./portfolio.html${pf.length ? `?${pf.join("&")}` : ""}`;
     }
-    if (board === "notices") {
-      const n = parts.includes("app=1") ? "?open=notices&app=1" : "?open=notices";
-      return `./landing.html${n}`;
-    }
+    if (board === "notices") return `./notices.html${q}`;
     return "./landing.html" + (parts[0] === "app=1" ? "?app=1" : "");
   }
 
@@ -244,10 +240,7 @@
     if (key === "reviews") return void (location.href = `./reviews.html${appQuery()}`);
     if (key === "shipping") return void (location.href = `./shipping.html${appQuery()}`);
     if (key === "event") return void (location.href = `./opening-event.html${appQuery()}`);
-    if (key === "notices") {
-      const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?open=notices&app=1" : "?open=notices";
-      return void (location.href = `./landing.html${q}`);
-    }
+    if (key === "notices") return void (location.href = `./notices.html${appQuery()}`);
     if (key === "groupbuy") return void (location.href = `./groupbuy.html${appQuery()}`);
   }
 
@@ -908,6 +901,13 @@
     });
     hero.append(track, dots);
     host.append(hero);
+    // #region agent log
+    requestAnimationFrame(() => {
+      const r = hero.getBoundingClientRect();
+      const cs = getComputedStyle(hero);
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pwa-ui',hypothesisId:'H10',location:'pwa-home.js:hero',message:'hero swiper metrics',data:{vw:window.innerWidth,left:Math.round(r.left),right:Math.round(r.right),w:Math.round(r.width),h:Math.round(r.height),ml:cs.marginLeft,mr:cs.marginRight,heightCss:cs.height,minH:cs.minHeight},timestamp:Date.now()})}).catch(()=>{});
+    });
+    // #endregion
 
     let slideIdx = 0;
     let autoTimer = 0;
@@ -1084,6 +1084,9 @@
         `</button>`
     ).join("");
     dockSec.append(services);
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pwa-ui',hypothesisId:'H9',location:'pwa-home.js:quick-menu',message:'quick menu order',data:{order:MENUS.map((m)=>m.label),go:MENUS.map((m)=>m.go),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     // —— Live pulse (recent uploads across boards) ——
     const pulse = document.createElement("div");

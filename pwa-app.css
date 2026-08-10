@@ -99,8 +99,8 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   position: relative;
   display: block;
   width: 100%;
-  height: min(68vh, 720px);
-  min-height: 420px;
+  height: min(52vh, 420px);
+  min-height: 300px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -113,8 +113,8 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-hero--banner {
-  height: min(64vh, 680px);
-  min-height: 400px;
+  height: min(46vh, 380px);
+  min-height: 280px;
 }
 
 .pwa-hero-slider {
@@ -237,7 +237,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 48%;
+  object-position: center 28%;
   transform: scale(1.04);
   filter: saturate(0.88) contrast(1.08) brightness(0.96);
   transition: transform 0.7s var(--pwa-ease);
@@ -2063,6 +2063,32 @@ body.board-standalone .reviews-heading {
   padding-right: 16px;
   align-items: center;
 }
+body.board-standalone .reviews-toolbar {
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+body.board-standalone .notice-list {
+  margin-left: 16px;
+  margin-right: 16px;
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+}
+body.board-standalone .reviews-status {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+html.is-pwa body.board-standalone .reviews-heading,
+html.is-pwa body.board-standalone .reviews-toolbar,
+html.is-pwa body.board-standalone .reviews-status {
+  padding-left: var(--pwa-gutter, 16px);
+  padding-right: var(--pwa-gutter, 16px);
+}
+html.is-pwa body.board-standalone .notice-list {
+  margin-left: var(--pwa-gutter, 16px);
+  margin-right: var(--pwa-gutter, 16px);
+}
 body.board-standalone .reviews-close {
   display: inline-flex;
   align-items: center;
@@ -2182,9 +2208,9 @@ body.board-standalone .reviews-close {
   }
 
   html.is-pwa .pwa-hero--banner {
-    height: min(62vh, 640px);
-    min-height: 440px;
-    border-radius: 0 0 4px 4px;
+    height: min(42vh, 420px);
+    min-height: 320px;
+    border-radius: 0;
   }
 
   html.is-pwa .pwa-dock {
@@ -2337,16 +2363,22 @@ html:not(.is-pwa) body.has-gb-bottom-nav {
 }
 
 
-/* hero taller pc */
+/* hero: restore shorter banner; full-bleed even inside PC shell */
 @media (min-width: 1025px) {
   .pwa-hero,
   .pwa-hero--banner {
-    height: min(72vh, 760px);
-    min-height: 520px;
+    height: min(42vh, 420px);
+    min-height: 320px;
   }
+  html.is-pwa .pwa-hero,
   html.is-pwa .pwa-hero--banner {
-    height: min(70vh, 720px);
-    min-height: 500px;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0;
+    height: min(42vh, 420px);
+    min-height: 320px;
   }
 }
 
