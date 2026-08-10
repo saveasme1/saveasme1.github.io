@@ -646,8 +646,18 @@
 
   window.openGongbangShippingPanel = openShippingPanel;
   window.closeGongbangShippingPanel = closeShippingPanel;
-  window.refreshGongbangShippingBoard = () => {
+  window.refreshGongbangShippingBoard = (options = {}) => {
     state.opened = true;
+    if (options.clearFilters) {
+      state.category = "ALL";
+      state.selectedDate = "";
+      state.page = 1;
+      if (els.search) els.search.value = "";
+    } else {
+      if (options.category) state.category = options.category;
+      if (options.selectedDate != null) state.selectedDate = options.selectedDate;
+      if (options.page) state.page = options.page;
+    }
     loadData();
   };
 

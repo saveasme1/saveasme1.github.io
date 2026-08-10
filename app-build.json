@@ -1,1 +1,11 @@
-{"build":"20260810-gbcal45","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-10T09:34:29.965Z","note":"PWA reinstall gate + analytics","notes":["재설치 안내 게이트 (기존 앱 숨김)","방문자·설치·PWA 세션 서버 집계","install.html 임시 재설치 멘트 제거"]}
+{
+  "build": "20260810-gbcal46",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-10T11:05:00.000Z",
+  "note": "Faster shipping write + category/date pickers",
+  "notes": [
+    "재설치 안내 게이트 (기존 앱 숨김)",
+    "방문자·설치·PWA 세션 서버 집계",
+    "최종검수 글 등록 속도 개선 · 카테고리/게시일 선택"
+  ]
+}

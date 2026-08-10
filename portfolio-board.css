@@ -908,6 +908,13 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   flex-wrap: wrap;
   gap: 6px;
 }
+.pf-writer-shipping-meta {
+  display: grid;
+  gap: 14px;
+}
+.pf-writer-shipping-meta .pf-writer-date input {
+  margin-top: 7px;
+}
 .pf-writer-cat-chip {
   min-height: 32px;
   padding: 0 11px;

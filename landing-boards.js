@@ -46,6 +46,7 @@
     images: $("detailImages"),
     actions: $("detailActions"),
   };
+  const SHIPPING_CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
   const writer = {
     root: $("boardWriteDialog"),
     form: $("boardWriteForm"),
@@ -56,6 +57,8 @@
     help: $("boardWriteHelp"),
     coverPreview: $("boardCoverPreview"),
     detailGrid: $("boardDetailGrid"),
+    shippingMeta: $("boardShippingMeta"),
+    shipCatChips: $("boardShipCatChips"),
     cover: { path: "", file: null, preview: "" },
     details: [],
   };
@@ -351,16 +354,73 @@
     });
   }
 
+  async function compressImageFile(file, maxSide = 1600, quality = 0.82) {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const w = bmp.width;
+      const h = bmp.height;
+      const m = Math.max(w, h);
+      if (m <= maxSide && file.size <= 900 * 1024) {
+        bmp.close();
+        return file;
+      }
+      const scale = Math.min(1, maxSide / m);
+      const cw = Math.max(1, Math.round(w * scale));
+      const ch = Math.max(1, Math.round(h * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      canvas.getContext("2d").drawImage(bmp, 0, 0, cw, ch);
+      bmp.close();
+      const blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", quality));
+      if (!blob || blob.size >= file.size) return file;
+      const base = String(file.name || "image").replace(/\.[^.]+$/, "") || "image";
+      return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    } catch (_) {
+      return file;
+    }
+  }
+
   async function uploadImage(type, file, id, role, index = 0) {
-    if (file.size > 8 * 1024 * 1024) {
+    const prepared = await compressImageFile(file);
+    if (prepared.size > 8 * 1024 * 1024) {
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
-    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg";
+    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[prepared.type] || "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
-    const content = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+    const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
     await putManaged(path, content, `${type}: upload ${id} ${role}${suffix}`);
     return path;
+  }
+
+  function setShippingCategory(category) {
+    const next = SHIPPING_CATEGORIES.includes(category) ? category : "ETC";
+    const input = writer.form?.elements?.namedItem?.("category") || writer.form?.querySelector?.('[name="category"]');
+    if (input) input.value = next;
+    writer.shipCatChips?.querySelectorAll(".pf-writer-cat-chip").forEach((chip) => {
+      const active = chip.dataset.cat === next;
+      chip.classList.toggle("is-active", active);
+      chip.setAttribute("aria-selected", active ? "true" : "false");
+    });
+  }
+
+  function renderShippingCategoryChips() {
+    const host = writer.shipCatChips;
+    if (!host || host.dataset.ready === "1") return;
+    host.replaceChildren();
+    SHIPPING_CATEGORIES.forEach((category) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "pf-writer-cat-chip";
+      chip.dataset.cat = category;
+      chip.setAttribute("role", "option");
+      chip.textContent = category;
+      chip.addEventListener("click", () => setShippingCategory(category));
+      host.append(chip);
+    });
+    host.dataset.ready = "1";
   }
 
   function clearWriterMedia() {
@@ -427,7 +487,25 @@
     writer.form.elements.boardType.value = type;
     writer.title.textContent = type === "shipping" ? "최종검수 작성" : "공지사항 작성";
     if (writer.help) {
-      writer.help.textContent = "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
+      writer.help.textContent = type === "shipping"
+        ? "카테고리·게시일을 선택한 뒤 대표 이미지를 올려 주세요."
+        : "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
+    }
+    const shippingMeta = writer.shippingMeta;
+    if (shippingMeta) shippingMeta.hidden = type !== "shipping";
+    if (type === "shipping") {
+      renderShippingCategoryChips();
+      setShippingCategory("ETC");
+      const publishedAtEl = writer.form.elements.namedItem("publishedAt") || writer.form.querySelector('[name="publishedAt"]');
+      if (publishedAtEl) {
+        publishedAtEl.required = true;
+        publishedAtEl.value = window.GongbangTime
+          ? window.GongbangTime.toDateTimeLocal(window.GongbangTime.nowIso())
+          : "";
+      }
+    } else {
+      const publishedAtEl = writer.form.elements.namedItem("publishedAt") || writer.form.querySelector('[name="publishedAt"]');
+      if (publishedAtEl) publishedAtEl.required = false;
     }
     writer.status.textContent = "";
     writer.submit.disabled = false;
@@ -465,28 +543,67 @@
     writer.submit.disabled = true;
     try {
       const id = `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-      let cover = writer.cover.path || "";
-      if (writer.cover.file) {
-        writer.status.textContent = "대표 이미지 업로드 중…";
-        cover = await uploadImage(type, writer.cover.file, id, "cover");
-      }
-      const images = [];
-      for (let index = 0; index < writer.details.length; index += 1) {
-        const detail = writer.details[index];
-        if (detail.file) {
-          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${writer.details.length}`;
-          images.push(await uploadImage(type, detail.file, id, "detail", index + 1));
-        } else if (detail.path) {
-          images.push(detail.path);
-        }
+      const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
+      let publishedAt = now;
+      let category;
+      if (type === "shipping") {
+        const categoryEl = form.elements.namedItem("category") || form.querySelector('[name="category"]');
+        const publishedAtEl = form.elements.namedItem("publishedAt") || form.querySelector('[name="publishedAt"]');
+        const picked = String(categoryEl?.value || "").trim();
+        category = SHIPPING_CATEGORIES.includes(picked)
+          ? picked
+          : detectShippingCategory(title, content);
+        publishedAt = window.GongbangTime && publishedAtEl?.value
+          ? window.GongbangTime.fromDateTimeLocal(publishedAtEl.value)
+          : (publishedAtEl?.value ? new Date(publishedAtEl.value).toISOString() : now);
       }
 
-      writer.status.textContent = "게시글을 저장하고 공개하는 중…";
-      const [publishedFile, draftFile] = await Promise.all([
+      writer.status.textContent = "이미지 준비 중…";
+      const readPromise = Promise.all([
         readManaged(`${type}-data.json`, true),
         readManaged(`${type}-draft.json`, true),
       ]);
-      const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
+
+      const uploadJobs = [];
+      if (writer.cover.file) {
+        uploadJobs.push(
+          uploadImage(type, writer.cover.file, id, "cover").then((path) => ({ kind: "cover", path }))
+        );
+      }
+      writer.details.forEach((detail, index) => {
+        if (detail.file) {
+          uploadJobs.push(
+            uploadImage(type, detail.file, id, "detail", index + 1).then((path) => ({
+              kind: "detail",
+              index,
+              path,
+            }))
+          );
+        } else if (detail.path) {
+          uploadJobs.push(Promise.resolve({ kind: "detail", index, path: detail.path }));
+        }
+      });
+
+      writer.status.textContent = uploadJobs.length
+        ? `이미지 업로드 중… (${uploadJobs.length}장 병렬)`
+        : "게시글 저장 중…";
+      const [uploadResults, files] = await Promise.all([
+        Promise.all(uploadJobs),
+        readPromise,
+      ]);
+      const [publishedFile, draftFile] = files;
+
+      let cover = writer.cover.path || "";
+      const detailRows = [];
+      uploadResults.forEach((row) => {
+        if (row.kind === "cover") cover = row.path;
+        else if (row.path) detailRows.push(row);
+      });
+      detailRows.sort((a, b) => (a.index || 0) - (b.index || 0));
+      const images = detailRows.map((row) => row.path);
+      if (!cover) throw new Error("대표 이미지 업로드에 실패했습니다.");
+
+      writer.status.textContent = "공개 게시판에 올리는 중…";
       const item = {
         id,
         title,
@@ -494,12 +611,9 @@
         cover,
         image: cover,
         images: images.filter((path) => path && path !== cover),
-        publishedAt: now,
+        publishedAt,
         updatedAt: now,
-        category:
-          type === "shipping"
-            ? detectShippingCategory(title, content)
-            : undefined,
+        category,
       };
       const baseItems = publishedFile?.value?.items || [];
       const published = {
@@ -512,28 +626,34 @@
         version: 1,
         items: [item, ...draftItems.filter((entry) => entry.id !== id)],
       };
-      await putManaged(
-        `${type}-draft.json`,
-        textToBase64(JSON.stringify(draft)),
-        `${type} draft: create ${id}`,
-        draftFile?.sha || ""
-      );
+
+      // Publish first so the board updates quickly; draft sync can finish in the background.
       await putManaged(
         `${type}-data.json`,
         textToBase64(JSON.stringify(published)),
         `${type}: publish ${id}`,
         publishedFile?.sha || ""
       );
+      void putManaged(
+        `${type}-draft.json`,
+        textToBase64(JSON.stringify(draft)),
+        `${type} draft: create ${id}`,
+        draftFile?.sha || ""
+      ).catch(() => {});
+
       state[type] = published.items;
       boards[type].page = 1;
       if (type === "shipping") {
-        window.refreshGongbangShippingBoard?.();
+        window.refreshGongbangShippingBoard?.({ clearFilters: true, page: 1 });
       } else {
         renderList(type);
       }
       clearWriterMedia();
       writer.root.close();
       form.reset();
+      if (typeof window.showGongbangToast === "function") {
+        window.showGongbangToast("게시글이 등록되었습니다.", { tone: "success", duration: 2200 });
+      }
     } catch (error) {
       writer.status.textContent = error.message || String(error);
     } finally {
