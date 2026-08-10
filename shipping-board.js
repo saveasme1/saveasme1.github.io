@@ -576,7 +576,10 @@
         Array.isArray(payload.categories) && payload.categories.length
           ? payload.categories
           : [...DEFAULT_CATEGORIES];
-      state.items = mergeShippingItems(payload.items || [], liveItems);
+      state.items = mergeShippingItems(
+        mergeShippingItems(payload.items || [], liveItems),
+        (state.items || []).filter((item) => String(item?.id || "").startsWith("admin-") || item?.origin === "admin")
+      );
       if (window.GongbangBoardMeta?.fetchViews && state.items.length) {
         const views = await window.GongbangBoardMeta.fetchViews(
           BOARD,
@@ -703,8 +706,6 @@
       renderCalendar();
       renderDateStrip();
       renderList();
-      // Pull remote copy shortly after GitHub Pages catches up.
-      setTimeout(() => loadData(), 2500);
       return;
     }
     loadData();

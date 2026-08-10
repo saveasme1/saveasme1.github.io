@@ -1,11 +1,10 @@
 {
-  "build": "20260810-gbcal48",
+  "build": "20260810-gbcal49",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T11:55:00.000Z",
-  "note": "Shipping path allowlist + public mirror",
+  "deployedAt": "2026-08-10T12:10:00.000Z",
+  "note": "Faster shipping public-direct writes + keep live posts visible",
   "notes": [
-    "shipping-live 허용 및 공개 미러",
-    "SHA 충돌 재시도 보강",
-    "등록 경로 디버그 로그"
+    "shipping 공개 repo 직행으로 업로드 가속",
+    "등록 직후 CDN 빈목록에 안 지워지게 수정"
   ]
 }

@@ -382,18 +382,14 @@
     }
   }
 
-  async function compressImageFile(file, maxSide = 1280, quality = 0.78) {
+  async function compressImageFile(file, maxSide = 1200, quality = 0.72) {
     if (!file || !file.type || !file.type.startsWith("image/")) return file;
     try {
       const bmp = await createImageBitmap(file);
       const w = bmp.width;
       const h = bmp.height;
       const m = Math.max(w, h);
-      if (m <= maxSide && file.size <= 700 * 1024) {
-        bmp.close();
-        return file;
-      }
-      const scale = Math.min(1, maxSide / m);
+      const scale = Math.min(1, maxSide / Math.max(1, m));
       const cw = Math.max(1, Math.round(w * scale));
       const ch = Math.max(1, Math.round(h * scale));
       const canvas = document.createElement("canvas");
@@ -415,11 +411,11 @@
     if (prepared.size > 8 * 1024 * 1024) {
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
-    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[prepared.type] || "jpg";
+    const ext = "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'D',location:'landing-boards.js:uploadImage',message:'upload path',data:{path,type,role,srcSize:file.size,outSize:prepared.size,assetPreview:`/${path}`},timestamp:Date.now()})}).catch(()=>{});
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'D',location:'landing-boards.js:uploadImage',message:'upload path',data:{path,type,role,srcSize:file.size,outSize:prepared.size,assetPreview:`/${path}`},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
     const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
     await putManagedFresh(path, content, `${type}: upload ${id} ${role}${suffix}`, "");
@@ -640,44 +636,14 @@
           `shipping live: create ${id}`,
           liveFile?.sha || ""
         );
-
-        // Best-effort sync into the big catalog files (non-blocking).
-        void (async () => {
-          try {
-            const [publishedFile, draftFile] = await Promise.all([
-              readManaged("shipping-data.json", true),
-              readManaged("shipping-draft.json", true),
-            ]);
-            const baseItems = publishedFile?.value?.items || [];
-            const published = {
-              version: 1,
-              publishedAt: now,
-              items: [item, ...baseItems.filter((entry) => entry.id !== id)],
-            };
-            await putManagedFresh(
-              "shipping-data.json",
-              textToBase64(JSON.stringify(published)),
-              `shipping: publish ${id}`,
-              publishedFile?.sha || ""
-            );
-            const draftItems = draftFile?.value?.items || baseItems;
-            const draft = {
-              version: 1,
-              items: [item, ...draftItems.filter((entry) => entry.id !== id)],
-            };
-            await putManagedFresh(
-              "shipping-draft.json",
-              textToBase64(JSON.stringify(draft)),
-              `shipping draft: create ${id}`,
-              draftFile?.sha || ""
-            );
-          } catch (_) {}
-        })();
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'E',location:'landing-boards.js:submitWriter',message:'shipping live saved',data:{id,cover,liveCount:live.items.length},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
 
         state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];
         boards.shipping.page = 1;
         window.prependGongbangShippingItem?.(item, { clearFilters: true });
-        window.refreshGongbangShippingBoard?.({ clearFilters: true, page: 1, soft: true });
+        // Do not soft-reload immediately — CDN can briefly return empty live and wipe the new card.
       } else {
         const [publishedFile, draftFile] = await Promise.all([
           readManaged(`${type}-data.json`, true),
@@ -989,13 +955,14 @@
     if (board.write) board.write.addEventListener("click", () => openWriter(type));
   });
   writer.form.addEventListener("submit", async (event) => {
-    await submitWriter(event);
-    const type = String(
+    const typeBefore = String(
       writer.form?.elements?.namedItem?.("boardType")?.value ||
         writer.form?.querySelector?.('[name="boardType"]')?.value ||
         ""
     );
-    if (type === "shipping") {
+    await submitWriter(event);
+    // Shipping already prepends locally; hard reload can briefly hide new posts on CDN lag.
+    if (typeBefore && typeBefore !== "shipping") {
       window.refreshGongbangShippingBoard?.();
     }
   });
