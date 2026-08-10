@@ -348,10 +348,24 @@
   }
 
   async function putManaged(path, content, message, sha = "") {
-    return api("/admin/files", {
-      method: "PUT",
-      body: JSON.stringify({ path, content, message, sha }),
-    });
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'A',location:'landing-boards.js:putManaged',message:'put start',data:{path,shaLen:String(sha||'').length,contentLen:String(content||'').length,message},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    try {
+      const result = await api("/admin/files", {
+        method: "PUT",
+        body: JSON.stringify({ path, content, message, sha }),
+      });
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'A',location:'landing-boards.js:putManaged',message:'put ok',data:{path,hasContent:Boolean(result?.content),hasPublic:Boolean(result?.publicCommit)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      return result;
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'B',location:'landing-boards.js:putManaged',message:'put fail',data:{path,shaLen:String(sha||'').length,error:String(error?.message||error||'')},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      throw error;
+    }
   }
 
   async function putManagedFresh(path, content, message, sha = "") {
@@ -359,7 +373,10 @@
       return await putManaged(path, content, message, sha);
     } catch (error) {
       const msg = String(error?.message || error || "");
-      if (!/409|422|sha|conflict|already|존재|충돌/i.test(msg)) throw error;
+      if (!/409|422|sha|conflict|already|존재|충돌|is at|expected/i.test(msg)) throw error;
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'C',location:'landing-boards.js:putManagedFresh',message:'sha retry',data:{path,error:msg.slice(0,180)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       const fresh = await readManaged(path, true);
       return putManaged(path, content, message, fresh?.sha || "");
     }
@@ -401,6 +418,9 @@
     const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[prepared.type] || "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'D',location:'landing-boards.js:uploadImage',message:'upload path',data:{path,type,role,srcSize:file.size,outSize:prepared.size,assetPreview:`/${path}`},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
     await putManagedFresh(path, content, `${type}: upload ${id} ${role}${suffix}`, "");
     return path;
@@ -600,8 +620,14 @@
       };
 
       if (type === "shipping") {
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'E',location:'landing-boards.js:submitWriter',message:'shipping save start',data:{id,category,cover,publishedAt,imageCount:images.length,existingLoadPathSample:'shipping/uploads/imported/...'},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         // Small overlay file — full shipping-data.json puts often fail/timeout on the API.
         const liveFile = await readManaged("shipping-live.json", true);
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'pre-fix',hypothesisId:'B',location:'landing-boards.js:submitWriter',message:'live read result',data:{hasFile:Boolean(liveFile),shaPrefix:String(liveFile?.sha||'').slice(0,12),itemCount:Array.isArray(liveFile?.value?.items)?liveFile.value.items.length:null},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         const liveItems = Array.isArray(liveFile?.value?.items) ? liveFile.value.items : [];
         const live = {
           version: 1,
