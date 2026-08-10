@@ -1,8 +1,1 @@
-{
-  "build": "20260810-gbcal44",
-  "deployedAt": "2026-08-10T10:30:00.000Z",
-  "note": "fix shipping write null.search.value",
-  "notes": [
-    "최종검수 글 등록 오류를 수정했습니다"
-  ]
-}
+{"build":"20260810-gbcal45","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-10T09:34:29.965Z","note":"PWA reinstall gate + analytics","notes":["재설치 안내 게이트 (기존 앱 숨김)","방문자·설치·PWA 세션 서버 집계","install.html 임시 재설치 멘트 제거"]}

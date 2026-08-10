@@ -389,6 +389,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Groupbuy calendar — always prefer network (admin publishes frequently)
+  if (/\/groupbuy-data\.json$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_VERSION).then((c) => {
+              c.put(url.origin + url.pathname, copy);
+            });
+          }
+          return res;
+        })
+        .catch(() => matchIgnoringSearch(req))
+    );
+    return;
+  }
+
   const image = isImageRequest(req, url);
 
   event.respondWith(
