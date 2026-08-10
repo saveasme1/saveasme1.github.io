@@ -619,9 +619,22 @@ body.has-gb-top-brand {
 
   .gb-bottom-nav__item.is-home svg {
 
-    width: 21px;
+    width: 22px;
 
-    height: 21px;
+    height: 22px;
+
+  }
+
+  .gb-bottom-nav__item.is-home .gb-bottom-nav__fab,
+  .gb-bottom-nav__item.is-home .gb-bottom-nav__ico {
+
+    margin: 0 0 3px;
+
+  }
+
+  .gb-bottom-nav__item.is-home .gb-bottom-nav__fab .gb-bottom-nav__ico {
+
+    margin: 0;
 
   }
 
@@ -762,8 +775,8 @@ body.gb-chrome-paper .gb-bottom-nav.is-scrolling {
     z-index: 2500;
     display: block;
     padding-bottom: env(safe-area-inset-bottom, 0);
-    background: rgba(18, 16, 14, 0.94);
-    border-top: 1px solid rgba(245, 242, 238, 0.12);
+    background: rgba(247, 245, 242, 0.96);
+    border-top: 1px solid rgba(22, 21, 19, 0.1);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }

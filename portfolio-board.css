@@ -5,7 +5,7 @@
   --pf-paper: #f7f5f2;
   --pf-card: #ffffff;
   --pf-accent: #ff8236;
-  --pf-gold: #9a8160;
+  --pf-gold: #ff8236;
   --pf-ease: cubic-bezier(.22, 1, .36, 1);
   --pf-sans: Pretendard, SUIT, "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
 }
@@ -406,10 +406,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
+  width: 34px;
   min-width: 34px;
   min-height: 34px;
-  padding: 0 8px;
+  padding: 0;
   border: 0;
   border-radius: 999px;
   background: rgba(16, 14, 12, 0.42);
@@ -417,21 +418,34 @@
   font: 700 11px/1 SUIT, Pretendard, sans-serif;
   cursor: pointer;
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   -webkit-tap-highlight-color: transparent;
   transition: transform .18s ease, background .18s ease, color .18s ease;
 }
 .pf-like:hover { background: rgba(16, 14, 12, 0.58); }
 .pf-like:active { transform: scale(0.94); }
 .pf-like__icon {
+  display: grid;
+  place-items: center;
+  width: 1em;
   font-size: 14px;
   line-height: 1;
   color: rgba(255, 255, 255, 0.92);
 }
 .pf-like.is-on .pf-like__icon { color: #ff5a7a; }
 .pf-like__count {
+  display: none;
   min-width: 0.7em;
   font-variant-numeric: tabular-nums;
   color: rgba(255, 255, 255, 0.92);
+}
+.pf-like__count:not(:empty) {
+  display: inline;
+}
+.pf-like:has(.pf-like__count:not(:empty)) {
+  width: auto;
+  padding: 0 9px;
+  gap: 4px;
 }
 .pf-like.is-on {
   background: rgba(255, 255, 255, 0.92);

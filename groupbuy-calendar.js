@@ -276,16 +276,16 @@
     (window.GongbangBoardMeta && window.GongbangBoardMeta.KAKAO_URL) ||
     "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
 
-  // Bright capsule palette — readable on light paper calendar.
+  // Soft pastel capsule palette — readable on light paper calendar.
   const EVENT_COLORS = [
-    { bg: "#5B8DEF", ink: "#fff", name: "#2a4f9e" },
-    { bg: "#F06A8A", ink: "#fff", name: "#a8324e" },
-    { bg: "#2DB8A0", ink: "#fff", name: "#0d6b5c" },
-    { bg: "#F0A04B", ink: "#1a1208", name: "#8a4e12" },
-    { bg: "#8B7CF0", ink: "#fff", name: "#4a3d9e" },
-    { bg: "#4CAF78", ink: "#fff", name: "#1f6b3e" },
-    { bg: "#E07A5F", ink: "#fff", name: "#9a3d28" },
-    { bg: "#4A9EC8", ink: "#fff", name: "#1f5f7a" },
+    { bg: "#B7C9DE", ink: "#243652", name: "#3d5570" },
+    { bg: "#E0B8C4", ink: "#5a3040", name: "#7a4858" },
+    { bg: "#B5D2C7", ink: "#2a4a42", name: "#3f6a5e" },
+    { bg: "#E2D2B0", ink: "#5a4a28", name: "#7a6640" },
+    { bg: "#C9BDD8", ink: "#3f3458", name: "#5a4c78" },
+    { bg: "#BCD4B4", ink: "#2f4a30", name: "#4a6a48" },
+    { bg: "#E0C4B4", ink: "#5a3c30", name: "#7a5848" },
+    { bg: "#B4CCD6", ink: "#2a4554", name: "#3f6270" },
   ];
 
   function coverBox(coverEl) {

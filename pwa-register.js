@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal39";
-  const APP_VERSION = "v1.12.33";
+  const APP_BUILD = "20260810-gbcal40";
+  const APP_VERSION = "v1.12.34";
   const RELEASE_NOTES = [
-    "포트폴리오에서 사진을 더 크게, 잘리지 않게 볼 수 있습니다",
-    "공동구매 캘린더와 상세 화면을 개선했습니다",
+    "화면 색상과 버튼을 더 선명하게 맞췄습니다",
+    "공동구매 일정 색상을 부드러운 톤으로 조정했습니다",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

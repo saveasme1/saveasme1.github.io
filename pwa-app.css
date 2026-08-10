@@ -6,8 +6,8 @@ html.is-pwa {
   --pwa-ink: #161513;
   --pwa-muted: rgba(22, 21, 19, 0.58);
   --pwa-dim: rgba(22, 21, 19, 0.38);
-  --pwa-accent: #9a8160;
-  --pwa-gold: #9a8160;
+  --pwa-accent: #ff8236;
+  --pwa-gold: #ff8236;
   --pwa-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --pwa-tab-h: 56px;
   --pwa-tab-safe: env(safe-area-inset-bottom, 0px);
@@ -106,7 +106,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   border: 0;
   overflow: hidden;
   background: #ebe7e1;
-  color: inherit;
+  color: #fff;
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -137,7 +137,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   padding: 0;
   border: 0;
   background: #ebe7e1;
-  color: inherit;
+  color: #fff;
   text-align: left;
   cursor: pointer;
   opacity: 0;
@@ -263,7 +263,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-hero__kicker {
   margin: 0 0 8px;
-  color: var(--pwa-gold);
+  color: #ffb07a;
   font-family: Syne, Archivo, sans-serif;
   font-size: 10px;
   font-weight: 600;
@@ -273,11 +273,13 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-hero__title {
   margin: 0;
+  color: #fff;
   font-family: SUIT, Pretendard, sans-serif;
   font-size: clamp(24px, 6.5vw, 32px);
   font-weight: 750;
   line-height: 1.22;
   letter-spacing: -0.04em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
 }
 
 .pwa-hero__title em {
@@ -290,7 +292,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 .pwa-hero__sub {
   margin: 10px 0 0;
-  color: var(--pwa-muted);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -316,7 +318,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   content: "";
   width: 28px;
   height: 1px;
-  background: var(--pwa-gold);
+  background: #ffb07a;
 }
 
 /* Search bar — Musinsa / KREAM entry */
@@ -455,7 +457,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 .pwa-aiseek__btn:active {
-  border-color: rgba(201, 166, 107, 0.55);
+  border-color: rgba(255, 130, 54, 0.55);
   color: var(--pwa-gold);
 }
 
@@ -1573,7 +1575,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.04em;
-  color: #9a8160;
+  color: #ff8236;
 }
 
 .pwa-dropbar__clock i {
@@ -1941,11 +1943,18 @@ html.is-pwa .gb-bottom-nav__fab {
 }
 html.is-pwa .gb-bottom-nav__item.is-home .gb-bottom-nav__fab {
   background:transparent !important; box-shadow:none !important;
+  margin:0 0 5px;
+}
+html.is-pwa .gb-bottom-nav__item.is-home .gb-bottom-nav__fab .gb-bottom-nav__ico {
+  margin:0; width:24px; height:24px; flex:0 0 24px;
 }
 html.is-pwa .gb-bottom-nav__ico svg,
 html.is-pwa .gb-bottom-nav__fab svg {
   width:22px; height:22px; background:none !important; padding:0 !important;
   color:inherit !important; stroke:currentColor; fill:none;
+}
+html.is-pwa .gb-bottom-nav__item.is-home svg {
+  width:22px !important; height:22px !important;
 }
 html.is-pwa .gb-bottom-nav__label {
   font-size:10px; font-weight:700; line-height:1; letter-spacing:-.03em; color:inherit !important;
@@ -1966,7 +1975,7 @@ html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-active,
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home.is-active { color:#161513 !important; }
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-active .gb-bottom-nav__label,
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home.is-active .gb-bottom-nav__label {
-  color:#a67c3d !important;
+  color: #ff8236 !important;
 }
 html.is-pwa body.gb-chrome-paper .gb-bottom-nav__item.is-home { color:rgba(22,21,19,.4) !important; }
 html.is-pwa img[data-pwa-fallback="1"] { object-fit:cover; background:#ebe7e1; }
@@ -1990,7 +1999,7 @@ html.is-pwa body.pf-body .pf-hero {
 html.is-pwa body.pf-body .pf-brand {
   font-size: 10px;
   letter-spacing: 0.28em;
-  color: #9a8160;
+  color: #ff8236;
 }
 html.is-pwa body.pf-body .pf-title {
   margin: 4px 0 0;
