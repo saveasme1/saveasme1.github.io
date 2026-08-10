@@ -1,10 +1,11 @@
 ﻿{
-  "build": "20260811-gbcal69",
+  "build": "20260811-gbcal70",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:20:00.000Z",
-  "note": "Quick menu white section + PC icon contrast",
+  "deployedAt": "2026-08-10T16:30:00.000Z",
+  "note": "Realtime music-style chart, hide view counts",
   "notes": [
-    "퀵메뉴 섹션 흰 배경",
-    "PC 아이콘 페이퍼톤/대비 조정"
+    "실시간 차트 UI (기준시각·LIVE)",
+    "조회수 숫자 UI 제거",
+    "3분 soft refresh"
   ]
 }

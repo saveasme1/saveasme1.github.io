@@ -142,6 +142,20 @@
     return `<span class="pwa-rank__delta is-same" aria-label="same">—</span>`;
   }
 
+  function kstClockLabel() {
+    try {
+      return new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(new Date());
+    } catch (_) {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+  }
+
   const assetUrl = (value) => {
     const path = String(value || "").trim();
     if (!path) return "";
@@ -1629,57 +1643,107 @@
 
     // For you rail — hidden
 
-    // HOT ranking (view-based + UP/DOWN delta)
+    // HOT ranking — Melon-style realtime chart (rank + ▲▼ only, no view counts in UI)
+    let chartTop = topRanked.slice();
+    let chartPrevRanks = { ...prevRanks };
+    let chartViewRanks = { ...viewRanks };
+    let chartCatalogRanks = { ...catalogRanks };
+
     const rankSec = document.createElement("section");
-    rankSec.className = "pwa-sec";
+    rankSec.className = "pwa-sec pwa-chart";
     rankSec.innerHTML =
       `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">CHART</p><h2>지금 핫한 순위</h2></div>` +
+      `<div><p class="pwa-sec__eyebrow"><span class="pwa-rank__live" aria-hidden="true"></span>REALTIME</p><h2>실시간 차트</h2></div>` +
+      `<div class="pwa-rank__head-tools">` +
+      `<span class="pwa-rank__asof" data-rank-asof>${kstClockLabel()} 기준</span>` +
       `<button type="button" data-go="portfolio">전체</button>` +
-      `</div>`;
+      `</div></div>`;
     const rankList = document.createElement("div");
     rankList.className = "pwa-rank";
-    if (!topRanked.length) {
-      rankList.innerHTML = `<p class="pwa-empty">순위 준비 중</p>`;
-    } else {
-      topRanked.forEach((item, i) => {
+
+    function paintChartRows(list) {
+      rankList.innerHTML = "";
+      if (!list.length) {
+        rankList.innerHTML = `<p class="pwa-empty">순위 준비 중</p>`;
+        return;
+      }
+      list.forEach((item, i) => {
         const row = document.createElement("button");
         row.type = "button";
         row.className = "pwa-rank__row";
         const cat = item.category || "";
         const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
         const id = String(item.id || "");
-        const curRank = Number(viewRanks[id] || i + 1);
-        let prevRank = Number(prevRanks[id] || 0);
-        // If stored prev equals current (no session change), fall back to catalog
-        // so view-based 가감 still shows.
+        const curRank = Number(chartViewRanks[id] || i + 1);
+        let prevRank = Number(chartPrevRanks[id] || 0);
         if (!prevRank || prevRank === curRank) {
-          const catalog = Number(catalogRanks[id] || 0);
+          const catalog = Number(chartCatalogRanks[id] || 0);
           if (catalog && catalog !== curRank) prevRank = catalog;
-        }
-        // View growth vs last snap → nudge UP when rank flat
-        const prevViews = Number(prevSnap.views?.[id] || 0);
-        const curViews = Number(item._views || 0);
-        const growth = Math.max(0, curViews - prevViews);
-        let deltaHtml = rankDeltaHtml(prevRank, curRank);
-        if (deltaHtml.includes("is-same") && growth > 0 && prevViews > 0) {
-          const up = Math.max(1, growth);
-          deltaHtml = `<span class="pwa-rank__delta is-up" aria-label="${up} up">▲${up}</span>`;
-        } else if (deltaHtml.includes("is-same") && prevViews > curViews && prevViews > 0) {
-          const down = Math.max(1, prevViews - curViews);
-          deltaHtml = `<span class="pwa-rank__delta is-down" aria-label="${down} down">▼${down}</span>`;
         }
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
           `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
-          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"} · 조회 ${curViews.toLocaleString("ko-KR")}</i></span>` +
-          deltaHtml;
+          `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"}</i></span>` +
+          rankDeltaHtml(prevRank, curRank);
         protect(row.querySelector("img"));
         row.addEventListener("click", () => goPortfolio(cat || "ALL", item.id));
         rankList.append(row);
       });
+      const asof = rankSec.querySelector("[data-rank-asof]");
+      if (asof) asof.textContent = `${kstClockLabel()} 기준`;
     }
+
+    paintChartRows(chartTop);
     rankSec.append(rankList);
+
+    async function refreshRealtimeChart() {
+      if (document.visibilityState !== "visible") return;
+      try {
+        let nextMap = {};
+        if (window.GongbangBoardMeta?.fetchViews) {
+          nextMap = await window.GongbangBoardMeta.fetchViews(
+            "portfolio",
+            items.map((x) => x.id),
+            { period: "today", force: true }
+          );
+        }
+        const scored = items.map((item) => ({
+          ...item,
+          _views: Number(nextMap[String(item.id)] || 0),
+        }));
+        const nextRanked = scored
+          .slice()
+          .sort((a, b) => b._views - a._views || String(a.id).localeCompare(String(b.id)));
+        chartPrevRanks = { ...chartViewRanks };
+        chartViewRanks = {};
+        nextRanked.forEach((item, i) => {
+          if (item?.id) chartViewRanks[String(item.id)] = i + 1;
+        });
+        chartTop = nextRanked.slice(0, 5);
+        paintChartRows(chartTop);
+        saveRankSnap({
+          ranks: chartViewRanks,
+          views: Object.fromEntries(scored.map((it) => [String(it.id), Number(it._views) || 0])),
+        });
+        // #region agent log
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'C3',location:'pwa-home.js:refreshRealtimeChart',message:'realtime chart refresh',data:{asof:kstClockLabel(),top:chartTop.map((it,i)=>({rank:i+1,id:it.id,title:String(it.title||'').slice(0,28)})),hasViewText:!!rankList.textContent.includes('조회')},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+      } catch (_) {}
+    }
+
+    const chartPoll = setInterval(refreshRealtimeChart, 3 * 60 * 1000);
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.visibilityState === "visible") refreshRealtimeChart();
+      },
+      { passive: true }
+    );
+    window.addEventListener("pagehide", () => clearInterval(chartPoll), { once: true });
+
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'C3',location:'pwa-home.js:chart-paint',message:'realtime chart painted',data:{asof:kstClockLabel(),rowCount:chartTop.length,sampleMeta:rankList.querySelector('.pwa-rank__meta i')?.textContent||'',hasViewText:!!rankList.textContent.includes('조회'),topIds:chartTop.map((it)=>it.id)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     // Archive drop — temporarily hidden
 
