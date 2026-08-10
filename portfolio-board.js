@@ -9,6 +9,7 @@
   const TOKEN_KEY = "gongbang171.adminToken";
 
   const DATA_PATH = "portfolio-data.json";
+  const LIVE_API = `${(window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "")}/boards/portfolio/live`;
 
   const DRAFT_PATH = "portfolio-draft.json";
 
@@ -971,6 +972,19 @@
 
 
 
+
+  async function preparePortfolioAsset(file, role, index = 0) {
+    if (file.size > 8 * 1024 * 1024) {
+      throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+    }
+    return {
+      role,
+      index: index || undefined,
+      mime: file.type || "image/jpeg",
+      content: bytesToBase64(new Uint8Array(await file.arrayBuffer())),
+    };
+  }
+
   async function uploadPortfolioImage(file, id, role, index = 0) {
 
     if (file.size > 8 * 1024 * 1024) {
@@ -1063,157 +1077,56 @@
 
       const id = editing?.id || `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
+
+      const assets = [];
       let cover = writer.cover.path || "";
-
       if (writer.cover.file) {
-
-        writer.status.textContent = "대표 이미지 업로드 중…";
-
-        cover = await uploadPortfolioImage(writer.cover.file, id, "cover");
-
+        writer.status.textContent = "대표 이미지 준비 중…";
+        assets.push(await preparePortfolioAsset(writer.cover.file, "cover"));
       }
-
-      const images = [];
-
+      const keepImages = [];
       for (let index = 0; index < writer.details.length; index += 1) {
-
         const detail = writer.details[index];
-
         if (detail.file) {
-
-          writer.status.textContent = `추가 이미지 업로드 중 ${index + 1} / ${writer.details.length}`;
-
-          images.push(await uploadPortfolioImage(detail.file, id, "detail", index + 1));
-
+          writer.status.textContent = `추가 이미지 준비 중 ${index + 1} / ${writer.details.length}`;
+          assets.push(await preparePortfolioAsset(detail.file, "detail", index + 1));
         } else if (detail.path) {
-
-          images.push(detail.path);
-
+          keepImages.push(detail.path);
         }
-
       }
 
-
-
-      writer.status.textContent = "게시글을 저장하고 공개하는 중…";
-
-      const [publishedFile, draftFile] = await Promise.all([
-
-        readManaged(DATA_PATH, true),
-
-        readManaged(DRAFT_PATH, true),
-
-      ]);
-
+      writer.status.textContent = "저장 중…";
       const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
-
-      const existing = editing || (publishedFile?.value?.items || []).find((entry) => entry.id === id);
-
-      const item = toPublishedItem({
-
+      const existing = editing || (state.items || []).find((entry) => entry.id === id);
+      const draftItem = toPublishedItem({
         ...(existing || {}),
-
         id,
-
         category: form.elements.category.value,
-
         title: form.elements.title.value.trim(),
-
         content: form.elements.content.value.trim(),
-
         image: cover,
-
         cover,
-
-        images: images.filter((path) => path && path !== cover),
-
+        images: keepImages.filter((path) => path && path !== cover),
         uploadedAt: existing?.uploadedAt || now,
-
         sortAt: now,
-
         updatedAt: now,
-
         origin: existing?.origin || "admin",
-
       });
 
+      const published = await api("/admin/boards/portfolio/publish", {
+        method: "PUT",
+        body: JSON.stringify({
+          item: draftItem,
+          assets,
+          meta: {
+            version: 3,
+            categories: state.categories.length ? state.categories : CATEGORIES,
+          },
+        }),
+      });
+      const item = toPublishedItem(published.item || draftItem);
 
-
-      const baseItems = publishedFile?.value?.items || state.items || [];
-
-      const nextItems = sortNewest([item, ...baseItems.filter((entry) => entry.id !== id)]);
-
-      const published = {
-
-        version: 3,
-
-        updatedAt: now,
-
-        publishedAt: now,
-
-        source: publishedFile?.value?.source || draftFile?.value?.source || "",
-
-        categories: state.categories.length ? state.categories : CATEGORIES,
-
-        items: nextItems,
-
-      };
-
-      const draftItems = draftFile?.value?.items || baseItems;
-
-      const draft = {
-
-        version: 3,
-
-        updatedAt: now,
-
-        source: draftFile?.value?.source || published.source,
-
-        categories: published.categories,
-
-        items: sortNewest([item, ...draftItems.filter((entry) => entry.id !== id)].map((entry) => ({
-
-          ...entry,
-
-          cover: entry.cover || entry.image,
-
-          updatedAt: entry.id === id ? now : entry.updatedAt || entry.uploadedAt || now,
-
-          origin: entry.origin || "admin",
-
-        }))),
-
-      };
-
-
-
-      await putManaged(
-
-        DRAFT_PATH,
-
-        textToBase64(JSON.stringify(draft)),
-
-        `portfolio draft: ${editing ? "update" : "create"} ${id}`,
-
-        draftFile?.sha || ""
-
-      );
-
-      await putManaged(
-
-        DATA_PATH,
-
-        textToBase64(JSON.stringify(published)),
-
-        `portfolio: ${editing ? "update" : "publish"} ${id}`,
-
-        publishedFile?.sha || ""
-
-      );
-
-
-
-      state.items = published.items;
+      state.items = sortNewest([item, ...(state.items || []).filter((entry) => entry.id !== id)]);
 
       state.page = 1;
 
@@ -2108,84 +2021,12 @@
 
 
   async function deletePortfolioItem(item) {
-
     const id = item?.id;
-
     if (!id) return;
-
     if (!confirm(`"${item.title || "이 글"}" 포트폴리오를 삭제할까요?`)) return;
 
-
-
-    const [publishedFile, draftFile] = await Promise.all([
-
-      readManaged(DATA_PATH, true),
-
-      readManaged(DRAFT_PATH, true),
-
-    ]);
-
-    const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
-
-    const baseItems = publishedFile?.value?.items || state.items || [];
-
-    const published = {
-
-      version: publishedFile?.value?.version || 3,
-
-      updatedAt: now,
-
-      publishedAt: now,
-
-      source: publishedFile?.value?.source || draftFile?.value?.source || "",
-
-      categories: state.categories.length ? state.categories : (publishedFile?.value?.categories || CATEGORIES),
-
-      items: baseItems.filter((entry) => entry.id !== id),
-
-    };
-
-    const draftItems = draftFile?.value?.items || baseItems;
-
-    const draft = {
-
-      version: draftFile?.value?.version || published.version || 3,
-
-      updatedAt: now,
-
-      source: draftFile?.value?.source || published.source || "",
-
-      categories: draftFile?.value?.categories || published.categories,
-
-      items: draftItems.filter((entry) => entry.id !== id),
-
-    };
-
-    await putManaged(
-
-      DRAFT_PATH,
-
-      textToBase64(JSON.stringify(draft)),
-
-      `portfolio draft: delete ${id}`,
-
-      draftFile?.sha || ""
-
-    );
-
-    await putManaged(
-
-      DATA_PATH,
-
-      textToBase64(JSON.stringify(published)),
-
-      `portfolio: delete ${id}`,
-
-      publishedFile?.sha || ""
-
-    );
-
-    state.items = published.items;
+    await api(`/admin/boards/portfolio/${encodeURIComponent(id)}`, { method: "DELETE" });
+    state.items = (state.items || []).filter((entry) => entry.id !== id);
 
     state.page = 1;
 
@@ -2658,11 +2499,26 @@
 
     try {
 
-      const response = await fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" });
+      const [response, liveRes] = await Promise.all([
+        fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" }),
+        fetch(`${LIVE_API}?v=${Date.now()}`, { cache: "no-store" }).catch(() => null),
+      ]);
 
       if (!response.ok) throw new Error("포트폴리오 데이터를 불러오지 못했습니다.");
 
       const payload = await response.json();
+      let liveItems = [];
+      if (liveRes && liveRes.ok) {
+        try {
+          const livePayload = await liveRes.json();
+          liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+          if (Array.isArray(livePayload?.categories) && livePayload.categories.length) {
+            payload.categories = livePayload.categories;
+          }
+        } catch (_) {
+          liveItems = [];
+        }
+      }
 
       state.categories = Array.isArray(payload.categories) && payload.categories.length
 
@@ -2670,7 +2526,10 @@
 
         : [...new Set((payload.items || []).map((item) => item.category).filter(Boolean))];
 
-      state.items = (payload.items || [])
+      const map = new Map();
+      (payload.items || []).forEach((entry) => { if (entry?.id) map.set(String(entry.id), entry); });
+      liveItems.forEach((entry) => { if (entry?.id) map.set(String(entry.id), entry); });
+      state.items = [...map.values()]
 
         .slice()
 

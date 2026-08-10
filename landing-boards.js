@@ -276,16 +276,17 @@
       try {
         const type = state.currentType;
         const id = state.current.id;
-        if (type === "shipping") {
+        if (type === "shipping" || type === "notices") {
           // #region agent log
-          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'shipping delete start',data:{id,title:state.current?.title||''},timestamp:Date.now()})}).catch(()=>{});
+          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'board delete start',data:{type,id,title:state.current?.title||''},timestamp:Date.now()})}).catch(()=>{});
           // #endregion
-          const result = await api(`/admin/shipping/${encodeURIComponent(id)}`, { method: "DELETE" });
+          const result = await api(`/admin/boards/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method: "DELETE" });
           // #region agent log
-          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'shipping delete ok',data:{id,removed:result?.removed,liveCount:result?.liveCount,serverMs:result?.ms,totalMs:Date.now()-startedAt,via:result?.via},timestamp:Date.now()})}).catch(()=>{});
+          fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'delete-fix',hypothesisId:'D',location:'landing-boards.js:remove',message:'board delete ok',data:{type,id,removed:result?.removed,liveCount:result?.liveCount,serverMs:result?.ms,totalMs:Date.now()-startedAt,via:result?.via},timestamp:Date.now()})}).catch(()=>{});
           // #endregion
-          state.shipping = (state.shipping || []).filter((item) => item.id !== id);
-          window.removeGongbangShippingItem?.(id);
+          state[type] = (state[type] || []).filter((item) => item.id !== id);
+          if (type === "shipping") window.removeGongbangShippingItem?.(id);
+          else renderList(type);
           closeDetail();
           if (typeof window.showGongbangToast === "function") {
             window.showGongbangToast("게시글을 삭제했습니다.", { tone: "success", duration: 1800 });
@@ -676,126 +677,71 @@
       }
 
       const submitStartedAt = Date.now();
-      writer.status.textContent = type === "shipping" ? "압축 중…" : "올리는 중…";
 
-      if (type === "shipping") {
-        const assets = [];
-        if (writer.cover.file) {
-          const prepared = await compressImageFile(writer.cover.file);
-          if (prepared.size > 8 * 1024 * 1024) {
-            throw new Error(`${writer.cover.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
-          }
-          assets.push({
-            role: "cover",
-            mime: prepared.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
-          });
-        } else {
-          throw new Error("대표 이미지를 선택해 주세요.");
+      writer.status.textContent = "압축 중…";
+      const assets = [];
+      if (writer.cover.file) {
+        const prepared = await compressImageFile(writer.cover.file);
+        if (prepared.size > 8 * 1024 * 1024) {
+          throw new Error(`${writer.cover.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
         }
-        for (let index = 0; index < writer.details.length; index += 1) {
-          const detail = writer.details[index];
-          if (!detail.file) continue;
-          const prepared = await compressImageFile(detail.file);
-          if (prepared.size > 8 * 1024 * 1024) {
-            throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
-          }
-          assets.push({
-            role: "detail",
-            index: index + 1,
-            mime: prepared.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
-          });
-        }
-
-        writer.status.textContent = "저장 중…";
-        // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping contabo publish start',data:{id,category,publishedAt,assetCount:assets.length},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-        const published = await api("/admin/shipping/publish", {
-          method: "PUT",
-          body: JSON.stringify({
-            item: {
-              id,
-              title,
-              content,
-              publishedAt,
-              category,
-              origin: "admin",
-            },
-            assets,
-          }),
+        assets.push({
+          role: "cover",
+          mime: prepared.type || "image/jpeg",
+          content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
         });
-        const item = published.item;
-        // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping contabo publish ok',data:{id:item?.id,cover:item?.cover,liveCount:published?.liveCount,serverMs:published?.ms,totalMs:Date.now()-submitStartedAt,via:published?.via},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
+      } else if (!writer.cover.path) {
+        throw new Error("대표 이미지를 선택해 주세요.");
+      }
+      for (let index = 0; index < writer.details.length; index += 1) {
+        const detail = writer.details[index];
+        if (!detail.file) continue;
+        const prepared = await compressImageFile(detail.file);
+        if (prepared.size > 8 * 1024 * 1024) {
+          throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+        }
+        assets.push({
+          role: "detail",
+          index: index + 1,
+          mime: prepared.type || "image/jpeg",
+          content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
+        });
+      }
 
-        state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];
-        boards.shipping.page = 1;
+      writer.status.textContent = "저장 중…";
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'board contabo publish start',data:{type,id,category,publishedAt,assetCount:assets.length},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      const published = await api(`/admin/boards/${encodeURIComponent(type)}/publish`, {
+        method: "PUT",
+        body: JSON.stringify({
+          item: {
+            id,
+            title,
+            content,
+            cover: writer.cover.path || "",
+            images: (writer.details || []).map((d) => d.path).filter(Boolean),
+            publishedAt,
+            category,
+            origin: "admin",
+          },
+          assets,
+        }),
+      });
+      const item = published.item;
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'board contabo publish ok',data:{type,id:item?.id,cover:item?.cover,liveCount:published?.liveCount,serverMs:published?.ms,totalMs:Date.now()-submitStartedAt,via:published?.via},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+
+      state[type] = [item, ...(state[type] || []).filter((entry) => entry.id !== id)];
+      if (boards[type]) boards[type].page = 1;
+      if (type === "shipping") {
         window.openGongbangShippingPanel?.();
         window.prependGongbangShippingItem?.(item, { clearFilters: true });
       } else {
-      let cover = writer.cover.path || "";
-      if (writer.cover.file) {
-        cover = await uploadImage(type, writer.cover.file, id, "cover");
-      }
-      const images = [];
-      for (let index = 0; index < writer.details.length; index += 1) {
-        const detail = writer.details[index];
-        if (detail.file) {
-          images.push(await uploadImage(type, detail.file, id, "detail", index + 1));
-        } else if (detail.path) {
-          images.push(detail.path);
-        }
-      }
-      if (!cover) throw new Error("대표 이미지 업로드에 실패했습니다.");
-
-      writer.status.textContent = "저장 중…";
-      const item = {
-        id,
-        title,
-        content,
-        cover,
-        image: cover,
-        images: images.filter((path) => path && path !== cover),
-        publishedAt,
-        updatedAt: now,
-        category,
-        origin: "admin",
-      };
-
-        const [publishedFile, draftFile] = await Promise.all([
-          readManaged(`${type}-data.json`, true),
-          readManaged(`${type}-draft.json`, true),
-        ]);
-        const baseItems = publishedFile?.value?.items || [];
-        const published = {
-          version: 1,
-          publishedAt: now,
-          items: [item, ...baseItems.filter((entry) => entry.id !== id)],
-        };
-        const draftItems = draftFile?.value?.items || baseItems;
-        const draft = {
-          version: 1,
-          items: [item, ...draftItems.filter((entry) => entry.id !== id)],
-        };
-        await putManagedFresh(
-          `${type}-data.json`,
-          textToBase64(JSON.stringify(published)),
-          `${type}: publish ${id}`,
-          publishedFile?.sha || ""
-        );
-        void putManagedFresh(
-          `${type}-draft.json`,
-          textToBase64(JSON.stringify(draft)),
-          `${type} draft: create ${id}`,
-          draftFile?.sha || ""
-        ).catch(() => {});
-        state[type] = published.items;
-        boards[type].page = 1;
         renderList(type);
       }
+
       clearWriterMedia();
       writer.root.close();
       form.reset();
@@ -929,10 +875,30 @@
     const board = boards[type];
     board.status.textContent = "불러오는 중…";
     try {
-      const response = await fetch(`${board.dataPath}?v=${Date.now()}`, { cache: "no-store" });
+      const liveUrl = `${API}/boards/${encodeURIComponent(type)}/live?v=${Date.now()}`;
+      const [response, liveRes] = await Promise.all([
+        fetch(`${board.dataPath}?v=${Date.now()}`, { cache: "no-store" }),
+        fetch(liveUrl, { cache: "no-store" }).catch(() => null),
+      ]);
       if (!response.ok) throw new Error("게시판 데이터를 불러오지 못했습니다.");
       const payload = await response.json();
-      state[type] = (payload.items || []).sort(
+      let liveItems = [];
+      if (liveRes && liveRes.ok) {
+        try {
+          const livePayload = await liveRes.json();
+          liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+        } catch (_) {
+          liveItems = [];
+        }
+      }
+      const map = new Map();
+      (payload.items || []).forEach((item) => {
+        if (item?.id) map.set(String(item.id), item);
+      });
+      liveItems.forEach((item) => {
+        if (item?.id) map.set(String(item.id), item);
+      });
+      state[type] = [...map.values()].sort(
         (a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0)
       );
       if (window.GongbangBoardMeta?.fetchViews && state[type].length) {

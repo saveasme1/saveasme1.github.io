@@ -26,17 +26,21 @@ DNS를 GitHub Pages로 고치기 전까지는 **`saveasme1.github.io`로 확인�
 
 ---
 
-## 최종검수(shipping) 글 / 이미지
+## 게시판 글 / 이미지 (shipping · portfolio · notices · groupbuy)
 
 ### 원칙
 
 - **이미지 바이너리는 Git에 넣지 않는다.** (commit/push가 느리고 Pages/DNS 깨지면 “이미지 준비 중”만 보임)
 - **이미지는 Contabo 디스크**에 저장한다.
-  - 경로: `/var/www/makerbridge/public/uploads/handmade-shipping/{postId}/...`
-  - URL: `https://app.0-1.co.kr/uploads/handmade-shipping/...`
-- **목록 메타**는 Contabo `PUT /api/handmade/v1/admin/shipping/publish` → `GET /api/handmade/v1/shipping/live`
-- **삭제**는 Contabo `DELETE /api/handmade/v1/admin/shipping/:id` (live에서 제거 + 업로드 폴더 삭제, Git 대기 없음)
-- 프론트: `_pwa_push/landing-boards.js` (작성/삭제), `_pwa_push/shipping-board.js` (목록)
+  - shipping: `/var/www/makerbridge/public/uploads/handmade-shipping/{postId}/...`
+  - 그 외: `/var/www/makerbridge/public/uploads/handmade-boards/{board}/{postId}/...`
+  - URL: `https://app.0-1.co.kr/uploads/...`
+- **목록 메타(live)** 는 Contabo API
+  - `GET /api/handmade/v1/boards/:board/live`
+  - `PUT /api/handmade/v1/admin/boards/:board/publish`
+  - `DELETE /api/handmade/v1/admin/boards/:board/:id`
+  - shipping 호환 alias: `/shipping/live`, `/admin/shipping/publish`, `/admin/shipping/:id`
+- 프론트: `_pwa_push/landing-boards.js`, `portfolio-board.js`, `groupbuy-calendar.js`, `shipping-board.js`
 
 ### 배포 시 주의 (MakerBridge)
 
