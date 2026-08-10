@@ -2131,9 +2131,15 @@
 
     const published = {
 
-      version: 1,
+      version: publishedFile?.value?.version || 3,
+
+      updatedAt: now,
 
       publishedAt: now,
+
+      source: publishedFile?.value?.source || draftFile?.value?.source || "",
+
+      categories: state.categories.length ? state.categories : (publishedFile?.value?.categories || CATEGORIES),
 
       items: baseItems.filter((entry) => entry.id !== id),
 
@@ -2143,7 +2149,13 @@
 
     const draft = {
 
-      version: 1,
+      version: draftFile?.value?.version || published.version || 3,
+
+      updatedAt: now,
+
+      source: draftFile?.value?.source || published.source || "",
+
+      categories: draftFile?.value?.categories || published.categories,
 
       items: draftItems.filter((entry) => entry.id !== id),
 
