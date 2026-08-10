@@ -721,6 +721,14 @@
     };
     paint();
     root.hidden = false;
+    // #region agent log
+    requestAnimationFrame(() => {
+      const card = root.querySelector(".gb-cal-sheet__card");
+      const r = card ? card.getBoundingClientRect() : null;
+      const cs = card ? getComputedStyle(card) : null;
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H2',location:'groupbuy-calendar.js:openDetail',message:'detail sheet computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:r?Math.round(r.width):null,rectH:r?Math.round(r.height):null,cssWidth:cs?cs.width:null,cssMaxWidth:cs?cs.maxWidth:null,cls:card?card.className:null},timestamp:Date.now()})}).catch(()=>{});
+    });
+    // #endregion
   }
 
   async function deleteGroupbuyItem(id) {
@@ -775,7 +783,7 @@
     }
     dlg = document.createElement("dialog");
     dlg.id = "gbCalWriter";
-    dlg.className = "gb-cal-writer review-dialog write-dialog gb-write-dialog";
+    dlg.className = "gb-cal-writer review-dialog write-dialog gb-write-dialog pf-write-dialog";
     dlg.innerHTML =
       `<form id="gbCalWriterForm">` +
       `<h2 data-writer-title>공동구매 작성</h2>` +
@@ -1066,6 +1074,13 @@
       renderGallery();
       renderRangeGrid();
       if (!dlg.open) dlg.showModal();
+      // #region agent log
+      requestAnimationFrame(() => {
+        const r = dlg.getBoundingClientRect();
+        const cs = getComputedStyle(dlg);
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'groupbuy-calendar.js:_open',message:'writer open computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:Math.round(r.width),rectH:Math.round(r.height),cssWidth:cs.width,cssMaxWidth:cs.maxWidth,cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
+      });
+      // #endregion
     };
 
     dlg._openEdit = (item) => {
@@ -1091,6 +1106,13 @@
       renderGallery();
       renderRangeGrid();
       if (!dlg.open) dlg.showModal();
+      // #region agent log
+      requestAnimationFrame(() => {
+        const r = dlg.getBoundingClientRect();
+        const cs = getComputedStyle(dlg);
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'groupbuy-calendar.js:_openEdit',message:'writer edit computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:Math.round(r.width),rectH:Math.round(r.height),cssWidth:cs.width,cssMaxWidth:cs.maxWidth,cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
+      });
+      // #endregion
     };
 
     return dlg;

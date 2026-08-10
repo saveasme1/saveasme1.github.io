@@ -1,6 +1,6 @@
 # 본 헤리티지 PWA 운영 메모
 
-최종 갱신: 2026-08-10 · 배포 트랙 `gbcal58`
+최종 갱신: 2026-08-10 · 배포 트랙 `gbcal59`
 
 ## 한 줄 요약
 
@@ -8,6 +8,24 @@
 - **관리자 API / 이미지 저장**: MakerBridge Contabo (`https://app.0-1.co.kr`)
 - **MakerBridge 배포 정본**: `develop` 작업일지 커밋 → `main` fast-forward → `python scripts/remote_deploy.py` (`git reset --hard origin/main`)
 - **고객용 업데이트 알림**: `app-build.json`의 `build`가 바뀔 때만 (중간 디버그 커밋마다 띄우지 않음)
+
+---
+
+## Git / Cloud 꼬임 방지 (검수 2026-08-10)
+
+| 저장소 | remote | 정본 브랜치 | 비고 |
+|--------|--------|-------------|------|
+| MakerBridge | `saveasme1/makerbridge` | `develop`→`main` FF | Contabo는 `origin/main`만 reset |
+| PWA | `saveasme1/saveasme1.github.io` | `main` | `공방171포폴프로젝트` 루트는 git 아님 · `_pwa_push`만 |
+| Cursor Cloud 브랜치 | `origin/cursor/cloud-agent-*` | **머지 금지(자동)** | develop과 조상 관계 아님 · 필요할 때만 cherry-pick |
+| Cursor phone | Contabo pm2 `cursorphone-*` | 별도 앱 | MakerBridge/PWA git과 공유 커밋 없음 |
+
+### Cloud 동기화 정책 (권장)
+
+1. **주기적 동기화 하지 말 것** (cron / 자동 merge / cloud 브랜치 → develop 자동 반영 금지).
+2. **클라우드를 쓸 때만** 사용자가 “가져와”라고 할 때 cherry-pick 또는 파일 단위 복구.
+3. Contabo workspace의 `makerbridge` symlink는 **라이브 트리**다. 클라우드에서만 만든 커밋을 develop에 안 올린 채 `remote_deploy`하면 라우트가 사라진다.
+4. 집 PC dirty 트리(Cafe24 편집기 등)와 handmade 배포를 **한 커밋에 섞지 말 것**.
 
 ---
 
