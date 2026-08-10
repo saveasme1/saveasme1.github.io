@@ -1393,9 +1393,13 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 
 /* —— Shortcut dock (31CM / Musinsa icon strip) —— */
 .pwa-quick {
+  /* inset card — not full-bleed white strip */
+  margin: 18px 16px 0;
+  padding-top: 4px;
+  padding-bottom: 2px;
   background: #ffffff;
-  border-top: 1px solid var(--pwa-line);
-  border-bottom: 1px solid var(--pwa-line);
+  border: 1px solid var(--pwa-line);
+  box-sizing: border-box;
 }
 
 .pwa-quick .pwa-dock {
@@ -2247,8 +2251,8 @@ body.board-standalone .reviews-close {
   }
 
   html.is-pwa .pwa-hero--banner {
-    height: min(42vh, 420px);
-    min-height: 320px;
+    height: min(56vh, 560px);
+    min-height: 420px;
     border-radius: 0;
   }
 
@@ -2258,7 +2262,13 @@ body.board-standalone .reviews-close {
     align-items: flex-start;
     flex-wrap: nowrap;
     gap: 10px;
-    padding: 16px var(--pwa-gutter) 14px;
+    padding: 16px 12px 14px;
+  }
+
+  html.is-pwa .pwa-quick {
+    margin: 22px var(--pwa-gutter) 0;
+    width: auto;
+    max-width: none;
   }
 
   html.is-pwa .pwa-dock button {
@@ -2433,7 +2443,7 @@ html:not(.is-pwa) body.has-gb-bottom-nav {
 }
 
 
-/* PC hero: stay inside --pwa-shell (no 100vw full-bleed breakout) */
+/* PC hero: stay inside --pwa-shell; taller so cover art isn't cropped flat */
 @media (min-width: 1025px) {
   .pwa-hero,
   .pwa-hero--banner,
@@ -2444,8 +2454,8 @@ html:not(.is-pwa) body.has-gb-bottom-nav {
     margin-left: 0;
     margin-right: 0;
     border-radius: 0;
-    height: min(42vh, 420px);
-    min-height: 320px;
+    height: min(58vh, 580px);
+    min-height: 440px;
   }
 }
 

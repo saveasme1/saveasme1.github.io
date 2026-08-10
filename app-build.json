@@ -1,11 +1,11 @@
 ﻿{
-  "build": "20260811-gbcal70",
+  "build": "20260811-gbcal71",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:30:00.000Z",
-  "note": "Realtime music-style chart, hide view counts",
+  "deployedAt": "2026-08-10T16:40:00.000Z",
+  "note": "Quick inset + RECENT gap + taller PC hero",
   "notes": [
-    "실시간 차트 UI (기준시각·LIVE)",
-    "조회수 숫자 UI 제거",
-    "3분 soft refresh"
+    "퀵메뉴 흰배경 inset (풀블리드 제거)",
+    "RECENT↔퀵메뉴 간격 MO/TB/PC",
+    "PC 히어로 스와이퍼 높이 상향"
   ]
 }

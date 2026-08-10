@@ -1824,10 +1824,17 @@
       }).length;
       const peek3 =
         shipCards[2] ? Math.round(Math.min(shipCards[2].getBoundingClientRect().right, shipRailR.right) - Math.max(shipCards[2].getBoundingClientRect().left, shipRailR.left)) : 0;
+      const pulseEl = host.querySelector(".pwa-pulse");
+      const quickR = dockSec.getBoundingClientRect();
+      const pulseR = pulseEl?.getBoundingClientRect();
+      const gapPulseQuick =
+        pulseR && quickR ? Math.round(quickR.top - pulseR.bottom) : null;
       const ico = services.querySelector(".pwa-dock__ico");
       const icoCs = ico ? getComputedStyle(ico) : null;
       const quickCs = getComputedStyle(dockSec);
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H9-H12',location:'pwa-home.js:boot-order',message:'home layout metrics',data:{vw:window.innerWidth,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',dockDisplay:getComputedStyle(services).display,btnW:Math.round(bs[0]?.getBoundingClientRect()?.width||0),btnGapPx,quickBg:quickCs.backgroundColor,icoBg:icoCs?.backgroundColor||'',icoColor:icoCs?.color||'',shipDisplay:getComputedStyle(shipRail).display,shipOverflow:getComputedStyle(shipRail).overflowX,shipCardW:Math.round(shipCards[0]?.getBoundingClientRect()?.width||0),shipVisibleApprox:visibleShip,ship3PeekPx:peek3,shipCount:shipCards.length,revCount:revRail.querySelectorAll('.pwa-review').length},timestamp:Date.now()})}).catch(()=>{});
+      const heroEl = host.querySelector(".pwa-hero");
+      const heroR = heroEl?.getBoundingClientRect();
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H12-H14',location:'pwa-home.js:boot-order',message:'home layout metrics',data:{vw:window.innerWidth,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',quickW:Math.round(quickR.width),quickLeft:Math.round(quickR.left),quickMargin:quickCs.margin,quickBg:quickCs.backgroundColor,gapPulseQuick,heroH:heroR?Math.round(heroR.height):null,dockDisplay:getComputedStyle(services).display,btnW:Math.round(bs[0]?.getBoundingClientRect()?.width||0),btnGapPx,icoBg:icoCs?.backgroundColor||'',shipDisplay:getComputedStyle(shipRail).display,shipOverflow:getComputedStyle(shipRail).overflowX,shipCardW:Math.round(shipCards[0]?.getBoundingClientRect()?.width||0),shipVisibleApprox:visibleShip,ship3PeekPx:peek3,shipCount:shipCards.length,revCount:revRail.querySelectorAll('.pwa-review').length},timestamp:Date.now()})}).catch(()=>{});
     });
     // #endregion
 
