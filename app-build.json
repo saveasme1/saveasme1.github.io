@@ -1,1 +1,8 @@
-﻿{"build":"20260810-gbcal41","deployedAt":"2026-08-10T09:00:00.000Z","note":"groupbuy name shadow off, cover ring matches bar","notes":["공동구매 일정 표시를 더 깔끔하게 다듬었습니다"]}
+﻿{
+  "build": "20260810-gbcal41",
+  "deployedAt": "2026-08-10T09:00:00.000Z",
+  "note": "groupbuy name shadow off, cover ring matches bar",
+  "notes": [
+    "공동구매 일정 표시를 더 깔끔하게 다듬었습니다"
+  ]
+}
