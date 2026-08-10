@@ -1,11 +1,10 @@
 ﻿{
-  "build": "20260811-gbcal72",
+  "build": "20260811-gbcal73",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:55:00.000Z",
-  "note": "Notice detail as full page with stacked images",
+  "deployedAt": "2026-08-10T17:05:00.000Z",
+  "note": "Force notice detail page layout in JS",
   "notes": [
-    "공지 글보기: 모달→페이지 전환",
-    "긴 이미지 세로 스택 스크롤",
-    "MO/TB/PC 반응형"
+    "공지 글보기: 모달 CSS 강제 해제",
+    "목록 숨김 + body 스크롤 복구"
   ]
 }

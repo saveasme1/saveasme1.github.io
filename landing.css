@@ -586,6 +586,10 @@ body.has-gb-top-brand .landing {
 .detail-action.danger { border-color: #f0cbc7; color: #b42318; }
 .detail-action:disabled { opacity: .45; cursor: wait; }
 body.dialog-open { overflow: hidden; }
+body.dialog-open.notice-page-view,
+body.notice-page-view {
+  overflow: auto !important;
+}
 
 .progress-panel {
   margin-top: 16px;

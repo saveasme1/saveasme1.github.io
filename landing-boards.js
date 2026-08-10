@@ -199,10 +199,75 @@
       dialog.close.textContent = "←";
     }
     await openDetail(type, item);
+    // Force page layout in JS — CSS alone was losing to .board-dialog fixed modal rules.
+    applyNoticePageLayout();
     window.scrollTo(0, 0);
     // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'NP1',location:'landing-boards.js:openDetailAsPage',message:'notice page view open',data:{id:item?.id||'',vw:window.innerWidth,pageView:document.body.classList.contains('notice-page-view'),stack:Boolean(dialog.images?.querySelector?.('.notice-page-stack')),path:location.pathname,search:location.search},timestamp:Date.now()})}).catch(()=>{});
+    const panel = boards.notices?.section;
+    const detail = dialog.root?.querySelector?.(".board-detail");
+    const rootCs = dialog.root ? getComputedStyle(dialog.root) : null;
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'NP2',location:'landing-boards.js:openDetailAsPage',message:'notice page layout forced',data:{id:item?.id||'',vw:window.innerWidth,pageView:true,stack:Boolean(dialog.images?.querySelector?.('.notice-page-stack')),panelHidden:Boolean(panel?.hidden),panelDisplay:panel?getComputedStyle(panel).display:'',dialogDisplay:rootCs?.display||'',dialogPos:rootCs?.position||'',detailH:detail?Math.round(detail.getBoundingClientRect().height):0,bodyOverflow:getComputedStyle(document.body).overflow,dialogOpen:document.body.classList.contains('dialog-open'),search:location.search},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
+  }
+
+  function applyNoticePageLayout() {
+    document.body.classList.add("notice-page-view");
+    document.body.classList.remove("dialog-open");
+    document.body.style.setProperty("overflow", "auto", "important");
+    document.documentElement.style.setProperty("overflow", "auto", "important");
+    const panel = boards.notices?.section;
+    if (panel) {
+      panel.hidden = true;
+      panel.setAttribute("aria-hidden", "true");
+      panel.style.setProperty("display", "none", "important");
+    }
+    const root = dialog.root;
+    if (!root) return;
+    root.classList.add("open");
+    root.setAttribute("aria-hidden", "false");
+    root.style.setProperty("position", "relative", "important");
+    root.style.setProperty("inset", "auto", "important");
+    root.style.setProperty("display", "block", "important");
+    root.style.setProperty("width", "100%", "important");
+    root.style.setProperty("max-width", "none", "important");
+    root.style.setProperty("min-height", "100vh", "important");
+    root.style.setProperty("height", "auto", "important");
+    root.style.setProperty("margin", "0", "important");
+    root.style.setProperty("padding", "0 0 80px", "important");
+    root.style.setProperty("background", "#f7f5f2", "important");
+    root.style.setProperty("overflow", "visible", "important");
+    root.style.setProperty("z-index", "1", "important");
+    root.style.setProperty("place-items", "stretch", "important");
+    const detail = root.querySelector(".board-detail");
+    if (detail) {
+      detail.style.setProperty("position", "relative", "important");
+      detail.style.setProperty("display", "block", "important");
+      detail.style.setProperty("width", "min(720px, 100%)", "important");
+      detail.style.setProperty("max-width", "720px", "important");
+      detail.style.setProperty("height", "auto", "important");
+      detail.style.setProperty("max-height", "none", "important");
+      detail.style.setProperty("margin", "0 auto", "important");
+      detail.style.setProperty("overflow", "visible", "important");
+      detail.style.setProperty("border-radius", "0", "important");
+      detail.style.setProperty("box-shadow", "none", "important");
+      detail.style.setProperty("background", "#ffffff", "important");
+    }
+    const body = root.querySelector(".board-detail-body");
+    if (body) {
+      body.style.setProperty("display", "block", "important");
+      body.style.setProperty("overflow", "visible", "important");
+      body.style.setProperty("max-height", "none", "important");
+      body.style.setProperty("height", "auto", "important");
+      body.style.setProperty("min-height", "0", "important");
+      body.style.setProperty("flex", "none", "important");
+    }
+    const images = root.querySelector(".detail-images");
+    if (images) {
+      images.style.setProperty("height", "auto", "important");
+      images.style.setProperty("max-height", "none", "important");
+      images.style.setProperty("overflow", "visible", "important");
+      images.style.setProperty("flex", "none", "important");
+    }
   }
 
   function updateCarousel() {
@@ -512,13 +577,19 @@
     renderActions();
     dialog.root.classList.add("open");
     dialog.root.setAttribute("aria-hidden", "false");
-    document.body.classList.add("dialog-open");
+    if (document.body.classList.contains("notice-page-view")) {
+      // Full page notice: never lock body scroll like a modal.
+      document.body.classList.remove("dialog-open");
+      applyNoticePageLayout();
+    } else {
+      document.body.classList.add("dialog-open");
+    }
     // #region agent log
     requestAnimationFrame(() => {
       const img = dialog.images?.querySelector?.("img");
       const body = dialog.root?.querySelector?.(".board-detail-body");
       const slide = dialog.images?.querySelector?.(".board-carousel-slide");
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notice-img',hypothesisId:'N1',location:'landing-boards.js:openDetail',message:'notice detail image metrics',data:{type,id:item?.id||'',imgNatW:img?.naturalWidth||0,imgNatH:img?.naturalHeight||0,imgCssH:img?Math.round(img.getBoundingClientRect().height):0,slideH:slide?Math.round(slide.getBoundingClientRect().height):0,bodyScrollH:body?.scrollHeight||0,bodyClientH:body?.clientHeight||0,canScroll:Boolean(body&&body.scrollHeight>body.clientHeight+8),boardType:dialog.root?.dataset?.boardType||''},timestamp:Date.now()})}).catch(()=>{});
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notice-img',hypothesisId:'N1',location:'landing-boards.js:openDetail',message:'notice detail image metrics',data:{type,id:item?.id||'',imgNatW:img?.naturalWidth||0,imgNatH:img?.naturalHeight||0,imgCssH:img?Math.round(img.getBoundingClientRect().height):0,slideH:slide?Math.round(slide.getBoundingClientRect().height):0,bodyScrollH:body?.scrollHeight||0,bodyClientH:body?.clientHeight||0,canScroll:Boolean(body&&body.scrollHeight>body.clientHeight+8),boardType:dialog.root?.dataset?.boardType||'',pageView:document.body.classList.contains('notice-page-view'),dialogOpen:document.body.classList.contains('dialog-open')},timestamp:Date.now()})}).catch(()=>{});
     });
     // #endregion
     if (boards[type]) renderList(type);
