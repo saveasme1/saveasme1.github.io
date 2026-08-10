@@ -138,7 +138,8 @@
   function closeBoardPanels(except = "") {
     Object.entries(boards).forEach(([type, board]) => {
       if (type === except) return;
-      board.section.hidden = true;
+      // Standalone pages (notices.html) omit other panels — never touch null sections.
+      if (board.section) board.section.hidden = true;
     });
     if (!except) state.active = "";
     const gb = document.getElementById("groupbuyPanel");
@@ -982,7 +983,10 @@
     state.active = type;
     const board = boards[type];
     board.page = 1;
-    board.section.hidden = false;
+    if (board.section) board.section.hidden = false;
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notices-fix',hypothesisId:'H6',location:'landing-boards.js:openBoard',message:'openBoard after null-safe panels',data:{type,hasSection:Boolean(board.section),hasList:Boolean(board.list),path:location.pathname,host:location.host},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (window.GongbangSiteNav?.setActiveNav) window.GongbangSiteNav.setActiveNav(type);
     if (typeof window.GongbangScrollToElement === "function") {
       window.GongbangScrollToElement(board.section);
@@ -1004,7 +1008,7 @@
       location.href = `./landing.html${q}`;
       return;
     }
-    boards[type].section.hidden = true;
+    if (boards[type]?.section) boards[type].section.hidden = true;
     if (state.active === type) state.active = "";
     if (state.currentType === type) closeDetail();
     if (!options.skipNav && window.GongbangSiteNav?.setActiveNav) {
