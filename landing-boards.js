@@ -149,6 +149,7 @@
   function closeDetail() {
     dialog.root.classList.remove("open");
     dialog.root.setAttribute("aria-hidden", "true");
+    dialog.root.removeAttribute("data-board-type");
     document.body.classList.remove("dialog-open");
     dialog.images.replaceChildren();
     state.slideIndex = 0;
@@ -344,6 +345,7 @@
   async function openDetail(type, item) {
     state.current = item;
     state.currentType = type;
+    if (dialog.root) dialog.root.dataset.boardType = type;
     let viewCount = Number(item.viewCount) || 0;
     if (window.GongbangBoardMeta?.bumpView) {
       viewCount = await window.GongbangBoardMeta.bumpView(type, item.id);
@@ -367,6 +369,14 @@
     dialog.root.classList.add("open");
     dialog.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("dialog-open");
+    // #region agent log
+    requestAnimationFrame(() => {
+      const img = dialog.images?.querySelector?.("img");
+      const body = dialog.root?.querySelector?.(".board-detail-body");
+      const slide = dialog.images?.querySelector?.(".board-carousel-slide");
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'notice-img',hypothesisId:'N1',location:'landing-boards.js:openDetail',message:'notice detail image metrics',data:{type,id:item?.id||'',imgNatW:img?.naturalWidth||0,imgNatH:img?.naturalHeight||0,imgCssH:img?Math.round(img.getBoundingClientRect().height):0,slideH:slide?Math.round(slide.getBoundingClientRect().height):0,bodyScrollH:body?.scrollHeight||0,bodyClientH:body?.clientHeight||0,canScroll:Boolean(body&&body.scrollHeight>body.clientHeight+8),boardType:dialog.root?.dataset?.boardType||''},timestamp:Date.now()})}).catch(()=>{});
+    });
+    // #endregion
     if (boards[type]) renderList(type);
   }
 

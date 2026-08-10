@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const CACHE_KEY = "hx.discover.feed.v18";
+  const CACHE_KEY = "hx.discover.feed.v19";
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const TOKEN_KEY = "gongbang171.adminToken";
   const TYPE_KO = {
@@ -491,7 +491,14 @@
     if (!raw.length && (!brand || brand === "all")) {
       raw = await loadLegacyFallback();
     }
-    const items = raw.map(normalizeItem).filter(Boolean);
+    const items = raw
+      .map(normalizeItem)
+      .filter(Boolean)
+      // Match main "발견" stories: newest publishedAt first (API "latest" still mixes platform/brand).
+      .sort((a, b) => (Date.parse(b.publishedAt || 0) || 0) - (Date.parse(a.publishedAt || 0) || 0));
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'discover-sort',hypothesisId:'D1',location:'hx-wear-feed.js:buildFeed',message:'discover feed sorted by publishedAt',data:{brand:brand||'all',count:items.length,force:!!force,top:items.slice(0,5).map((it)=>({id:it.id,platform:it.platform,publishedAt:it.publishedAt||'',handle:String(it.handle||'').slice(0,20)}))},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     cacheSet(cacheKey, items);
     return items;
   }

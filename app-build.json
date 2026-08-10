@@ -1,11 +1,11 @@
 ﻿{
-  "build": "20260810-gbcal64",
+  "build": "20260810-gbcal65",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T15:10:00.000Z",
-  "note": "Fix notices.html null panel crash; Contabo notices load",
+  "deployedAt": "2026-08-10T15:25:00.000Z",
+  "note": "Notices tall image scroll + discover latest-first",
   "notes": [
-    "공지 독립페이지 로드 크래시 수정",
-    "Contabo 공지 18건 정상 표시",
+    "공지 긴 이미지 스크롤 보기",
+    "발견탭 최신순 상단 정렬",
     "버그 수정 및 안정성 개선"
   ]
 }
