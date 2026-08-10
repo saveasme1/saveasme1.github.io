@@ -2107,6 +2107,90 @@
 
 
 
+  async function deletePortfolioItem(item) {
+
+    const id = item?.id;
+
+    if (!id) return;
+
+    if (!confirm(`"${item.title || "이 글"}" 포트폴리오를 삭제할까요?`)) return;
+
+
+
+    const [publishedFile, draftFile] = await Promise.all([
+
+      readManaged(DATA_PATH, true),
+
+      readManaged(DRAFT_PATH, true),
+
+    ]);
+
+    const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
+
+    const baseItems = publishedFile?.value?.items || state.items || [];
+
+    const published = {
+
+      version: 1,
+
+      publishedAt: now,
+
+      items: baseItems.filter((entry) => entry.id !== id),
+
+    };
+
+    const draftItems = draftFile?.value?.items || baseItems;
+
+    const draft = {
+
+      version: 1,
+
+      items: draftItems.filter((entry) => entry.id !== id),
+
+    };
+
+    await putManaged(
+
+      DRAFT_PATH,
+
+      textToBase64(JSON.stringify(draft)),
+
+      `portfolio draft: delete ${id}`,
+
+      draftFile?.sha || ""
+
+    );
+
+    await putManaged(
+
+      DATA_PATH,
+
+      textToBase64(JSON.stringify(published)),
+
+      `portfolio: delete ${id}`,
+
+      publishedFile?.sha || ""
+
+    );
+
+    state.items = published.items;
+
+    state.page = 1;
+
+    closeDetail();
+
+    renderCats();
+
+    renderList();
+
+    showToast("포트폴리오가 삭제되었습니다.", { tone: "success" });
+
+    api("/admin/portfolio/pdf/build", { method: "POST", body: "{}" }).catch(() => {});
+
+  }
+
+
+
   function renderActions() {
 
     els.actions.replaceChildren();
@@ -2135,6 +2219,34 @@
 
 
 
+    const remove = document.createElement("button");
+
+    remove.type = "button";
+
+    remove.className = "detail-action danger";
+
+    remove.textContent = "삭제";
+
+    remove.addEventListener("click", async () => {
+
+      remove.disabled = true;
+
+      try {
+
+        await deletePortfolioItem(state.current);
+
+      } catch (error) {
+
+        alert(error.message || String(error));
+
+        remove.disabled = false;
+
+      }
+
+    });
+
+
+
     const manage = document.createElement("button");
 
     manage.type = "button";
@@ -2153,9 +2265,10 @@
 
 
 
-    els.actions.append(edit, manage);
+    els.actions.append(edit, remove, manage);
 
   }
+
 
 
 

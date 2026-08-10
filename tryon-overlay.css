@@ -60,6 +60,10 @@ body.heritage-tryon-open {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* TEMP: hide try-on CTA sitewide until ready again */
+.post-meta-tryon {
+  display: none !important;
+}
 .post-meta-tryon:hover,
 .post-meta-pricetrend:hover { filter: brightness(1.12); }
 .post-meta-pricetrend[aria-expanded="true"] {

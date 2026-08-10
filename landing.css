@@ -515,6 +515,11 @@ body.has-gb-top-brand .landing {
   background: #1a1714;
   color: #f7f2ea;
 }
+/* TEMP: hide try-on CTA */
+.detail-copy .post-meta-tryon,
+.post-meta-tryon {
+  display: none !important;
+}
 .detail-copy .post-meta-tryon:hover,
 .detail-copy .post-meta-pricetrend:hover { filter: brightness(1.12); }
 .detail-copy .post-meta-pricetrend[aria-expanded="true"] {
@@ -1161,11 +1166,11 @@ body.has-gb-bottom-nav .toast-stack {
 }
 /* end MO/TB detail */
 
-/* PC detail: keep image + body in one viewport (no scroll to read title) */
+/* PC detail: taller shell so portrait photos show fully (shrink to fit, never crop) */
 @media (min-width: 1100px) {
   .board-detail {
     height: auto;
-    max-height: min(88vh, 780px);
+    max-height: min(96vh, 980px);
   }
   .board-detail-body {
     display: flex;
@@ -1174,8 +1179,8 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .detail-images {
     flex: 0 0 auto !important;
-    height: min(52vh, 480px) !important;
-    max-height: min(52vh, 480px) !important;
+    height: min(70vh, 700px) !important;
+    max-height: min(70vh, 700px) !important;
     min-height: 0 !important;
     background: #f3f0eb;
   }
@@ -1211,7 +1216,7 @@ body.has-gb-bottom-nav .toast-stack {
 
   .review-view-panel {
     height: auto;
-    max-height: min(88vh, 780px);
+    max-height: min(96vh, 980px);
   }
   .review-view-scroll {
     display: flex;
@@ -1220,8 +1225,8 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .review-view-images {
     flex: 0 0 auto !important;
-    height: min(52vh, 480px) !important;
-    max-height: min(52vh, 480px) !important;
+    height: min(70vh, 700px) !important;
+    max-height: min(70vh, 700px) !important;
     min-height: 0 !important;
     background: #f3f0eb;
   }

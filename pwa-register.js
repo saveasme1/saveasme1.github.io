@@ -1,12 +1,11 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal38";
-  const APP_VERSION = "v1.12.32";
+  const APP_BUILD = "20260810-gbcal39";
+  const APP_VERSION = "v1.12.33";
   const RELEASE_NOTES = [
-    "화면을 더 밝고 선명하게 개선했습니다",
-    "공동구매 캘린더 일정이 더 잘 보이도록 개선했습니다",
-    "상품 이미지를 넘기며 볼 수 있게 했습니다",
+    "포트폴리오에서 사진을 더 크게, 잘리지 않게 볼 수 있습니다",
+    "공동구매 캘린더와 상세 화면을 개선했습니다",
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -622,7 +621,7 @@
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     const customerNotes = (notes || [])
       .map((n) => String(n || "").trim())
-      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자/i.test(n));
+      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제 버튼/i.test(n));
 
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
