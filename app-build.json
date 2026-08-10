@@ -1,11 +1,10 @@
 ﻿{
-  "build": "20260811-gbcal68",
+  "build": "20260811-gbcal69",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T16:10:00.000Z",
-  "note": "Fix PC hero shell + quick gap + ship/snap peek rail",
+  "deployedAt": "2026-08-10T16:20:00.000Z",
+  "note": "Quick menu white section + PC icon contrast",
   "notes": [
-    "PC 메인 스와이퍼 shell 안으로 복원",
-    "퀵메뉴 버튼 간격 축소",
-    "PC 최종검수/스냅 가로레일 2+peek"
+    "퀵메뉴 섹션 흰 배경",
+    "PC 아이콘 페이퍼톤/대비 조정"
   ]
 }

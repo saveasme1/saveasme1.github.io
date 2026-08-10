@@ -3,7 +3,7 @@
 <head>
   <script>
     (function () {
-      var KEY = "hx.pwa.forceNuke.20260811-gbcal68";
+      var KEY = "hx.pwa.forceNuke.20260811-gbcal69";
       try { if (localStorage.getItem(KEY) === "1") return; } catch (_) {}
       try { localStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
@@ -55,12 +55,12 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260811-gbcal68">
+  <link rel="manifest" href="manifest.webmanifest?v=20260811-gbcal69">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="stylesheet" href="search.css?v=20260728-pwa78">
-  <link rel="stylesheet" href="pwa-app.css?v=20260811-gbcal68">
+  <link rel="stylesheet" href="pwa-app.css?v=20260811-gbcal69">
   <script>
     (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
   </script>
@@ -123,7 +123,7 @@
   </main>
 
   <script src="search.js?v=20260728-pwa78"></script>
-  <script src="pwa-analytics.js?v=20260811-gbcal68"></script>
-  <script src="pwa-register.js?v=20260811-gbcal68"></script>
+  <script src="pwa-analytics.js?v=20260811-gbcal69"></script>
+  <script src="pwa-register.js?v=20260811-gbcal69"></script>
 </body>
 </html>

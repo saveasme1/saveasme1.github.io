@@ -1359,6 +1359,12 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 /* —— Shortcut dock (31CM / Musinsa icon strip) —— */
+.pwa-quick {
+  background: #ffffff;
+  border-top: 1px solid var(--pwa-line);
+  border-bottom: 1px solid var(--pwa-line);
+}
+
 .pwa-quick .pwa-dock {
   border-bottom: 0;
   padding-top: 4px;
@@ -2228,6 +2234,25 @@ body.board-standalone .reviews-close {
     max-width: 72px;
     gap: 6px;
     padding: 2px 0;
+    color: #161513;
+  }
+
+  /* PC: white quick section — icons need contrast (paper tile + ink stroke) */
+  html.is-pwa .pwa-quick .pwa-dock__ico {
+    background: #f3f0eb;
+    border-color: rgba(22, 21, 19, 0.14);
+    color: #2a2723;
+  }
+
+  html.is-pwa .pwa-quick .pwa-dock__txt {
+    color: rgba(22, 21, 19, 0.62);
+  }
+
+  html.is-pwa .pwa-quick .pwa-dock button:hover .pwa-dock__ico,
+  html.is-pwa .pwa-quick .pwa-dock button:active .pwa-dock__ico {
+    border-color: rgba(255, 130, 54, 0.55);
+    color: #ff8236;
+    background: #fff7f0;
   }
 
   html.is-pwa .pwa-dock__txt {

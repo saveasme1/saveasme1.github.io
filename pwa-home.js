@@ -1760,7 +1760,10 @@
       }).length;
       const peek3 =
         shipCards[2] ? Math.round(Math.min(shipCards[2].getBoundingClientRect().right, shipRailR.right) - Math.max(shipCards[2].getBoundingClientRect().left, shipRailR.left)) : 0;
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H9-H11',location:'pwa-home.js:boot-order',message:'home layout metrics',data:{vw:window.innerWidth,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',dockDisplay:getComputedStyle(services).display,btnW:Math.round(bs[0]?.getBoundingClientRect()?.width||0),btnGapPx,shipDisplay:getComputedStyle(shipRail).display,shipOverflow:getComputedStyle(shipRail).overflowX,shipCardW:Math.round(shipCards[0]?.getBoundingClientRect()?.width||0),shipVisibleApprox:visibleShip,ship3PeekPx:peek3,shipCount:shipCards.length,revCount:revRail.querySelectorAll('.pwa-review').length},timestamp:Date.now()})}).catch(()=>{});
+      const ico = services.querySelector(".pwa-dock__ico");
+      const icoCs = ico ? getComputedStyle(ico) : null;
+      const quickCs = getComputedStyle(dockSec);
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'H9-H12',location:'pwa-home.js:boot-order',message:'home layout metrics',data:{vw:window.innerWidth,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',dockDisplay:getComputedStyle(services).display,btnW:Math.round(bs[0]?.getBoundingClientRect()?.width||0),btnGapPx,quickBg:quickCs.backgroundColor,icoBg:icoCs?.backgroundColor||'',icoColor:icoCs?.color||'',shipDisplay:getComputedStyle(shipRail).display,shipOverflow:getComputedStyle(shipRail).overflowX,shipCardW:Math.round(shipCards[0]?.getBoundingClientRect()?.width||0),shipVisibleApprox:visibleShip,ship3PeekPx:peek3,shipCount:shipCards.length,revCount:revRail.querySelectorAll('.pwa-review').length},timestamp:Date.now()})}).catch(()=>{});
     });
     // #endregion
 
