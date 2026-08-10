@@ -1322,6 +1322,10 @@
 
       });
 
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'like-fix',hypothesisId:'H1',location:'portfolio-board.js:togglePortfolioLike',message:'like ok',data:{id:String(id),likeCount:result.likeCount,likedByMe:!!result.likedByMe},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+
       state.likes[String(id)] = {
 
         likeCount: Number(result.likeCount || 0),
@@ -1333,6 +1337,10 @@
       paintLikeButton(btn, id);
 
     } catch (error) {
+
+      // #region agent log
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'like-fix',hypothesisId:'H1',location:'portfolio-board.js:togglePortfolioLike',message:'like fail',data:{id:String(id),error:String(error?.message||error||'').slice(0,200)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
 
       if (error.message !== "login_required") {
 

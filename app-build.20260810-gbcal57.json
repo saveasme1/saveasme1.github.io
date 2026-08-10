@@ -1,0 +1,11 @@
+{
+  "build": "20260810-gbcal57",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-10T12:30:00.000Z",
+  "note": "Home layout + groupbuy writer polish",
+  "notes": [
+    "홈 화면 구성·최근 업데이트 개선",
+    "공동구매 글쓰기 화면 사용성 개선",
+    "버그 수정 및 안정성 개선"
+  ]
+}

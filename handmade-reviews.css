@@ -959,6 +959,20 @@ body.review-lock { overflow: hidden; }
   gap: 14px;
   margin-top: 14px;
 }
+.pf-writer-date {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pf-writer-date input[type="datetime-local"],
+.pf-writer-shipping-meta .pf-writer-date input {
+  display: block;
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 7px;
+  min-height: 42px;
+}
 .pf-write-dialog .pf-writer-fields > label,
 .gb-write-dialog .pf-writer-fields > label,
 .pf-writer-cat {

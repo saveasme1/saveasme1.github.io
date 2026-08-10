@@ -593,19 +593,11 @@
 
     const paint = () => {
       const hero = uniq[active] || "";
+      card.className = "gb-cal-sheet__card board-detail";
       card.innerHTML =
-        `<div class="gb-cal-sheet__top">` +
-        `<span class="gb-cal-sheet__badge">${formatRangeLabel(item.startDate, item.endDate)}</span>` +
-        `<div class="gb-cal-sheet__top-actions">` +
-        (isAdmin
-          ? `<button type="button" class="gb-cal-sheet__edit" data-edit>수정</button>` +
-            `<button type="button" class="gb-cal-sheet__delete" data-delete>삭제</button>`
-          : "") +
-        `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
-        `</div>` +
-        `</div>` +
-        `<div class="gb-cal-sheet__scroll">` +
-        `<div class="gb-cal-sheet__hero${multi ? " has-nav" : ""}" data-hero>` +
+        `<button type="button" class="gb-cal-sheet__close board-close" aria-label="닫기">×</button>` +
+        `<div class="gb-cal-sheet__scroll board-detail-body">` +
+        `<div class="gb-cal-sheet__hero detail-images${multi ? " has-nav" : ""}" data-hero>` +
         (multi
           ? `<button type="button" class="gb-cal-sheet__nav prev" data-prev aria-label="이전 이미지">‹</button>`
           : "") +
@@ -628,14 +620,25 @@
               )
               .join("")}</div>`
           : "") +
-        `<div class="gb-cal-sheet__body">` +
-        `<h3></h3><p></p></div>` +
+        `<div class="gb-cal-sheet__body detail-copy">` +
+        `<div class="detail-meta-row post-meta-row gb-cal-sheet__meta">` +
+        `<span class="gb-cal-sheet__badge">${formatRangeLabel(item.startDate, item.endDate)}</span>` +
+        `</div>` +
+        `<h2></h2>` +
+        `<div class="html-content gb-cal-sheet__content"><p></p></div>` +
+        `<div class="detail-actions" ${isAdmin ? "" : "hidden"}>` +
+        (isAdmin
+          ? `<button type="button" class="detail-action" data-edit>수정</button>` +
+            `<button type="button" class="detail-action danger" data-delete>삭제</button>`
+          : "") +
+        `</div>` +
+        `</div>` +
         `</div>` +
         `<div class="gb-cal-sheet__foot">` +
         `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
         `</div>`;
-      card.querySelector("h3").textContent = item.title;
-      card.querySelector("p").textContent = item.content || "";
+      card.querySelector("h2").textContent = item.title;
+      card.querySelector(".gb-cal-sheet__content p").textContent = item.content || "";
       card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
       card.querySelector("[data-prev]")?.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -762,43 +765,65 @@
   function createWriterDialog(onSaved) {
     if (typeof onSaved === "function") runtime.onSaved = onSaved;
     let dlg = document.getElementById("gbCalWriter");
+    if (dlg && (!dlg.querySelector(".pf-writer-fields") || !dlg.querySelector(".pf-writer-gb-range") || !dlg.querySelector(".pf-writer-title"))) {
+      dlg.remove();
+      dlg = null;
+    }
     if (dlg) {
       dlg._onSaved = runtime.onSaved;
       return dlg;
     }
     dlg = document.createElement("dialog");
     dlg.id = "gbCalWriter";
-    dlg.className = "gb-cal-writer";
+    dlg.className = "gb-cal-writer review-dialog write-dialog gb-write-dialog";
     dlg.innerHTML =
-      `<form class="gb-cal-writer__form" id="gbCalWriterForm">` +
-      `<h2 data-writer-title>공동구매 글쓰기</h2>` +
-      `<label>제목<input name="title" type="text" minlength="2" maxlength="160" required placeholder="예: [앵콜] 알함브라"></label>` +
-      `<label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="공동구매 안내를 적어 주세요"></textarea></label>` +
-      `<div class="gb-cal-range" id="gbCalRange">` +
+      `<form id="gbCalWriterForm">` +
+      `<h2 data-writer-title>공동구매 작성</h2>` +
+      `<div class="pf-writer-fields">` +
+      `<div class="gb-cal-range pf-writer-gb-range" id="gbCalRange">` +
+      `<span class="pf-writer-label">공동구매 기간</span>` +
       `<p class="gb-cal-range__hint">시작일을 탭한 뒤 종료일을 탭하세요. 같은 날이면 하루 일정입니다.</p>` +
       `<div class="gb-cal-range__meta"><b data-start>—</b><b data-end>—</b></div>` +
-      `<div class="gb-cal-range__nav" style="display:flex;gap:8px;margin-bottom:8px">` +
+      `<div class="gb-cal-range__nav">` +
       `<button type="button" data-rm="-1">‹</button>` +
-      `<strong data-rm-label style="flex:1;text-align:center;font-size:14px"></strong>` +
+      `<strong data-rm-label></strong>` +
       `<button type="button" data-rm="1">›</button>` +
       `</div>` +
       `<div class="gb-cal-range__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
       `<div class="gb-cal-range__grid" id="gbCalRangeGrid"></div>` +
       `</div>` +
-      `<div class="gb-cal-writer__media">` +
-      `<p class="gb-cal-writer__media-label">첨부 이미지</p>` +
-      `<div class="gb-cal-writer__gallery" id="gbCalWriterGallery"></div>` +
+      `<label class="pf-writer-title">제목<input name="title" type="text" minlength="2" maxlength="160" required placeholder="제목을 입력해 주세요"></label>` +
+      `<label class="pf-writer-content">내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="내용을 입력해 주세요"></textarea></label>` +
       `</div>` +
-      `<label data-cover-label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
-      `<label>추가 이미지<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
-      `<p class="gb-cal-writer__status" id="gbCalWriterStatus" aria-live="polite"></p>` +
-      `<div class="gb-cal-writer__actions">` +
+      `<section class="pf-writer-images" aria-label="이미지">` +
+      `<div class="pf-writer-block pf-writer-cover-block">` +
+      `<div class="pf-writer-heading"><strong>대표 이미지</strong><span>목록에 가장 먼저 보이는 이미지</span></div>` +
+      `<div class="pf-writer-cover-row">` +
+      `<div class="pf-writer-cover is-empty" id="gbCalWriterGallery" data-gallery>대표 이미지 없음</div>` +
+      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
+      `</div>` +
+      `</div>` +
+      `<div class="pf-writer-block pf-writer-detail-block">` +
+      `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>여러 번 눌러 계속 추가</span></div>` +
+      `<label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
+      `<div class="pf-writer-grid" id="gbCalWriterDetailGrid"></div>` +
+      `</div>` +
+      `</section>` +
+      `<div class="pf-writer-footer">` +
+      `<p class="review-image-help">기간을 선택한 뒤 대표 이미지를 올려 주세요. 추가 이미지는 +로 계속 첨부하세요.</p>` +
+      `<p class="review-dialog-status" id="gbCalWriterStatus" aria-live="polite"></p>` +
+      `<div class="review-dialog-actions">` +
       `<button type="button" id="gbCalWriterCancel">취소</button>` +
-      `<button type="submit" class="primary" id="gbCalWriterSubmit">등록·공개</button>` +
+      `<button type="submit" class="primary" id="gbCalWriterSubmit">등록하기</button>` +
+      `</div>` +
       `</div>` +
       `</form>`;
     document.body.appendChild(dlg);
     dlg._onSaved = runtime.onSaved;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H4',location:'groupbuy-calendar.js:createWriterDialog',message:'writer shell created',data:{hasPf:Boolean(dlg.querySelector('.pf-writer-fields')),hasRange:Boolean(dlg.querySelector('#gbCalRange')),cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     const form = dlg.querySelector("form");
     const status = dlg.querySelector("#gbCalWriterStatus");
@@ -807,6 +832,7 @@
     const coverLabel = dlg.querySelector("[data-cover-label]");
     const submitBtn = dlg.querySelector("#gbCalWriterSubmit");
     const gallery = dlg.querySelector("#gbCalWriterGallery");
+    const detailGrid = dlg.querySelector("#gbCalWriterDetailGrid");
     const rangeState = {
       year: kstParts().year,
       month: kstParts().month,
@@ -832,39 +858,34 @@
     }
 
     function renderGallery() {
-      gallery.replaceChildren();
-      const entries = [];
       if (mediaState.coverPath) {
-        entries.push({ role: "cover", path: mediaState.coverPath });
-      }
-      mediaState.images.forEach((path, index) => {
-        entries.push({ role: "detail", path, index });
-      });
-      if (!entries.length) {
-        const empty = document.createElement("p");
-        empty.className = "gb-cal-writer__gallery-empty";
-        empty.textContent = "첨부된 이미지가 없습니다.";
-        gallery.append(empty);
-        return;
-      }
-      entries.forEach((entry) => {
-        const card = document.createElement("div");
-        card.className = "gb-cal-writer__thumb";
-        card.innerHTML =
+        gallery.classList.remove("is-empty");
+        gallery.innerHTML =
           `<img alt="">` +
-          `<span class="gb-cal-writer__thumb-badge">${entry.role === "cover" ? "대표" : "추가"}</span>` +
-          `<button type="button" class="gb-cal-writer__thumb-remove" aria-label="이미지 삭제">×</button>`;
-        card.querySelector("img").src = assetUrl(entry.path);
-        card.querySelector("button").addEventListener("click", () => {
-          if (entry.role === "cover") {
-            mediaState.coverPath = "";
-          } else {
-            mediaState.images = mediaState.images.filter((path) => path !== entry.path);
-          }
+          `<button type="button" class="pf-writer-remove gb-cal-writer__thumb-remove" aria-label="이미지 삭제">×</button>`;
+        gallery.querySelector("img").src = assetUrl(mediaState.coverPath);
+        gallery.querySelector("button").addEventListener("click", () => {
+          mediaState.coverPath = "";
           coverInput.required = !mediaState.id || !mediaState.coverPath;
           renderGallery();
         });
-        gallery.append(card);
+      } else {
+        gallery.classList.add("is-empty");
+        gallery.textContent = "대표 이미지 없음";
+      }
+      detailGrid.replaceChildren();
+      mediaState.images.forEach((path, index) => {
+        const card = document.createElement("div");
+        card.className = "pf-writer-thumb";
+        card.innerHTML =
+          `<img alt=""><span class="pf-writer-order">${index + 1}</span>` +
+          `<button type="button" class="pf-writer-remove" aria-label="이미지 삭제">×</button>`;
+        card.querySelector("img").src = assetUrl(path);
+        card.querySelector("button").addEventListener("click", () => {
+          mediaState.images = mediaState.images.filter((p) => p !== path);
+          renderGallery();
+        });
+        detailGrid.append(card);
       });
     }
 
@@ -917,6 +938,14 @@
     });
 
     dlg.querySelector("#gbCalWriterCancel").addEventListener("click", () => dlg.close());
+
+    coverInput.addEventListener("change", () => {
+      const file = coverInput.files?.[0];
+      if (!file) return;
+      gallery.classList.remove("is-empty");
+      gallery.innerHTML = `<img alt="">`;
+      gallery.querySelector("img").src = URL.createObjectURL(file);
+    });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -1010,11 +1039,12 @@
 
     function prepareShell(mode) {
       const editing = mode === "edit";
-      titleEl.textContent = editing ? "공동구매 수정" : "공동구매 글쓰기";
-      submitBtn.textContent = editing ? "수정·공개" : "등록·공개";
-      coverLabel.childNodes.forEach((node) => {
+      titleEl.textContent = editing ? "공동구매 수정" : "공동구매 작성";
+      submitBtn.textContent = editing ? "수정하기" : "등록하기";
+      const labelText = editing ? "대표 이미지 교체" : "대표 이미지 선택";
+      [...coverLabel.childNodes].forEach((node) => {
         if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-          node.textContent = editing ? "대표 이미지 교체" : "대표 이미지";
+          node.textContent = labelText;
         }
       });
       coverInput.required = !editing;
@@ -1082,7 +1112,7 @@
     host.innerHTML =
       `<div class="gb-cal__head">` +
       `<div class="gb-cal__title-wrap">` +
-      `<p class="gb-cal__eyebrow">공동구매</p>` +
+      (options.hideEyebrow ? "" : `<p class="gb-cal__eyebrow">공동구매</p>`) +
       `<h2 class="gb-cal__title"><span data-ym></span></h2>` +
       `</div>` +
       `<div class="gb-cal__tools">` +
@@ -1090,7 +1120,7 @@
       `<button type="button" data-nav="-1" aria-label="이전 달">◀</button>` +
       `<button type="button" data-nav="1" aria-label="다음 달">▶</button>` +
       `</div>` +
-      `<button type="button" class="gb-cal__write" data-write hidden>글쓰기</button>` +
+      `<button type="button" class="gb-cal__write primary" data-write hidden>글 작성하기</button>` +
       `</div></div>` +
       `<div class="gb-cal__rule"></div>` +
       `<div class="gb-cal__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +

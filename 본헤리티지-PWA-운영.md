@@ -1,11 +1,12 @@
 # 본 헤리티지 PWA 운영 메모
 
-최종 갱신: 2026-08-10 · 배포 트랙 `gbcal53`
+최종 갱신: 2026-08-10 · 배포 트랙 `gbcal58`
 
 ## 한 줄 요약
 
-- **공개 사이트 코드**: `F:/공방171포폴프로젝트/_pwa_push` → GitHub Pages (`saveasme1/saveasme1.github.io`)
+- **공개 사이트 코드**: `F:/공방171포폴프로젝트/_pwa_push` → GitHub Pages (`saveasme1/saveasme1.github.io`) · `main` push
 - **관리자 API / 이미지 저장**: MakerBridge Contabo (`https://app.0-1.co.kr`)
+- **MakerBridge 배포 정본**: `develop` 작업일지 커밋 → `main` fast-forward → `python scripts/remote_deploy.py` (`git reset --hard origin/main`)
 - **고객용 업데이트 알림**: `app-build.json`의 `build`가 바뀔 때만 (중간 디버그 커밋마다 띄우지 않음)
 
 ---
@@ -42,10 +43,15 @@ DNS를 GitHub Pages로 고치기 전까지는 **`saveasme1.github.io`로 확인�
   - shipping 호환 alias: `/shipping/live`, `/admin/shipping/publish`, `/admin/shipping/:id`
 - 프론트: `_pwa_push/landing-boards.js`, `portfolio-board.js`, `groupbuy-calendar.js`, `shipping-board.js`
 
-### 배포 시 주의 (MakerBridge)
+### 배포 (MakerBridge — 필수 순서)
 
-- `routes/handmade.js` / `middleware/handmadeSecurity.js` 변경은 Contabo에 SCP + `pm2 restart makerbridge`
-- `remote_deploy.py`의 `git reset --hard`는 handmade 핫픽스를 덮어쓸 수 있으니, 운영 반영 후 develop에 커밋해 두는 것이 안전하다.
+1. `docs/AGENT-2-MAKERBRIDGE.md`에 **작업일지** 기록
+2. `develop`에 관련 파일만 커밋 · `git push origin develop`
+3. `git checkout main && git merge --ff-only develop && git push origin main`
+4. `python scripts/remote_deploy.py` → 서버 `git fetch` + **`git reset --hard origin/main`** + `pm2 restart`
+5. **금지:** SCP만 하고 develop 미반영 · discover/like 없는 트리로 reset · `remote_deploy` 전에 main 미푸시
+
+discover/like 라우트는 develop에 반드시 포함되어야 한다. Contabo에 board 핫픽스만 올리면 discover가 404로 회귀한다.
 
 ---
 
@@ -57,9 +63,9 @@ DNS를 GitHub Pages로 고치기 전까지는 **`saveasme1.github.io`로 확인�
 HTML/`pwa-register.js`의 `?v=gbcalNN`만 올리고 `app-build.json`을 안 고치면:
 
 - 캐시 버스팅은 일부만 되고
-- 고객 업데이트 다이얼로그의 최신 `build`와 안 맞음
+- 고객 업데이트 다이얼로그와 최신 `build`와 안 맞음
 
-`APP_VERSION`(예: `v1.12.39`)은 다이얼로그에 보이는 **표시용 버전**이다. 릴리스할 때 같이 올린다.
+`APP_VERSION`(예: `v1.12.43`)은 다이얼로그에 보이는 **표시용 버전**이다. 릴리스할 때 같이 올린다.
 
 ### 언제 고객이 업데이트를 받나
 
@@ -79,11 +85,11 @@ HTML/`pwa-register.js`의 `?v=gbcalNN`만 올리고 `app-build.json`을 안 고�
 
 ```bash
 cd F:/공방171포폴프로젝트/_pwa_push
-node scripts/bump-all-pwa-build.mjs 20260810-gbcal53 20260810-gbcal52
+node scripts/bump-all-pwa-build.mjs 20260810-gbcal58 20260810-gbcal57
 # (스크립트가 HTML / pwa-register / sw / app-build.json / manifest 동기화)
 # pwa-register.js 의 APP_VERSION · RELEASE_NOTES 확인 후
-git add -A
-git commit -m "Release gbcal53: …"
+git add -A   # 릴리스 관련만
+git commit -m "Release gbcal58: …"
 git push origin main
 ```
 
@@ -102,3 +108,4 @@ git push origin main
 | SW | `_pwa_push/sw.js` |
 | 등록/업데이트 UI | `_pwa_push/pwa-register.js` |
 | shipping API | `F:/#1_zeron_web_develop/makerbridge/routes/handmade.js` |
+| Contabo 배포 | `makerbridge/scripts/remote_deploy.py` |

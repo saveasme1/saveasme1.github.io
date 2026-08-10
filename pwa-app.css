@@ -372,16 +372,25 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   letter-spacing: 0.08em;
 }
 
-/* AI Search — refined equal CTAs */
+/* AI Search — chart-aligned section width + spacing */
 .pwa-aiseek {
-  padding: 8px 0 4px;
+  padding: 28px 0 24px;
 }
 
 .pwa-aiseek__panel {
   margin: 0 16px;
-  padding: 16px;
+  padding: 18px 16px;
   border: 1px solid var(--pwa-line);
   background: #ffffff;
+  box-sizing: border-box;
+}
+
+.pwa-aiseek > .pwa-sec__head {
+  margin-bottom: 0;
+}
+
+.pwa-aiseek .pwa-aiseek__head {
+  display: none;
 }
 
 .pwa-aiseek__head {
@@ -1350,6 +1359,11 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 /* —— Shortcut dock (31CM / Musinsa icon strip) —— */
+.pwa-quick .pwa-dock {
+  border-bottom: 0;
+  padding-top: 4px;
+}
+
 .pwa-dock {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -1733,11 +1747,15 @@ html.is-pwa .gb-top-auth-btn.is-accent {
 }
 
 /* Notice strip */
+.pwa-notice-sec .pwa-notice {
+  margin-top: 0;
+}
+
 .pwa-notice {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 20px 16px 0;
+  margin: 0 16px 0;
   padding: 14px 16px;
   border: 1px solid var(--pwa-line);
   background: #ffffff;
@@ -1745,6 +1763,7 @@ html.is-pwa .gb-top-auth-btn.is-accent {
   width: calc(100% - 32px);
   text-align: left;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .pwa-notice__tag {
@@ -2235,22 +2254,49 @@ body.board-standalone .reviews-close {
   html.is-pwa .pwa-aiseek,
   html.is-pwa .pwa-pulse,
   html.is-pwa .pwa-index {
-    margin-left: var(--pwa-gutter);
-    margin-right: var(--pwa-gutter);
+    margin-left: 0;
+    margin-right: 0;
     width: auto;
   }
 
-  html.is-pwa .pwa-aiseek,
-  html.is-pwa .pwa-ai {
+  html.is-pwa .pwa-aiseek__panel,
+  html.is-pwa .pwa-pulse,
+  html.is-pwa .pwa-index {
+    margin-left: var(--pwa-gutter);
+    margin-right: var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-aiseek {
+    width: auto;
+    padding-top: 36px;
+    padding-bottom: 32px;
+  }
+
+  html.is-pwa .pwa-aiseek__panel {
     width: auto;
     margin-left: var(--pwa-gutter);
     margin-right: var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-sec__head {
+    padding-left: var(--pwa-gutter);
+    padding-right: var(--pwa-gutter);
   }
 
   html.is-pwa .pwa-notice {
     margin-left: var(--pwa-gutter);
     margin-right: var(--pwa-gutter);
     width: auto;
+  }
+
+  html.is-pwa .pwa-stories {
+    padding-left: var(--pwa-gutter);
+    padding-right: var(--pwa-gutter);
+  }
+
+  html.is-pwa .pwa-dock {
+    padding-left: calc(var(--pwa-gutter) - 10px);
+    padding-right: calc(var(--pwa-gutter) - 10px);
   }
 
   html.is-pwa body.pf-body .pf-shell,

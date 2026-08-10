@@ -1,7 +1,16 @@
 /* Groupbuy calendar — image ↑ · capsule bar · name ↓ (compact) */
 .pwa-groupbuy {
-  margin: 20px 16px 24px;
-  padding: 0;
+  margin: 0;
+  padding: 22px 0 8px;
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.pwa-groupbuy__mount,
+.pwa-groupbuy .gb-cal {
+  margin-left: 16px;
+  margin-right: 16px;
   width: auto;
   max-width: none;
   box-sizing: border-box;
@@ -24,6 +33,11 @@
   }
   html.is-pwa .pwa-groupbuy {
     max-width: 100%;
+  }
+  html.is-pwa .pwa-groupbuy__mount,
+  html.is-pwa .pwa-groupbuy .gb-cal {
+    margin-left: var(--pwa-gutter, 28px);
+    margin-right: var(--pwa-gutter, 28px);
   }
 }
 
@@ -149,10 +163,47 @@
   line-height: 1;
 }
 
+@media (max-width: 1024px) {
+  .gb-cal__nav {
+    gap: 0;
+    padding: 1px;
+    border-radius: 999px;
+  }
+  .gb-cal__nav button {
+    width: 22px;
+    min-height: 22px;
+    font-size: 11px;
+  }
+  .gb-cal__write {
+    min-height: 26px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gb-cal__nav button {
+    width: 20px;
+    min-height: 20px;
+    font-size: 10px;
+  }
+}
+
+/* Unify write CTAs with portfolio .pf-write (ink fill) */
+button.primary,
+.reviews-toolbar .primary,
+.pf-tools-actions .primary,
+.gb-cal__write.primary,
 .gb-cal__write {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #161513;
+  border-radius: 10px;
   background: #161513;
   color: #fff;
-  border-radius: 8px;
+  font: 700 12px/1 Pretendard, "Noto Sans KR", sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .gb-cal__write[hidden] {
@@ -920,12 +971,96 @@ html.is-pwa .gb-cal {
 }
 
 html.is-pwa .pwa-groupbuy {
-  margin: 16px 14px 20px;
+  margin: 0;
+  padding: 22px 0 8px;
+}
+
+.gb-cal-range__nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.gb-cal-range__nav strong {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+}
+
+.gb-cal-range__nav button {
+  appearance: none;
+  border: 1px solid var(--gb-cal-line);
+  background: #fff;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pf-writer-gb-range {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid #e4dfd7;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.gb-cal-writer.gb-write-dialog {
+  width: min(calc(100% - 48px), 400px);
+  max-width: calc(100vw - 48px);
+}
+
+.gb-cal-sheet__card.board-detail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gb-cal-sheet__card .board-close,
+.gb-cal-sheet__card > .gb-cal-sheet__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+}
+
+.gb-cal-sheet__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gb-cal-sheet__body h2 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+
+.gb-cal-sheet__content {
+  margin: 0;
+}
+
+.gb-cal-sheet__content p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  color: rgba(22, 21, 19, 0.78);
+  font-size: 14px;
+}
+
+.gb-cal-sheet__body .detail-actions {
+  margin-top: 18px;
 }
 
 @media (min-width: 768px) {
   .pwa-groupbuy {
-    margin: 24px 16px 28px;
+    margin: 0;
+    padding: 24px 0 10px;
   }
   .gb-cal-page {
     padding: 20px 16px 28px;
@@ -960,7 +1095,8 @@ html.is-pwa .pwa-groupbuy {
 
 @media (min-width: 1024px) {
   .pwa-groupbuy {
-    margin: 28px 16px 32px;
+    margin: 0;
+    padding: 28px 0 12px;
   }
   .gb-cal-page {
     padding: 24px 16px 32px;

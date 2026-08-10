@@ -912,8 +912,26 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
   display: grid;
   gap: 14px;
 }
-.pf-writer-shipping-meta .pf-writer-date input {
+.pf-writer-date {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pf-writer-shipping-meta .pf-writer-date,
+.gb-write-dialog .pf-writer-date,
+.pf-write-dialog .pf-writer-date {
+  width: 100%;
+}
+.pf-writer-shipping-meta .pf-writer-date input,
+.gb-write-dialog .pf-writer-date input,
+.pf-write-dialog .pf-writer-date input,
+.pf-writer-fields .pf-writer-date input[type="datetime-local"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   margin-top: 7px;
+  min-height: 42px;
 }
 .pf-writer-cat-chip {
   min-height: 32px;

@@ -197,6 +197,17 @@
     const q = parts.length ? `?${parts.join("&")}` : "";
     if (board === "shipping") return `./shipping.html${q}`;
     if (board === "reviews") return `./reviews.html${q}`;
+    if (board === "groupbuy") return `./groupbuy.html${q}`;
+    if (board === "portfolio") {
+      const pf = [];
+      if (parts.includes("app=1")) pf.push("app=1");
+      if (id) pf.push(`id=${encodeURIComponent(id)}`);
+      return `./portfolio.html${pf.length ? `?${pf.join("&")}` : ""}`;
+    }
+    if (board === "notices") {
+      const n = parts.includes("app=1") ? "?open=notices&app=1" : "?open=notices";
+      return `./landing.html${n}`;
+    }
     return "./landing.html" + (parts[0] === "app=1" ? "?app=1" : "");
   }
 
@@ -237,6 +248,7 @@
       const q = /[?&]app=1(?:&|$)/.test(location.search) ? "?open=notices&app=1" : "?open=notices";
       return void (location.href = `./landing.html${q}`);
     }
+    if (key === "groupbuy") return void (location.href = `./groupbuy.html${appQuery()}`);
   }
 
   function ensureHost() {
@@ -373,6 +385,46 @@
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.items)) return data.items;
     return [];
+  }
+
+  function handmadeApiBase() {
+    return (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
+  }
+
+  async function fetchBoardLive(board) {
+    try {
+      const res = await fetch(`${handmadeApiBase()}/boards/${encodeURIComponent(board)}/live?v=${Date.now()}`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) return [];
+      return Array.isArray(payload?.items) ? payload.items : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function mergeBoardItems(baseItems, liveItems) {
+    const map = new Map();
+    (baseItems || []).forEach((item) => {
+      const id = resolveBoardId(item);
+      if (id) map.set(id, item);
+    });
+    (liveItems || []).forEach((item) => {
+      const id = resolveBoardId(item);
+      if (!id) return;
+      map.set(id, { ...(map.get(id) || {}), ...item });
+    });
+    return [...map.values()].sort((a, b) => {
+      const ta = String(a.publishedAt || a.updatedAt || a.startDate || "");
+      const tb = String(b.publishedAt || b.updatedAt || b.startDate || "");
+      return tb.localeCompare(ta);
+    });
+  }
+
+  function itemStamp(item) {
+    return String(item?.publishedAt || item?.updatedAt || item?.startDate || item?.createdAt || "");
   }
 
   function won(n) {
@@ -676,6 +728,22 @@
       reviewsRaw = asList(rv);
       noticesRaw = asList(nt);
       shippingRaw = asList(sh);
+    } catch (_) {}
+
+    let groupbuyRaw = [];
+    try {
+      const [shipLive, noticeLive, gbLive, pfLive] = await Promise.all([
+        fetchBoardLive("shipping"),
+        fetchBoardLive("notices"),
+        fetchBoardLive("groupbuy"),
+        fetchBoardLive("portfolio"),
+      ]);
+      shippingRaw = mergeBoardItems(shippingRaw, shipLive);
+      noticesRaw = mergeBoardItems(noticesRaw, noticeLive);
+      groupbuyRaw = mergeBoardItems([], gbLive);
+      if (Array.isArray(portfolio.items) && pfLive.length) {
+        portfolio.items = mergeBoardItems(portfolio.items, pfLive);
+      }
     } catch (_) {}
 
     const items = Array.isArray(portfolio.items) ? portfolio.items.slice() : [];
@@ -997,7 +1065,14 @@
     catsWrap.querySelector("[data-cat-more]")?.addEventListener("click", () => goPortfolio(activeCat));
     renderPeek("ALL", true);
 
-    // Shortcut dock
+    // —— Quick Menu ——
+    const dockSec = document.createElement("section");
+    dockSec.className = "pwa-sec pwa-quick";
+    dockSec.setAttribute("aria-label", "퀵 메뉴");
+    dockSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">QUICK MENU</p><h2>퀵 메뉴</h2></div>` +
+      `</div>`;
     const services = document.createElement("nav");
     services.className = "pwa-dock";
     services.setAttribute("aria-label", "바로가기");
@@ -1008,84 +1083,44 @@
         `<span class="pwa-dock__txt">${m.label}</span>` +
         `</button>`
     ).join("");
-    host.append(services);
+    dockSec.append(services);
 
-    // Lifestyle teasers (발견/착용코디 · XAU/XAG/XPT · TODAY) — hidden for now
-    // if (window.HxDiscover?.mountHomeTeasers) {
-    //   window.HxDiscover.mountHomeTeasers(host).catch(() => {});
-    // }
-
-    // —— Group buy calendar (above dropbar) ——
-    const gbSec = document.createElement("section");
-    gbSec.className = "pwa-groupbuy";
-    gbSec.id = "pwaGroupbuy";
-    gbSec.setAttribute("aria-label", "공동구매");
-    const gbMount = document.createElement("div");
-    gbMount.dataset.gbCalRoot = "1";
-    gbSec.append(gbMount);
-    host.append(gbSec);
-    if (window.GroupbuyCalendar?.mount) {
-      gbMount._gbCal = window.GroupbuyCalendar.mount(gbMount);
-    }
-
-    // —— Heritage opening event countdown ——
-    const dropBar = document.createElement("section");
-    dropBar.className = "pwa-dropbar";
-    dropBar.innerHTML =
-      `<div class="pwa-dropbar__left">` +
-      `<p class="pwa-sec__eyebrow">HERITAGE OPENING EVENT</p>` +
-      `<strong>헤리티지 리뉴얼 기념 이벤트 마감까지</strong>` +
-      `<p class="pwa-sec__eyebrow" style="margin-top:4px;opacity:.72">~ 2026.08.08 24:00</p>` +
-      `</div>` +
-      `<div class="pwa-dropbar__clock" id="pwaDropClock" aria-live="polite">` +
-      `<span data-h>--</span><i>:</i><span data-m>--</span><i>:</i><span data-s>--</span>` +
-      `</div>` +
-      `<button type="button" class="pwa-dropbar__go" data-go="event">보기</button>`;
-    host.append(dropBar);
-
-    function tickDropClock() {
-      const now = new Date();
-      // 2026-08-08 24:00 KST == 2026-08-09 00:00 KST
-      const end = new Date("2026-08-09T00:00:00+09:00");
-      let sec = Math.max(0, Math.floor((end - now) / 1000));
-      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
-      sec %= 3600;
-      const m = String(Math.floor(sec / 60)).padStart(2, "0");
-      const s = String(sec % 60).padStart(2, "0");
-      const clock = dropBar.querySelector("#pwaDropClock");
-      if (!clock) return;
-      const spans = clock.querySelectorAll("span");
-      if (spans[0]) spans[0].textContent = h;
-      if (spans[1]) spans[1].textContent = m;
-      if (spans[2]) spans[2].textContent = s;
-    }
-    tickDropClock();
-    setInterval(tickDropClock, 1000);
-
-    // —— Live pulse (KREAM/Musinsa activity feel) ——
+    // —— Live pulse (recent uploads across boards) ——
     const pulse = document.createElement("div");
     pulse.className = "pwa-pulse";
-    const pulseEntries = [];
+    const pulsePool = [];
+    fresh.slice(0, 4).forEach((p) => {
+      const t = String(p.title || "").replace(/\s+/g, " ").trim().slice(0, 26);
+      const id = resolveBoardId(p);
+      if (!t || !id) return;
+      pulsePool.push({ label: `포트폴리오 · ${t}`, board: "portfolio", id, at: itemStamp(p) });
+    });
     shipItems.slice(0, 4).forEach((s) => {
       const t = String(s.title || "").replace(/\s+/g, " ").trim().slice(0, 28);
       const id = resolveBoardId(s);
       if (!t || !id) return;
-      pulseEntries.push({
-        label: `최종검수 · ${t}`,
-        board: "shipping",
-        id,
-      });
+      pulsePool.push({ label: `최종검수 · ${t}`, board: "shipping", id, at: itemStamp(s) });
     });
     reviewItems.slice(0, 3).forEach((r) => {
       const t = String(r.title || "스냅").slice(0, 24);
       const id = resolveBoardId(r);
       if (!t || !id) return;
-      pulseEntries.push({
-        label: `스냅 · ${t}`,
-        board: "reviews",
-        id,
-      });
+      pulsePool.push({ label: `스냅 · ${t}`, board: "reviews", id, at: itemStamp(r) });
     });
+    noticesRaw.slice(0, 2).forEach((n) => {
+      const t = String(n.title || n.subject || "공지").slice(0, 24);
+      const id = resolveBoardId(n);
+      if (!t || !id) return;
+      pulsePool.push({ label: `공지 · ${t}`, board: "notices", id, at: itemStamp(n) });
+    });
+    groupbuyRaw.slice(0, 3).forEach((g) => {
+      const t = String(g.title || "공동구매").slice(0, 24);
+      const id = resolveBoardId(g);
+      if (!t || !id) return;
+      pulsePool.push({ label: `공동구매 · ${t}`, board: "groupbuy", id, at: itemStamp(g) });
+    });
+    pulsePool.sort((a, b) => String(b.at || "").localeCompare(String(a.at || "")));
+    const pulseEntries = pulsePool.slice(0, 12);
     if (!pulseEntries.length) {
       pulseEntries.push({
         label: "본 헤리티지 · 주문제작 아카이브가 업데이트 중입니다",
@@ -1112,26 +1147,32 @@
       link.setAttribute("aria-label", entry.label);
       link.addEventListener("click", (event) => {
         event.preventDefault();
+        if (entry.board === "portfolio") return goPortfolio("ALL", entry.id);
+        if (entry.board === "groupbuy") return goRoute("groupbuy");
         goBoardPost(entry.board, entry.id);
       });
       pulseMove.append(link);
     };
     pulseEntries.concat(pulseEntries).forEach(appendPulseEntry);
-    // Pause marquee while pressing/holding so mobile taps land on a stable item
     const pausePulse = () => pulse.classList.add("is-paused");
     const resumePulse = () => pulse.classList.remove("is-paused");
     pulse.addEventListener("pointerdown", pausePulse);
     pulse.addEventListener("pointerup", resumePulse);
     pulse.addEventListener("pointercancel", resumePulse);
     pulse.addEventListener("pointerleave", resumePulse);
-    host.append(pulse);
 
-    // —— Story rings (Discover recent wear) ——
-    const stories = document.createElement("section");
+    // —— Discover / FEED ——
+    const feedSec = document.createElement("section");
+    feedSec.className = "pwa-sec pwa-feed";
+    feedSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">FEED</p><h2>발견</h2></div>` +
+      `<button type="button" data-go="discover">더보기</button>` +
+      `</div>`;
+    const stories = document.createElement("div");
     stories.className = "pwa-stories";
-    stories.setAttribute("aria-label", "NEW WEAR");
+    stories.setAttribute("aria-label", "발견");
     const storyCount = window.matchMedia("(min-width: 1025px)").matches ? 10 : 6;
-    // placeholders while loading
     for (let i = 0; i < storyCount; i += 1) {
       const b = document.createElement("button");
       b.type = "button";
@@ -1143,7 +1184,7 @@
       protect(b.querySelector("img"));
       stories.append(b);
     }
-    host.append(stories);
+    feedSec.append(stories);
     loadDiscoverStories(storyCount).then((rows) => {
       if (!rows.length) return;
       stories.replaceChildren();
@@ -1166,15 +1207,61 @@
       });
     });
 
-    // —— AI Search (refined equal CTAs) ——
-    const aiSec = document.createElement("section");
-    aiSec.className = "pwa-aiseek";
-    aiSec.innerHTML =
-      `<div class="pwa-aiseek__panel">` +
-      `<div class="pwa-aiseek__head">` +
-      `<div><p class="pwa-sec__eyebrow">AI SEARCH · BETA</p><h2>사진으로 찾기</h2></div>` +
-      `<a href="./search.html">더보기</a>` +
+    // —— Heritage opening event countdown ——
+    const dropBar = document.createElement("section");
+    dropBar.className = "pwa-dropbar";
+    dropBar.innerHTML =
+      `<div class="pwa-dropbar__left">` +
+      `<p class="pwa-sec__eyebrow">HERITAGE OPENING EVENT</p>` +
+      `<strong>헤리티지 리뉴얼 기념 이벤트 마감까지</strong>` +
+      `<p class="pwa-sec__eyebrow" style="margin-top:4px;opacity:.72">~ 2026.08.08 24:00</p>` +
       `</div>` +
+      `<div class="pwa-dropbar__clock" id="pwaDropClock" aria-live="polite">` +
+      `<span data-h>--</span><i>:</i><span data-m>--</span><i>:</i><span data-s>--</span>` +
+      `</div>` +
+      `<button type="button" class="pwa-dropbar__go" data-go="event">보기</button>`;
+    function tickDropClock() {
+      const now = new Date();
+      const end = new Date("2026-08-09T00:00:00+09:00");
+      let sec = Math.max(0, Math.floor((end - now) / 1000));
+      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+      sec %= 3600;
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      const clock = dropBar.querySelector("#pwaDropClock");
+      if (!clock) return;
+      const spans = clock.querySelectorAll("span");
+      if (spans[0]) spans[0].textContent = h;
+      if (spans[1]) spans[1].textContent = m;
+      if (spans[2]) spans[2].textContent = s;
+    }
+    tickDropClock();
+    setInterval(tickDropClock, 1000);
+
+    // —— Group buy (section head like CHART) ——
+    const gbSec = document.createElement("section");
+    gbSec.className = "pwa-sec pwa-groupbuy";
+    gbSec.id = "pwaGroupbuy";
+    gbSec.setAttribute("aria-label", "공동구매");
+    gbSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">GROUP BUY</p><h2>공동구매</h2></div>` +
+      `<button type="button" data-go="groupbuy">더보기</button>` +
+      `</div>`;
+    const gbMount = document.createElement("div");
+    gbMount.className = "pwa-groupbuy__mount";
+    gbMount.dataset.gbCalRoot = "1";
+    gbSec.append(gbMount);
+
+    // —— AI Search (chart-aligned width + spacing) ——
+    const aiSec = document.createElement("section");
+    aiSec.className = "pwa-sec pwa-aiseek";
+    aiSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">AI SEARCH · BETA</p><h2>사진으로 찾기</h2></div>` +
+      `<a href="./search.html${appQuery()}">더보기</a>` +
+      `</div>` +
+      `<div class="pwa-aiseek__panel">` +
       `<p class="pwa-aiseek__status" id="pwaAiStatus">엔진 확인 중…</p>` +
       `<div class="pwa-aiseek__drop">` +
       `<p>비슷한 주얼리를 찾아드릴게요</p>` +
@@ -1192,7 +1279,6 @@
       `<div class="pwa-aiseek__rail" id="pwaAiRail" hidden></div>` +
       `<div class="pwa-aiseek__loading" id="pwaAiLoading" hidden><i></i><span>비슷한 작품 찾는 중…</span></div>` +
       `</div>`;
-    host.append(aiSec);
 
     const aiStatus = aiSec.querySelector("#pwaAiStatus");
     const aiRail = aiSec.querySelector("#pwaAiRail");
@@ -1503,8 +1589,9 @@
       .map((id) => items.find((x) => String(x.id) === id))
       .filter(Boolean)
       .slice(0, 12);
+    let wishSec = null;
     if (wishItems.length) {
-      const wishSec = document.createElement("section");
+      wishSec = document.createElement("section");
       wishSec.className = "pwa-sec";
       wishSec.innerHTML =
         `<div class="pwa-sec__head">` +
@@ -1515,7 +1602,6 @@
       wishRail.className = "pwa-rail";
       wishItems.forEach((item) => wishRail.append(cardButton(item, false)));
       wishSec.append(wishRail);
-      host.append(wishSec);
     }
 
     // For you rail — hidden
@@ -1570,11 +1656,10 @@
       });
     }
     rankSec.append(rankList);
-    host.append(rankSec);
 
     // Archive drop — temporarily hidden
 
-    // Realtime shipping — same photo-card style as reviews
+    // Realtime shipping — same photo-card style as reviews (markup unchanged)
     const shipSec = document.createElement("section");
     shipSec.className = "pwa-sec";
     shipSec.innerHTML =
@@ -1591,9 +1676,8 @@
       shipItems.forEach((item) => shipRail.append(photoBoardCard(item, "shipping", "최종검수")));
     }
     shipSec.append(shipRail);
-    host.append(shipSec);
 
-    // Reviews
+    // Reviews / Snap (markup unchanged)
     const secRev = document.createElement("section");
     secRev.className = "pwa-sec";
     secRev.innerHTML =
@@ -1610,9 +1694,15 @@
       reviewItems.forEach((item) => revRail.append(photoBoardCard(item, "reviews", "스냅")));
     }
     secRev.append(revRail);
-    host.append(secRev);
 
-    // Notice strip
+    // Notice
+    const noticeSec = document.createElement("section");
+    noticeSec.className = "pwa-sec pwa-notice-sec";
+    noticeSec.innerHTML =
+      `<div class="pwa-sec__head">` +
+      `<div><p class="pwa-sec__eyebrow">NOTICE</p><h2>공지사항</h2></div>` +
+      `<button type="button" data-go="notices">더보기</button>` +
+      `</div>`;
     const noticeBtn = document.createElement("button");
     noticeBtn.type = "button";
     noticeBtn.className = "pwa-notice";
@@ -1622,7 +1712,18 @@
       `<span class="pwa-notice__text">${
         (notice && (notice.title || notice.subject)) || "본 헤리티지 공지"
       }</span>`;
-    host.append(noticeBtn);
+    noticeSec.append(noticeBtn);
+
+    // Mount order: portfolio(cats already) → recent → feed → final → snap → notice → quick → event → groupbuy → ai → chart → wish
+    host.append(pulse, feedSec, shipSec, secRev, noticeSec, dockSec, dropBar, gbSec, aiSec, rankSec);
+    if (window.GroupbuyCalendar?.mount) {
+      gbMount._gbCal = window.GroupbuyCalendar.mount(gbMount, { hideEyebrow: true });
+    }
+    if (wishSec) host.append(wishSec);
+
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'pwa-home.js:boot-order',message:'home section order',data:{order:[...host.children].map((el)=>({id:el.id||'',cls:String(el.className||'').slice(0,80),h2:el.querySelector('.pwa-sec__head h2')?.textContent||el.querySelector('h2')?.textContent||''})),pulseCount:pulseEntries.length,ship:shipItems.length,gbLive:groupbuyRaw.length,aiPad:getComputedStyle(aiSec).paddingTop,shell:getComputedStyle(document.documentElement).getPropertyValue('--pwa-shell')||'',vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
 
     host.addEventListener("click", (event) => {
       const go = event.target.closest("[data-go]");

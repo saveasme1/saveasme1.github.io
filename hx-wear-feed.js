@@ -373,6 +373,9 @@
       mode: "cors",
       credentials: "include",
     });
+    // #region agent log
+    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'discover-fix',hypothesisId:'H2',location:'hx-wear-feed.js:loadDiscoverApi',message:'discover feed response',data:{status:res.status,ok:res.ok,brand:brand||'all',limit:q.get('limit')},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!res.ok) throw new Error(`discover feed ${res.status}`);
     const data = await res.json();
     if (data.member) state.member = data.member;
