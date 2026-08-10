@@ -4,6 +4,7 @@
   const API = (window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "");
   const TOKEN_KEY = "gongbang171.adminToken";
   const DATA_PATH = "shipping-data.json";
+  const LIVE_PATH = "shipping-live.json";
   const BOARD = "shipping";
   const PAGE_SIZE = 12;
   const DEFAULT_CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
@@ -540,19 +541,42 @@
     });
   }
 
+  function mergeShippingItems(baseItems, liveItems) {
+    const map = new Map();
+    (baseItems || []).forEach((item) => {
+      if (item?.id) map.set(String(item.id), item);
+    });
+    (liveItems || []).forEach((item) => {
+      if (item?.id) map.set(String(item.id), item);
+    });
+    return [...map.values()].sort(
+      (a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0)
+    );
+  }
+
   async function loadData() {
     if (els.status) els.status.textContent = "불러오는 중…";
     try {
-      const response = await fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("최종검수 데이터를 불러오지 못했습니다.");
-      const payload = await response.json();
+      const [mainRes, liveRes] = await Promise.all([
+        fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" }),
+        fetch(`${LIVE_PATH}?v=${Date.now()}`, { cache: "no-store" }).catch(() => null),
+      ]);
+      if (!mainRes.ok) throw new Error("최종검수 데이터를 불러오지 못했습니다.");
+      const payload = await mainRes.json();
+      let liveItems = [];
+      if (liveRes && liveRes.ok) {
+        try {
+          const livePayload = await liveRes.json();
+          liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+        } catch (_) {
+          liveItems = [];
+        }
+      }
       state.categories =
         Array.isArray(payload.categories) && payload.categories.length
           ? payload.categories
           : [...DEFAULT_CATEGORIES];
-      state.items = (payload.items || [])
-        .slice()
-        .sort((a, b) => Date.parse(b.publishedAt || 0) - Date.parse(a.publishedAt || 0));
+      state.items = mergeShippingItems(payload.items || [], liveItems);
       if (window.GongbangBoardMeta?.fetchViews && state.items.length) {
         const views = await window.GongbangBoardMeta.fetchViews(
           BOARD,
@@ -646,6 +670,22 @@
 
   window.openGongbangShippingPanel = openShippingPanel;
   window.closeGongbangShippingPanel = closeShippingPanel;
+  window.prependGongbangShippingItem = (item, options = {}) => {
+    if (!item?.id) return;
+    state.opened = true;
+    state.loaded = true;
+    if (options.clearFilters) {
+      state.category = "ALL";
+      state.selectedDate = "";
+      state.page = 1;
+      if (els.search) els.search.value = "";
+    }
+    state.items = mergeShippingItems(state.items, [item]);
+    renderCats();
+    renderCalendar();
+    renderDateStrip();
+    renderList();
+  };
   window.refreshGongbangShippingBoard = (options = {}) => {
     state.opened = true;
     if (options.clearFilters) {
@@ -657,6 +697,15 @@
       if (options.category) state.category = options.category;
       if (options.selectedDate != null) state.selectedDate = options.selectedDate;
       if (options.page) state.page = options.page;
+    }
+    if (options.soft && state.loaded) {
+      renderCats();
+      renderCalendar();
+      renderDateStrip();
+      renderList();
+      // Pull remote copy shortly after GitHub Pages catches up.
+      setTimeout(() => loadData(), 2500);
+      return;
     }
     loadData();
   };

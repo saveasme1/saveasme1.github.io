@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260810-gbcal46";
+  const APP_BUILD = "20260810-gbcal47";
   const APP_VERSION = "v1.12.38";
   const RELEASE_NOTES = [
     "최종검수 글 등록 오류를 수정했습니다",

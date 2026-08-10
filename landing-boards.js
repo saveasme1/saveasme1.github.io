@@ -354,14 +354,25 @@
     });
   }
 
-  async function compressImageFile(file, maxSide = 1600, quality = 0.82) {
+  async function putManagedFresh(path, content, message, sha = "") {
+    try {
+      return await putManaged(path, content, message, sha);
+    } catch (error) {
+      const msg = String(error?.message || error || "");
+      if (!/409|422|sha|conflict|already|존재|충돌/i.test(msg)) throw error;
+      const fresh = await readManaged(path, true);
+      return putManaged(path, content, message, fresh?.sha || "");
+    }
+  }
+
+  async function compressImageFile(file, maxSide = 1280, quality = 0.78) {
     if (!file || !file.type || !file.type.startsWith("image/")) return file;
     try {
       const bmp = await createImageBitmap(file);
       const w = bmp.width;
       const h = bmp.height;
       const m = Math.max(w, h);
-      if (m <= maxSide && file.size <= 900 * 1024) {
+      if (m <= maxSide && file.size <= 700 * 1024) {
         bmp.close();
         return file;
       }
@@ -374,7 +385,7 @@
       canvas.getContext("2d").drawImage(bmp, 0, 0, cw, ch);
       bmp.close();
       const blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", quality));
-      if (!blob || blob.size >= file.size) return file;
+      if (!blob) return file;
       const base = String(file.name || "image").replace(/\.[^.]+$/, "") || "image";
       return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
     } catch (_) {
@@ -391,7 +402,7 @@
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
-    await putManaged(path, content, `${type}: upload ${id} ${role}${suffix}`);
+    await putManagedFresh(path, content, `${type}: upload ${id} ${role}${suffix}`, "");
     return path;
   }
 
@@ -558,52 +569,23 @@
           : (publishedAtEl?.value ? new Date(publishedAtEl.value).toISOString() : now);
       }
 
-      writer.status.textContent = "이미지 준비 중…";
-      const readPromise = Promise.all([
-        readManaged(`${type}-data.json`, true),
-        readManaged(`${type}-draft.json`, true),
-      ]);
-
-      const uploadJobs = [];
-      if (writer.cover.file) {
-        uploadJobs.push(
-          uploadImage(type, writer.cover.file, id, "cover").then((path) => ({ kind: "cover", path }))
-        );
-      }
-      writer.details.forEach((detail, index) => {
-        if (detail.file) {
-          uploadJobs.push(
-            uploadImage(type, detail.file, id, "detail", index + 1).then((path) => ({
-              kind: "detail",
-              index,
-              path,
-            }))
-          );
-        } else if (detail.path) {
-          uploadJobs.push(Promise.resolve({ kind: "detail", index, path: detail.path }));
-        }
-      });
-
-      writer.status.textContent = uploadJobs.length
-        ? `이미지 업로드 중… (${uploadJobs.length}장 병렬)`
-        : "게시글 저장 중…";
-      const [uploadResults, files] = await Promise.all([
-        Promise.all(uploadJobs),
-        readPromise,
-      ]);
-      const [publishedFile, draftFile] = files;
-
+      writer.status.textContent = "올리는 중…";
       let cover = writer.cover.path || "";
-      const detailRows = [];
-      uploadResults.forEach((row) => {
-        if (row.kind === "cover") cover = row.path;
-        else if (row.path) detailRows.push(row);
-      });
-      detailRows.sort((a, b) => (a.index || 0) - (b.index || 0));
-      const images = detailRows.map((row) => row.path);
+      if (writer.cover.file) {
+        cover = await uploadImage(type, writer.cover.file, id, "cover");
+      }
+      const images = [];
+      for (let index = 0; index < writer.details.length; index += 1) {
+        const detail = writer.details[index];
+        if (detail.file) {
+          images.push(await uploadImage(type, detail.file, id, "detail", index + 1));
+        } else if (detail.path) {
+          images.push(detail.path);
+        }
+      }
       if (!cover) throw new Error("대표 이미지 업로드에 실패했습니다.");
 
-      writer.status.textContent = "공개 게시판에 올리는 중…";
+      writer.status.textContent = "저장 중…";
       const item = {
         id,
         title,
@@ -614,48 +596,107 @@
         publishedAt,
         updatedAt: now,
         category,
-      };
-      const baseItems = publishedFile?.value?.items || [];
-      const published = {
-        version: 1,
-        publishedAt: now,
-        items: [item, ...baseItems.filter((entry) => entry.id !== id)],
-      };
-      const draftItems = draftFile?.value?.items || baseItems;
-      const draft = {
-        version: 1,
-        items: [item, ...draftItems.filter((entry) => entry.id !== id)],
+        origin: "admin",
       };
 
-      // Publish first so the board updates quickly; draft sync can finish in the background.
-      await putManaged(
-        `${type}-data.json`,
-        textToBase64(JSON.stringify(published)),
-        `${type}: publish ${id}`,
-        publishedFile?.sha || ""
-      );
-      void putManaged(
-        `${type}-draft.json`,
-        textToBase64(JSON.stringify(draft)),
-        `${type} draft: create ${id}`,
-        draftFile?.sha || ""
-      ).catch(() => {});
-
-      state[type] = published.items;
-      boards[type].page = 1;
       if (type === "shipping") {
-        window.refreshGongbangShippingBoard?.({ clearFilters: true, page: 1 });
+        // Small overlay file — full shipping-data.json puts often fail/timeout on the API.
+        const liveFile = await readManaged("shipping-live.json", true);
+        const liveItems = Array.isArray(liveFile?.value?.items) ? liveFile.value.items : [];
+        const live = {
+          version: 1,
+          updatedAt: now,
+          items: [item, ...liveItems.filter((entry) => entry.id !== id)].slice(0, 300),
+        };
+        await putManagedFresh(
+          "shipping-live.json",
+          textToBase64(JSON.stringify(live)),
+          `shipping live: create ${id}`,
+          liveFile?.sha || ""
+        );
+
+        // Best-effort sync into the big catalog files (non-blocking).
+        void (async () => {
+          try {
+            const [publishedFile, draftFile] = await Promise.all([
+              readManaged("shipping-data.json", true),
+              readManaged("shipping-draft.json", true),
+            ]);
+            const baseItems = publishedFile?.value?.items || [];
+            const published = {
+              version: 1,
+              publishedAt: now,
+              items: [item, ...baseItems.filter((entry) => entry.id !== id)],
+            };
+            await putManagedFresh(
+              "shipping-data.json",
+              textToBase64(JSON.stringify(published)),
+              `shipping: publish ${id}`,
+              publishedFile?.sha || ""
+            );
+            const draftItems = draftFile?.value?.items || baseItems;
+            const draft = {
+              version: 1,
+              items: [item, ...draftItems.filter((entry) => entry.id !== id)],
+            };
+            await putManagedFresh(
+              "shipping-draft.json",
+              textToBase64(JSON.stringify(draft)),
+              `shipping draft: create ${id}`,
+              draftFile?.sha || ""
+            );
+          } catch (_) {}
+        })();
+
+        state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];
+        boards.shipping.page = 1;
+        window.prependGongbangShippingItem?.(item, { clearFilters: true });
+        window.refreshGongbangShippingBoard?.({ clearFilters: true, page: 1, soft: true });
       } else {
+        const [publishedFile, draftFile] = await Promise.all([
+          readManaged(`${type}-data.json`, true),
+          readManaged(`${type}-draft.json`, true),
+        ]);
+        const baseItems = publishedFile?.value?.items || [];
+        const published = {
+          version: 1,
+          publishedAt: now,
+          items: [item, ...baseItems.filter((entry) => entry.id !== id)],
+        };
+        const draftItems = draftFile?.value?.items || baseItems;
+        const draft = {
+          version: 1,
+          items: [item, ...draftItems.filter((entry) => entry.id !== id)],
+        };
+        await putManagedFresh(
+          `${type}-data.json`,
+          textToBase64(JSON.stringify(published)),
+          `${type}: publish ${id}`,
+          publishedFile?.sha || ""
+        );
+        void putManagedFresh(
+          `${type}-draft.json`,
+          textToBase64(JSON.stringify(draft)),
+          `${type} draft: create ${id}`,
+          draftFile?.sha || ""
+        ).catch(() => {});
+        state[type] = published.items;
+        boards[type].page = 1;
         renderList(type);
       }
       clearWriterMedia();
       writer.root.close();
       form.reset();
+      writer.status.textContent = "";
       if (typeof window.showGongbangToast === "function") {
         window.showGongbangToast("게시글이 등록되었습니다.", { tone: "success", duration: 2200 });
       }
     } catch (error) {
-      writer.status.textContent = error.message || String(error);
+      const message = error.message || String(error);
+      writer.status.textContent = message;
+      if (typeof window.showGongbangToast === "function") {
+        window.showGongbangToast(message, { tone: "error", duration: 4200 });
+      }
     } finally {
       writer.submit.disabled = false;
     }

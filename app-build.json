@@ -1,11 +1,11 @@
 {
-  "build": "20260810-gbcal46",
+  "build": "20260810-gbcal47",
   "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T11:05:00.000Z",
-  "note": "Faster shipping write + category/date pickers",
+  "deployedAt": "2026-08-10T11:25:00.000Z",
+  "note": "Fix shipping write visibility via shipping-live overlay",
   "notes": [
-    "재설치 안내 게이트 (기존 앱 숨김)",
-    "방문자·설치·PWA 세션 서버 집계",
-    "최종검수 글 등록 속도 개선 · 카테고리/게시일 선택"
+    "최종검수 글이 ALL에 바로 보이도록 live 저장",
+    "이미지 업로드 상태문구 정리",
+    "shipping JSON network-first 캐시"
   ]
 }
