@@ -441,8 +441,23 @@
   async function submitWriter(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const type = form.elements.boardType.value;
+    const typeEl = form.elements.namedItem("boardType") || form.querySelector('[name="boardType"]');
+    const titleEl = form.elements.namedItem("title") || form.querySelector('[name="title"]');
+    const contentEl = form.elements.namedItem("content") || form.querySelector('[name="content"]');
+    const type = String(typeEl?.value || "").trim();
+    const title = String(titleEl?.value || "").trim();
+    const content = String(contentEl?.value || "").trim();
     if (!boards[type]) return;
+    if (!title) {
+      writer.status.textContent = "제목을 입력해 주세요.";
+      titleEl?.focus?.();
+      return;
+    }
+    if (!content) {
+      writer.status.textContent = "내용을 입력해 주세요.";
+      contentEl?.focus?.();
+      return;
+    }
     if (!writer.cover.file && !writer.cover.path) {
       writer.status.textContent = "대표 이미지를 선택해 주세요.";
       return;
@@ -474,8 +489,8 @@
       const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
       const item = {
         id,
-        title: form.elements.title.value.trim(),
-        content: form.elements.content.value.trim(),
+        title,
+        content,
         cover,
         image: cover,
         images: images.filter((path) => path && path !== cover),
@@ -483,7 +498,7 @@
         updatedAt: now,
         category:
           type === "shipping"
-            ? detectShippingCategory(form.elements.title.value, form.elements.content.value)
+            ? detectShippingCategory(title, content)
             : undefined,
       };
       const baseItems = publishedFile?.value?.items || [];
@@ -511,12 +526,16 @@
       );
       state[type] = published.items;
       boards[type].page = 1;
-      renderList(type);
+      if (type === "shipping") {
+        window.refreshGongbangShippingBoard?.();
+      } else {
+        renderList(type);
+      }
       clearWriterMedia();
       writer.root.close();
       form.reset();
     } catch (error) {
-      writer.status.textContent = error.message;
+      writer.status.textContent = error.message || String(error);
     } finally {
       writer.submit.disabled = false;
     }
@@ -552,7 +571,13 @@
 
   function renderList(type) {
     const board = boards[type];
-    const query = board.search.value.trim().toLowerCase();
+    if (!board) return;
+    // Standalone shipping.html owns its own list UI via shipping-board.js.
+    if (!board.list) {
+      if (type === "shipping") window.refreshGongbangShippingBoard?.();
+      return;
+    }
+    const query = String(board.search?.value || "").trim().toLowerCase();
     const filtered = state[type].filter(
       (item) => !query || `${item.title} ${item.content || ""}`.toLowerCase().includes(query)
     );
@@ -560,9 +585,11 @@
       ? filtered.slice((board.page - 1) * board.pageSize, board.page * board.pageSize)
       : filtered;
     board.list.replaceChildren();
-    board.status.textContent = query
-      ? `검색 결과 ${filtered.length}개`
-      : `전체 ${state[type].length}개`;
+    if (board.status) {
+      board.status.textContent = query
+        ? `검색 결과 ${filtered.length}개`
+        : `전체 ${state[type].length}개`;
+    }
     if (board.count) {
       board.count.textContent = query
         ? `${filtered.length.toLocaleString("ko-KR")} found`
@@ -776,7 +803,12 @@
   });
   writer.form.addEventListener("submit", async (event) => {
     await submitWriter(event);
-    if (writer.form.elements.boardType.value === "shipping") {
+    const type = String(
+      writer.form?.elements?.namedItem?.("boardType")?.value ||
+        writer.form?.querySelector?.('[name="boardType"]')?.value ||
+        ""
+    );
+    if (type === "shipping") {
       window.refreshGongbangShippingBoard?.();
     }
   });

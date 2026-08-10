@@ -647,7 +647,8 @@
   window.openGongbangShippingPanel = openShippingPanel;
   window.closeGongbangShippingPanel = closeShippingPanel;
   window.refreshGongbangShippingBoard = () => {
-    if (state.opened) loadData();
+    state.opened = true;
+    loadData();
   };
 
   els.openButton?.addEventListener("click", openShippingPanel);
