@@ -186,9 +186,14 @@
 
   async function detectAdmin() {
     try {
-      if (window.GongbangAuth?.me) {
-        const me = await window.GongbangAuth.me();
-        if (me && me.role === "admin") return me;
+      const cached = window.GongbangAuth?.getMember?.() || window.getGongbangMember?.();
+      if (cached && cached.role === "admin") return cached;
+    } catch (_) {}
+    try {
+      if (window.GongbangAuth?.fetchMe) {
+        const payload = await window.GongbangAuth.fetchMe();
+        const user = payload?.member || payload?.user || null;
+        if (user && user.role === "admin") return user;
       }
     } catch (_) {}
     try {
@@ -198,6 +203,19 @@
     } catch (_) {}
     return null;
   }
+
+  function hasAuthToken() {
+    try {
+      return Boolean(sessionStorage.getItem(TOKEN_KEY));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  const runtime = {
+    admin: null,
+    onSaved: null,
+  };
 
   function normalizeItem(item) {
     const start = String(item.startDate || item.start || "").slice(0, 10);
@@ -534,12 +552,16 @@
     root.querySelector(".gb-cal-sheet__card").replaceChildren();
   }
 
-  function openDetail(item) {
+  async function openDetail(item) {
+    if (!runtime.admin && hasAuthToken()) {
+      runtime.admin = await detectAdmin();
+    }
     const root = createSheet();
     const card = root.querySelector(".gb-cal-sheet__card");
     const images = [item.cover, ...(item.images || [])].filter(Boolean);
     const uniq = [...new Set(images.map(String))];
     let active = 0;
+    const isAdmin = Boolean(runtime.admin);
 
     const paint = () => {
       const hero = uniq[active] || "";
@@ -562,6 +584,12 @@
           : "") +
         `<div class="gb-cal-sheet__body">` +
         `<h3></h3><p></p></div>` +
+        (isAdmin
+          ? `<div class="gb-cal-sheet__admin">` +
+            `<button type="button" class="gb-cal-sheet__edit" data-edit>수정</button>` +
+            `<button type="button" class="gb-cal-sheet__delete" data-delete>삭제</button>` +
+            `</div>`
+          : "") +
         `<div class="gb-cal-sheet__foot">` +
         `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
         `</div>`;
@@ -574,9 +602,59 @@
           paint();
         });
       });
+      card.querySelector("[data-edit]")?.addEventListener("click", () => {
+        closeSheet();
+        const dlg = createWriterDialog(runtime.onSaved);
+        dlg._openEdit(item);
+      });
+      card.querySelector("[data-delete]")?.addEventListener("click", async () => {
+        if (!confirm(`“${item.title}” 공동구매를 삭제할까요?`)) return;
+        const btn = card.querySelector("[data-delete]");
+        if (btn) btn.disabled = true;
+        try {
+          const items = await deleteGroupbuyItem(item.id);
+          closeSheet();
+          if (typeof runtime.onSaved === "function") runtime.onSaved(items);
+        } catch (err) {
+          alert(err.message || String(err));
+          if (btn) btn.disabled = false;
+        }
+      });
     };
     paint();
     root.hidden = false;
+  }
+
+  async function deleteGroupbuyItem(id) {
+    const [publishedFile, draftFile] = await Promise.all([
+      readManaged("groupbuy-data.json", true),
+      readManaged("groupbuy-draft.json", true),
+    ]);
+    const now = window.GongbangTime?.nowIso?.() || new Date().toISOString();
+    const baseItems = publishedFile?.value?.items || [];
+    const published = {
+      version: 1,
+      publishedAt: now,
+      items: baseItems.filter((e) => e.id !== id),
+    };
+    const draftItems = draftFile?.value?.items || baseItems;
+    const draft = {
+      version: 1,
+      items: draftItems.filter((e) => e.id !== id),
+    };
+    await putManaged(
+      "groupbuy-draft.json",
+      textToBase64(JSON.stringify(draft)),
+      `groupbuy draft: delete ${id}`,
+      draftFile?.sha || ""
+    );
+    await putManaged(
+      "groupbuy-data.json",
+      textToBase64(JSON.stringify(published)),
+      `groupbuy: delete ${id}`,
+      publishedFile?.sha || ""
+    );
+    return published.items.map(normalizeItem);
   }
 
   function openDayPicker(items, key) {
@@ -613,9 +691,10 @@
   }
 
   function createWriterDialog(onSaved) {
+    if (typeof onSaved === "function") runtime.onSaved = onSaved;
     let dlg = document.getElementById("gbCalWriter");
     if (dlg) {
-      dlg._onSaved = onSaved;
+      dlg._onSaved = runtime.onSaved;
       return dlg;
     }
     dlg = document.createElement("dialog");
@@ -623,7 +702,7 @@
     dlg.className = "gb-cal-writer";
     dlg.innerHTML =
       `<form class="gb-cal-writer__form" id="gbCalWriterForm">` +
-      `<h2>공동구매 글쓰기</h2>` +
+      `<h2 data-writer-title>공동구매 글쓰기</h2>` +
       `<label>제목<input name="title" type="text" minlength="2" maxlength="160" required placeholder="예: [앵콜] 알함브라"></label>` +
       `<label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="공동구매 안내를 적어 주세요"></textarea></label>` +
       `<div class="gb-cal-range" id="gbCalRange">` +
@@ -637,7 +716,11 @@
       `<div class="gb-cal-range__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
       `<div class="gb-cal-range__grid" id="gbCalRangeGrid"></div>` +
       `</div>` +
-      `<label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>` +
+      `<div class="gb-cal-writer__media">` +
+      `<p class="gb-cal-writer__media-label">첨부 이미지</p>` +
+      `<div class="gb-cal-writer__gallery" id="gbCalWriterGallery"></div>` +
+      `</div>` +
+      `<label data-cover-label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
       `<label>추가 이미지<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
       `<p class="gb-cal-writer__status" id="gbCalWriterStatus" aria-live="polite"></p>` +
       `<div class="gb-cal-writer__actions">` +
@@ -646,15 +729,26 @@
       `</div>` +
       `</form>`;
     document.body.appendChild(dlg);
-    dlg._onSaved = onSaved;
+    dlg._onSaved = runtime.onSaved;
 
     const form = dlg.querySelector("form");
     const status = dlg.querySelector("#gbCalWriterStatus");
+    const titleEl = dlg.querySelector("[data-writer-title]");
+    const coverInput = form.elements.cover;
+    const coverLabel = dlg.querySelector("[data-cover-label]");
+    const submitBtn = dlg.querySelector("#gbCalWriterSubmit");
+    const gallery = dlg.querySelector("#gbCalWriterGallery");
     const rangeState = {
       year: kstParts().year,
       month: kstParts().month,
       start: "",
       end: "",
+    };
+    const mediaState = {
+      id: null,
+      coverPath: "",
+      images: [],
+      publishedAt: "",
     };
 
     function syncMeta() {
@@ -666,6 +760,43 @@
         : rangeState.start
           ? "종료일 선택"
           : "—";
+    }
+
+    function renderGallery() {
+      gallery.replaceChildren();
+      const entries = [];
+      if (mediaState.coverPath) {
+        entries.push({ role: "cover", path: mediaState.coverPath });
+      }
+      mediaState.images.forEach((path, index) => {
+        entries.push({ role: "detail", path, index });
+      });
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "gb-cal-writer__gallery-empty";
+        empty.textContent = "첨부된 이미지가 없습니다.";
+        gallery.append(empty);
+        return;
+      }
+      entries.forEach((entry) => {
+        const card = document.createElement("div");
+        card.className = "gb-cal-writer__thumb";
+        card.innerHTML =
+          `<img alt="">` +
+          `<span class="gb-cal-writer__thumb-badge">${entry.role === "cover" ? "대표" : "추가"}</span>` +
+          `<button type="button" class="gb-cal-writer__thumb-remove" aria-label="이미지 삭제">×</button>`;
+        card.querySelector("img").src = assetUrl(entry.path);
+        card.querySelector("button").addEventListener("click", () => {
+          if (entry.role === "cover") {
+            mediaState.coverPath = "";
+          } else {
+            mediaState.images = mediaState.images.filter((path) => path !== entry.path);
+          }
+          coverInput.required = !mediaState.id || !mediaState.coverPath;
+          renderGallery();
+        });
+        gallery.append(card);
+      });
     }
 
     function renderRangeGrid() {
@@ -720,9 +851,10 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const coverFile = form.elements.cover.files[0];
+      const coverFile = coverInput.files[0];
       const detailFiles = [...form.elements.images.files];
-      if (!coverFile) {
+      const editing = Boolean(mediaState.id);
+      if (!coverFile && !mediaState.coverPath) {
         status.textContent = "대표 이미지가 필요합니다.";
         return;
       }
@@ -732,20 +864,24 @@
       }
       const startDate = rangeState.start;
       const endDate = rangeState.end || rangeState.start;
-      if (detailFiles.length > 8) {
+      if (mediaState.images.length + detailFiles.length > 8) {
         status.textContent = "추가 이미지는 최대 8장까지입니다.";
         return;
       }
-      const submit = dlg.querySelector("#gbCalWriterSubmit");
-      submit.disabled = true;
+      submitBtn.disabled = true;
       try {
-        const id = `gb-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-        status.textContent = "대표 이미지 업로드 중…";
-        const cover = await uploadImage(coverFile, id, "cover");
-        const images = [];
+        const id = editing
+          ? mediaState.id
+          : `gb-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+        let cover = mediaState.coverPath;
+        if (coverFile) {
+          status.textContent = "대표 이미지 업로드 중…";
+          cover = await uploadImage(coverFile, id, "cover");
+        }
+        const images = [...mediaState.images];
         for (let i = 0; i < detailFiles.length; i += 1) {
           status.textContent = `추가 이미지 업로드 중 ${i + 1} / ${detailFiles.length}`;
-          images.push(await uploadImage(detailFiles[i], id, "detail", i + 1));
+          images.push(await uploadImage(detailFiles[i], id, "detail", images.length + 1));
         }
         status.textContent = "공개 반영 중…";
         const [publishedFile, draftFile] = await Promise.all([
@@ -762,7 +898,7 @@
           images,
           startDate,
           endDate,
-          publishedAt: now,
+          publishedAt: editing ? mediaState.publishedAt || now : now,
           updatedAt: now,
         };
         const baseItems = publishedFile?.value?.items || [];
@@ -779,36 +915,84 @@
         await putManaged(
           "groupbuy-draft.json",
           textToBase64(JSON.stringify(draft)),
-          `groupbuy draft: create ${id}`,
+          `groupbuy draft: ${editing ? "update" : "create"} ${id}`,
           draftFile?.sha || ""
         );
         await putManaged(
           "groupbuy-data.json",
           textToBase64(JSON.stringify(published)),
-          `groupbuy: publish ${id}`,
+          `groupbuy: ${editing ? "update" : "publish"} ${id}`,
           publishedFile?.sha || ""
         );
-        status.textContent = "등록되었습니다.";
+        status.textContent = editing ? "수정되었습니다." : "등록되었습니다.";
         form.reset();
         rangeState.start = "";
         rangeState.end = "";
+        mediaState.id = null;
+        mediaState.coverPath = "";
+        mediaState.images = [];
+        mediaState.publishedAt = "";
         dlg.close();
-        if (typeof dlg._onSaved === "function") dlg._onSaved(published.items.map(normalizeItem));
+        const cb = dlg._onSaved || runtime.onSaved;
+        if (typeof cb === "function") cb(published.items.map(normalizeItem));
       } catch (err) {
         status.textContent = err.message || String(err);
       } finally {
-        submit.disabled = false;
+        submitBtn.disabled = false;
       }
     });
 
+    function prepareShell(mode) {
+      const editing = mode === "edit";
+      titleEl.textContent = editing ? "공동구매 수정" : "공동구매 글쓰기";
+      submitBtn.textContent = editing ? "수정·공개" : "등록·공개";
+      coverLabel.childNodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+          node.textContent = editing ? "대표 이미지 교체" : "대표 이미지";
+        }
+      });
+      coverInput.required = !editing;
+      status.textContent = "";
+      form.reset();
+    }
+
     dlg._open = () => {
+      prepareShell("create");
       const t = kstParts();
       rangeState.year = t.year;
       rangeState.month = t.month;
       rangeState.start = "";
       rangeState.end = "";
-      status.textContent = "";
-      form.reset();
+      mediaState.id = null;
+      mediaState.coverPath = "";
+      mediaState.images = [];
+      mediaState.publishedAt = "";
+      renderGallery();
+      renderRangeGrid();
+      if (!dlg.open) dlg.showModal();
+    };
+
+    dlg._openEdit = (item) => {
+      const normalized = normalizeItem(item);
+      prepareShell("edit");
+      form.elements.title.value = normalized.title;
+      form.elements.content.value = normalized.content;
+      mediaState.id = normalized.id;
+      mediaState.coverPath = normalized.cover || "";
+      mediaState.images = [...(normalized.images || [])].filter(
+        (path) => path && path !== mediaState.coverPath
+      );
+      mediaState.publishedAt = normalized.publishedAt || "";
+      rangeState.start = normalized.startDate;
+      rangeState.end =
+        normalized.endDate && normalized.endDate !== normalized.startDate
+          ? normalized.endDate
+          : "";
+      const startParts = parseKey(normalized.startDate) || kstParts();
+      rangeState.year = startParts.year;
+      rangeState.month = startParts.month;
+      coverInput.required = !mediaState.coverPath;
+      renderGallery();
       renderRangeGrid();
       if (!dlg.open) dlg.showModal();
     };
@@ -941,7 +1125,7 @@
           let width = er.right - sr.left - padX * 2;
           let coverSize = 0;
           if (seg.roundLeft && seg.item.cover) {
-            coverSize = Math.min(thumbSize, 36);
+            coverSize = Math.min(thumbSize, 48);
             const peek = Math.min(capPeek, 6);
             left = cellLeft - peek;
             width = er.right - gridRect.left - left - padX;
@@ -1019,7 +1203,7 @@
           coverLane.set(it.startDate, stack + 1);
           const anchor = barTopByStart.get(it.startDate);
           if (!anchor) return;
-          const size = anchor.coverSize || Math.min(thumbSize, 36);
+          const size = anchor.coverSize || Math.min(thumbSize, 48);
           const barCross =
             Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-cross")) || 0.4;
           const gutterBias =
@@ -1066,7 +1250,7 @@
     });
 
     writeBtn.addEventListener("click", () => {
-      if (!state.admin) return;
+      if (!state.admin && !hasAuthToken()) return;
       const dlg = createWriterDialog((items) => {
         state.items = items;
         setStatus(`공동구매 ${state.items.length}건`);
@@ -1079,7 +1263,9 @@
       setStatus("불러오는 중…");
       try {
         state.items = (await fetchPublicItems()).map(normalizeItem);
-        setStatus(state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다.");
+        setStatus(
+          state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다."
+        );
         render();
       } catch (err) {
         setStatus(err.message || "불러오기 실패");
@@ -1087,10 +1273,31 @@
       }
     }
 
-    detectAdmin().then((admin) => {
+    function applyAdmin(admin) {
       state.admin = admin;
+      runtime.admin = admin;
       writeBtn.hidden = !admin;
+    }
+
+    // Show write CTA immediately when a session token exists (confirm via /auth/me).
+    if (hasAuthToken()) writeBtn.hidden = false;
+
+    detectAdmin().then((admin) => {
+      applyAdmin(admin);
     });
+
+    window.addEventListener("gongbang:auth-changed", (event) => {
+      const member = event.detail?.member || event.detail?.user || null;
+      if (member && member.role === "admin") applyAdmin(member);
+      else if (!hasAuthToken()) applyAdmin(null);
+      else detectAdmin().then(applyAdmin);
+    });
+
+    runtime.onSaved = (items) => {
+      state.items = items;
+      setStatus(state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다.");
+      render();
+    };
 
     if (options.year && options.month) {
       state.year = options.year;

@@ -15,6 +15,17 @@
   box-sizing: border-box;
 }
 
+@media (min-width: 1025px) {
+  .gb-cal-page {
+    max-width: 840px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  html.is-pwa .pwa-groupbuy {
+    max-width: 100%;
+  }
+}
+
 .gb-cal-page .gb-cal,
 .pwa-groupbuy .gb-cal {
   width: 100%;
@@ -38,7 +49,7 @@
 .gb-cal {
   --cell-h: 24px;
   --gb-bar-h: 16px;
-  --gb-thumb: 32px;
+  --gb-thumb: 37px;
   --gb-name-h: 10px;
   --gb-num-size: 12px;
   --gb-stack-gap: 2px;
@@ -270,7 +281,7 @@
   height: var(--gb-bar-h);
   border-radius: 0;
   background: var(--gb-cal-label);
-  opacity: 0.96;
+  opacity: 1;
 }
 
 .gb-cal__bar.is-round-left {
@@ -315,7 +326,7 @@
 }
 
 .gb-cal__name.is-relocated {
-  opacity: 0.96;
+  opacity: 1;
 }
 
 /* Circle thumbnail — gutter slot; above foreign product names */
@@ -340,6 +351,7 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
   border: 2px solid rgba(201, 166, 107, 0.72);
   transform: translate(-50%, 0);
+  opacity: 1;
 }
 
 .gb-cal__cover img {
@@ -347,6 +359,8 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 1;
+  filter: none;
 }
 
 /* Detail sheet */
@@ -481,6 +495,37 @@
   padding: 0 18px 20px;
 }
 
+.gb-cal-sheet__admin {
+  display: flex;
+  gap: 8px;
+  padding: 4px 18px 14px;
+}
+
+.gb-cal-sheet__edit,
+.gb-cal-sheet__delete {
+  appearance: none;
+  flex: 1;
+  min-height: 44px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.gb-cal-sheet__edit {
+  border: 1px solid rgba(201, 166, 107, 0.7);
+  background: #c9a66b;
+  color: #1a1510;
+}
+
+.gb-cal-sheet__delete {
+  border: 1px solid rgba(220, 90, 90, 0.55);
+  background: rgba(160, 50, 50, 0.35);
+  color: #ffd8d8;
+}
+
 .gb-cal-sheet__join {
   display: flex;
   align-items: center;
@@ -593,6 +638,75 @@
   resize: vertical;
 }
 
+.gb-cal-writer__media {
+  display: grid;
+  gap: 8px;
+}
+
+.gb-cal-writer__media-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gb-cal-writer__gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.gb-cal-writer__gallery-empty {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a7f74;
+}
+
+.gb-cal-writer__thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ebe6df;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.gb-cal-writer__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 1;
+}
+
+.gb-cal-writer__thumb-badge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(20, 16, 12, 0.72);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.gb-cal-writer__thumb-remove {
+  appearance: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 16, 12, 0.78);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .gb-cal-range {
   border: 1px solid var(--gb-cal-line);
   border-radius: 14px;
@@ -698,7 +812,7 @@
 /* Mobile: same gutter/cross rules — capsule stays below dates */
 @media (max-width: 767px) {
   .gb-cal {
-    --gb-thumb: 30px;
+    --gb-thumb: 35px;
     --gb-date-gap: 4px;
     --gb-date-pad-y: 5px;
     --gb-bar-cross: 0.4;
@@ -734,7 +848,7 @@ html.is-pwa .pwa-groupbuy {
   .gb-cal {
     --cell-h: 26px;
     --gb-bar-h: 17px;
-    --gb-thumb: 34px;
+    --gb-thumb: 39px;
     --gb-col-gap: 10px;
     --gb-cap-peek: 9px;
     --gb-name-h: 11px;
@@ -769,7 +883,7 @@ html.is-pwa .pwa-groupbuy {
   .gb-cal {
     --cell-h: 36px;
     --gb-bar-h: 18px;
-    --gb-thumb: 38px;
+    --gb-thumb: 44px;
     --gb-col-gap: 14px;
     --gb-name-h: 11px;
     --gb-num-size: 13px;
