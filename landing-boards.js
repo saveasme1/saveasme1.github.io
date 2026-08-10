@@ -79,11 +79,16 @@
   };
 
   // Serve board images from this site (hand-made.kr / github.io), not private raw.githubusercontent.
+  const PAGES_ASSET_ORIGIN = "https://saveasme1.github.io";
   const assetUrl = (value) => {
     const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    return `/${path.replace(/^\/+/, "")}`;
+    const clean = path.replace(/^\/+/, "");
+    if (/^(shipping|groupbuy|portfolio|notices)\//i.test(clean)) {
+      return `${PAGES_ASSET_ORIGIN}/${clean}`;
+    }
+    return `/${clean}`;
   };
   const formatDate = (value) => (window.GongbangTime ? window.GongbangTime.formatDate(value) : "");
   const decodeBase64 = (value) =>
@@ -438,28 +443,15 @@
       ctx.drawImage(bmp, 0, 0, cw, ch);
       bmp.close();
 
-      // Transparent PNG/WebP must stay lossless — JPEG fills alpha with black.
-      let hasAlpha = false;
-      if (file.type === "image/png" || file.type === "image/webp") {
-        try {
-          const { data } = ctx.getImageData(0, 0, cw, ch);
-          for (let i = 3; i < data.length; i += 4) {
-            if (data[i] < 250) {
-              hasAlpha = true;
-              break;
-            }
-          }
-        } catch (_) {
-          hasAlpha = file.type === "image/png";
-        }
-      }
-
+      // Transparent PNG/WebP must stay PNG — JPEG fills alpha with black.
+      // Skip full-pixel alpha scan (slow on phones); keep source alpha formats as PNG.
+      const keepLossless = file.type === "image/png" || file.type === "image/webp";
       const base = String(file.name || "image").replace(/\.[^.]+$/, "") || "image";
-      if (hasAlpha) {
+      if (keepLossless) {
         const blob = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
         if (!blob) return file;
         // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'A',location:'landing-boards.js:compressImageFile',message:'keep png alpha',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:compressImageFile',message:'keep png fast',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         return new File([blob], `${base}.png`, { type: "image/png" });
       }
@@ -475,7 +467,7 @@
       const blob = await new Promise((resolve) => flat.toBlob((b) => resolve(b), "image/jpeg", quality));
       if (!blob) return file;
       // #region agent log
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'A',location:'landing-boards.js:compressImageFile',message:'jpeg opaque',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
+      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:compressImageFile',message:'jpeg opaque',data:{srcType:file.type,srcSize:file.size,outSize:blob.size,w:cw,h:ch},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
       return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
     } catch (_) {
@@ -664,69 +656,59 @@
       }
 
       const submitStartedAt = Date.now();
-      writer.status.textContent = type === "shipping" ? "이미지 준비 중…" : "올리는 중…";
+      writer.status.textContent = type === "shipping" ? "압축 중…" : "올리는 중…";
 
       if (type === "shipping") {
-        const batchFiles = [];
-        let cover = writer.cover.path || "";
+        const assets = [];
         if (writer.cover.file) {
-          const prepared = await prepareImageFile(type, writer.cover.file, id, "cover");
-          cover = prepared.path;
-          batchFiles.push({ path: prepared.path, content: prepared.content });
+          const prepared = await compressImageFile(writer.cover.file);
+          if (prepared.size > 8 * 1024 * 1024) {
+            throw new Error(`${writer.cover.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+          }
+          assets.push({
+            role: "cover",
+            mime: prepared.type || "image/jpeg",
+            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
+          });
+        } else {
+          throw new Error("대표 이미지를 선택해 주세요.");
         }
-        const images = [];
         for (let index = 0; index < writer.details.length; index += 1) {
           const detail = writer.details[index];
-          if (detail.file) {
-            const prepared = await prepareImageFile(type, detail.file, id, "detail", index + 1);
-            images.push(prepared.path);
-            batchFiles.push({ path: prepared.path, content: prepared.content });
-          } else if (detail.path) {
-            images.push(detail.path);
+          if (!detail.file) continue;
+          const prepared = await compressImageFile(detail.file);
+          if (prepared.size > 8 * 1024 * 1024) {
+            throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
           }
+          assets.push({
+            role: "detail",
+            index: index + 1,
+            mime: prepared.type || "image/jpeg",
+            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
+          });
         }
-        if (!cover) throw new Error("대표 이미지 업로드에 실패했습니다.");
-
-        const item = {
-          id,
-          title,
-          content,
-          cover,
-          image: cover,
-          images: images.filter((path) => path && path !== cover),
-          publishedAt,
-          updatedAt: now,
-          category,
-          origin: "admin",
-        };
 
         writer.status.textContent = "저장 중…";
-        // Public live JSON — avoid admin GET (extra git pull ~4s). Pages-git writes ignore SHA.
-        let liveItems = [];
-        try {
-          const liveRes = await fetch(`shipping-live.json?v=${Date.now()}`, { cache: "no-store" });
-          if (liveRes.ok) {
-            const livePayload = await liveRes.json();
-            liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
-          }
-        } catch (_) {
-          liveItems = [];
-        }
         // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping batch save start',data:{id,category,cover,publishedAt,imageCount:images.length,batchFileCount:batchFiles.length+1,liveCount:liveItems.length},timestamp:Date.now()})}).catch(()=>{});
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping contabo publish start',data:{id,category,publishedAt,assetCount:assets.length},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
-        const live = {
-          version: 1,
-          updatedAt: now,
-          items: [item, ...liveItems.filter((entry) => entry.id !== id)].slice(0, 300),
-        };
-        batchFiles.push({
-          path: "shipping-live.json",
-          content: textToBase64(JSON.stringify(live)),
+        const published = await api("/admin/shipping/publish", {
+          method: "PUT",
+          body: JSON.stringify({
+            item: {
+              id,
+              title,
+              content,
+              publishedAt,
+              category,
+              origin: "admin",
+            },
+            assets,
+          }),
         });
-        await putManagedBatch(batchFiles, `shipping: publish ${id}`);
+        const item = published.item;
         // #region agent log
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-fix',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping batch saved',data:{id,cover,liveCount:live.items.length,totalMs:Date.now()-submitStartedAt},timestamp:Date.now()})}).catch(()=>{});
+        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'shipping contabo publish ok',data:{id:item?.id,cover:item?.cover,liveCount:published?.liveCount,serverMs:published?.ms,totalMs:Date.now()-submitStartedAt,via:published?.via},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
 
         state.shipping = [item, ...(state.shipping || []).filter((entry) => entry.id !== id)];

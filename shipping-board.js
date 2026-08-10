@@ -5,6 +5,8 @@
   const TOKEN_KEY = "gongbang171.adminToken";
   const DATA_PATH = "shipping-data.json";
   const LIVE_PATH = "shipping-live.json";
+  const LIVE_API = `${(window.HANDMADE_API_BASE || "https://app.0-1.co.kr/api/handmade/v1").replace(/\/$/, "")}/shipping/live`;
+  const PAGES_ASSET_ORIGIN = "https://saveasme1.github.io";
   const BOARD = "shipping";
   const PAGE_SIZE = 12;
   const DEFAULT_CATEGORIES = ["C", "B", "VCA", "BO", "CM", "C&H", "CL", "G", "H", "P", "F", "ETC"];
@@ -48,7 +50,12 @@
     const path = String(value || "").trim();
     if (!path) return "";
     if (/^https?:\/\//i.test(path)) return path;
-    return `/${path.replace(/^\/+/, "")}`;
+    const clean = path.replace(/^\/+/, "");
+    // Legacy Git uploads: custom domain DNS may not point at GitHub Pages.
+    if (/^(shipping|groupbuy|portfolio|notices)\//i.test(clean)) {
+      return `${PAGES_ASSET_ORIGIN}/${clean}`;
+    }
+    return `/${clean}`;
   };
 
   const brandText = (value) => String(value || "")
@@ -557,16 +564,25 @@
   async function loadData() {
     if (els.status) els.status.textContent = "불러오는 중…";
     try {
-      const [mainRes, liveRes] = await Promise.all([
+      const [mainRes, liveApiRes, liveFileRes] = await Promise.all([
         fetch(`${DATA_PATH}?v=${Date.now()}`, { cache: "no-store" }),
+        fetch(`${LIVE_API}?v=${Date.now()}`, { cache: "no-store" }).catch(() => null),
         fetch(`${LIVE_PATH}?v=${Date.now()}`, { cache: "no-store" }).catch(() => null),
       ]);
       if (!mainRes.ok) throw new Error("최종검수 데이터를 불러오지 못했습니다.");
       const payload = await mainRes.json();
       let liveItems = [];
-      if (liveRes && liveRes.ok) {
+      if (liveApiRes && liveApiRes.ok) {
         try {
-          const livePayload = await liveRes.json();
+          const livePayload = await liveApiRes.json();
+          liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
+        } catch (_) {
+          liveItems = [];
+        }
+      }
+      if (!liveItems.length && liveFileRes && liveFileRes.ok) {
+        try {
+          const livePayload = await liveFileRes.json();
           liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
         } catch (_) {
           liveItems = [];
