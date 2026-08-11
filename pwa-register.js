@@ -1,9 +1,13 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260809-gbcal13";
-  const APP_VERSION = "v1.12.29";
-  const RELEASE_NOTES = ["Full portfolio list (no 5-item pages)"];
+  const APP_BUILD = "20260811-gbcal75";
+  const APP_VERSION = "v1.12.48";
+  const RELEASE_NOTES = [
+    "공동구매 달력 파스텔·커버 위치 복원",
+    "상세 카카오톡 문의하기 CTA",
+    "버그 수정 및 안정성 개선",
+  ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
   const FRESH_KEY = "hx.pwa.freshToastAt";
@@ -11,12 +15,17 @@
   const DIALOG_ID = "pwaUpdateDialog";
   const RECOVER_KEY = "hx.pwa.mojibakeRecover";
   const UPDATE_SNOOZE_KEY = "hx.pwa.updateSnooze";
+  const INSTALLED_BUILD_KEY = "hx.pwa.installedBuild";
+  const PROMPTED_BUILD_KEY = "hx.pwa.promptedBuild";
+  const MIN_INSTALL_BUILD = "20260809-gbcal31";
+  const REINSTALL_GATE_ID = "pwaReinstallGate";
 
   /** Only true after customer taps 「업데이트」 */
   let userApprovedUpdate = false;
   let pendingWorker = null;
   let refreshing = false;
   let updateOffered = false;
+  let promptedBuild = "";
   let remoteNotes = null;
   let pendingRemoteBuild = "";
   let updateProgressLock = false;
@@ -88,93 +97,115 @@
     document.addEventListener("DOMContentLoaded", markPwaMode);
   }
 
-  /**
-   * MO/TB PWA: bind layout to real device orientation only.
-   * Avoid viewport width/height (keyboard / chrome can fake "landscape").
-   * Debounce + sticky so micro tilts do not flip 가로/세로 layouts.
-   */
-  function bindDeviceOrientationClass() {
-    if (!isPwaMode()) return;
-    const root = document.documentElement;
-    let timer = 0;
-    let stickyLand = null;
-    let pendingLand = null;
-
-    function isMoTbShell() {
-      try {
-        if (window.matchMedia("(pointer: fine) and (hover: hover)").matches) {
-          const shortSide = Math.min(window.screen.width || 0, window.screen.height || 0);
-          if (shortSide >= 1100) return false;
-        }
-      } catch (_) {}
-      return true;
-    }
-
-    function readLandscape() {
-      try {
-        const type = String((window.screen && screen.orientation && screen.orientation.type) || "");
-        if (type.indexOf("landscape") === 0) return true;
-        if (type.indexOf("portrait") === 0) return false;
-      } catch (_) {}
-      const w = Number(window.innerWidth) || 0;
-      const h = Number(window.innerHeight) || 1;
-      const ratio = w / h;
-      if (stickyLand === true) return ratio >= 0.95;
-      if (stickyLand === false) return ratio > 1.2;
-      return ratio > 1.15;
-    }
-
-    function commit(next) {
-      stickyLand = next;
-      pendingLand = next;
-      root.classList.toggle("is-device-landscape", next);
-      root.classList.toggle("is-device-portrait", !next);
-    }
-
-    function apply(force) {
-      if (!isMoTbShell()) {
-        root.classList.remove("is-device-landscape", "is-device-portrait");
-        stickyLand = null;
-        pendingLand = null;
-        return;
-      }
-      const next = readLandscape();
-      if (force || stickyLand === null) {
-        commit(next);
-        return;
-      }
-      if (next === stickyLand) {
-        pendingLand = next;
-        return;
-      }
-      // Two agreeing samples required before flipping (stops auto flip-flop).
-      if (pendingLand === next) {
-        commit(next);
-        return;
-      }
-      pendingLand = next;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => apply(false), 280);
-    }
-
-    function schedule() {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => apply(false), 360);
-    }
-
-    apply(true);
-    window.addEventListener("orientationchange", schedule, { passive: true });
-    try {
-      if (screen.orientation && screen.orientation.addEventListener) {
-        screen.orientation.addEventListener("change", schedule);
-      }
-    } catch (_) {}
-    window.addEventListener("resize", schedule, { passive: true });
+  function compareBuild(a, b) {
+    return String(a || "").localeCompare(String(b || ""));
   }
 
-  bindDeviceOrientationClass();
+  function needsReinstallGate() {
+    if (!isPwaMode()) return false;
+    if (/install\.html/i.test(location.pathname)) return false;
+    const installed = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
+    if (!installed) return true;
+    return compareBuild(installed, MIN_INSTALL_BUILD) < 0;
+  }
+
+  function ensureReinstallGateStyles() {
+    if (document.getElementById("pwaReinstallGateStyle")) return;
+    const style = document.createElement("style");
+    style.id = "pwaReinstallGateStyle";
+    style.textContent =
+      "html.is-pwa.is-pwa-reinstall-required body{overflow:hidden!important;background:#0b0b0c!important}" +
+      "html.is-pwa.is-pwa-reinstall-required #pwaHome," +
+      "html.is-pwa.is-pwa-reinstall-required .gb-bottom-nav," +
+      "html.is-pwa.is-pwa-reinstall-required .landing," +
+      "html.is-pwa.is-pwa-reinstall-required .pwa-groupbuy," +
+      "html.is-pwa.is-pwa-reinstall-required main," +
+      "html.is-pwa.is-pwa-reinstall-required .site-nav," +
+      "html.is-pwa.is-pwa-reinstall-required .atmosphere{display:none!important}" +
+      `#${REINSTALL_GATE_ID}{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:24px;background:#0b0b0c;color:#f5f0e8;font-family:Pretendard,"Noto Sans KR",sans-serif}` +
+      `#${REINSTALL_GATE_ID} .pwa-reinstall__card{width:min(360px,100%);border-radius:22px;padding:24px 20px;border:1px solid rgba(201,166,107,.35);background:linear-gradient(180deg,#1c1b19,#141312);box-shadow:0 24px 60px rgba(0,0,0,.45)}` +
+      `#${REINSTALL_GATE_ID} h2{margin:0 0 10px;font-size:20px;font-weight:800;letter-spacing:-.03em}` +
+      `#${REINSTALL_GATE_ID} p{margin:0;color:rgba(245,240,232,.72);font-size:14px;line-height:1.6}` +
+      `#${REINSTALL_GATE_ID} ol{margin:14px 0 0;padding-left:18px;color:rgba(245,240,232,.78);font-size:13px;line-height:1.55}` +
+      `#${REINSTALL_GATE_ID} a{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:18px;border-radius:14px;background:linear-gradient(145deg,#f0d09a,#e8b86d 55%,#d4924a);color:#161513;font-size:15px;font-weight:800;text-decoration:none}` +
+      `#${REINSTALL_GATE_ID} a:active{filter:brightness(.97}`;
+    document.head.appendChild(style);
+  }
+
+  function showReinstallGate() {
+    if (!needsReinstallGate()) return false;
+    document.documentElement.classList.add("is-pwa-reinstall-required");
+    ensureReinstallGateStyles();
+    if (document.getElementById(REINSTALL_GATE_ID)) return true;
+    const installUrl = new URL("./install.html", location.href).href;
+    const gate = document.createElement("div");
+    gate.id = REINSTALL_GATE_ID;
+    gate.setAttribute("role", "dialog");
+    gate.setAttribute("aria-modal", "true");
+    gate.innerHTML =
+      '<div class="pwa-reinstall__card">' +
+      "<h2>앱 재설치가 필요합니다</h2>" +
+      "<p>세로 고정·최신 기능 적용을 위해 홈화면 아이콘을 삭제한 뒤 다시 설치해 주세요.</p>" +
+      "<ol>" +
+      "<li>홈화면 <strong>본 헤리티지</strong> 아이콘 길게 눌러 <strong>삭제</strong></li>" +
+      "<li>아래 버튼으로 설치 페이지 열기</li>" +
+      "<li>다시 <strong>홈 화면에 추가</strong></li>" +
+      "</ol>" +
+      `<a href="${installUrl}">재설치 안내 · 설치 페이지 열기</a>` +
+      "</div>";
+    (document.body || document.documentElement).appendChild(gate);
+    return true;
+  }
+
+  if (showReinstallGate()) {
+    window.__HX_PWA_REINSTALL_REQUIRED = true;
+  }
+
+  /**
+   * Same as cursorphone-relay rd38 — OS portrait lock via Screen Orientation API.
+   */
+  function lockPortraitOrientation() {
+    if (!isPwaMode()) return;
+    const root = document.documentElement;
+    root.classList.add("is-device-portrait");
+    root.classList.remove("is-device-landscape", "is-landscape-blocked", "portrait-lock-active");
+
+    function tryLock() {
+      root.classList.remove("is-device-landscape");
+      root.classList.add("is-device-portrait");
+      try {
+        const o = screen.orientation || screen.mozOrientation || screen.msOrientation;
+        if (o && typeof o.lock === "function") {
+          Promise.resolve(o.lock("portrait-primary")).catch(() => {
+            Promise.resolve(o.lock("portrait")).catch(() => {});
+          });
+        }
+      } catch (_) {}
+      try {
+        if (typeof screen.lockOrientation === "function") screen.lockOrientation("portrait-primary");
+        if (typeof screen.mozLockOrientation === "function") screen.mozLockOrientation("portrait-primary");
+        if (typeof screen.msLockOrientation === "function") screen.msLockOrientation("portrait-primary");
+      } catch (_) {}
+    }
+
+    tryLock();
+    window.addEventListener("orientationchange", () => {
+      setTimeout(tryLock, 30);
+      setTimeout(tryLock, 200);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) tryLock();
+    });
+    window.addEventListener("focus", tryLock);
+    document.addEventListener("touchstart", tryLock, { passive: true, capture: true });
+    document.addEventListener("pointerdown", tryLock, { passive: true, capture: true });
+    document.addEventListener("click", tryLock, true);
+    window.setInterval(tryLock, 1500);
+  }
+
+  lockPortraitOrientation();
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindDeviceOrientationClass);
+    document.addEventListener("DOMContentLoaded", lockPortraitOrientation);
   }
 
   function ensureAppCss() {
@@ -523,6 +554,9 @@
       localStorage.setItem(ACTIVATED_KEY, target);
       localStorage.setItem(BUILD_KEY, target);
       localStorage.removeItem(UPDATE_SNOOZE_KEY);
+      localStorage.removeItem(PROMPTED_BUILD_KEY);
+      promptedBuild = "";
+      updateOffered = false;
 
       try {
         const worker = pendingWorker;
@@ -551,24 +585,56 @@
     finish();
   }
 
-  function promptUpdateAvailable(extraNotes, force) {
-    force = true; // always force apply for this release
+  function buildRank(build) {
+    const text = String(build || "");
+    const m = text.match(/gbcal(\d+)/i);
+    if (m) return Number(m[1]) || 0;
+    return 0;
+  }
+
+  function promptUpdateAvailable(extraNotes, force = false) {
+    const targetBuild = String(pendingRemoteBuild || APP_BUILD);
+    try {
+      if (!promptedBuild) promptedBuild = localStorage.getItem(PROMPTED_BUILD_KEY) || "";
+    } catch (_) {}
+
+    if (document.getElementById(DIALOG_ID)) return;
+
+    // Same build already announced — never stack duplicate dialogs.
+    if (promptedBuild === targetBuild) {
+      try {
+        if (localStorage.getItem(UPDATE_SNOOZE_KEY)) showUpdateChip();
+      } catch (_) {}
+      return;
+    }
+
     if (updateOffered) return;
+
     if (force) {
       try {
         localStorage.removeItem(UPDATE_SNOOZE_KEY);
       } catch (_) {}
     } else {
       const snooze = Number(localStorage.getItem(UPDATE_SNOOZE_KEY) || 0);
-      if (Date.now() - snooze < 1000 * 60 * 5) return;
+      if (snooze && Date.now() - snooze < 1000 * 60 * 60 * 24) { showUpdateChip(); return; }
     }
+
     updateOffered = true;
+    promptedBuild = targetBuild;
+    try {
+      localStorage.setItem(PROMPTED_BUILD_KEY, targetBuild);
+    } catch (_) {}
+
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
+    const customerNotes = (notes || [])
+      .map((n) => String(n || "").trim())
+      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제|Contabo|Git|배포|최종검수|shipping|portfolio|공지·|바로 저장|바로 올라|운영|API|서버/i.test(n));
+
     showDialog({
       eyebrow: `UPDATE ${APP_VERSION}`,
       title: "새 버전이 있습니다",
       body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
-      notes,
+      notes: customerNotes.length ? customerNotes : ["버그 수정 및 안정성 개선"],
       secondaryLabel: "나중에",
       primaryLabel: "업데이트",
       onPrimary: applyUpdate,
@@ -595,7 +661,11 @@
         "font-family:Pretendard,SUIT,sans-serif;";
       chip.addEventListener("click", () => {
         updateOffered = false;
-        localStorage.removeItem(UPDATE_SNOOZE_KEY);
+        promptedBuild = "";
+        try {
+          localStorage.removeItem(PROMPTED_BUILD_KEY);
+          localStorage.removeItem(UPDATE_SNOOZE_KEY);
+        } catch (_) {}
         promptUpdateAvailable(RELEASE_NOTES, true);
       });
       document.documentElement.appendChild(chip);
@@ -605,10 +675,7 @@
 
   function noteBuildActivated() {
     const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-    // Running script already matches its own build marker — just stamp and exit.
-    if (!activated || activated === APP_BUILD) {
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
+    if (activated === APP_BUILD) {
       if (userApprovedUpdate) {
         showStatus("ready", "업데이트 완료 · 최신 버전입니다");
         const chip = document.getElementById("pwaUpdateChip");
@@ -616,22 +683,29 @@
       }
       return;
     }
-    // Script is newer than stored marker (update just landed) — stamp silently.
-    localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-    localStorage.setItem(BUILD_KEY, APP_BUILD);
-    if (userApprovedUpdate) {
-      showStatus("ready", "업데이트 완료 · 최신 버전입니다");
-      const chip = document.getElementById("pwaUpdateChip");
-      if (chip) chip.hidden = true;
+    if (!activated) {
+      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
+      localStorage.setItem(BUILD_KEY, APP_BUILD);
+      return;
     }
+    // Customer prompts only when app-build.json is newer (checkRemoteBuild).
+
+  }
+
+  function needsUpdatePrompt() {
+    // Customer update UI is driven only by app-build.json (checkRemoteBuild).
+    return false;
   }
 
   async function checkRemoteBuild() {
     try {
-      const url = new URL(`./app-build.20260809-gbcal13.json`, location.href);
+      const url = new URL("./app-build.json", location.href);
       url.searchParams.set("t", String(Date.now()));
       url.searchParams.set("b", APP_BUILD);
-      const res = await fetch(url.href, { cache: "no-store", headers: { Accept: "application/json" } });
+      const res = await fetch(url.href, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
@@ -639,49 +713,23 @@
       if (!remoteBuild) return;
       pendingRemoteBuild = remoteBuild;
 
-      // Already on remote build — never show update dialog again.
-      if (remoteBuild === APP_BUILD) {
+      if (buildRank(remoteBuild) <= buildRank(APP_BUILD)) {
         localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
         localStorage.setItem(BUILD_KEY, APP_BUILD);
+        try {
+          localStorage.removeItem(PROMPTED_BUILD_KEY);
+        } catch (_) {}
+        promptedBuild = "";
+        updateOffered = false;
         const chip = document.getElementById("pwaUpdateChip");
         if (chip) chip.hidden = true;
         return;
       }
-      // remote newer — hard clear + reload (no snooze dialog)
-      try { localStorage.removeItem(UPDATE_SNOOZE_KEY); } catch (_) {}
-      pendingRemoteBuild = remoteBuild;
-      remoteNotes = Array.isArray(data.notes) ? data.notes : remoteNotes;
-      userApprovedUpdate = true;
-      try {
-        if (window.caches) {
-          const ks = await caches.keys();
-          await Promise.all(ks.map((k) => caches.delete(k)));
-        }
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.unregister()));
-      } catch (_) {}
-      localStorage.setItem(ACTIVATED_KEY, remoteBuild);
-      localStorage.setItem(BUILD_KEY, remoteBuild);
-      const u = new URL(location.href);
-      u.searchParams.set("_pwa", remoteBuild);
-      location.replace(u.href);
-      return;
 
-      // Running script is behind app-build.20260809-gbcal13.json
-  // (prevents endless update loop when APP_BUILD lagged behind remote).
-  try {
-    const marked = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-    if (!marked) {
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
-    } else if (marked === APP_BUILD) {
-      /* already current for this script */
-    } else {
-      // Stale marker from older run — stamp to running script; remote check decides prompt.
-      localStorage.setItem(ACTIVATED_KEY, APP_BUILD);
-      localStorage.setItem(BUILD_KEY, APP_BUILD);
-    }
-  } catch (_) {}
+      // Only prompt when remote build is newer than the running script.
+      promptUpdateAvailable(remoteNotes || RELEASE_NOTES, false);
+    } catch (_) {}
+  }
 
   function syncOnlineState() {
     if (!navigator.onLine) showStatus("offline");
@@ -719,6 +767,7 @@
   });
 
   const register = () => {
+    if (window.__HX_PWA_REINSTALL_REQUIRED) return;
     const swUrl = new URL(`sw.js?v=${APP_BUILD}`, location.href).href;
 
     navigator.serviceWorker
@@ -755,13 +804,27 @@
         } catch (_) {}
 
         await navigator.serviceWorker.ready;
-        noteBuildActivated();
+
+        if (needsUpdatePrompt()) {
+          promptUpdateAvailable(RELEASE_NOTES, true);
+        } else {
+          noteBuildActivated();
+        }
+
         await checkRemoteBuild();
-        // Second pass — Pages CDN can lag a few seconds
+        // SW waiting worker
+        if (reg.waiting && navigator.serviceWorker.controller) {
+          pendingWorker = reg.waiting;
+          promptUpdateAvailable(RELEASE_NOTES, true);
+        }
+        // One delayed CDN catch-up only (no multi-minute spam).
         setTimeout(() => {
-          updateOffered = false;
           checkRemoteBuild();
-        }, 2500);
+          reg.update().catch(() => {});
+        }, 8000);
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) checkRemoteBuild();
+        });
       })
       .catch(() => {
         checkRemoteBuild();
