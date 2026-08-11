@@ -499,17 +499,7 @@
     grid.replaceChildren();
 
     if (!writer.details.length) {
-
-      const empty = document.createElement("p");
-
-      empty.className = "pf-writer-empty";
-
-      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
-
-      grid.append(empty);
-
       return;
-
     }
 
     writer.details.forEach((detail, index) => {
@@ -652,11 +642,11 @@
 
               <strong>추가 이미지</strong>
 
-              <span>여러 번 눌러 계속 추가</span>
+              <span>클릭하여 이미지 추가</span>
 
             </div>
 
-            <label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
 
@@ -666,7 +656,7 @@
 
         <div class="pf-writer-footer">
 
-          <p class="review-image-help" id="portfolioWriteHelp">대표 이미지는 필수입니다. 추가 이미지는 제한 없이 붙일 수 있습니다.</p>
+          <p class="review-image-help" id="portfolioWriteHelp">대표 이미지를 올려 주세요.</p>
 
           <p class="review-dialog-status" id="portfolioWriteStatus" aria-live="polite"></p>
 
@@ -916,7 +906,7 @@
 
       writer.submit.textContent = "등록하기";
 
-      writer.help.textContent = "대표 이미지는 필수입니다. 추가 이미지는 + 이미지 추가로 여러 장을 계속 붙이세요.";
+      writer.help.textContent = "대표 이미지를 올려 주세요.";
 
       form.elements.editId.value = "";
 

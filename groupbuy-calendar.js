@@ -812,13 +812,13 @@
       `</div>` +
       `</div>` +
       `<div class="pf-writer-block pf-writer-detail-block">` +
-      `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>여러 번 눌러 계속 추가</span></div>` +
-      `<label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
+      `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>클릭하여 이미지 추가</span></div>` +
+      `<label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
       `<div class="pf-writer-grid" id="gbCalWriterDetailGrid"></div>` +
       `</div>` +
       `</section>` +
       `<div class="pf-writer-footer">` +
-      `<p class="review-image-help">기간을 선택한 뒤 대표 이미지를 올려 주세요. 추가 이미지는 +로 계속 첨부하세요.</p>` +
+      `<p class="review-image-help">대표 이미지를 올려 주세요.</p>` +
       `<p class="review-dialog-status" id="gbCalWriterStatus" aria-live="polite"></p>` +
       `<div class="review-dialog-actions">` +
       `<button type="button" id="gbCalWriterCancel">취소</button>` +
@@ -917,10 +917,7 @@
 
       detailGrid.replaceChildren();
       if (!mediaState.details.length) {
-        const empty = document.createElement("p");
-        empty.className = "pf-writer-empty";
-        empty.textContent = "추가 이미지 없음 · +로 계속 추가";
-        detailGrid.append(empty);
+        detailGrid.replaceChildren();
       } else {
         mediaState.details.forEach((detail, index) => {
           const card = document.createElement("div");

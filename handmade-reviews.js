@@ -433,10 +433,6 @@
     if (!grid) return;
     grid.replaceChildren();
     if (!reviewMedia.details.length) {
-      const empty = document.createElement("p");
-      empty.className = "pf-writer-empty";
-      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
-      grid.append(empty);
       return;
     }
     reviewMedia.details.forEach((detail, index) => {
@@ -511,7 +507,7 @@
       window.GongbangHtmlEditor?.looksLikeHtml?.(review.body) ? "source" : "text"
     );
     $("reviewWriteTitle").textContent = "스냅 수정";
-    $("reviewImageHelp").textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다. ×로 삭제·+로 추가하세요.";
+    $("reviewImageHelp").textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다.";
     $("reviewWriteSubmit").textContent = "수정 저장";
     $("reviewWriteStatus").textContent = "";
     bindReviewMediaInputs(form);
@@ -529,7 +525,7 @@
     clearReviewMedia();
     form._htmlEditor?.reset?.();
     $("reviewWriteTitle").textContent = "스냅 작성";
-    $("reviewImageHelp").textContent = "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
+    $("reviewImageHelp").textContent = "대표 이미지를 올려 주세요.";
     $("reviewWriteSubmit").textContent = "등록하기";
     $("reviewWriteStatus").textContent = "";
     bindReviewMediaInputs(form);
@@ -655,14 +651,14 @@
               <div class="pf-writer-block pf-writer-detail-block">
                 <div class="pf-writer-heading">
                   <strong>추가 이미지</strong>
-                  <span>여러 번 눌러 계속 추가</span>
+                  <span>클릭하여 이미지 추가</span>
                 </div>
-                <label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+                <label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
                 <div class="pf-writer-grid" id="reviewDetailGrid"></div>
               </div>
             </section>
             <div class="pf-writer-footer">
-              <p class="review-image-help" id="reviewImageHelp">대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.</p>
+              <p class="review-image-help" id="reviewImageHelp">대표 이미지를 올려 주세요.</p>
               <p class="review-dialog-status" id="reviewWriteStatus" aria-live="polite"></p>
               <div class="review-dialog-actions">
                 <button type="button" data-close>취소</button>

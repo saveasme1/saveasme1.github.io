@@ -325,13 +325,17 @@ body.has-gb-top-brand .landing {
   color: #1a1714;
 }
 .board-inline-panel .reviews-toolbar button.primary {
-  border-color: var(--brand);
-  background: var(--brand);
+  border-color: #161513;
+  background: #161513;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -.02em;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
 }
 
 .post-new-badge {

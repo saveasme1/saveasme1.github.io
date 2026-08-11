@@ -199,21 +199,32 @@
   }
 }
 
-/* Unify write CTAs with portfolio .pf-write (ink fill) */
+/* Unify write CTAs: black ink, compact like portfolio rail */
 button.primary,
 .reviews-toolbar .primary,
 .pf-tools-actions .primary,
 .gb-cal__write.primary,
 .gb-cal__write {
-  min-height: 38px;
-  padding: 0 12px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 10px;
   border: 1px solid #161513;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #161513;
   color: #fff;
-  font: 700 12px/1 Pretendard, "Noto Sans KR", sans-serif;
+  font: 700 11px/1 Pretendard, "Noto Sans KR", sans-serif;
   cursor: pointer;
   white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .gb-cal__write.primary,
+  .gb-cal__write {
+    min-height: 30px;
+    height: 30px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
 }
 
 .gb-cal__write[hidden] {

@@ -712,10 +712,6 @@
     if (!grid) return;
     grid.replaceChildren();
     if (!writer.details.length) {
-      const empty = document.createElement("p");
-      empty.className = "pf-writer-empty";
-      empty.textContent = "추가 이미지 없음 · +로 계속 추가";
-      grid.append(empty);
       return;
     }
     writer.details.forEach((detail, index) => {
@@ -755,7 +751,7 @@
     if (writer.help) {
       writer.help.textContent = type === "shipping"
         ? "카테고리·게시일을 선택한 뒤 대표 이미지를 올려 주세요."
-        : "대표 이미지는 필수입니다. 추가 이미지는 +로 계속 첨부하세요.";
+        : "대표 이미지를 올려 주세요.";
     }
     const shippingMeta = writer.shippingMeta;
     if (shippingMeta) shippingMeta.hidden = type !== "shipping";
