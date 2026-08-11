@@ -1,6 +1,0 @@
-{
-  "build": "20260811-gbcal78",
-  "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-11T05:45:00.000Z",
-  "note": "Align shipping writer publishedAt field width"
-}

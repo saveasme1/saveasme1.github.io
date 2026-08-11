@@ -628,7 +628,7 @@ body.review-lock { overflow: hidden; }
   border-color: #ff8236;
 }
 .write-dialog form { padding: 24px 0 22px; }
-.write-dialog h2 { padding: 0 22px; }
+.write-dialog h2 { padding: 0 20px; }
 
 .board-tools-copy {
   display: none;
@@ -974,6 +974,8 @@ body.review-lock { overflow: hidden; }
   min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
+  /* Nested under shipping-meta — kill .review-dialog label 22px side margins */
+  margin: 0 !important;
 }
 .pf-writer-date input[type="datetime-local"],
 .pf-writer-shipping-meta .pf-writer-date input {

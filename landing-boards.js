@@ -61,6 +61,7 @@
     shipCatChips: $("boardShipCatChips"),
     cover: { path: "", file: null, preview: "" },
     details: [],
+    editing: null,
   };
   const writerHtmlEditor = window.GongbangHtmlEditor?.mount(writer.form?.elements.content);
 
@@ -385,17 +386,10 @@
     edit.className = "detail-action";
     edit.textContent = "수정";
     edit.addEventListener("click", () => {
-      const url = `${boards[state.currentType].adminPath}?edit=${encodeURIComponent(state.current.id)}`;
-      const width = Math.min(1120, Math.max(720, (window.screen?.availWidth || 1200) - 80));
-      const height = Math.min(920, Math.max(640, (window.screen?.availHeight || 900) - 80));
-      const left = Math.max(0, Math.round((window.screenX || 0) + ((window.outerWidth || width) - width) / 2));
-      const top = Math.max(0, Math.round((window.screenY || 0) + ((window.outerHeight || height) - height) / 2));
-      const win = window.open(
-        url,
-        `heritageAdmin${state.currentType}Edit`,
-        `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-      );
-      if (!win) window.open(url, "_blank", "noopener,noreferrer");
+      const type = state.currentType;
+      const item = state.current;
+      if (!type || !item) return;
+      openWriter(type, item);
     });
 
     const remove = document.createElement("button");
@@ -737,41 +731,89 @@
     });
   }
 
-  function openWriter(type) {
+  function openWriter(type, editItem = null) {
     if (!state.member || state.member.role !== "admin") {
       if (typeof window.showGongbangToast === "function") {
         window.showGongbangToast("글쓰기 권한이 없습니다.", { tone: "error", duration: 2600 });
       }
       return;
     }
+    const editing = editItem && typeof editItem === "object" ? editItem : null;
+    writer.editing = editing;
     writer.form.reset();
     clearWriterMedia();
     writer.form.elements.boardType.value = type;
-    writer.title.textContent = type === "shipping" ? "최종검수 작성" : "공지사항 작성";
-    if (writer.help) {
-      writer.help.textContent = type === "shipping"
-        ? "카테고리·게시일을 선택한 뒤 대표 이미지를 올려 주세요."
-        : "대표 이미지를 올려 주세요.";
+
+    const coverInput = writer.form.elements.namedItem("cover") || writer.form.querySelector('[name="cover"]');
+    const titleEl = writer.form.elements.namedItem("title") || writer.form.querySelector('[name="title"]');
+    const contentEl = writer.form.elements.namedItem("content") || writer.form.querySelector('[name="content"]');
+
+    if (editing) {
+      writer.title.textContent = type === "shipping" ? "최종검수 수정" : "공지사항 수정";
+      if (writer.submit) writer.submit.textContent = "수정하기";
+      if (writer.help) {
+        writer.help.textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다.";
+      }
+      if (titleEl) titleEl.value = editing.title || "";
+      if (contentEl) contentEl.value = editing.content || "";
+      const coverPath = String(editing.cover || editing.image || "").trim();
+      writer.cover = { path: coverPath, file: null, preview: "" };
+      if (coverInput) {
+        coverInput.required = !coverPath;
+        coverInput.value = "";
+      }
+      const rawImages = Array.isArray(editing.images) ? editing.images : [];
+      writer.details = rawImages
+        .map((entry) => {
+          if (!entry) return null;
+          if (typeof entry === "string") return { path: entry, file: null, preview: "" };
+          const path = String(entry.path || entry.url || "").trim();
+          return path ? { path, file: null, preview: "" } : null;
+        })
+        .filter(Boolean)
+        .filter((row) => row.path !== coverPath);
+    } else {
+      writer.title.textContent = type === "shipping" ? "최종검수 작성" : "공지사항 작성";
+      if (writer.submit) writer.submit.textContent = "등록하기";
+      if (writer.help) {
+        writer.help.textContent = type === "shipping"
+          ? "카테고리·게시일을 선택한 뒤 대표 이미지를 올려 주세요."
+          : "대표 이미지를 올려 주세요.";
+      }
+      if (coverInput) coverInput.required = true;
     }
+
     const shippingMeta = writer.shippingMeta;
     if (shippingMeta) shippingMeta.hidden = type !== "shipping";
     if (type === "shipping") {
       renderShippingCategoryChips();
-      setShippingCategory("ETC");
+      const cat = editing
+        ? String(editing.category || "").trim() || detectShippingCategory(editing.title, editing.content)
+        : "ETC";
+      setShippingCategory(SHIPPING_CATEGORIES.includes(cat) ? cat : "ETC");
       const publishedAtEl = writer.form.elements.namedItem("publishedAt") || writer.form.querySelector('[name="publishedAt"]');
       if (publishedAtEl) {
         publishedAtEl.required = true;
+        const iso = editing?.publishedAt || (window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString());
         publishedAtEl.value = window.GongbangTime
-          ? window.GongbangTime.toDateTimeLocal(window.GongbangTime.nowIso())
+          ? window.GongbangTime.toDateTimeLocal(iso)
           : "";
       }
     } else {
       const publishedAtEl = writer.form.elements.namedItem("publishedAt") || writer.form.querySelector('[name="publishedAt"]');
       if (publishedAtEl) publishedAtEl.required = false;
     }
+
     writer.status.textContent = "";
     writer.submit.disabled = false;
-    writerHtmlEditor?.reset?.();
+    if (editing) {
+      writerHtmlEditor?.setMode?.(
+        window.GongbangHtmlEditor?.looksLikeHtml?.(editing.content) ? "source" : "text"
+      );
+      if (contentEl) contentEl.value = editing.content || "";
+    } else {
+      writerHtmlEditor?.reset?.();
+    }
     renderWriterCover();
     renderWriterDetails();
     writer.root.classList.add("gb-write-dialog");
@@ -804,7 +846,8 @@
     }
     writer.submit.disabled = true;
     try {
-      const id = `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+      const editing = writer.editing;
+      const id = editing?.id || `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
       const now = window.GongbangTime ? window.GongbangTime.nowIso() : new Date().toISOString();
       let publishedAt = now;
       let category;
@@ -824,6 +867,7 @@
 
       writer.status.textContent = "압축 중…";
       const assets = [];
+      const keepImages = [];
       if (writer.cover.file) {
         const prepared = await compressImageFile(writer.cover.file);
         if (prepared.size > 8 * 1024 * 1024) {
@@ -839,17 +883,20 @@
       }
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
-        if (!detail.file) continue;
-        const prepared = await compressImageFile(detail.file);
-        if (prepared.size > 8 * 1024 * 1024) {
-          throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+        if (detail.file) {
+          const prepared = await compressImageFile(detail.file);
+          if (prepared.size > 8 * 1024 * 1024) {
+            throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
+          }
+          assets.push({
+            role: "detail",
+            index: index + 1,
+            mime: prepared.type || "image/jpeg",
+            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
+          });
+        } else if (detail.path) {
+          keepImages.push(detail.path);
         }
-        assets.push({
-          role: "detail",
-          index: index + 1,
-          mime: prepared.type || "image/jpeg",
-          content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
-        });
       }
 
       writer.status.textContent = "저장 중…";
@@ -860,14 +907,16 @@
         method: "PUT",
         body: JSON.stringify({
           item: {
+            ...(editing || {}),
             id,
             title,
             content,
             cover: writer.cover.path || "",
-            images: (writer.details || []).map((d) => d.path).filter(Boolean),
+            images: keepImages.filter((path) => path && path !== writer.cover.path),
             publishedAt,
             category,
-            origin: "admin",
+            origin: editing?.origin || "admin",
+            updatedAt: now,
           },
           assets,
         }),
@@ -881,17 +930,33 @@
       if (boards[type]) boards[type].page = 1;
       if (type === "shipping") {
         window.openGongbangShippingPanel?.();
-        window.prependGongbangShippingItem?.(item, { clearFilters: true });
+        window.prependGongbangShippingItem?.(item, { clearFilters: !editing });
       } else {
         renderList(type);
       }
 
+      if (editing && state.current?.id === id) {
+        state.current = item;
+        renderCarousel(item);
+        window.GongbangTime.renderPostTitle(dialog.title, item.title, item.publishedAt);
+        if (window.GongbangHtmlEditor) {
+          window.GongbangHtmlEditor.renderSafe(dialog.content, item.content || "");
+        } else {
+          dialog.content.textContent = item.content || "";
+        }
+      }
+
+      writer.editing = null;
       clearWriterMedia();
       writer.root.close();
       form.reset();
       writer.status.textContent = "";
+      if (writer.submit) writer.submit.textContent = "등록하기";
       if (typeof window.showGongbangToast === "function") {
-        window.showGongbangToast("게시글이 등록되었습니다.", { tone: "success", duration: 2200 });
+        window.showGongbangToast(
+          editing ? "게시글이 수정되었습니다." : "게시글이 등록되었습니다.",
+          { tone: "success", duration: 2200 }
+        );
       }
     } catch (error) {
       const message = error.message || String(error);
@@ -1267,7 +1332,11 @@
       window.refreshGongbangShippingBoard?.();
     }
   });
-  writer.cancel.addEventListener("click", () => writer.root.close());
+  writer.cancel.addEventListener("click", () => {
+    writer.editing = null;
+    if (writer.submit) writer.submit.textContent = "등록하기";
+    writer.root.close();
+  });
   writer.form.elements.cover?.addEventListener("change", () => {
     const file = writer.form.elements.cover.files?.[0];
     if (!file) return;

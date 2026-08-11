@@ -931,10 +931,15 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 .pf-writer-shipping-meta .pf-writer-date,
 .gb-write-dialog .pf-writer-date,
-.pf-write-dialog .pf-writer-date {
+.pf-write-dialog .pf-writer-date,
+.review-dialog .pf-writer-date {
+  display: block;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  margin: 0 !important;
+  padding: 0;
+  box-sizing: border-box;
 }
 .pf-writer-shipping-meta .pf-writer-date input,
 .gb-write-dialog .pf-writer-date input,
