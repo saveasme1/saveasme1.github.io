@@ -5,11 +5,12 @@
     /\/$/,
     ""
   );
-  const LIVE_API = `${API}/boards/groupbuy/live`;
-  const PAGES_ASSET_ORIGIN = "https://saveasme1.github.io";
   const TOKEN_KEY = "gongbang171.adminToken";
   const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
   const FONT_LINK_ID = "gb-cal-fonts";
+  const KAKAO_URL =
+    (window.GongbangBoardMeta && window.GongbangBoardMeta.KAKAO_URL) ||
+    "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
 
   function ensureFonts() {
     if (document.getElementById(FONT_LINK_ID)) return;
@@ -150,29 +151,10 @@
   async function fetchPublicItems() {
     const url = new URL("./groupbuy-data.json", location.href);
     url.searchParams.set("v", String(Date.now()));
-    const [res, liveRes] = await Promise.all([
-      fetch(url.href, { cache: "no-store", credentials: "omit" }),
-      fetch(`${LIVE_API}?v=${Date.now()}`, { cache: "no-store", credentials: "omit" }).catch(() => null),
-    ]);
+    const res = await fetch(url.href, { cache: "no-store", credentials: "omit" });
     if (!res.ok) throw new Error(`공동구매 데이터를 불러오지 못했습니다 (${res.status})`);
     const data = await res.json();
-    let liveItems = [];
-    if (liveRes && liveRes.ok) {
-      try {
-        const livePayload = await liveRes.json();
-        liveItems = Array.isArray(livePayload?.items) ? livePayload.items : [];
-      } catch (_) {
-        liveItems = [];
-      }
-    }
-    const map = new Map();
-    (Array.isArray(data.items) ? data.items : []).forEach((item) => {
-      if (item?.id) map.set(String(item.id), item);
-    });
-    liveItems.forEach((item) => {
-      if (item?.id) map.set(String(item.id), item);
-    });
-    return [...map.values()];
+    return Array.isArray(data.items) ? data.items : [];
   }
 
   async function readManaged(path, optional = false) {
@@ -207,14 +189,9 @@
 
   async function detectAdmin() {
     try {
-      const cached = window.GongbangAuth?.getMember?.() || window.getGongbangMember?.();
-      if (cached && cached.role === "admin") return cached;
-    } catch (_) {}
-    try {
-      if (window.GongbangAuth?.fetchMe) {
-        const payload = await window.GongbangAuth.fetchMe();
-        const user = payload?.member || payload?.user || null;
-        if (user && user.role === "admin") return user;
+      if (window.GongbangAuth?.me) {
+        const me = await window.GongbangAuth.me();
+        if (me && me.role === "admin") return me;
       }
     } catch (_) {}
     try {
@@ -224,19 +201,6 @@
     } catch (_) {}
     return null;
   }
-
-  function hasAuthToken() {
-    try {
-      return Boolean(sessionStorage.getItem(TOKEN_KEY));
-    } catch (_) {
-      return false;
-    }
-  }
-
-  const runtime = {
-    admin: null,
-    onSaved: null,
-  };
 
   function normalizeItem(item) {
     const start = String(item.startDate || item.start || "").slice(0, 10);
@@ -293,156 +257,25 @@
     return cells;
   }
 
-  const KAKAO_URL =
-    (window.GongbangBoardMeta && window.GongbangBoardMeta.KAKAO_URL) ||
-    "http://qr.kakao.com/talk/rOLSrSFZxCmHy7mWrkgwuNMH49w-";
-
-  // Soft pastel capsule palette — readable on light paper calendar.
+  // Date-fill capsules (solid, white day numbers).
   const EVENT_COLORS = [
-    { bg: "#B7C9DE", ink: "#243652", name: "#3d5570" },
-    { bg: "#E0B8C4", ink: "#5a3040", name: "#7a4858" },
-    { bg: "#B5D2C7", ink: "#2a4a42", name: "#3f6a5e" },
-    { bg: "#E2D2B0", ink: "#5a4a28", name: "#7a6640" },
-    { bg: "#C9BDD8", ink: "#3f3458", name: "#5a4c78" },
-    { bg: "#BCD4B4", ink: "#2f4a30", name: "#4a6a48" },
-    { bg: "#E0C4B4", ink: "#5a3c30", name: "#7a5848" },
-    { bg: "#B4CCD6", ink: "#2a4554", name: "#3f6270" },
+    { bg: "#e8873a", ink: "#fff", name: "#c45a22" },
+    { bg: "#3d5a80", ink: "#fff", name: "#2f4a6e" },
+    { bg: "#c45c6a", ink: "#fff", name: "#a34452" },
+    { bg: "#5a8f7b", ink: "#fff", name: "#3f6f5d" },
+    { bg: "#8b6b4a", ink: "#fff", name: "#6e5338" },
+    { bg: "#6b5b95", ink: "#fff", name: "#534675" },
+    { bg: "#d17a45", ink: "#fff", name: "#b05f30" },
+    { bg: "#4a7c9b", ink: "#fff", name: "#35637f" },
+    { bg: "#b85c49", ink: "#fff", name: "#944536" },
+    { bg: "#6a8f4e", ink: "#fff", name: "#517038" },
+    { bg: "#9a6b8a", ink: "#fff", name: "#7a536c" },
+    { bg: "#c9a227", ink: "#fff", name: "#9a7a12" },
+    { bg: "#5c6b8a", ink: "#fff", name: "#44526e" },
+    { bg: "#a86b4c", ink: "#fff", name: "#865338" },
+    { bg: "#4f8a8b", ink: "#fff", name: "#3a6c6d" },
+    { bg: "#8a5a5a", ink: "#fff", name: "#6e4343" },
   ];
-
-  function coverBox(coverEl) {
-    const left = Number.parseFloat(coverEl.style.left) || 0;
-    const top = Number.parseFloat(coverEl.style.top) || 0;
-    const size = Number.parseFloat(coverEl.style.width) || 0;
-    return {
-      left: left - size / 2,
-      right: left + size / 2,
-      top,
-      bottom: top + size,
-    };
-  }
-
-  function nameRect(nameEl) {
-    const left = Number.parseFloat(nameEl.style.left) || 0;
-    const top = Number.parseFloat(nameEl.style.top) || 0;
-    const width = Number.parseFloat(nameEl.style.width) || 0;
-    const height = Number.parseFloat(nameEl.style.height) || 0;
-    const pad = Number.parseFloat(nameEl.style.paddingLeft) || 0;
-    return {
-      left: left + pad,
-      right: left + width,
-      top,
-      bottom: top + height,
-      rawLeft: left,
-      width,
-      pad,
-    };
-  }
-
-  function boxesOverlap(a, b, margin = 2) {
-    return !(
-      a.right + margin < b.left ||
-      a.left - margin > b.right ||
-      a.bottom + margin < b.top ||
-      a.top - margin > b.bottom
-    );
-  }
-
-  function nameHitsForeignCover(nameEl, covers, ownKey) {
-    const box = nameRect(nameEl);
-    return covers.some((coverEl) => {
-      if ((coverEl.dataset.eventKey || "") === ownKey) return false;
-      return boxesOverlap(box, coverBox(coverEl));
-    });
-  }
-
-  function applyNameBase(nameEl) {
-    nameEl.style.left = nameEl.dataset.baseLeft || "0";
-    nameEl.style.top = nameEl.dataset.baseTop || "0";
-    nameEl.style.width = nameEl.dataset.baseWidth || "0";
-    nameEl.style.paddingLeft = nameEl.dataset.basePad || "0";
-    nameEl.style.textAlign = nameEl.dataset.baseAlign || "center";
-    nameEl.classList.remove("is-relocated");
-  }
-
-  function resolveCoverNameCollisions(namesEl, coversEl, host) {
-    const names = [...namesEl.children];
-    const covers = [...coversEl.children];
-    if (!names.length) return;
-
-    const nameH =
-      Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 10;
-    const stackGap =
-      Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 2;
-    const laneStep = nameH + stackGap + 4;
-    const maxW = namesEl.getBoundingClientRect().width || 9999;
-
-    names.forEach((nameEl) => {
-      const ownKey = nameEl.dataset.eventKey || "";
-      applyNameBase(nameEl);
-      if (!nameHitsForeignCover(nameEl, covers, ownKey)) return;
-
-      const baseLeft = Number.parseFloat(nameEl.dataset.baseLeft) || 0;
-      const baseTop = Number.parseFloat(nameEl.dataset.baseTop) || 0;
-      const baseWidth = Number.parseFloat(nameEl.dataset.baseWidth) || 0;
-      const slotW = Math.min(baseWidth, Math.max(72, baseWidth * 0.42));
-      const endLeft = Math.max(0, baseLeft + baseWidth - slotW);
-
-      const trySlot = (left, top, width, align, pad = "0") => {
-        nameEl.style.left = `${left}px`;
-        nameEl.style.top = `${top}px`;
-        nameEl.style.width = `${width}px`;
-        nameEl.style.paddingLeft = pad;
-        nameEl.style.textAlign = align;
-        return !nameHitsForeignCover(nameEl, covers, ownKey);
-      };
-
-      // 1) Bar end (right side)
-      if (trySlot(endLeft, baseTop, slotW, "right")) {
-        nameEl.classList.add("is-relocated");
-        return;
-      }
-
-      // 2) One row lower, original alignment
-      if (
-        trySlot(
-          baseLeft,
-          baseTop + laneStep,
-          baseWidth,
-          nameEl.dataset.baseAlign || "center",
-          nameEl.dataset.basePad || "0"
-        )
-      ) {
-        nameEl.classList.add("is-relocated");
-        return;
-      }
-
-      // 3) One row lower + bar end
-      if (trySlot(endLeft, baseTop + laneStep, slotW, "right")) {
-        nameEl.classList.add("is-relocated");
-        return;
-      }
-
-      // 4) Skip past blocking covers on the same row
-      let shiftLeft = baseLeft;
-      covers.forEach((coverEl) => {
-        if ((coverEl.dataset.eventKey || "") === ownKey) return;
-        const cover = coverBox(coverEl);
-        applyNameBase(nameEl);
-        if (!boxesOverlap(nameRect(nameEl), cover)) return;
-        shiftLeft = Math.max(shiftLeft, cover.right + 5);
-      });
-      const shiftedW = Math.max(40, baseLeft + baseWidth - shiftLeft);
-      if (trySlot(Math.min(shiftLeft, maxW - 40), baseTop, shiftedW, "left")) {
-        nameEl.classList.add("is-relocated");
-        return;
-      }
-
-      // 5) Skip past covers, lower row
-      if (trySlot(Math.min(shiftLeft, maxW - 40), baseTop + laneStep, shiftedW, "left")) {
-        nameEl.classList.add("is-relocated");
-      }
-    });
-  }
 
   function seededShuffle(list, seed) {
     const arr = list.slice();
@@ -573,45 +406,24 @@
     root.querySelector(".gb-cal-sheet__card").replaceChildren();
   }
 
-  async function openDetail(item) {
-    if (!runtime.admin && hasAuthToken()) {
-      runtime.admin = await detectAdmin();
-    }
+  function openDetail(item) {
     const root = createSheet();
     const card = root.querySelector(".gb-cal-sheet__card");
     const images = [item.cover, ...(item.images || [])].filter(Boolean);
     const uniq = [...new Set(images.map(String))];
     let active = 0;
-    const isAdmin = Boolean(runtime.admin);
-    const multi = uniq.length > 1;
-
-    const setActive = (next) => {
-      if (!uniq.length) return;
-      active = ((next % uniq.length) + uniq.length) % uniq.length;
-      paint();
-    };
 
     const paint = () => {
       const hero = uniq[active] || "";
-      card.className = "gb-cal-sheet__card board-detail";
       card.innerHTML =
-        `<button type="button" class="gb-cal-sheet__close board-close" aria-label="닫기">×</button>` +
-        `<div class="gb-cal-sheet__scroll board-detail-body">` +
-        `<div class="gb-cal-sheet__hero detail-images${multi ? " has-nav" : ""}" data-hero>` +
-        (multi
-          ? `<button type="button" class="gb-cal-sheet__nav prev" data-prev aria-label="이전 이미지">‹</button>`
-          : "") +
-        `<div class="gb-cal-sheet__hero-frame">` +
-        (hero ? `<img src="${assetUrl(hero)}" alt="">` : "") +
+        `<div class="gb-cal-sheet__top">` +
+        `<span class="gb-cal-sheet__badge">${formatRangeLabel(item.startDate, item.endDate)}</span>` +
+        `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
         `</div>` +
-        (multi
-          ? `<button type="button" class="gb-cal-sheet__nav next" data-next aria-label="다음 이미지">›</button>`
-          : "") +
-        (multi
-          ? `<span class="gb-cal-sheet__counter">${active + 1} / ${uniq.length}</span>`
-          : "") +
-        `</div>` +
-        (multi
+        `<div class="gb-cal-sheet__hero">${
+          hero ? `<img src="${assetUrl(hero)}" alt="">` : ""
+        }</div>` +
+        (uniq.length > 1
           ? `<div class="gb-cal-sheet__rail">${uniq
               .map(
                 (src, i) =>
@@ -620,121 +432,23 @@
               )
               .join("")}</div>`
           : "") +
-        `<div class="gb-cal-sheet__body detail-copy">` +
-        `<div class="detail-meta-row post-meta-row gb-cal-sheet__meta">` +
-        `<span class="gb-cal-sheet__badge">${formatRangeLabel(item.startDate, item.endDate)}</span>` +
-        `</div>` +
-        `<h2></h2>` +
-        `<div class="html-content gb-cal-sheet__content"><p></p></div>` +
-        `<div class="detail-actions" ${isAdmin ? "" : "hidden"}>` +
-        (isAdmin
-          ? `<button type="button" class="detail-action" data-edit>수정</button>` +
-            `<button type="button" class="detail-action danger" data-delete>삭제</button>`
-          : "") +
-        `</div>` +
-        `</div>` +
-        `</div>` +
-        `<div class="gb-cal-sheet__foot">` +
-        `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참가하기</a>` +
-        `</div>`;
-      card.querySelector("h2").textContent = item.title;
-      card.querySelector(".gb-cal-sheet__content p").textContent = item.content || "";
+        `<div class="gb-cal-sheet__body">` +
+        `<h3></h3><p></p>` +
+        `<div class="gb-cal-sheet__actions">` +
+        `<a class="gb-cal-sheet__kakao" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">카카오톡 문의하기</a>` +
+        `</div></div>`;
+      card.querySelector("h3").textContent = item.title;
+      card.querySelector("p").textContent = item.content || "";
       card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
-      card.querySelector("[data-prev]")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        setActive(active - 1);
-      });
-      card.querySelector("[data-next]")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        setActive(active + 1);
-      });
       card.querySelectorAll(".gb-cal-sheet__rail button").forEach((btn) => {
         btn.addEventListener("click", () => {
-          setActive(Number(btn.dataset.i) || 0);
+          active = Number(btn.dataset.i) || 0;
+          paint();
         });
-      });
-      const heroEl = card.querySelector("[data-hero]");
-      if (heroEl && multi) {
-        let startX = 0;
-        let startY = 0;
-        let tracking = false;
-        heroEl.addEventListener(
-          "touchstart",
-          (e) => {
-            const t = e.changedTouches[0];
-            if (!t) return;
-            startX = t.clientX;
-            startY = t.clientY;
-            tracking = true;
-          },
-          { passive: true }
-        );
-        heroEl.addEventListener(
-          "touchend",
-          (e) => {
-            if (!tracking) return;
-            tracking = false;
-            const t = e.changedTouches[0];
-            if (!t) return;
-            const dx = t.clientX - startX;
-            const dy = t.clientY - startY;
-            if (Math.abs(dx) < 42 || Math.abs(dx) < Math.abs(dy)) return;
-            setActive(dx < 0 ? active + 1 : active - 1);
-          },
-          { passive: true }
-        );
-        let pointerX = 0;
-        let dragging = false;
-        heroEl.addEventListener("pointerdown", (e) => {
-          if (e.pointerType === "touch") return;
-          if (e.target.closest("button")) return;
-          dragging = true;
-          pointerX = e.clientX;
-          heroEl.setPointerCapture?.(e.pointerId);
-        });
-        heroEl.addEventListener("pointerup", (e) => {
-          if (!dragging) return;
-          dragging = false;
-          const dx = e.clientX - pointerX;
-          if (Math.abs(dx) < 48) return;
-          setActive(dx < 0 ? active + 1 : active - 1);
-        });
-      }
-      card.querySelector("[data-edit]")?.addEventListener("click", () => {
-        closeSheet();
-        const dlg = createWriterDialog(runtime.onSaved);
-        dlg._openEdit(item);
-      });
-      card.querySelector("[data-delete]")?.addEventListener("click", async () => {
-        if (!confirm(`“${item.title}” 공동구매를 삭제할까요?`)) return;
-        const btn = card.querySelector("[data-delete]");
-        if (btn) btn.disabled = true;
-        try {
-          const items = await deleteGroupbuyItem(item.id);
-          closeSheet();
-          if (typeof runtime.onSaved === "function") runtime.onSaved(items);
-        } catch (err) {
-          alert(err.message || String(err));
-          if (btn) btn.disabled = false;
-        }
       });
     };
     paint();
     root.hidden = false;
-    // #region agent log
-    requestAnimationFrame(() => {
-      const card = root.querySelector(".gb-cal-sheet__card");
-      const r = card ? card.getBoundingClientRect() : null;
-      const cs = card ? getComputedStyle(card) : null;
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H2',location:'groupbuy-calendar.js:openDetail',message:'detail sheet computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:r?Math.round(r.width):null,rectH:r?Math.round(r.height):null,cssWidth:cs?cs.width:null,cssMaxWidth:cs?cs.maxWidth:null,cls:card?card.className:null},timestamp:Date.now()})}).catch(()=>{});
-    });
-    // #endregion
-  }
-
-  async function deleteGroupbuyItem(id) {
-    if (!id) return;
-    await api(`/admin/boards/groupbuy/${encodeURIComponent(id)}`, { method: "DELETE" });
-    return fetchPublicItems().then((items) => items.map(normalizeItem));
   }
 
   function openDayPicker(items, key) {
@@ -771,87 +485,48 @@
   }
 
   function createWriterDialog(onSaved) {
-    if (typeof onSaved === "function") runtime.onSaved = onSaved;
     let dlg = document.getElementById("gbCalWriter");
-    if (dlg && (!dlg.querySelector(".pf-writer-fields") || !dlg.querySelector(".pf-writer-gb-range") || !dlg.querySelector(".pf-writer-title"))) {
-      dlg.remove();
-      dlg = null;
-    }
     if (dlg) {
-      dlg._onSaved = runtime.onSaved;
+      dlg._onSaved = onSaved;
       return dlg;
     }
     dlg = document.createElement("dialog");
     dlg.id = "gbCalWriter";
-    dlg.className = "gb-cal-writer review-dialog write-dialog gb-write-dialog pf-write-dialog";
+    dlg.className = "gb-cal-writer";
     dlg.innerHTML =
-      `<form id="gbCalWriterForm">` +
-      `<h2 data-writer-title>공동구매 작성</h2>` +
-      `<div class="pf-writer-fields">` +
-      `<div class="gb-cal-range pf-writer-gb-range" id="gbCalRange">` +
-      `<span class="pf-writer-label">공동구매 기간</span>` +
+      `<form class="gb-cal-writer__form" id="gbCalWriterForm">` +
+      `<h2>공동구매 글쓰기</h2>` +
+      `<label>제목<input name="title" type="text" minlength="2" maxlength="160" required placeholder="예: [앵콜] 알함브라"></label>` +
+      `<label>내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="공동구매 안내를 적어 주세요"></textarea></label>` +
+      `<div class="gb-cal-range" id="gbCalRange">` +
       `<p class="gb-cal-range__hint">시작일을 탭한 뒤 종료일을 탭하세요. 같은 날이면 하루 일정입니다.</p>` +
       `<div class="gb-cal-range__meta"><b data-start>—</b><b data-end>—</b></div>` +
-      `<div class="gb-cal-range__nav">` +
+      `<div class="gb-cal-range__nav" style="display:flex;gap:8px;margin-bottom:8px">` +
       `<button type="button" data-rm="-1">‹</button>` +
-      `<strong data-rm-label></strong>` +
+      `<strong data-rm-label style="flex:1;text-align:center;font-size:14px"></strong>` +
       `<button type="button" data-rm="1">›</button>` +
       `</div>` +
       `<div class="gb-cal-range__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
       `<div class="gb-cal-range__grid" id="gbCalRangeGrid"></div>` +
       `</div>` +
-      `<label class="pf-writer-title">제목<input name="title" type="text" minlength="2" maxlength="160" required placeholder="제목을 입력해 주세요"></label>` +
-      `<label class="pf-writer-content">내용<textarea name="content" minlength="2" maxlength="20000" required placeholder="내용을 입력해 주세요"></textarea></label>` +
-      `</div>` +
-      `<section class="pf-writer-images" aria-label="이미지">` +
-      `<div class="pf-writer-block pf-writer-cover-block">` +
-      `<div class="pf-writer-heading"><strong>대표 이미지</strong><span>목록에 가장 먼저 보이는 이미지</span></div>` +
-      `<div class="pf-writer-cover-row">` +
-      `<div class="pf-writer-cover is-empty" id="gbCalWriterGallery" data-gallery>대표 이미지 없음</div>` +
-      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
-      `</div>` +
-      `</div>` +
-      `<div class="pf-writer-block pf-writer-detail-block">` +
-      `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>여러 번 눌러 계속 추가</span></div>` +
-      `<label class="pf-writer-file compact">+ 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
-      `<div class="pf-writer-grid" id="gbCalWriterDetailGrid"></div>` +
-      `</div>` +
-      `</section>` +
-      `<div class="pf-writer-footer">` +
-      `<p class="review-image-help">기간을 선택한 뒤 대표 이미지를 올려 주세요. 추가 이미지는 +로 계속 첨부하세요.</p>` +
-      `<p class="review-dialog-status" id="gbCalWriterStatus" aria-live="polite"></p>` +
-      `<div class="review-dialog-actions">` +
+      `<label>대표 이미지<input name="cover" type="file" accept="image/jpeg,image/png,image/webp" required></label>` +
+      `<label>추가 이미지<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
+      `<p class="gb-cal-writer__status" id="gbCalWriterStatus" aria-live="polite"></p>` +
+      `<div class="gb-cal-writer__actions">` +
       `<button type="button" id="gbCalWriterCancel">취소</button>` +
-      `<button type="submit" class="primary" id="gbCalWriterSubmit">등록하기</button>` +
-      `</div>` +
+      `<button type="submit" class="primary" id="gbCalWriterSubmit">등록·공개</button>` +
       `</div>` +
       `</form>`;
     document.body.appendChild(dlg);
-    dlg._onSaved = runtime.onSaved;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H4',location:'groupbuy-calendar.js:createWriterDialog',message:'writer shell created',data:{hasPf:Boolean(dlg.querySelector('.pf-writer-fields')),hasRange:Boolean(dlg.querySelector('#gbCalRange')),cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
+    dlg._onSaved = onSaved;
 
     const form = dlg.querySelector("form");
     const status = dlg.querySelector("#gbCalWriterStatus");
-    const titleEl = dlg.querySelector("[data-writer-title]");
-    const coverInput = form.elements.cover;
-    const coverLabel = dlg.querySelector("[data-cover-label]");
-    const submitBtn = dlg.querySelector("#gbCalWriterSubmit");
-    const gallery = dlg.querySelector("#gbCalWriterGallery");
-    const detailGrid = dlg.querySelector("#gbCalWriterDetailGrid");
     const rangeState = {
       year: kstParts().year,
       month: kstParts().month,
       start: "",
       end: "",
-    };
-    const mediaState = {
-      id: null,
-      cover: { path: "", file: null, preview: "" },
-      details: [],
-      publishedAt: "",
     };
 
     function syncMeta() {
@@ -863,96 +538,6 @@
         : rangeState.start
           ? "종료일 선택"
           : "—";
-    }
-
-    function clearCoverPreview() {
-      if (mediaState.cover.preview?.startsWith("blob:")) {
-        URL.revokeObjectURL(mediaState.cover.preview);
-      }
-      mediaState.cover = { path: mediaState.cover.path || "", file: null, preview: "" };
-    }
-
-    function clearDetails(keepPaths = false) {
-      mediaState.details.forEach((detail) => {
-        if (detail.preview?.startsWith("blob:")) URL.revokeObjectURL(detail.preview);
-      });
-      if (keepPaths) {
-        mediaState.details = mediaState.details
-          .filter((d) => d.path)
-          .map((d) => ({ path: d.path, file: null, preview: "" }));
-      } else {
-        mediaState.details = [];
-      }
-    }
-
-    function renderGallery() {
-      const coverUrl =
-        mediaState.cover.preview ||
-        (mediaState.cover.path ? assetUrl(mediaState.cover.path) : "");
-      gallery.replaceChildren();
-      gallery.classList.toggle("is-empty", !coverUrl);
-      gallery.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : "";
-      if (!coverUrl) {
-        gallery.textContent = "대표 이미지 없음";
-      } else {
-        gallery.textContent = "";
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "pf-writer-remove";
-        remove.setAttribute("aria-label", "대표 이미지 삭제");
-        remove.textContent = "×";
-        remove.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          if (mediaState.cover.preview?.startsWith("blob:")) {
-            URL.revokeObjectURL(mediaState.cover.preview);
-          }
-          mediaState.cover = { path: "", file: null, preview: "" };
-          coverInput.required = !mediaState.id;
-          coverInput.value = "";
-          renderGallery();
-        });
-        gallery.append(remove);
-      }
-
-      detailGrid.replaceChildren();
-      if (!mediaState.details.length) {
-        const empty = document.createElement("p");
-        empty.className = "pf-writer-empty";
-        empty.textContent = "추가 이미지 없음 · +로 계속 추가";
-        detailGrid.append(empty);
-      } else {
-        mediaState.details.forEach((detail, index) => {
-          const card = document.createElement("div");
-          card.className = "pf-writer-thumb";
-          const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
-          card.style.backgroundImage = url ? `url("${url}")` : "";
-          const order = document.createElement("span");
-          order.className = "pf-writer-order";
-          order.textContent = String(index + 1);
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.className = "pf-writer-remove";
-          remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
-          remove.textContent = "×";
-          remove.addEventListener("click", () => {
-            const [removed] = mediaState.details.splice(index, 1);
-            if (removed?.preview?.startsWith("blob:")) URL.revokeObjectURL(removed.preview);
-            renderGallery();
-          });
-          card.append(order, remove);
-          detailGrid.append(card);
-        });
-      }
-
-      // #region agent log
-      requestAnimationFrame(() => {
-        const gr = gallery.getBoundingClientRect();
-        const imgChild = gallery.querySelector("img");
-        const thumbs = detailGrid.querySelectorAll(".pf-writer-thumb").length;
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'img-preview',hypothesisId:'H6',location:'groupbuy-calendar.js:renderGallery',message:'writer media preview metrics',data:{coverUrl:Boolean(coverUrl),coverW:Math.round(gr.width),coverH:Math.round(gr.height),hasImgChild:Boolean(imgChild),imgNaturalW:imgChild?imgChild.naturalWidth:null,detailCount:mediaState.details.length,thumbCount:thumbs,bg:gallery.style.backgroundImage?gallery.style.backgroundImage.slice(0,48):''},timestamp:Date.now()})}).catch(()=>{});
-      });
-      // #endregion
     }
 
     function renderRangeGrid() {
@@ -1005,37 +590,11 @@
 
     dlg.querySelector("#gbCalWriterCancel").addEventListener("click", () => dlg.close());
 
-    coverInput.addEventListener("change", () => {
-      const file = coverInput.files?.[0];
-      if (!file) return;
-      if (mediaState.cover.preview?.startsWith("blob:")) {
-        URL.revokeObjectURL(mediaState.cover.preview);
-      }
-      mediaState.cover = {
-        path: mediaState.cover.path || "",
-        file,
-        preview: URL.createObjectURL(file),
-      };
-      coverInput.value = "";
-      coverInput.required = false;
-      renderGallery();
-    });
-
-    form.elements.images.addEventListener("change", () => {
-      const files = [...(form.elements.images.files || [])];
-      files.forEach((file) => {
-        mediaState.details.push({ path: "", file, preview: URL.createObjectURL(file) });
-      });
-      form.elements.images.value = "";
-      renderGallery();
-    });
-
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const coverFile = mediaState.cover.file;
-      const detailFiles = mediaState.details.filter((d) => d.file).map((d) => d.file);
-      const editing = Boolean(mediaState.id);
-      if (!coverFile && !mediaState.cover.path) {
+      const coverFile = form.elements.cover.files[0];
+      const detailFiles = [...form.elements.images.files];
+      if (!coverFile) {
         status.textContent = "대표 이미지가 필요합니다.";
         return;
       }
@@ -1045,165 +604,85 @@
       }
       const startDate = rangeState.start;
       const endDate = rangeState.end || rangeState.start;
-      if (mediaState.details.length > 8) {
+      if (detailFiles.length > 8) {
         status.textContent = "추가 이미지는 최대 8장까지입니다.";
         return;
       }
-      submitBtn.disabled = true;
+      const submit = dlg.querySelector("#gbCalWriterSubmit");
+      submit.disabled = true;
       try {
-        const id = editing
-          ? mediaState.id
-          : `gb-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-        const assets = [];
-        let cover = mediaState.cover.path;
-        if (coverFile) {
-          status.textContent = "대표 이미지 준비 중…";
-          if (coverFile.size > 8 * 1024 * 1024) throw new Error("8MB 이하 이미지만 업로드할 수 있습니다.");
-          assets.push({
-            role: "cover",
-            mime: coverFile.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await coverFile.arrayBuffer())),
-          });
-        }
-        const images = mediaState.details.filter((d) => d.path).map((d) => d.path);
+        const id = `gb-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+        status.textContent = "대표 이미지 업로드 중…";
+        const cover = await uploadImage(coverFile, id, "cover");
+        const images = [];
         for (let i = 0; i < detailFiles.length; i += 1) {
-          status.textContent = `추가 이미지 준비 중 ${i + 1} / ${detailFiles.length}`;
-          const file = detailFiles[i];
-          if (file.size > 8 * 1024 * 1024) throw new Error("8MB 이하 이미지만 업로드할 수 있습니다.");
-          assets.push({
-            role: "detail",
-            index: images.length + i + 1,
-            mime: file.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await file.arrayBuffer())),
-          });
+          status.textContent = `추가 이미지 업로드 중 ${i + 1} / ${detailFiles.length}`;
+          images.push(await uploadImage(detailFiles[i], id, "detail", i + 1));
         }
-        status.textContent = "저장 중…";
+        status.textContent = "공개 반영 중…";
+        const [publishedFile, draftFile] = await Promise.all([
+          readManaged("groupbuy-data.json", true),
+          readManaged("groupbuy-draft.json", true),
+        ]);
         const now = window.GongbangTime?.nowIso?.() || new Date().toISOString();
         const item = {
           id,
           title: form.elements.title.value.trim(),
           content: form.elements.content.value.trim(),
-          cover: cover || "",
-          image: cover || "",
+          cover,
+          image: cover,
           images,
           startDate,
           endDate,
-          publishedAt: editing ? mediaState.publishedAt || now : now,
+          publishedAt: now,
           updatedAt: now,
-          origin: "admin",
         };
-        const published = await api("/admin/boards/groupbuy/publish", {
-          method: "PUT",
-          body: JSON.stringify({ item, assets }),
-        });
-        const saved = published.item || item;
-        status.textContent = editing ? "수정되었습니다." : "등록되었습니다.";
+        const baseItems = publishedFile?.value?.items || [];
+        const published = {
+          version: 1,
+          publishedAt: now,
+          items: [item, ...baseItems.filter((e) => e.id !== id)],
+        };
+        const draftItems = draftFile?.value?.items || baseItems;
+        const draft = {
+          version: 1,
+          items: [item, ...draftItems.filter((e) => e.id !== id)],
+        };
+        await putManaged(
+          "groupbuy-draft.json",
+          textToBase64(JSON.stringify(draft)),
+          `groupbuy draft: create ${id}`,
+          draftFile?.sha || ""
+        );
+        await putManaged(
+          "groupbuy-data.json",
+          textToBase64(JSON.stringify(published)),
+          `groupbuy: publish ${id}`,
+          publishedFile?.sha || ""
+        );
+        status.textContent = "등록되었습니다.";
         form.reset();
         rangeState.start = "";
         rangeState.end = "";
-        mediaState.id = null;
-        if (mediaState.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(mediaState.cover.preview);
-        mediaState.details.forEach((d) => {
-          if (d.preview?.startsWith("blob:")) URL.revokeObjectURL(d.preview);
-        });
-        mediaState.cover = { path: "", file: null, preview: "" };
-        mediaState.details = [];
-        mediaState.publishedAt = "";
         dlg.close();
-        const cb = dlg._onSaved || runtime.onSaved;
-        if (typeof cb === "function") {
-          const prev = await fetchPublicItems().catch(() => []);
-          const map = new Map(prev.map((e) => [String(e.id), e]));
-          map.set(String(saved.id), saved);
-          cb([...map.values()].map(normalizeItem));
-        }
+        if (typeof dlg._onSaved === "function") dlg._onSaved(published.items.map(normalizeItem));
       } catch (err) {
         status.textContent = err.message || String(err);
       } finally {
-        submitBtn.disabled = false;
+        submit.disabled = false;
       }
     });
 
-    function prepareShell(mode) {
-      const editing = mode === "edit";
-      titleEl.textContent = editing ? "공동구매 수정" : "공동구매 작성";
-      submitBtn.textContent = editing ? "수정하기" : "등록하기";
-      const labelText = editing ? "대표 이미지 교체" : "대표 이미지 선택";
-      [...coverLabel.childNodes].forEach((node) => {
-        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-          node.textContent = labelText;
-        }
-      });
-      coverInput.required = !editing;
-      status.textContent = "";
-      form.reset();
-    }
-
     dlg._open = () => {
-      prepareShell("create");
       const t = kstParts();
       rangeState.year = t.year;
       rangeState.month = t.month;
       rangeState.start = "";
       rangeState.end = "";
-      mediaState.id = null;
-      if (mediaState.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(mediaState.cover.preview);
-      mediaState.details.forEach((d) => {
-        if (d.preview?.startsWith("blob:")) URL.revokeObjectURL(d.preview);
-      });
-      mediaState.cover = { path: "", file: null, preview: "" };
-      mediaState.details = [];
-      mediaState.publishedAt = "";
-      renderGallery();
+      status.textContent = "";
+      form.reset();
       renderRangeGrid();
       if (!dlg.open) dlg.showModal();
-      // #region agent log
-      requestAnimationFrame(() => {
-        const r = dlg.getBoundingClientRect();
-        const cs = getComputedStyle(dlg);
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'groupbuy-calendar.js:_open',message:'writer open computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:Math.round(r.width),rectH:Math.round(r.height),cssWidth:cs.width,cssMaxWidth:cs.maxWidth,cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
-      });
-      // #endregion
-    };
-
-    dlg._openEdit = (item) => {
-      const normalized = normalizeItem(item);
-      prepareShell("edit");
-      form.elements.title.value = normalized.title;
-      form.elements.content.value = normalized.content;
-      mediaState.id = normalized.id;
-      if (mediaState.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(mediaState.cover.preview);
-      mediaState.details.forEach((d) => {
-        if (d.preview?.startsWith("blob:")) URL.revokeObjectURL(d.preview);
-      });
-      mediaState.cover = {
-        path: normalized.cover || "",
-        file: null,
-        preview: "",
-      };
-      mediaState.details = [...(normalized.images || [])]
-        .filter((path) => path && path !== mediaState.cover.path)
-        .map((path) => ({ path, file: null, preview: "" }));
-      mediaState.publishedAt = normalized.publishedAt || "";
-      rangeState.start = normalized.startDate;
-      rangeState.end =
-        normalized.endDate && normalized.endDate !== normalized.startDate
-          ? normalized.endDate
-          : "";
-      const startParts = parseKey(normalized.startDate) || kstParts();
-      rangeState.year = startParts.year;
-      rangeState.month = startParts.month;
-      coverInput.required = !mediaState.cover.path;
-      renderGallery();
-      renderRangeGrid();
-      if (!dlg.open) dlg.showModal();
-      // #region agent log
-      requestAnimationFrame(() => {
-        const r = dlg.getBoundingClientRect();
-        const cs = getComputedStyle(dlg);
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'ui-layout',hypothesisId:'H1',location:'groupbuy-calendar.js:_openEdit',message:'writer edit computed size',data:{vw:window.innerWidth,vh:window.innerHeight,rectW:Math.round(r.width),rectH:Math.round(r.height),cssWidth:cs.width,cssMaxWidth:cs.maxWidth,cls:dlg.className},timestamp:Date.now()})}).catch(()=>{});
-      });
-      // #endregion
     };
 
     return dlg;
@@ -1225,7 +704,7 @@
     host.innerHTML =
       `<div class="gb-cal__head">` +
       `<div class="gb-cal__title-wrap">` +
-      (options.hideEyebrow ? "" : `<p class="gb-cal__eyebrow">공동구매</p>`) +
+      `<p class="gb-cal__eyebrow">공동구매</p>` +
       `<h2 class="gb-cal__title"><span data-ym></span></h2>` +
       `</div>` +
       `<div class="gb-cal__tools">` +
@@ -1233,7 +712,7 @@
       `<button type="button" data-nav="-1" aria-label="이전 달">◀</button>` +
       `<button type="button" data-nav="1" aria-label="다음 달">▶</button>` +
       `</div>` +
-      `<button type="button" class="gb-cal__write primary" data-write hidden>글 작성하기</button>` +
+      `<button type="button" class="gb-cal__write" data-write hidden>글쓰기</button>` +
       `</div></div>` +
       `<div class="gb-cal__rule"></div>` +
       `<div class="gb-cal__week">${WEEKDAYS.map((d) => `<span>${d}</span>`).join("")}</div>` +
@@ -1248,7 +727,6 @@
     const barsEl = host.querySelector("[data-bars]");
     const coversEl = host.querySelector("[data-covers]");
     const namesEl = host.querySelector("[data-names]");
-    const gridWrap = host.querySelector(".gb-cal__grid-wrap");
     const ymEl = host.querySelector("[data-ym]");
     const writeBtn = host.querySelector("[data-write]");
 
@@ -1290,29 +768,19 @@
         const dayBtns = [...gridEl.children];
         if (!dayBtns.length) return;
         const barH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-h")) || 20;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-h")) || 30;
         const nameH =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 11;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-name-h")) || 14;
         const thumbSize =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 36;
-        const stackGap =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-stack-gap")) || 3;
-        const dateGap =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-date-gap")) || 3;
-        const eventStack =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-event-stack")) ||
-          barH + nameH + stackGap + 2;
-        const capPeek =
-          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-cap-peek")) || 10;
+          Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-thumb")) || 63;
         const indexOf = new Map(cells.map((c, i) => [c.key, i]));
         const segs = labelSegments(state.items, cells);
         const filledDays = new Set();
-        if (gridWrap) gridWrap.classList.toggle("has-events", segs.length > 0);
 
+        // Bar tops by start date (for cover straddle).
         const barTopByStart = new Map();
-        const coverLane = new Map();
 
-        // 1) Capsule behind date numbers + product name below.
+        // 1) Paint capsules ON the date numbers.
         segs.forEach((seg) => {
           const startBtn = dayBtns[seg.startIdx];
           const endBtn = dayBtns[seg.endIdx];
@@ -1326,28 +794,18 @@
           bar.className = "gb-cal__bar";
           if (seg.roundLeft) bar.classList.add("is-round-left");
           if (seg.roundRight) bar.classList.add("is-round-right");
-          if (seg.roundLeft && seg.roundRight) bar.classList.add("is-solo");
           bar.style.background = color.bg;
-          const padX = 1;
-          const cellLeft = sr.left - gridRect.left + padX;
-          let left = cellLeft;
-          let width = er.right - sr.left - padX * 2;
-          let coverSize = 0;
-          if (seg.roundLeft && seg.item.cover) {
-            coverSize = Math.min(thumbSize, 48);
-            const peek = Math.min(capPeek, 6);
-            left = cellLeft - peek;
-            width = er.right - gridRect.left - left - padX;
-          }
-          const laneStep = barH + nameH + stackGap + 4;
+          const padX = 2;
+          const left = sr.left - gridRect.left + padX;
+          const width = er.right - sr.left - padX * 2;
           const top =
             numRect.top -
             gridRect.top +
             (numRect.height - barH) / 2 +
-            seg.lane * laneStep;
-          bar.style.left = `${left}px`;
+            seg.lane * (barH + 3);
+          bar.style.left = `${Math.max(0, left)}px`;
           bar.style.width = `${Math.max(barH, width)}px`;
-          bar.style.top = `${top}px`;
+          bar.style.top = `${Math.max(0, top)}px`;
           bar.style.height = `${barH}px`;
           barsEl.append(bar);
 
@@ -1358,40 +816,48 @@
           if (seg.roundLeft) {
             barTopByStart.set(seg.item.startDate, {
               top,
-              left,
-              width,
-              barH,
-              coverSize,
-              startIdx: seg.startIdx,
+              startLeft: sr.left - gridRect.left,
+              startWidth: sr.width,
+              barLeft: left,
+              barWidth: width,
             });
           }
 
+          // Product name once at event start — never covers date numbers.
           if (!seg.roundLeft) return;
           const name = document.createElement("div");
           name.className = "gb-cal__name";
-          name.dataset.eventKey = eventKey(seg.item);
           name.textContent = seg.label;
           name.style.color = color.name || color.bg;
-          const nameLeft = Math.max(0, left);
-          const nameWidth = Math.max(32, width);
-          const nameTop = top + barH + stackGap;
-          name.style.left = `${nameLeft}px`;
+          const barRight = left + width;
+          // Cover sits between start day and next day (see below).
+          const betweenX = (() => {
+            const nextBtn = dayBtns[seg.startIdx + 1];
+            if (
+              nextBtn &&
+              Math.floor(seg.startIdx / 7) === Math.floor((seg.startIdx + 1) / 7)
+            ) {
+              const nr = nextBtn.getBoundingClientRect();
+              return (sr.right + nr.left) / 2 - gridRect.left;
+            }
+            return sr.right - gridRect.left - 2;
+          })();
+          let nameLeft = left + 4;
+          let nameTop = top + barH + 2;
+          let nameWidth = Math.max(40, width - 8);
+          if (seg.item.cover) {
+            nameLeft = betweenX + thumbSize / 2 + 6;
+            nameWidth = Math.max(28, barRight - nameLeft);
+            if (nameWidth < 52) {
+              nameLeft = left + 4;
+              nameWidth = Math.max(40, width - 8);
+              nameTop = top + barH + thumbSize * 0.7;
+            }
+          }
+          name.style.left = `${Math.max(0, nameLeft)}px`;
           name.style.width = `${nameWidth}px`;
           name.style.top = `${nameTop}px`;
           name.style.height = `${nameH}px`;
-          name.dataset.baseLeft = String(nameLeft);
-          name.dataset.baseTop = String(nameTop);
-          name.dataset.baseWidth = String(nameWidth);
-          name.dataset.basePad = "0";
-          name.dataset.baseAlign = "center";
-          if (seg.item.cover && coverSize) {
-            const namePad = Math.min(Math.round(coverSize * 0.45), Math.max(18, width * 0.34));
-            name.style.paddingLeft = `${namePad}px`;
-            name.style.textAlign = "left";
-            name.style.boxSizing = "border-box";
-            name.dataset.basePad = String(namePad);
-            name.dataset.baseAlign = "left";
-          }
           namesEl.append(name);
         });
 
@@ -1400,7 +866,8 @@
           if (num) num.classList.add("is-filled");
         });
 
-        // 2) Cover in gutter before start day; kept above name row.
+        // 2) Cover between start date and next date — below capsule, never over numbers.
+        const coverLane = new Map();
         state.items.forEach((it) => {
           if (!it.cover) return;
           const idx = indexOf.get(it.startDate);
@@ -1408,56 +875,41 @@
           const dayBtn = dayBtns[idx];
           const cell = cells[idx];
           if (!dayBtn || !cell || cell.out) return;
-          const stack = coverLane.get(it.startDate) || 0;
-          coverLane.set(it.startDate, stack + 1);
-          const anchor = barTopByStart.get(it.startDate);
-          if (!anchor) return;
-          const size = anchor.coverSize || Math.min(thumbSize, 48);
-          const barCross =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-bar-cross")) || 0.4;
-          const gutterBias =
-            Number.parseFloat(getComputedStyle(host).getPropertyValue("--gb-gutter-bias")) || 0.68;
+          const stack = coverLane.get(idx) || 0;
+          coverLane.set(idx, stack + 1);
           const br = dayBtn.getBoundingClientRect();
-          const prevBtn = dayBtns[idx - 1];
+          const anchor = barTopByStart.get(it.startDate);
+          const barTop =
+            anchor?.top ??
+            (() => {
+              const numEl = dayBtn.querySelector(".gb-cal__num");
+              const numRect = numEl ? numEl.getBoundingClientRect() : br;
+              return numRect.top - gridRect.top + (numRect.height - barH) / 2;
+            })();
+          const nextBtn = dayBtns[idx + 1];
           let coverX;
-          if (prevBtn && Math.floor(idx / 7) === Math.floor((idx - 1) / 7)) {
-            const pr = prevBtn.getBoundingClientRect();
-            const g0 = pr.right - gridRect.left;
-            const g1 = br.left - gridRect.left;
-            coverX = g0 + (g1 - g0) * gutterBias;
+          if (nextBtn && Math.floor(idx / 7) === Math.floor((idx + 1) / 7)) {
+            const nr = nextBtn.getBoundingClientRect();
+            coverX = (br.right + nr.left) / 2 - gridRect.left;
           } else {
-            coverX = br.left - gridRect.left - size * 0.12;
+            coverX = br.right - gridRect.left - 2;
           }
-          coverX -= stack * 6;
-          const half = size / 2;
-          const minX = half + 2;
-          const maxX = Math.max(minX, gridRect.width - half - 2);
-          const clampedX = Math.min(maxX, Math.max(minX, coverX));
-          const top = anchor.top - size * (1 - barCross) + stack * 8;
+          coverX += stack * 8;
           const cover = document.createElement("div");
           cover.className = "gb-cal__cover";
-          cover.dataset.eventKey = eventKey(it);
-          const ring = colorMap.get(eventKey(it)) || EVENT_COLORS[0];
-          cover.style.setProperty("--gb-cover-ring", ring.bg);
-          cover.style.borderColor = ring.bg;
           const img = document.createElement("img");
           img.src = assetUrl(it.cover);
           img.alt = it.title || "";
           img.loading = "lazy";
           cover.append(img);
-          cover.style.left = `${clampedX}px`;
-          cover.style.top = `${Math.max(0, top)}px`;
-          cover.style.width = `${size}px`;
-          cover.style.height = `${size}px`;
+          // Slightly tuck under capsule bottom; stay clear of date numbers.
+          const top = barTop + barH - thumbSize * 0.12 + stack * 8;
+          cover.style.left = `${coverX}px`;
+          cover.style.top = `${top}px`;
+          cover.style.width = `${thumbSize}px`;
+          cover.style.height = `${thumbSize}px`;
           coversEl.append(cover);
-          // #region agent log
-          if (Math.abs(clampedX - coverX) > 0.5 || clampedX <= minX + 0.5) {
-            fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'cal-layout',hypothesisId:'H7',location:'groupbuy-calendar.js:coverClamp',message:'cover position clamped',data:{title:String(it.title||'').slice(0,40),coverX:Math.round(coverX),clampedX:Math.round(clampedX),size:Math.round(size),gridW:Math.round(gridRect.width),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
-          }
-          // #endregion
         });
-
-        resolveCoverNameCollisions(namesEl, coversEl, host);
       });
     }
 
@@ -1471,7 +923,7 @@
     });
 
     writeBtn.addEventListener("click", () => {
-      if (!state.admin && !hasAuthToken()) return;
+      if (!state.admin) return;
       const dlg = createWriterDialog((items) => {
         state.items = items;
         setStatus(`공동구매 ${state.items.length}건`);
@@ -1484,9 +936,7 @@
       setStatus("불러오는 중…");
       try {
         state.items = (await fetchPublicItems()).map(normalizeItem);
-        setStatus(
-          state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다."
-        );
+        setStatus(state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다.");
         render();
       } catch (err) {
         setStatus(err.message || "불러오기 실패");
@@ -1494,31 +944,10 @@
       }
     }
 
-    function applyAdmin(admin) {
-      state.admin = admin;
-      runtime.admin = admin;
-      writeBtn.hidden = !admin;
-    }
-
-    // Show write CTA immediately when a session token exists (confirm via /auth/me).
-    if (hasAuthToken()) writeBtn.hidden = false;
-
     detectAdmin().then((admin) => {
-      applyAdmin(admin);
+      state.admin = admin;
+      writeBtn.hidden = !admin;
     });
-
-    window.addEventListener("gongbang:auth-changed", (event) => {
-      const member = event.detail?.member || event.detail?.user || null;
-      if (member && member.role === "admin") applyAdmin(member);
-      else if (!hasAuthToken()) applyAdmin(null);
-      else detectAdmin().then(applyAdmin);
-    });
-
-    runtime.onSaved = (items) => {
-      state.items = items;
-      setStatus(state.items.length ? `공동구매 ${state.items.length}건` : "등록된 공동구매가 없습니다.");
-      render();
-    };
 
     if (options.year && options.month) {
       state.year = options.year;
@@ -1539,11 +968,6 @@
 
   window.GroupbuyCalendar = {
     mount,
-    openWriter(onSaved) {
-      const dlg = createWriterDialog(onSaved);
-      dlg._open();
-      return dlg;
-    },
     refreshAll() {
       document.querySelectorAll("[data-gb-cal-root]").forEach((el) => {
         if (el._gbCal) el._gbCal.refresh();

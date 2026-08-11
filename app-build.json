@@ -1,10 +1,3 @@
-﻿{
-  "build": "20260811-gbcal74",
-  "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-10T17:15:00.000Z",
-  "note": "Dedicated notice-view.html page",
-  "notes": [
-    "공지 글보기: notice-view.html 전용 페이지 이동",
-    "목록(notices.html)과 완전 분리"
-  ]
+{
+  "build": "20260809-gbcal13"
 }
