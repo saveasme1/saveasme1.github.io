@@ -1314,10 +1314,73 @@ body.has-gb-bottom-nav .toast-stack {
   margin-bottom: 8px;
 }
 .ship-cal__title {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: -.02em;
+  cursor: pointer;
+  text-align: left;
 }
+.ship-cal__title:hover,
+.ship-cal__title:focus-visible {
+  color: #ff8236;
+}
+.ship-cal__title:focus-visible {
+  outline: 2px solid rgba(255, 130, 54, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.ship-cal__months {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 4px;
+}
+.ship-cal__month {
+  min-height: 34px;
+  border: 1px solid rgba(22, 21, 19, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  color: #2a2724;
+  font: 750 11px/1 Pretendard, SUIT, sans-serif;
+  cursor: pointer;
+}
+.ship-cal__month.is-current {
+  border-color: rgba(255, 130, 54, 0.55);
+  color: #ff8236;
+}
+.ship-cal__month.is-active {
+  border-color: #161513;
+  background: #161513;
+  color: #fff;
+}
+.ship-cal__year {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ship-cal__year-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(22, 21, 19, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #2a2724;
+  font: 800 14px/1 Pretendard, SUIT, sans-serif;
+  cursor: pointer;
+}
+.ship-cal__year-label {
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .ship-cal__clear {
   min-height: 24px;
   padding: 0 8px;
@@ -1345,7 +1408,7 @@ body.has-gb-bottom-nav .toast-stack {
 .ship-cal__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 2px;
+  gap: 4px;
 }
 .ship-cal__day {
   position: relative;
@@ -1360,17 +1423,26 @@ body.has-gb-bottom-nav .toast-stack {
   color: #2a2724;
   font: 700 11px/1 Pretendard, SUIT, sans-serif;
   cursor: pointer;
+  outline: none;
+  box-shadow: none;
 }
 .ship-cal__day:disabled {
   opacity: .28;
   cursor: default;
 }
 .ship-cal__day.is-today {
-  box-shadow: inset 0 0 0 1px rgba(255, 130, 54, 0.55);
+  /* inset ring so adjacent selected cell never shares an edge */
+  outline: 1.5px solid rgba(255, 130, 54, 0.72);
+  outline-offset: -3px;
 }
 .ship-cal__day.is-selected {
   background: #161513;
   color: #fff;
+  outline: none;
+}
+.ship-cal__day.is-selected.is-today {
+  outline: 1.5px solid rgba(255, 176, 112, 0.95);
+  outline-offset: -3px;
 }
 .ship-cal__day.is-sat { color: #ff8236; }
 .ship-cal__day.is-sun,
@@ -1429,6 +1501,12 @@ body.has-gb-bottom-nav .toast-stack {
   font: 750 10px/1 SUIT, Pretendard, sans-serif;
   letter-spacing: .08em;
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.ship-date-month:focus-visible {
+  outline: 2px solid rgba(255, 130, 54, 0.45);
+  outline-offset: 2px;
 }
 .ship-date-month::before {
   content: "";
@@ -1553,6 +1631,10 @@ body.has-gb-bottom-nav .toast-stack {
   }
   .shipping-inline .ship-cal {
     display: none !important;
+  }
+  .shipping-inline .ship-cal.is-month-pick {
+    display: block !important;
+    margin-top: 8px;
   }
   .shipping-inline .pf-rail {
     overflow: visible !important;

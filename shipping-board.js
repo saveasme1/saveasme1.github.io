@@ -44,7 +44,37 @@
     holidays: new Set(),
     holidayNames: {},
     anchorDate: null,
+    viewY: null,
+    viewM: null,
+    pickingMonth: false,
+    pickerY: null,
   };
+
+  function ensureViewMonth() {
+    if (state.viewY && state.viewM) return;
+    const today = kstParts();
+    state.viewY = today.y;
+    state.viewM = today.m;
+  }
+
+  function toggleMonthPicker() {
+    ensureViewMonth();
+    state.pickingMonth = !state.pickingMonth;
+    state.pickerY = state.pickingMonth ? state.viewY : null;
+    renderCalendar();
+    renderDateStrip();
+  }
+
+  function setViewMonth(y, m) {
+    state.viewY = y;
+    state.viewM = m;
+    state.pickingMonth = false;
+    state.pickerY = null;
+    state.page = 1;
+    renderCalendar();
+    renderDateStrip();
+    renderList();
+  }
 
   const assetUrl = (value) => {
     const path = String(value || "").trim();
@@ -384,6 +414,15 @@
 
   function setSelectedDate(key) {
     state.selectedDate = state.selectedDate === key ? "" : key;
+    if (state.selectedDate) {
+      const [y, m] = state.selectedDate.split("-").map(Number);
+      if (y && m) {
+        state.viewY = y;
+        state.viewM = m;
+      }
+    }
+    state.pickingMonth = false;
+    state.pickerY = null;
     state.page = 1;
     renderCalendar();
     renderDateStrip();
@@ -392,26 +431,40 @@
 
   function renderCalendar() {
     if (!els.cal) return;
+    ensureViewMonth();
     const today = kstParts();
-    const y = today.y;
-    const m = today.m;
-    const firstWeekday = weekdayIndex(`${y}-${String(m).padStart(2, "0")}-01`);
-    const weekMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-    const offset = weekMap[firstWeekday] ?? 0;
-    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const y = state.viewY;
+    const m = state.viewM;
     const postMap = postsByDateKey();
 
     els.cal.replaceChildren();
+    els.cal.classList.toggle("is-month-pick", Boolean(state.pickingMonth));
+
     const head = document.createElement("div");
     head.className = "ship-cal__head";
-    const title = document.createElement("strong");
+    const title = document.createElement("button");
+    title.type = "button";
     title.className = "ship-cal__title";
-    title.textContent = `${y}년 ${m}월`;
+    title.textContent = state.pickingMonth
+      ? `${state.pickerY || y}년 월 선택`
+      : `${y}년 ${m}월`;
+    title.setAttribute("aria-expanded", state.pickingMonth ? "true" : "false");
+    title.setAttribute("aria-label", "월 선택");
+    title.addEventListener("click", () => toggleMonthPicker());
     const clear = document.createElement("button");
     clear.type = "button";
     clear.className = "ship-cal__clear";
-    clear.textContent = state.selectedDate ? "날짜 해제" : "전체";
+    clear.textContent = state.pickingMonth
+      ? "닫기"
+      : (state.selectedDate ? "날짜 해제" : "전체");
     clear.addEventListener("click", () => {
+      if (state.pickingMonth) {
+        state.pickingMonth = false;
+        state.pickerY = null;
+        renderCalendar();
+        renderDateStrip();
+        return;
+      }
       state.selectedDate = "";
       state.page = 1;
       renderCalendar();
@@ -419,6 +472,57 @@
       renderList();
     });
     head.append(title, clear);
+
+    if (state.pickingMonth) {
+      const pickerY = state.pickerY || y;
+      const yearRow = document.createElement("div");
+      yearRow.className = "ship-cal__year";
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "ship-cal__year-btn";
+      prev.setAttribute("aria-label", "이전 해");
+      prev.textContent = "‹";
+      prev.addEventListener("click", () => {
+        state.pickerY = pickerY - 1;
+        renderCalendar();
+      });
+      const label = document.createElement("strong");
+      label.className = "ship-cal__year-label";
+      label.textContent = `${pickerY}년`;
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "ship-cal__year-btn";
+      next.setAttribute("aria-label", "다음 해");
+      next.textContent = "›";
+      next.addEventListener("click", () => {
+        state.pickerY = pickerY + 1;
+        renderCalendar();
+      });
+      yearRow.append(prev, label, next);
+
+      const months = document.createElement("div");
+      months.className = "ship-cal__months";
+      months.setAttribute("role", "listbox");
+      months.setAttribute("aria-label", "월 선택");
+      for (let month = 1; month <= 12; month += 1) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ship-cal__month";
+        btn.textContent = `${month}월`;
+        btn.setAttribute("role", "option");
+        if (pickerY === today.y && month === today.m) btn.classList.add("is-current");
+        if (pickerY === state.viewY && month === state.viewM) btn.classList.add("is-active");
+        btn.addEventListener("click", () => setViewMonth(pickerY, month));
+        months.append(btn);
+      }
+      els.cal.append(head, yearRow, months);
+      return;
+    }
+
+    const firstWeekday = weekdayIndex(`${y}-${String(m).padStart(2, "0")}-01`);
+    const weekMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    const offset = weekMap[firstWeekday] ?? 0;
+    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
 
     const week = document.createElement("div");
     week.className = "ship-cal__week";
@@ -463,18 +567,41 @@
 
   function renderDateStrip() {
     if (!els.strip) return;
+    ensureViewMonth();
     const today = kstParts();
     const postMap = postsByDateKey();
     els.strip.replaceChildren();
 
-    const month = document.createElement("span");
+    const month = document.createElement("button");
+    month.type = "button";
     month.className = "ship-date-month";
-    month.textContent = `${today.m}월`;
-    month.setAttribute("aria-hidden", "true");
+    month.textContent = `${state.viewM}월`;
+    month.setAttribute("aria-label", `${state.viewY}년 ${state.viewM}월 선택`);
+    month.setAttribute("aria-expanded", state.pickingMonth ? "true" : "false");
+    month.addEventListener("click", () => toggleMonthPicker());
     els.strip.append(month);
 
-    for (let delta = -3; delta <= 5; delta += 1) {
-      const key = addDaysKey(today.key, delta);
+    if (state.pickingMonth) {
+      return;
+    }
+
+    const y = state.viewY;
+    const m = state.viewM;
+    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const sameMonthAsToday = y === today.y && m === today.m;
+
+    const keys = [];
+    if (sameMonthAsToday) {
+      for (let delta = -3; delta <= 5; delta += 1) {
+        keys.push(addDaysKey(today.key, delta));
+      }
+    } else {
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        keys.push(`${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+      }
+    }
+
+    keys.forEach((key) => {
       const wd = weekdayIndex(key);
       const dayNum = Number(key.slice(-2));
       const chip = document.createElement("button");
@@ -502,7 +629,7 @@
       chip.append(mark, strong);
       chip.addEventListener("click", () => setSelectedDate(key));
       els.strip.append(chip);
-    }
+    });
   }
 
   async function loadHolidays() {
