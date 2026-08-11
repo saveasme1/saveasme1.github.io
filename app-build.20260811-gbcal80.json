@@ -1,6 +1,0 @@
-{
-  "build": "20260811-gbcal80",
-  "minInstallBuild": "20260809-gbcal31",
-  "deployedAt": "2026-08-11T07:02:54.000Z",
-  "note": "Ship calendar today-border gap + month picker"
-}

@@ -68,12 +68,14 @@
   function setViewMonth(y, m) {
     state.viewY = y;
     state.viewM = m;
+    state.selectedDate = "";
     state.pickingMonth = false;
     state.pickerY = null;
     state.page = 1;
     renderCalendar();
     renderDateStrip();
     renderList();
+    scrollToFirstCard();
   }
 
   const assetUrl = (value) => {
@@ -207,10 +209,17 @@
   }
 
   function filteredItems() {
+    ensureViewMonth();
     const query = (els.search?.value || "").trim().toLowerCase();
+    const monthPrefix = `${state.viewY}-${String(state.viewM).padStart(2, "0")}`;
     return state.items.filter((item) => {
       if (state.category !== "ALL" && item.category !== state.category) return false;
-      if (state.selectedDate && dateKeyFromIso(item.publishedAt) !== state.selectedDate) return false;
+      const key = dateKeyFromIso(item.publishedAt);
+      if (state.selectedDate) {
+        if (key !== state.selectedDate) return false;
+      } else if (!key.startsWith(monthPrefix)) {
+        return false;
+      }
       if (!query) return true;
       const hay = `${item.title || ""} ${item.content || ""} ${item.category || ""}`.toLowerCase();
       return hay.includes(query);
@@ -348,18 +357,17 @@
     const filtered = filteredItems();
     const pageItems = filtered.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
     const query = (els.search?.value || "").trim();
-    const label = query || state.category !== "ALL" || state.selectedDate
-      ? `${filtered.length.toLocaleString("ko-KR")} posts`
-      : `${state.items.length.toLocaleString("ko-KR")} posts`;
+    ensureViewMonth();
+    const monthLabel = `${state.viewY}년 ${state.viewM}월`;
+    const label = `${filtered.length.toLocaleString("ko-KR")} posts`;
     if (els.count) els.count.textContent = label;
     if (els.status) {
-      const bits = [];
+      const bits = [monthLabel];
       if (state.selectedDate) bits.push(state.selectedDate);
       if (state.category !== "ALL") bits.push(state.category);
       if (query) bits.push(`“${query}”`);
-      els.status.textContent = bits.length
-        ? `필터 ${bits.join(" · ")} · ${filtered.length.toLocaleString("ko-KR")}개`
-        : `전체 ${state.items.length.toLocaleString("ko-KR")}개 · 사진을 눌러 상세를 확인하세요`;
+      els.status.textContent =
+        `${bits.join(" · ")} · ${filtered.length.toLocaleString("ko-KR")}개 · 사진을 눌러 상세를 확인하세요`;
     }
     renderPager(filtered.length);
     els.grid.replaceChildren();
@@ -456,7 +464,7 @@
     clear.className = "ship-cal__clear";
     clear.textContent = state.pickingMonth
       ? "닫기"
-      : (state.selectedDate ? "날짜 해제" : "전체");
+      : (state.selectedDate ? "날짜 해제" : "이달로");
     clear.addEventListener("click", () => {
       if (state.pickingMonth) {
         state.pickingMonth = false;
@@ -465,7 +473,13 @@
         renderDateStrip();
         return;
       }
-      state.selectedDate = "";
+      if (state.selectedDate) {
+        state.selectedDate = "";
+      } else {
+        const today = kstParts();
+        state.viewY = today.y;
+        state.viewM = today.m;
+      }
       state.page = 1;
       renderCalendar();
       renderDateStrip();

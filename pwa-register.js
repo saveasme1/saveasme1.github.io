@@ -1,12 +1,12 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260811-gbcal80";
-  const APP_VERSION = "v1.12.48";
+  const APP_BUILD = "20260811-gbcal81";
+  const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
-    "공동구매 달력 파스텔·커버 위치 복원",
-    "상세 카카오톡 문의하기 CTA",
-    "버그 수정 및 안정성 개선",
+    "출고 달력에서 월을 고르면 그달 글만 보여요",
+    "게시글 수정 시 올린 이미지가 그대로 유지돼요",
+    "화면 표시와 안정성 개선"
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -27,8 +27,13 @@
   let updateOffered = false;
   let promptedBuild = "";
   let remoteNotes = null;
+  let remoteVersion = "";
   let pendingRemoteBuild = "";
   let updateProgressLock = false;
+
+  function displayAppVersion() {
+    return remoteVersion || APP_VERSION;
+  }
 
   async function emergencyFixMojibake() {
     if (sessionStorage.getItem(RECOVER_KEY) === "1") return false;
@@ -484,7 +489,7 @@
     wrap.hidden = false;
     const dlg = wrap.querySelector(".pwa-dlg");
     dlg.classList.add("is-progress");
-    wrap.querySelector(".pwa-dlg__eyebrow").textContent = `UPDATE ${APP_VERSION}`;
+    wrap.querySelector(".pwa-dlg__eyebrow").textContent = `UPDATE ${displayAppVersion()}`;
     wrap.querySelector(".pwa-dlg__title").textContent = "업데이트 적용 중";
     wrap.querySelector(".pwa-dlg__body").textContent =
       label || "최신 화면을 내려받는 중입니다. 잠시만 기다려 주세요.";
@@ -505,7 +510,7 @@
 
   function ensureProgressDialog() {
     showDialog({
-      eyebrow: `UPDATE ${APP_VERSION}`,
+      eyebrow: `UPDATE ${displayAppVersion()}`,
       title: "업데이트 적용 중",
       body: "최신 화면을 내려받는 중입니다.",
       primaryLabel: "확인",
@@ -628,10 +633,10 @@
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     const customerNotes = (notes || [])
       .map((n) => String(n || "").trim())
-      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제|Contabo|Git|배포|최종검수|shipping|portfolio|공지·|바로 저장|바로 올라|운영|API|서버/i.test(n));
+      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제|Contabo|GitHub|배포 스크립트|바로 저장|바로 올라|운영자|API|서버|shipping-board|portfolio-board|gutterBias|publishedAt/i.test(n));
 
     showDialog({
-      eyebrow: `UPDATE ${APP_VERSION}`,
+      eyebrow: `UPDATE ${displayAppVersion()}`,
       title: "새 버전이 있습니다",
       body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
       notes: customerNotes.length ? customerNotes : ["버그 수정 및 안정성 개선"],
@@ -709,6 +714,8 @@
       if (!res.ok) return;
       const data = await res.json();
       if (Array.isArray(data.notes) && data.notes.length) remoteNotes = data.notes;
+      const ver = String(data.appVersion || data.version || "").trim();
+      if (ver) remoteVersion = ver;
       const remoteBuild = String(data.build || "");
       if (!remoteBuild) return;
       pendingRemoteBuild = remoteBuild;
