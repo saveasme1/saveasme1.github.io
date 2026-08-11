@@ -65,7 +65,7 @@
     { go: "discover", label: "발견", ico: "portfolio" },
     { go: "shipping", label: "최종검수", ico: "shipping" },
     { go: "reviews", label: "스냅", ico: "reviews" },
-    { go: "groupbuy", label: "공동구매", ico: "shipping" },
+    { go: "groupbuy", label: "일정", ico: "shipping" },
     { go: "search", label: "AI검색", ico: "search" },
   ];
 
@@ -1284,16 +1284,11 @@
     tickDropClock();
     setInterval(tickDropClock, 1000);
 
-    // —— Group buy (section head like CHART) ——
+    // —— Group buy calendar (no section title; avoid "구매" chrome) ——
     const gbSec = document.createElement("section");
     gbSec.className = "pwa-sec pwa-groupbuy";
     gbSec.id = "pwaGroupbuy";
-    gbSec.setAttribute("aria-label", "공동구매");
-    gbSec.innerHTML =
-      `<div class="pwa-sec__head">` +
-      `<div><p class="pwa-sec__eyebrow">GROUP BUY</p><h2>공동구매</h2></div>` +
-      `<button type="button" data-go="groupbuy">더보기</button>` +
-      `</div>`;
+    gbSec.setAttribute("aria-label", "일정");
     const gbMount = document.createElement("div");
     gbMount.className = "pwa-groupbuy__mount";
     gbMount.dataset.gbCalRoot = "1";

@@ -247,7 +247,7 @@
       endDate: end || start,
       cover: item.cover || item.image || "",
       images: Array.isArray(item.images) ? item.images : [],
-      title: String(item.title || "").trim() || "공동구매",
+      title: String(item.title || "").trim() || "일정",
       content: String(item.content || ""),
     };
   }
@@ -558,7 +558,7 @@
     root.id = "gbCalSheet";
     root.className = "gb-cal-sheet";
     root.hidden = true;
-    root.innerHTML = `<div class="gb-cal-sheet__card" role="dialog" aria-modal="true" aria-label="공동구매 상세"></div>`;
+    root.innerHTML = `<div class="gb-cal-sheet__card" role="dialog" aria-modal="true" aria-label="일정 상세"></div>`;
     root.addEventListener("click", (e) => {
       if (e.target === root) closeSheet();
     });
@@ -635,7 +635,7 @@
         `</div>` +
         `</div>` +
         `<div class="gb-cal-sheet__foot">` +
-        `<a class="gb-cal-sheet__kakao" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">카카오톡 문의하기</a>` +
+        `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참여하기</a>` +
         `</div>`;
       card.querySelector("h2").textContent = item.title;
       card.querySelector(".gb-cal-sheet__content p").textContent = item.content || "";
@@ -751,7 +751,7 @@
       `<span class="gb-cal-sheet__badge">${key}</span>` +
       `<button type="button" class="gb-cal-sheet__close" aria-label="닫기">×</button>` +
       `</div>` +
-      `<div class="gb-cal-sheet__body"><h3>이 날의 공동구매</h3></div>` +
+      `<div class="gb-cal-sheet__body"><h3>이 날의 일정</h3></div>` +
       `<div class="gb-cal-sheet__list"></div>`;
     card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
     const list = card.querySelector(".gb-cal-sheet__list");
@@ -1221,11 +1221,10 @@
     };
 
     host.classList.add("gb-cal");
-    host.setAttribute("aria-label", "공동구매 달력");
+    host.setAttribute("aria-label", "일정 달력");
     host.innerHTML =
       `<div class="gb-cal__head">` +
       `<div class="gb-cal__title-wrap">` +
-      (options.hideEyebrow ? "" : `<p class="gb-cal__eyebrow">공동구매</p>`) +
       `<h2 class="gb-cal__title"><span data-ym></span></h2>` +
       `</div>` +
       `<div class="gb-cal__tools">` +

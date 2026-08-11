@@ -675,7 +675,7 @@ button.primary,
   border-top: 1px solid rgba(22, 21, 19, 0.06);
 }
 
-.gb-cal-sheet__kakao {
+.gb-cal-sheet__join {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -692,8 +692,8 @@ button.primary,
   box-shadow: 0 8px 24px rgba(254, 229, 0, 0.14);
 }
 
-.gb-cal-sheet__kakao:hover,
-.gb-cal-sheet__kakao:active {
+.gb-cal-sheet__join:hover,
+.gb-cal-sheet__join:active {
   filter: brightness(0.97);
 }
 

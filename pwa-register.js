@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260811-gbcal75";
+  const APP_BUILD = "20260811-gbcal76";
   const APP_VERSION = "v1.12.48";
   const RELEASE_NOTES = [
     "공동구매 달력 파스텔·커버 위치 복원",
