@@ -959,23 +959,37 @@ body.review-lock { overflow: hidden; }
 }
 .pf-writer-fields {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pf-writer-date {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 .pf-writer-date input[type="datetime-local"],
 .pf-writer-shipping-meta .pf-writer-date input {
   display: block;
   width: 100% !important;
-  max-width: 100%;
-  box-sizing: border-box;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
   margin-top: 7px;
   min-height: 42px;
+}
+.pf-writer-shipping-meta {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pf-write-dialog .pf-writer-fields > label,
 .gb-write-dialog .pf-writer-fields > label,

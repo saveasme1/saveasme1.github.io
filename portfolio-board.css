@@ -860,9 +860,13 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 }
 .pf-writer-fields {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pf-write-dialog .pf-writer-fields > label,
 .gb-write-dialog .pf-writer-fields > label,
@@ -912,25 +916,35 @@ body.pf-body.has-gb-bottom-nav .pf-shell {
 .pf-writer-shipping-meta {
   display: grid;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .pf-writer-date {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 .pf-writer-shipping-meta .pf-writer-date,
 .gb-write-dialog .pf-writer-date,
 .pf-write-dialog .pf-writer-date {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .pf-writer-shipping-meta .pf-writer-date input,
 .gb-write-dialog .pf-writer-date input,
 .pf-write-dialog .pf-writer-date input,
 .pf-writer-fields .pf-writer-date input[type="datetime-local"] {
   display: block;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
   margin-top: 7px;
   min-height: 42px;
 }
