@@ -219,7 +219,7 @@ async function loadProduct() {
     try {
       await loadIntoProductImg(url, 2500);
       img.src = url;
-      img.alt = state.item.title || "선택 제품";
+      img.alt = "";
       show(img);
       hide(skeleton);
       state.productReady = true;
@@ -266,7 +266,7 @@ async function loadProduct() {
         try {
           await loadIntoProductImg(url, 2500);
           img.src = url;
-          img.alt = state.item.title || "선택 제품";
+          img.alt = "";
           show(img);
           hide(skeleton);
           state.productReady = true;

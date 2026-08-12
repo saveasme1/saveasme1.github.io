@@ -105,7 +105,7 @@
       slide.className = "board-carousel-slide";
       const img = document.createElement("img");
       img.src = assetUrl(path);
-      img.alt = item.title;
+      img.alt = "";
       img.loading = index === 0 ? "eager" : "lazy";
       img.decoding = "async";
       slide.append(img);

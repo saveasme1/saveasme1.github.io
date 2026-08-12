@@ -1438,7 +1438,7 @@
           cover.style.borderColor = ring.bg;
           const img = document.createElement("img");
           img.src = assetUrl(it.cover);
-          img.alt = it.title || "";
+          img.alt = "";
           img.loading = "lazy";
           cover.append(img);
           cover.style.left = `${clampedX}px`;

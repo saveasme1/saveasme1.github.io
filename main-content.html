@@ -42,7 +42,7 @@
   <meta name="screen-orientation" content="portrait">
   <meta name="description" content="공방 171 주문제작 전문 공방 · 카카오톡 1:1 맞춤 상담">
   <meta name="application-name" content="공방 171">
-  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
   <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="yeti" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
@@ -330,6 +330,8 @@
   <script>
     (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
   </script>
+  <script src="seo-guard.js?v=20260811-gbcal82"></script>
+  <meta name="googlebot-image" content="noindex, noimageindex">
 </head>
 <body>
   <main class="page">

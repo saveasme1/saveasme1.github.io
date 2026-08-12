@@ -304,7 +304,7 @@
       paths.forEach((path, index) => {
         const img = document.createElement("img");
         img.src = assetUrl(path);
-        img.alt = item.title || "";
+        img.alt = "";
         img.loading = index === 0 ? "eager" : "lazy";
         img.decoding = "async";
         if (window.GongbangProtectImage) window.GongbangProtectImage(img);
@@ -325,7 +325,7 @@
       slide.className = "board-carousel-slide";
       const img = document.createElement("img");
       img.src = assetUrl(path);
-      img.alt = item.title;
+      img.alt = "";
       img.loading = index === 0 ? "eager" : "lazy";
       img.decoding = "async";
       if (window.GongbangProtectImage) window.GongbangProtectImage(img);

@@ -315,7 +315,7 @@
       slide.className = "review-carousel-slide";
       const img = document.createElement("img");
       img.src = imageUrl(image.url);
-      img.alt = title;
+      img.alt = "";
       img.loading = index === 0 ? "eager" : "lazy";
       if (window.GongbangProtectImage) window.GongbangProtectImage(img);
       img.decoding = "async";

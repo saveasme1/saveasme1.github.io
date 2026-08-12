@@ -1,5 +1,5 @@
 /* Heritage PWA ? offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260811-gbcal81";
+const CACHE_VERSION = "hx-pwa-v20260811-gbcal82";
 const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
@@ -15,6 +15,8 @@ const PRECACHE = [
   "./shipping.html",
   "./reviews.html",
   "./notices.html",
+  "./seo-guard.js",
+  "./robots.txt",
   "./notice-view.html",
   "./opening-event.html",
   "./search.html",

@@ -118,7 +118,7 @@
       img.srcset = `https://flagcdn.com/48x36/${meta.flagCode}.png 2x`;
       img.width = 24;
       img.height = 18;
-      img.alt = meta.country;
+      img.alt = "";
       img.loading = "lazy";
       img.decoding = "async";
       img.referrerPolicy = "no-referrer";

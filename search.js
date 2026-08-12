@@ -113,7 +113,7 @@
       a.style.animationDelay = `${Math.min(index, 12) * 0.03}s`;
       const img = document.createElement("img");
       img.src = row.coverUrl || row.image_url || "";
-      img.alt = displayTitle(row.title) || "";
+      img.alt = "";
       img.loading = index < 6 ? "eager" : "lazy";
       const title = document.createElement("strong");
       title.textContent = displayTitle(row.title || row.product_name) || id;
@@ -283,7 +283,7 @@
     els.photoPreview.replaceChildren();
     const img = document.createElement("img");
     img.src = photoObjectUrl;
-    img.alt = "선택한 사진";
+    img.alt = "";
     els.photoPreview.append(img);
     els.photoClear.hidden = false;
     els.photoSearch.disabled = false;
@@ -306,7 +306,7 @@
     els.cameraPreview.replaceChildren();
     const img = document.createElement("img");
     img.src = cameraObjectUrl;
-    img.alt = "촬영한 사진";
+    img.alt = "";
     els.cameraPreview.append(img);
     els.cameraVideo.hidden = true;
     els.cameraSearch.disabled = false;

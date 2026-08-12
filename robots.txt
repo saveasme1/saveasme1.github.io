@@ -1,74 +1,42 @@
-﻿# Block search indexing of the root Kakao entry (공방 171 main page).
-# Other paths keep their own meta robots (e.g. landing/admin already noindex).
-
+﻿# Block all crawlers from the entire site (hand-made.jp / GitHub Pages).
 User-agent: *
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
-Disallow: /main-blocked.html
-Disallow: /portfolio.html
-Disallow: /portfolio/
-Disallow: /portfolio
-Disallow: /landing.html
-Disallow: /admin
-Disallow: /admin/
-Disallow: /gb171-admin.html
-Disallow: /shipping.html
-Disallow: /notices.html
-Disallow: /mypage.html
-Disallow: /search.html
-Disallow: /portfolio-data.json
-Disallow: /portfolio-draft.json
-Disallow: /shipping-data.json
-Disallow: /shipping-draft.json
-Disallow: /notices-data.json
-Disallow: /notices-draft.json
-Disallow: /reviews-data.json
-Disallow: /reviews/
-Disallow: /_offline_backup
-Disallow: /_hidden_anonymous
+Disallow: /
 
 User-agent: Googlebot
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: Googlebot-Image
 Disallow: /
 
 User-agent: Bingbot
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: Yeti
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: NaverBot
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: DuckDuckBot
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: Yandex
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
 Disallow: /
 
 User-agent: Baiduspider
-Disallow: /$
-Disallow: /index.html
-Disallow: /main-content.html
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
 Disallow: /

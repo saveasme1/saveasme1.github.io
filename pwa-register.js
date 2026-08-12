@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260811-gbcal81";
+  const APP_BUILD = "20260811-gbcal82";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "출고 달력에서 월을 고르면 그달 글만 보여요",
@@ -228,7 +228,7 @@
     const applyFallback = () => {
       if (img.dataset.pwaFallback === "1") return;
       img.dataset.pwaFallback = "1";
-      img.alt = img.alt || "이미지 준비 중";
+      img.alt = "";
       img.removeAttribute("srcset");
       img.src = IMG_FALLBACK;
     };
@@ -250,7 +250,7 @@
       protectImage(img);
       if (img.dataset.pwaFallback === "1") return;
       img.dataset.pwaFallback = "1";
-      img.alt = img.alt || "이미지 준비 중";
+      img.alt = "";
       img.removeAttribute("srcset");
       img.src = IMG_FALLBACK;
     },

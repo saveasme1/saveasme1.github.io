@@ -422,7 +422,7 @@
       if (gem.wiki?.thumbnail) {
         const img = document.createElement("img");
         img.src = gem.wiki.thumbnail;
-        img.alt = g.name;
+        img.alt = "";
         box.prepend(img);
       }
       const myth = el("button", "hx-know", `<b>Myth · ${g.myth}</b><p>${g.mythVerdict} — ${g.mythWhy}</p>`);
