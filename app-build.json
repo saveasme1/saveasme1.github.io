@@ -1,12 +1,11 @@
 ﻿{
-  "build": "20260811-gbcal82",
+  "build": "20260811-gbcal83",
   "minInstallBuild": "20260809-gbcal31",
-  "appVersion": "v1.12.50",
-  "deployedAt": "2026-08-12T03:40:00.000Z",
-  "note": "Sitewide noindex + empty image alts",
+  "appVersion": "v1.12.51",
+  "deployedAt": "2026-08-12T08:15:00.000Z",
+  "note": "Shipping list shows all posts again (no month-only filter)",
   "notes": [
-    "검색엔진 전체 차단 (robots Disallow /)",
-    "seo-guard: noindex + 이미지 alt 비움",
-    "install.html 검색 허용 해제"
+    "최종검수: 기본 전체 게시글 표시 복원",
+    "날짜 선택 시에만 해당일 필터"
   ]
 }
