@@ -1,1 +1,1 @@
-{"build":"20260820-video9","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-20T14:56:15.295Z","note":"List hover video preview","notes":["포트폴리오 목록 호버 미리보기 재생"]}
+{"build":"20260821-novideo1","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-20T15:10:19.469Z","note":"Temporarily hide video upload for customer preview","notes":["글쓰기 영상 임시 비활성 (VIDEO_UPLOAD_ENABLED=false)"]}

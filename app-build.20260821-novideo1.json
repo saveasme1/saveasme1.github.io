@@ -1,0 +1,9 @@
+{
+  "build": "20260821-novideo1",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-20T15:10:19.469Z",
+  "note": "Temporarily hide video upload for customer preview",
+  "notes": [
+    "글쓰기 영상 임시 비활성 (VIDEO_UPLOAD_ENABLED=false)"
+  ]
+}

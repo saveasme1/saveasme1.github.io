@@ -1,11 +1,11 @@
 {
-  "id": "/?pwa=20260820-video9",
+  "id": "/?pwa=20260821-novideo1",
   "name": "본 헤리티지",
   "short_name": "본 헤리티지",
   "description": "주문제작 주얼리 포트폴리오와 실시간 소식",
   "lang": "ko",
   "dir": "ltr",
-  "start_url": "./landing.html?_pwa=20260820-video9",
+  "start_url": "./landing.html?_pwa=20260821-novideo1",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

@@ -813,7 +813,8 @@
       writer.title.textContent = type === "shipping" ? "최종검수 수정" : "공지사항 수정";
       if (writer.submit) writer.submit.textContent = "수정하기";
       if (writer.help) {
-        writer.help.textContent = "미디어를 바꾸지 않으면 기존 파일이 유지됩니다. 동영상은 추가 미디어로 올려 주세요.";
+        writer.help.textContent = window.GongbangBoardMedia?.writerCopy?.().helpEdit
+          || "미디어를 바꾸지 않으면 기존 파일이 유지됩니다.";
       }
       if (titleEl) titleEl.value = editing.title || "";
       if (contentEl) contentEl.value = editing.content || "";
@@ -838,8 +839,10 @@
       if (writer.submit) writer.submit.textContent = "등록하기";
       if (writer.help) {
         writer.help.textContent = type === "shipping"
-          ? "카테고리·게시일을 선택한 뒤 대표 사진과 추가 사진/동영상을 올려 주세요."
-          : "대표 사진은 필수, 추가 동영상은 최대 30초·50MB(mp4/webm)입니다.";
+          ? (window.GongbangBoardMedia?.writerCopy?.().helpShipping
+            || "카테고리·게시일을 선택한 뒤 대표 사진과 추가 사진을 올려 주세요.")
+          : (window.GongbangBoardMedia?.writerCopy?.().helpNotice
+            || "대표 사진은 필수입니다.");
       }
       if (coverInput) coverInput.required = true;
     }
@@ -877,6 +880,7 @@
     }
     renderWriterCover();
     renderWriterDetails();
+    window.GongbangBoardMedia?.syncWriterMediaUi?.(writer.root);
     writer.root.classList.add("gb-write-dialog");
     writer.root.showModal();
   }
@@ -948,7 +952,7 @@
 
       let coverPoster = editing?.coverPoster || "";
       if (writer.cover.file) {
-        await mediaApi?.assertMediaFile?.(writer.cover.file, { allowVideo: true });
+        await mediaApi?.assertMediaFile?.(writer.cover.file);
         const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
         cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
         if (isVid) {
@@ -968,7 +972,7 @@
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
         if (detail.file) {
-          await mediaApi?.assertMediaFile?.(detail.file, { allowVideo: true });
+          await mediaApi?.assertMediaFile?.(detail.file);
           const kind = mediaApi?.isVideoFile?.(detail.file) ? "동영상" : "이미지";
           keepImages.push(await uploadOne(detail.file, "detail", `추가 ${kind} ${index + 1}`));
         } else if (detail.path) {
@@ -1417,7 +1421,7 @@
         ? "영상 썸네일 추출 중…"
         : "";
       const prepared = window.GongbangBoardMedia?.prepareLocalMedia
-        ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+        ? await window.GongbangBoardMedia.prepareLocalMedia(file)
         : {
             file,
             kind: "image",
@@ -1444,7 +1448,7 @@
           writer.status.textContent = "영상 썸네일 추출 중…";
         }
         const prepared = window.GongbangBoardMedia?.prepareLocalMedia
-          ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+          ? await window.GongbangBoardMedia.prepareLocalMedia(file)
           : {
               file,
               kind: "image",

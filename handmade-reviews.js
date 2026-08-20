@@ -662,7 +662,7 @@
                   <strong>추가 이미지</strong>
                   <span>클릭하여 이미지 추가</span>
                 </div>
-                <label class="pf-writer-file compact">클릭하여 사진·동영상 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple></label>
+                <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
                 <div class="pf-writer-grid" id="reviewDetailGrid"></div>
               </div>
             </section>

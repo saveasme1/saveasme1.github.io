@@ -692,7 +692,7 @@
 
               <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
 
-              <label class="pf-writer-file">대표 사진·동영상 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"></label>
+              <label class="pf-writer-file">대표 사진 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
 
             </div>
 
@@ -702,13 +702,13 @@
 
             <div class="pf-writer-heading">
 
-              <strong>추가 사진·동영상</strong>
+              <strong>추가 사진</strong>
 
-              <span>사진 또는 동영상(최대 30초·50MB)</span>
+              <span>클릭하여 사진 추가</span>
 
             </div>
 
-            <label class="pf-writer-file compact">클릭하여 사진·동영상 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple></label>
+            <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
 
@@ -857,7 +857,7 @@
           : "";
 
         const prepared = window.GongbangBoardMedia?.prepareLocalMedia
-          ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+          ? await window.GongbangBoardMedia.prepareLocalMedia(file)
           : {
               file,
               kind: "image",
@@ -897,7 +897,7 @@
             writer.status.textContent = "영상 썸네일 추출 중…";
           }
           const prepared = window.GongbangBoardMedia?.prepareLocalMedia
-            ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+            ? await window.GongbangBoardMedia.prepareLocalMedia(file)
             : {
                 file,
                 kind: "image",
@@ -1024,6 +1024,8 @@
     renderWriterCover(writer);
 
     renderWriterDetails(writer);
+
+    window.GongbangBoardMedia?.syncWriterMediaUi?.(writer.root);
 
     writer.root.showModal();
 
@@ -1200,7 +1202,7 @@
       };
       let coverPoster = editing?.coverPoster || "";
       if (writer.cover.file) {
-        await mediaApi?.assertMediaFile?.(writer.cover.file, { allowVideo: true });
+        await mediaApi?.assertMediaFile?.(writer.cover.file);
         const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
         cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
         if (isVid) {
@@ -1219,7 +1221,7 @@
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
         if (detail.file) {
-          await mediaApi?.assertMediaFile?.(detail.file, { allowVideo: true });
+          await mediaApi?.assertMediaFile?.(detail.file);
           const kind = mediaApi?.isVideoFile?.(detail.file) ? "동영상" : "이미지";
           keepImages.push(await uploadOne(detail.file, "detail", `추가 ${kind} ${index + 1}`));
         } else if (detail.path) {

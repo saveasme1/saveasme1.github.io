@@ -1,14 +1,92 @@
 (() => {
   "use strict";
 
+  /**
+   * Customer preview gate — set true to re-enable video upload + “동영상” copy.
+   * Restore: VIDEO_UPLOAD_ENABLED = true → deploy.
+   */
+  const VIDEO_UPLOAD_ENABLED = false;
+
   const VIDEO_EXT = /\.(mp4|webm|mov)(?:$|\?)/i;
   const IMAGE_EXT = /\.(jpe?g|png|webp|gif)(?:$|\?)/i;
   const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
   const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
   const MAX_VIDEO_SECONDS = 30;
-  const ACCEPT =
-    "image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
+  const ACCEPT_IMAGE = "image/jpeg,image/png,image/webp";
+  const ACCEPT_VIDEO = ",video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
+  const ACCEPT = ACCEPT_IMAGE + (VIDEO_UPLOAD_ENABLED ? ACCEPT_VIDEO : "");
 
+  function videoUploadEnabled() {
+    return VIDEO_UPLOAD_ENABLED;
+  }
+
+  function writerCopy() {
+    if (VIDEO_UPLOAD_ENABLED) {
+      return {
+        coverLabel: "대표 사진·동영상 선택",
+        detailsTitle: "추가 사진·동영상",
+        detailsHint: "사진 또는 동영상(최대 30초·50MB)",
+        detailsBtn: "클릭하여 사진·동영상 추가",
+        helpEdit: "미디어를 바꾸지 않으면 기존 파일이 유지됩니다. 동영상은 추가 미디어로 올려 주세요.",
+        helpShipping: "카테고리·게시일을 선택한 뒤 대표 사진과 추가 사진/동영상을 올려 주세요.",
+        helpNotice: "대표 사진은 필수, 추가 동영상은 최대 30초·50MB(mp4/webm)입니다.",
+      };
+    }
+    return {
+      coverLabel: "대표 사진 선택",
+      detailsTitle: "추가 사진",
+      detailsHint: "클릭하여 사진 추가",
+      detailsBtn: "클릭하여 사진 추가",
+      helpEdit: "미디어를 바꾸지 않으면 기존 파일이 유지됩니다.",
+      helpShipping: "카테고리·게시일을 선택한 뒤 대표 사진과 추가 사진을 올려 주세요.",
+      helpNotice: "대표 사진은 필수입니다.",
+    };
+  }
+
+  /** Apply accept + writer labels for current VIDEO_UPLOAD_ENABLED. */
+  function syncWriterMediaUi(root = document) {
+    if (!root || !root.querySelectorAll) return;
+    const copy = writerCopy();
+    root.querySelectorAll('input[type="file"][name="cover"], input[type="file"][name="images"]').forEach((input) => {
+      input.setAttribute("accept", ACCEPT);
+      const label = input.closest("label");
+      if (!label) return;
+      for (const node of label.childNodes) {
+        if (node.nodeType === 3 && String(node.textContent || "").trim()) {
+          node.textContent =
+            input.getAttribute("name") === "cover" ? copy.coverLabel : copy.detailsBtn;
+        }
+      }
+    });
+    root.querySelectorAll("strong, span, p, small, label").forEach((el) => {
+      if (el.querySelector && el.querySelector('input[type="file"]')) return;
+      const t = String(el.textContent || "").trim();
+      if (!t) return;
+      if (
+        t === "추가 사진·동영상" ||
+        t === "추가 사진" ||
+        t === "추가 이미지" ||
+        /^추가 사진/.test(t)
+      ) {
+        if (el.tagName === "STRONG" || el.classList?.contains?.("pf-writer-section-title")) {
+          el.textContent = copy.detailsTitle;
+        }
+      }
+      if (
+        t.includes("사진 또는 동영상") ||
+        t.includes("최대 30초") ||
+        t === "클릭하여 사진·동영상 추가" ||
+        t === "클릭하여 사진 추가"
+      ) {
+        if (el.tagName === "SPAN" || el.tagName === "SMALL" || el.tagName === "P") {
+          el.textContent = t.startsWith("클릭") ? copy.detailsBtn : copy.detailsHint;
+        }
+      }
+      if (t === "대표 사진·동영상 선택" || t === "대표 사진 선택" || t === "대표 이미지 선택") {
+        if (!el.querySelector?.('input[type="file"]')) el.textContent = copy.coverLabel;
+      }
+    });
+  }
   function isVideoFile(file) {
     if (!file) return false;
     const type = String(file.type || "").toLowerCase();
@@ -130,10 +208,10 @@
     });
   }
 
-  async function assertMediaFile(file, { allowVideo = true } = {}) {
+  async function assertMediaFile(file, { allowVideo = VIDEO_UPLOAD_ENABLED } = {}) {
     if (!file) throw new Error("파일을 선택해 주세요.");
     if (isVideoFile(file)) {
-      if (!allowVideo) throw new Error("이 위치에는 동영상을 올릴 수 없습니다.");
+      if (!allowVideo) throw new Error("지금은 사진만 올릴 수 있습니다.");
       if (file.size > MAX_VIDEO_BYTES) {
         throw new Error(`${file.name}: 동영상은 50MB 이하여야 합니다.`);
       }
@@ -153,7 +231,7 @@
   }
 
   /** Validate + (for video) extract poster immediately on file pick. */
-  async function prepareLocalMedia(file, { allowVideo = true } = {}) {
+  async function prepareLocalMedia(file, { allowVideo = VIDEO_UPLOAD_ENABLED } = {}) {
     const kind = await assertMediaFile(file, { allowVideo });
     const preview = URL.createObjectURL(file);
     if (kind !== "video") {
@@ -449,6 +527,7 @@
    * List-card hover preview (muted loop) for video covers — desktop hover / coarse tap-hold.
    */
   function bindListHoverPreview(thumb, item, toUrl = (u) => String(u || "")) {
+    if (!VIDEO_UPLOAD_ENABLED) return;
     if (!thumb || !item) return;
     const cover = String(item.cover || item.image || "").trim();
     if (!isVideoUrl(cover)) return;
@@ -543,6 +622,10 @@
   }
 
   window.GongbangBoardMedia = {
+    VIDEO_UPLOAD_ENABLED,
+    videoUploadEnabled,
+    writerCopy,
+    syncWriterMediaUi,
     ACCEPT,
     MAX_IMAGE_BYTES,
     MAX_VIDEO_BYTES,
@@ -563,4 +646,11 @@
     bindListHoverPreview,
     uploadFiles,
   };
+
+  const bootSync = () => syncWriterMediaUi(document);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootSync);
+  } else {
+    bootSync();
+  }
 })();
