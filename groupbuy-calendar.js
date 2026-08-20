@@ -772,7 +772,7 @@
       btn.type = "button";
       btn.className = "gb-cal-sheet__item";
       btn.innerHTML =
-        (it.cover ? `<img src="${assetUrl(it.cover)}" alt="">` : "<span></span>") +
+        (it.coverPoster || it.cover ? `<img src="${assetUrl(it.coverPoster || it.cover)}" alt="">` : "<span></span>") +
         `<span><strong></strong><span></span></span>`;
       btn.querySelector("strong").textContent = it.title;
       btn.querySelector("span > span").textContent = formatRangeLabel(it.startDate, it.endDate);
