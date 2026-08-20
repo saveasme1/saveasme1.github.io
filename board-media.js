@@ -227,6 +227,9 @@
       if (file.size > MAX_IMAGE_BYTES) throw new Error(`${file.name}: 이미지는 8MB 이하여야 합니다.`);
       return "image";
     }
+    if (!allowVideo) {
+      throw new Error("지금은 사진만 올릴 수 있습니다. (jpeg/png/webp)");
+    }
     throw new Error(`${file.name}: jpeg/png/webp 또는 mp4/webm만 지원합니다.`);
   }
 

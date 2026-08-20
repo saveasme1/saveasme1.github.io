@@ -1417,19 +1417,32 @@
     const file = writer.form.elements.cover.files?.[0];
     if (!file) return;
     try {
-      writer.status.textContent = window.GongbangBoardMedia?.isVideoFile?.(file)
-        ? "영상 썸네일 추출 중…"
-        : "";
+      if (
+        window.GongbangBoardMedia?.isVideoFile?.(file) &&
+        !window.GongbangBoardMedia?.videoUploadEnabled?.()
+      ) {
+        throw new Error("지금은 사진만 올릴 수 있습니다.");
+      }
+      writer.status.textContent =
+        window.GongbangBoardMedia?.isVideoFile?.(file) &&
+        window.GongbangBoardMedia?.videoUploadEnabled?.()
+          ? "영상 썸네일 추출 중…"
+          : "";
       const prepared = window.GongbangBoardMedia?.prepareLocalMedia
         ? await window.GongbangBoardMedia.prepareLocalMedia(file)
-        : {
-            file,
-            kind: "image",
-            preview: URL.createObjectURL(file),
-            posterFile: null,
-            posterPreview: "",
-            displayPreview: URL.createObjectURL(file),
-          };
+        : (() => {
+            if (/\.(mp4|webm|mov)$/i.test(file.name || "") || String(file.type || "").startsWith("video/")) {
+              throw new Error("지금은 사진만 올릴 수 있습니다.");
+            }
+            return {
+              file,
+              kind: "image",
+              preview: URL.createObjectURL(file),
+              posterFile: null,
+              posterPreview: "",
+              displayPreview: URL.createObjectURL(file),
+            };
+          })();
       window.GongbangBoardMedia?.revokeMediaPreview?.(writer.cover);
       writer.cover = { path: writer.cover.path || "", ...prepared };
       writer.form.elements.cover.value = "";
@@ -1444,19 +1457,33 @@
     const files = [...(writer.form.elements.images.files || [])];
     for (const file of files) {
       try {
-        if (window.GongbangBoardMedia?.isVideoFile?.(file)) {
+        if (
+          window.GongbangBoardMedia?.isVideoFile?.(file) &&
+          !window.GongbangBoardMedia?.videoUploadEnabled?.()
+        ) {
+          throw new Error("지금은 사진만 올릴 수 있습니다.");
+        }
+        if (
+          window.GongbangBoardMedia?.isVideoFile?.(file) &&
+          window.GongbangBoardMedia?.videoUploadEnabled?.()
+        ) {
           writer.status.textContent = "영상 썸네일 추출 중…";
         }
         const prepared = window.GongbangBoardMedia?.prepareLocalMedia
           ? await window.GongbangBoardMedia.prepareLocalMedia(file)
-          : {
-              file,
-              kind: "image",
-              preview: URL.createObjectURL(file),
-              posterFile: null,
-              posterPreview: "",
-              displayPreview: URL.createObjectURL(file),
-            };
+          : (() => {
+              if (/\.(mp4|webm|mov)$/i.test(file.name || "") || String(file.type || "").startsWith("video/")) {
+                throw new Error("지금은 사진만 올릴 수 있습니다.");
+              }
+              return {
+                file,
+                kind: "image",
+                preview: URL.createObjectURL(file),
+                posterFile: null,
+                posterPreview: "",
+                displayPreview: URL.createObjectURL(file),
+              };
+            })();
         writer.details.push({ path: "", ...prepared });
         writer.status.textContent = "";
       } catch (error) {

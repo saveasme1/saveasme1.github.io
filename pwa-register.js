@@ -1,12 +1,12 @@
-(() => {
+﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260821-novideo1";
+  const APP_BUILD = "20260821-novideo2";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
-    "출고 달력에서 월을 고르면 그달 글만 보여요",
-    "게시글 수정 시 올린 이미지가 그대로 유지돼요",
-    "화면 표시와 안정성 개선"
+    "異쒓퀬 ?щ젰?먯꽌 ?붿쓣 怨좊Ⅴ硫?洹몃떖 湲留?蹂댁뿬??,
+    "寃뚯떆湲 ?섏젙 ???щ┛ ?대?吏媛 洹몃?濡??좎??쇱슂",
+    "?붾㈃ ?쒖떆? ?덉젙??媛쒖꽑"
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
@@ -20,7 +20,7 @@
   const MIN_INSTALL_BUILD = "20260809-gbcal31";
   const REINSTALL_GATE_ID = "pwaReinstallGate";
 
-  /** Only true after customer taps 「업데이트」 */
+  /** Only true after customer taps ?뚯뾽?곗씠?멥?*/
   let userApprovedUpdate = false;
   let pendingWorker = null;
   let refreshing = false;
@@ -46,7 +46,7 @@
     const broken =
       sample.includes("\uFFFD") ||
       /br>/.test(sample) ||
-      (sample.length > 8 && !/[가-힣]/.test(sample) && /[ÃÂïìë]/.test(sample));
+      (sample.length > 8 && !/[媛-??/.test(sample) && /[횄횂챦챙챘]/.test(sample));
     if (!broken) return false;
 
     sessionStorage.setItem(RECOVER_KEY, "1");
@@ -66,7 +66,7 @@
     return true;
   }
 
-  // Run ASAP — corrupted cache must not linger on web or PWA
+  // Run ASAP ??corrupted cache must not linger on web or PWA
   emergencyFixMojibake();
 
   const IMG_FALLBACK =
@@ -74,8 +74,8 @@
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
         '<rect width="640" height="640" fill="#2a2724"/>' +
-        '<text x="320" y="292" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="26">이미지 준비 중</text>' +
-        '<text x="320" y="340" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="18">와이파이에서 열면 저장됩니다</text>' +
+        '<text x="320" y="292" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="26">?대?吏 以鍮?以?/text>' +
+        '<text x="320" y="340" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="18">??댄뙆?댁뿉???대㈃ ??λ맗?덈떎</text>' +
         "</svg>"
     );
 
@@ -118,7 +118,7 @@
     } catch (_) {}
   }
 
-  /** Permanently off — soft deploys must never lock PWA users behind reinstall. */
+  /** Permanently off ??soft deploys must never lock PWA users behind reinstall. */
   function needsReinstallGate() {
     stampInstalledBuild();
     return false;
@@ -163,7 +163,7 @@
   showReinstallGate();
 
   /**
-   * Same as cursorphone-relay rd38 — OS portrait lock via Screen Orientation API.
+   * Same as cursorphone-relay rd38 ??OS portrait lock via Screen Orientation API.
    */
   function lockPortraitOrientation() {
     if (!isPwaMode()) return;
@@ -361,8 +361,8 @@
       '<div class="pwa-status__row">' +
       '<span class="pwa-status__dot" aria-hidden="true"></span>' +
       '<span class="pwa-status__text"></span>' +
-      '<button type="button" class="pwa-status__action" hidden>확인</button>' +
-      '<button type="button" class="pwa-status__close" aria-label="닫기">×</button>' +
+      '<button type="button" class="pwa-status__action" hidden>?뺤씤</button>' +
+      '<button type="button" class="pwa-status__close" aria-label="?リ린">횞</button>' +
       "</div>";
     document.documentElement.appendChild(el);
     el.querySelector(".pwa-status__close").addEventListener("click", () => {
@@ -384,7 +384,7 @@
     if (state === "offline") {
       el.classList.add("is-offline");
       text.textContent =
-        detail || "오프라인 모드 · 저장되지 않은 이미지는 대체 화면으로 표시됩니다.";
+        detail || "?ㅽ봽?쇱씤 紐⑤뱶 쨌 ??λ릺吏 ?딆? ?대?吏???泥??붾㈃?쇰줈 ?쒖떆?⑸땲??";
       el.hidden = false;
       return;
     }
@@ -396,14 +396,14 @@
         detail && detail.total
           ? ` ${Math.min(100, Math.round((detail.done / detail.total) * 100))}%`
           : "";
-      text.textContent = `업데이트 적용 중${pct}`;
+      text.textContent = `?낅뜲?댄듃 ?곸슜 以?{pct}`;
       el.hidden = false;
       return;
     }
     if (state === "ready" || state === "activated") {
       if (!userApprovedUpdate && state === "activated") return;
       el.classList.add("is-ready");
-      text.textContent = detail || "준비 완료";
+      text.textContent = detail || "以鍮??꾨즺";
       el.hidden = false;
       clearTimeout(showStatus._t);
       showStatus._t = setTimeout(() => {
@@ -446,7 +446,7 @@
         document.head.appendChild(st);
       }
     }
-    wrap.querySelector(".pwa-dlg__eyebrow").textContent = eyebrow || "본 헤리티지 앱";
+    wrap.querySelector(".pwa-dlg__eyebrow").textContent = eyebrow || "蹂??ㅻ━?곗? ??;
     wrap.querySelector(".pwa-dlg__title").textContent = title || "";
     wrap.querySelector(".pwa-dlg__body").textContent = body || "";
     const notesEl = wrap.querySelector(".pwa-dlg__notes");
@@ -465,15 +465,15 @@
     }
     const secondary = wrap.querySelector(".pwa-dlg__secondary");
     const primary = wrap.querySelector(".pwa-dlg__primary");
-    secondary.textContent = secondaryLabel || "닫기";
-    primary.textContent = primaryLabel || "확인";
+    secondary.textContent = secondaryLabel || "?リ린";
+    primary.textContent = primaryLabel || "?뺤씤";
     secondary.onclick = () => {
       closeDialog();
       if (typeof onSecondary === "function") onSecondary();
     };
     primary.onclick = () => {
-      // Update flow keeps the dialog as a progress panel — don't dismiss first.
-      const keepOpen = typeof onPrimary === "function" && primaryLabel === "업데이트";
+      // Update flow keeps the dialog as a progress panel ??don't dismiss first.
+      const keepOpen = typeof onPrimary === "function" && primaryLabel === "?낅뜲?댄듃";
       if (!keepOpen) closeDialog();
       if (typeof onPrimary === "function") onPrimary();
     };
@@ -486,9 +486,9 @@
     const dlg = wrap.querySelector(".pwa-dlg");
     dlg.classList.add("is-progress");
     wrap.querySelector(".pwa-dlg__eyebrow").textContent = `UPDATE ${displayAppVersion()}`;
-    wrap.querySelector(".pwa-dlg__title").textContent = "업데이트 적용 중";
+    wrap.querySelector(".pwa-dlg__title").textContent = "?낅뜲?댄듃 ?곸슜 以?;
     wrap.querySelector(".pwa-dlg__body").textContent =
-      label || "최신 화면을 내려받는 중입니다. 잠시만 기다려 주세요.";
+      label || "理쒖떊 ?붾㈃???대젮諛쏅뒗 以묒엯?덈떎. ?좎떆留?湲곕떎??二쇱꽭??";
     let bar = dlg.querySelector(".pwa-progress");
     let pctEl = dlg.querySelector(".pwa-progress__pct");
     if (!bar) {
@@ -507,10 +507,10 @@
   function ensureProgressDialog() {
     showDialog({
       eyebrow: `UPDATE ${displayAppVersion()}`,
-      title: "업데이트 적용 중",
-      body: "최신 화면을 내려받는 중입니다.",
-      primaryLabel: "확인",
-      secondaryLabel: "닫기",
+      title: "?낅뜲?댄듃 ?곸슜 以?,
+      body: "理쒖떊 ?붾㈃???대젮諛쏅뒗 以묒엯?덈떎.",
+      primaryLabel: "?뺤씤",
+      secondaryLabel: "?リ린",
     });
     return document.getElementById(DIALOG_ID);
   }
@@ -527,7 +527,7 @@
     if (chip) chip.hidden = true;
 
     // Keep modal open as progress UI (do not flash-dismiss).
-    setUpdateProgress(4, "캐시를 정리하는 중…");
+    setUpdateProgress(4, "罹먯떆瑜??뺣━?섎뒗 以묅?);
     showStatus("updating", { done: 0, total: 100 });
 
     const finish = async () => {
@@ -539,7 +539,7 @@
         // Ease toward ~88% while work runs; finish jumps to 100.
         if (pct < 88) {
           pct += pct < 40 ? 7 : pct < 70 ? 4 : 2;
-          setUpdateProgress(pct, pct < 45 ? "캐시를 정리하는 중…" : "새 버전을 적용하는 중…");
+          setUpdateProgress(pct, pct < 45 ? "罹먯떆瑜??뺣━?섎뒗 以묅? : "??踰꾩쟾???곸슜?섎뒗 以묅?);
           showStatus("updating", { done: pct, total: 100 });
         }
       }, 280);
@@ -573,8 +573,8 @@
       await sleep(remain);
       clearInterval(tick);
 
-      setUpdateProgress(100, "업데이트 완료 · 앱을 다시 불러옵니다");
-      showStatus("ready", "업데이트 완료 · 앱을 다시 불러옵니다");
+      setUpdateProgress(100, "?낅뜲?댄듃 ?꾨즺 쨌 ?깆쓣 ?ㅼ떆 遺덈윭?듬땲??);
+      showStatus("ready", "?낅뜲?댄듃 ?꾨즺 쨌 ?깆쓣 ?ㅼ떆 遺덈윭?듬땲??);
       await sleep(900);
 
       updateProgressLock = false;
@@ -601,7 +601,7 @@
 
     if (document.getElementById(DIALOG_ID)) return;
 
-    // Same build already announced — never stack duplicate dialogs.
+    // Same build already announced ??never stack duplicate dialogs.
     if (promptedBuild === targetBuild) {
       try {
         if (localStorage.getItem(UPDATE_SNOOZE_KEY)) showUpdateChip();
@@ -629,15 +629,15 @@
     const notes = Array.isArray(extraNotes) && extraNotes.length ? extraNotes : remoteNotes || RELEASE_NOTES;
     const customerNotes = (notes || [])
       .map((n) => String(n || "").trim())
-      .filter((n) => n && !/커서|모바일앱과 동일|동일 방식|debug|내부|개발자|관리자|어드민|admin|전체관리|글쓰기|삭제|Contabo|GitHub|배포 스크립트|바로 저장|바로 올라|운영자|API|서버|shipping-board|portfolio-board|gutterBias|publishedAt/i.test(n));
+      .filter((n) => n && !/而ㅼ꽌|紐⑤컮?쇱빋怨??숈씪|?숈씪 諛⑹떇|debug|?대?|媛쒕컻??愿由ъ옄|?대뱶誘?admin|?꾩껜愿由?湲?곌린|??젣|Contabo|GitHub|諛고룷 ?ㅽ겕由쏀듃|諛붾줈 ???諛붾줈 ?щ씪|?댁쁺??API|?쒕쾭|shipping-board|portfolio-board|gutterBias|publishedAt/i.test(n));
 
     showDialog({
       eyebrow: `UPDATE ${displayAppVersion()}`,
-      title: "새 버전이 있습니다",
-      body: "디자인·기능 업데이트입니다. 「업데이트」를 눌러야 최신 화면이 적용됩니다.",
-      notes: customerNotes.length ? customerNotes : ["버그 수정 및 안정성 개선"],
-      secondaryLabel: "나중에",
-      primaryLabel: "업데이트",
+      title: "??踰꾩쟾???덉뒿?덈떎",
+      body: "?붿옄?맞룰린???낅뜲?댄듃?낅땲?? ?뚯뾽?곗씠?멥띾? ?뚮윭??理쒖떊 ?붾㈃???곸슜?⑸땲??",
+      notes: customerNotes.length ? customerNotes : ["踰꾧렇 ?섏젙 諛??덉젙??媛쒖꽑"],
+      secondaryLabel: "?섏쨷??,
+      primaryLabel: "?낅뜲?댄듃",
       onPrimary: applyUpdate,
       onSecondary: () => {
         localStorage.setItem(UPDATE_SNOOZE_KEY, String(Date.now()));
@@ -653,7 +653,7 @@
       chip = document.createElement("button");
       chip.id = "pwaUpdateChip";
       chip.type = "button";
-      chip.textContent = "업데이트 있음";
+      chip.textContent = "?낅뜲?댄듃 ?덉쓬";
       chip.style.cssText =
         "position:fixed;right:14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:100001;" +
         "border:0;border-radius:999px;padding:12px 16px;font-size:13px;font-weight:800;" +
@@ -678,7 +678,7 @@
     const activated = localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
     if (activated === APP_BUILD) {
       if (userApprovedUpdate) {
-        showStatus("ready", "업데이트 완료 · 최신 버전입니다");
+        showStatus("ready", "?낅뜲?댄듃 ?꾨즺 쨌 理쒖떊 踰꾩쟾?낅땲??);
         const chip = document.getElementById("pwaUpdateChip");
         if (chip) chip.hidden = true;
       }
@@ -763,14 +763,14 @@
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!userApprovedUpdate) return;
     if (refreshing) return;
-    // Wait for progress UI minimum time — applyUpdate will reload.
+    // Wait for progress UI minimum time ??applyUpdate will reload.
     if (updateProgressLock) return;
     refreshing = true;
     location.reload();
   });
 
   const register = () => {
-    // Always register SW — blocking here traps users behind a stale reinstall gate.
+    // Always register SW ??blocking here traps users behind a stale reinstall gate.
     const swUrl = new URL(`sw.js?v=${APP_BUILD}`, location.href).href;
 
     navigator.serviceWorker
