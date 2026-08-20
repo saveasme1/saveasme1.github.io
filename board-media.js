@@ -432,6 +432,116 @@
     return Array.isArray(result.assets) ? result.assets : [];
   }
 
+  let activeHoverPreview = null;
+
+  function stopHoverPreview(entry) {
+    if (!entry) return;
+    entry.thumb?.classList?.remove("is-previewing");
+    const video = entry.video;
+    if (!video) return;
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch (_) {}
+  }
+
+  /**
+   * List-card hover preview (muted loop) for video covers — desktop hover / coarse tap-hold.
+   */
+  function bindListHoverPreview(thumb, item, toUrl = (u) => String(u || "")) {
+    if (!thumb || !item) return;
+    const cover = String(item.cover || item.image || "").trim();
+    if (!isVideoUrl(cover)) return;
+
+    thumb.classList.add("is-video-thumb");
+    if (!thumb.querySelector(".pf-writer-video-badge, .pf-video-badge")) {
+      const badge = document.createElement("span");
+      badge.className = "pf-video-badge";
+      badge.textContent = "VIDEO";
+      thumb.append(badge);
+    }
+
+    const poster = thumbUrl(item);
+    let video = null;
+    let touchTimer = 0;
+    const entry = { thumb, video: null };
+
+    const ensureVideo = () => {
+      if (video) return video;
+      video = document.createElement("video");
+      video.className = "pf-thumb-preview";
+      video.src = toUrl(cover);
+      if (poster) video.poster = toUrl(poster);
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.loop = true;
+      video.preload = "metadata";
+      video.setAttribute("controlslist", "nodownload noplaybackrate");
+      video.disablePictureInPicture = true;
+      video.controls = false;
+      video.setAttribute("aria-hidden", "true");
+      thumb.append(video);
+      entry.video = video;
+      return video;
+    };
+
+    const start = () => {
+      if (activeHoverPreview && activeHoverPreview !== entry) {
+        stopHoverPreview(activeHoverPreview);
+      }
+      activeHoverPreview = entry;
+      const v = ensureVideo();
+      thumb.classList.add("is-previewing");
+      try {
+        if (v.readyState < 2) v.load();
+        v.currentTime = 0;
+      } catch (_) {}
+      const play = v.play();
+      if (play && typeof play.catch === "function") play.catch(() => {});
+    };
+
+    const stop = () => {
+      if (activeHoverPreview === entry) activeHoverPreview = null;
+      stopHoverPreview(entry);
+    };
+
+    thumb.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "touch") return;
+      start();
+    });
+    thumb.addEventListener("pointerleave", (event) => {
+      if (event.pointerType === "touch") return;
+      stop();
+    });
+    thumb.addEventListener(
+      "touchstart",
+      () => {
+        window.clearTimeout(touchTimer);
+        touchTimer = window.setTimeout(start, 280);
+      },
+      { passive: true }
+    );
+    thumb.addEventListener(
+      "touchend",
+      () => {
+        window.clearTimeout(touchTimer);
+        stop();
+      },
+      { passive: true }
+    );
+    thumb.addEventListener(
+      "touchcancel",
+      () => {
+        window.clearTimeout(touchTimer);
+        stop();
+      },
+      { passive: true }
+    );
+  }
+
   window.GongbangBoardMedia = {
     ACCEPT,
     MAX_IMAGE_BYTES,
@@ -450,6 +560,7 @@
     pauseAll,
     syncPlayback,
     paintWriterThumb,
+    bindListHoverPreview,
     uploadFiles,
   };
 })();

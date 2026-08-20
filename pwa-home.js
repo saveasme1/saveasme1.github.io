@@ -400,6 +400,10 @@
       }
     }
     protect(btn.querySelector("img"));
+    const thumbHost = btn.querySelector(".pwa-peek__thumb, .pwa-card__thumb");
+    if (thumbHost) {
+      window.GongbangBoardMedia?.bindListHoverPreview?.(thumbHost, item, assetUrl);
+    }
     btn.addEventListener("click", () => {
       pushRecent(item);
       goPortfolio(cat || "ALL", item.id);

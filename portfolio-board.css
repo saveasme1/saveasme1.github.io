@@ -380,11 +380,48 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform .55s var(--pf-ease), filter .35s ease;
+  transition: transform .55s var(--pf-ease), filter .35s ease, opacity .2s ease;
+}
+.pf-thumb-preview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+  background: #111;
+  transition: opacity .18s ease;
+}
+.pf-thumb.is-previewing .pf-thumb-preview {
+  opacity: 1;
+}
+.pf-thumb.is-previewing img {
+  opacity: 0;
+  transform: none;
+}
+.pf-video-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  pointer-events: none;
 }
 .pf-card:hover .pf-thumb img,
 .pf-card:focus-within .pf-thumb img {
   transform: scale(1.035);
+}
+.pf-card:hover .pf-thumb.is-previewing img {
+  transform: none;
 }
 
 .pf-thumb::after {

@@ -1893,7 +1893,7 @@
 
       thumb.append(img);
 
-
+      window.GongbangBoardMedia?.bindListHoverPreview?.(thumb, item, assetUrl);
 
       const shots = imageCount(item);
 
