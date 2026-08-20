@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260820-video5";
+  const APP_BUILD = "20260820-video6";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "출고 달력에서 월을 고르면 그달 글만 보여요",
@@ -109,8 +109,21 @@
   function needsReinstallGate() {
     if (!isPwaMode()) return false;
     if (/install\.html/i.test(location.pathname)) return false;
-    const installed = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
-    if (!installed) return true;
+    let installed = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
+    // Soft updates must never raise MIN_INSTALL_BUILD. If key is missing but this
+    // install already activated a build at/above the last forced-reinstall floor,
+    // treat as OK (do not block the whole app).
+    if (!installed) {
+      const activated =
+        localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
+      if (activated && compareBuild(activated, MIN_INSTALL_BUILD) >= 0) {
+        try {
+          localStorage.setItem(INSTALLED_BUILD_KEY, activated);
+        } catch (_) {}
+        return false;
+      }
+      return true;
+    }
     return compareBuild(installed, MIN_INSTALL_BUILD) < 0;
   }
 
@@ -774,7 +787,7 @@
   });
 
   const register = () => {
-    if (window.__HX_PWA_REINSTALL_REQUIRED) return;
+    // Always register SW — blocking here traps users behind a stale reinstall gate.
     const swUrl = new URL(`sw.js?v=${APP_BUILD}`, location.href).href;
 
     navigator.serviceWorker
