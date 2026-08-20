@@ -482,9 +482,31 @@
 
     preview.classList.toggle("is-empty", !url);
 
-    preview.textContent = url ? "" : "대표 이미지 없음";
+    preview.classList.add("pf-writer-cover");
 
-    preview.style.backgroundImage = url ? `url("${url}")` : "";
+    if (!url) {
+
+      preview.textContent = "대표 이미지 없음";
+
+      preview.style.backgroundImage = "";
+
+      preview.replaceChildren();
+
+      return;
+
+    }
+
+    preview.textContent = "";
+
+    if (window.GongbangBoardMedia?.paintWriterThumb) {
+
+      window.GongbangBoardMedia.paintWriterThumb(preview, url, "image");
+
+    } else {
+
+      preview.style.backgroundImage = `url("${url}")`;
+
+    }
 
   }
 
@@ -510,7 +532,29 @@
 
       const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
 
-      card.style.backgroundImage = url ? `url("${url}")` : "";
+      const kind =
+
+        detail.kind ||
+
+        (detail.file && window.GongbangBoardMedia?.isVideoFile?.(detail.file)
+
+          ? "video"
+
+          : window.GongbangBoardMedia?.isVideoUrl?.(url)
+
+            ? "video"
+
+            : "image");
+
+      if (window.GongbangBoardMedia?.paintWriterThumb) {
+
+        window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+
+      } else {
+
+        card.style.backgroundImage = url ? `url("${url}")` : "";
+
+      }
 
 
 
@@ -528,7 +572,7 @@
 
       remove.className = "pf-writer-remove";
 
-      remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+      remove.setAttribute("aria-label", `${index + 1}번 미디어 삭제`);
 
       remove.textContent = "×";
 
@@ -640,13 +684,13 @@
 
             <div class="pf-writer-heading">
 
-              <strong>추가 이미지</strong>
+              <strong>추가 사진·동영상</strong>
 
-              <span>클릭하여 이미지 추가</span>
+              <span>사진 또는 동영상(최대 30초·50MB)</span>
 
             </div>
 
-            <label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <label class="pf-writer-file compact">클릭하여 사진·동영상 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple></label>
 
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
 
@@ -782,31 +826,50 @@
 
     });
 
-    form.elements.cover.addEventListener("change", () => {
+    form.elements.cover.addEventListener("change", async () => {
 
       const file = form.elements.cover.files?.[0];
 
       if (!file) return;
 
+      try {
+
+        await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+
+      } catch (error) {
+
+        writer.status.textContent = error.message || String(error);
+
+        form.elements.cover.value = "";
+
+        return;
+
+      }
+
       if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
 
-      writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file) };
+      writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file), kind: "image" };
 
       form.elements.cover.value = "";
+
+      writer.status.textContent = "";
 
       renderWriterCover(writer);
 
     });
 
-    form.elements.images.addEventListener("change", () => {
+    form.elements.images.addEventListener("change", async () => {
 
       const files = [...(form.elements.images.files || [])];
 
-      files.forEach((file) => {
-
-        writer.details.push({ path: "", file, preview: URL.createObjectURL(file) });
-
-      });
+      for (const file of files) {
+        try {
+          const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
+          writer.details.push({ path: "", file, preview: URL.createObjectURL(file), kind });
+        } catch (error) {
+          writer.status.textContent = error.message || String(error);
+        }
+      }
 
       form.elements.images.value = "";
 
@@ -1068,18 +1131,33 @@
       const id = editing?.id || `admin-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 
 
-      const assets = [];
+      const token = sessionStorage.getItem(TOKEN_KEY) || "";
+      const mediaApi = window.GongbangBoardMedia;
       let cover = writer.cover.path || "";
-      if (writer.cover.file) {
-        writer.status.textContent = "대표 이미지 준비 중…";
-        assets.push(await preparePortfolioAsset(writer.cover.file, "cover"));
-      }
       const keepImages = [];
+      const uploadOne = async (file, role, label) => {
+        if (!mediaApi?.uploadFiles) throw new Error("미디어 업로더를 불러오지 못했습니다.");
+        writer.status.textContent = `${label} 업로드 중…`;
+        const uploaded = await mediaApi.uploadFiles(API, token, "portfolio", id, [file], {
+          roles: [role],
+          onProgress: (pct) => {
+            writer.status.textContent = `${label} 업로드 ${pct}%`;
+          },
+        });
+        const url = uploaded[0]?.url;
+        if (!url) throw new Error(`${label} 업로드에 실패했습니다.`);
+        return url;
+      };
+      if (writer.cover.file) {
+        await mediaApi?.assertMediaFile?.(writer.cover.file, { cover: true, allowVideo: false });
+        cover = await uploadOne(writer.cover.file, "cover", "대표 이미지");
+      }
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
         if (detail.file) {
-          writer.status.textContent = `추가 이미지 준비 중 ${index + 1} / ${writer.details.length}`;
-          assets.push(await preparePortfolioAsset(detail.file, "detail", index + 1));
+          await mediaApi?.assertMediaFile?.(detail.file, { allowVideo: true });
+          const kind = mediaApi?.isVideoFile?.(detail.file) ? "동영상" : "이미지";
+          keepImages.push(await uploadOne(detail.file, "detail", `추가 ${kind} ${index + 1}`));
         } else if (detail.path) {
           keepImages.push(detail.path);
         }
@@ -1107,7 +1185,7 @@
         method: "PUT",
         body: JSON.stringify({
           item: draftItem,
-          assets,
+          assets: [],
           meta: {
             version: 3,
             categories: state.categories.length ? state.categories : CATEGORIES,
@@ -1860,6 +1938,31 @@
 
     }
 
+    window.GongbangBoardMedia?.syncPlayback?.(els.images, state.slideIndex);
+
+    els.images.querySelectorAll(".board-carousel-slide").forEach((slide, i) => {
+
+      const video = slide.querySelector("video");
+
+      if (!video) return;
+
+      if (i === state.slideIndex) {
+
+        video.muted = true;
+
+        const play = video.play();
+
+        if (play && typeof play.catch === "function") play.catch(() => {});
+
+      } else {
+
+        try { video.pause(); video.currentTime = 0; } catch (_) {}
+
+      }
+
+    });
+
+
   }
 
 
@@ -1914,19 +2017,55 @@
 
       slide.className = "board-carousel-slide";
 
-      const img = document.createElement("img");
+      const src = assetUrl(path);
 
-      img.src = assetUrl(path);
+      const media = window.GongbangBoardMedia?.createSlideMedia
 
-      img.alt = "";
+        ? window.GongbangBoardMedia.createSlideMedia(src, { eager: index === 0 })
 
-      img.loading = index === 0 ? "eager" : "lazy";
+        : (() => {
 
-      img.decoding = "async";
+            const isVideo = /\.(mp4|webm|mov)(?:$|\?)/i.test(String(path || src));
 
-      bindImgFallback(img);
+            if (isVideo) {
 
-      slide.append(img);
+              const video = document.createElement("video");
+
+              video.className = "board-carousel-video";
+
+              video.src = src;
+
+              video.muted = true;
+
+              video.playsInline = true;
+
+              video.setAttribute("playsinline", "");
+
+              video.loop = true;
+
+              video.preload = index === 0 ? "auto" : "metadata";
+
+              video.controls = false;
+
+              return video;
+
+            }
+
+            const img = document.createElement("img");
+
+            img.src = src;
+
+            img.alt = "";
+
+            img.loading = index === 0 ? "eager" : "lazy";
+
+            return img;
+
+          })();
+
+      if (media.tagName === "IMG") bindImgFallback(media);
+
+      slide.append(media);
 
       track.append(slide);
 
@@ -2412,6 +2551,8 @@
 
 
   function closeDetail() {
+
+    window.GongbangBoardMedia?.pauseAll?.(els.images);
 
     els.dialog.classList.remove("open");
 

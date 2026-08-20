@@ -148,6 +148,7 @@
   }
 
   function closeDetail() {
+    window.GongbangBoardMedia?.pauseAll?.(dialog.images);
     dialog.root.classList.remove("open");
     dialog.root.setAttribute("aria-hidden", "true");
     dialog.root.removeAttribute("data-board-type");
@@ -201,6 +202,7 @@
       window.GongbangBoardMeta.syncCarouselHeight(viewport, track, state.slideIndex);
     }
     fitNoticeCarousel(viewport, track);
+    window.GongbangBoardMedia?.syncPlayback?.(dialog.images, state.slideIndex);
   }
 
   /** Notices: viewport height = active slide image only (no black void from taller siblings). */
@@ -211,8 +213,8 @@
     if (!vp || !tr) return;
     const slides = [...tr.children];
     const active = slides[state.slideIndex];
-    const img = active?.querySelector("img");
-    if (!img) return;
+    const media = active?.querySelector("img, video");
+    if (!media) return;
 
     const apply = () => {
       const boxW = Math.max(
@@ -222,8 +224,8 @@
           vp.getBoundingClientRect().width ||
           0
       );
-      const natW = img.naturalWidth || 0;
-      const natH = img.naturalHeight || 0;
+      const natW = media.naturalWidth || media.videoWidth || 0;
+      const natH = media.naturalHeight || media.videoHeight || 0;
       if (!natW || !natH) return;
       // Never upscale past natural pixel width (stops blurry PC blow-ups).
       let displayW = Math.max(1, Math.min(boxW || natW, natW));
@@ -237,11 +239,11 @@
         displayW = Math.max(1, Math.round((natW * displayH) / natH));
       }
       if (displayH < 8) return;
-      img.style.setProperty("width", `${displayW}px`, "important");
-      img.style.setProperty("max-width", "100%", "important");
-      img.style.setProperty("height", "auto", "important");
-      img.style.setProperty("margin", "0 auto", "important");
-      img.style.setProperty("display", "block", "important");
+      media.style.setProperty("width", `${displayW}px`, "important");
+      media.style.setProperty("max-width", "100%", "important");
+      media.style.setProperty("height", "auto", "important");
+      media.style.setProperty("margin", "0 auto", "important");
+      media.style.setProperty("display", "block", "important");
       vp.style.setProperty("height", `${displayH}px`, "important");
       vp.style.setProperty("overflow", "hidden", "important");
       tr.style.setProperty("height", `${displayH}px`, "important");
@@ -256,20 +258,20 @@
       if (di) di.style.setProperty("height", `${displayH}px`, "important");
       const car = vp.closest(".board-carousel");
       if (car) car.style.setProperty("height", `${displayH}px`, "important");
-      // #region agent log
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'post-fix',hypothesisId:'N1-N3',location:'landing-boards.js:fitNoticeCarousel',message:'fit notice no-upscale',data:{id:state.current?.id||'',slide:state.slideIndex,natW,natH,boxW,displayW,displayH,upscaled:displayW>natW,cappedByNat:displayW===natW&&boxW>natW,cappedByMaxH:displayH===Math.min(Math.round(window.innerHeight*0.62),560),dialogW:Math.round(dialog.root?.querySelector?.('.board-detail')?.getBoundingClientRect?.()?.width||0),imgCssW:img.style.width,vpH:Math.round(vp.getBoundingClientRect().height),vw:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
     };
 
-    if (img.complete && img.naturalWidth) {
+    const ready =
+      (media.tagName === "VIDEO" && media.videoWidth) ||
+      (media.tagName === "IMG" && media.complete && media.naturalWidth);
+    if (ready) {
       requestAnimationFrame(apply);
     } else {
-      img.addEventListener(
-        "load",
+      media.addEventListener(
+        media.tagName === "VIDEO" ? "loadedmetadata" : "load",
         () => requestAnimationFrame(apply),
         { once: true }
       );
-      img.addEventListener(
+      media.addEventListener(
         "error",
         () => {
           vp.style.height = "0px";
@@ -302,13 +304,17 @@
       const stack = document.createElement("div");
       stack.className = "notice-page-stack";
       paths.forEach((path, index) => {
-        const img = document.createElement("img");
-        img.src = assetUrl(path);
-        img.alt = "";
-        img.loading = index === 0 ? "eager" : "lazy";
-        img.decoding = "async";
-        if (window.GongbangProtectImage) window.GongbangProtectImage(img);
-        stack.append(img);
+        const media = window.GongbangBoardMedia?.createSlideMedia
+          ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), { eager: index === 0 })
+          : (() => {
+              const img = document.createElement("img");
+              img.src = assetUrl(path);
+              img.alt = "";
+              img.loading = index === 0 ? "eager" : "lazy";
+              return img;
+            })();
+        if (media.tagName === "IMG" && window.GongbangProtectImage) window.GongbangProtectImage(media);
+        stack.append(media);
       });
       dialog.images.append(stack);
       return;
@@ -323,13 +329,17 @@
     paths.forEach((path, index) => {
       const slide = document.createElement("div");
       slide.className = "board-carousel-slide";
-      const img = document.createElement("img");
-      img.src = assetUrl(path);
-      img.alt = "";
-      img.loading = index === 0 ? "eager" : "lazy";
-      img.decoding = "async";
-      if (window.GongbangProtectImage) window.GongbangProtectImage(img);
-      slide.append(img);
+      const media = window.GongbangBoardMedia?.createSlideMedia
+        ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), { eager: index === 0 })
+        : (() => {
+            const img = document.createElement("img");
+            img.src = assetUrl(path);
+            img.alt = "";
+            img.loading = index === 0 ? "eager" : "lazy";
+            return img;
+          })();
+      if (media.tagName === "IMG" && window.GongbangProtectImage) window.GongbangProtectImage(media);
+      slide.append(media);
       track.append(slide);
     });
     viewport.append(track);
@@ -353,8 +363,8 @@
       const counter = document.createElement("span");
       counter.className = "board-carousel-counter";
       carousel.append(
-        makeButton("prev", "이전 이미지", "‹"),
-        makeButton("next", "다음 이미지", "›"),
+        makeButton("prev", "이전", "‹"),
+        makeButton("next", "다음", "›"),
         counter
       );
       let touchStartX = 0;
@@ -697,8 +707,19 @@
     if (!preview) return;
     const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
     preview.classList.toggle("is-empty", !url);
-    preview.textContent = url ? "" : "대표 이미지 없음";
-    preview.style.backgroundImage = url ? `url("${url}")` : "";
+    preview.classList.toggle("pf-writer-cover", true);
+    if (!url) {
+      preview.textContent = "대표 이미지 없음";
+      preview.style.backgroundImage = "";
+      preview.replaceChildren();
+      return;
+    }
+    preview.textContent = "";
+    if (window.GongbangBoardMedia?.paintWriterThumb) {
+      window.GongbangBoardMedia.paintWriterThumb(preview, url, "image");
+    } else {
+      preview.style.backgroundImage = `url("${url}")`;
+    }
   }
 
   function renderWriterDetails() {
@@ -712,14 +733,25 @@
       const card = document.createElement("div");
       card.className = "pf-writer-thumb";
       const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
-      card.style.backgroundImage = url ? `url("${url}")` : "";
+      const kind =
+        detail.kind ||
+        (detail.file && window.GongbangBoardMedia?.isVideoFile?.(detail.file)
+          ? "video"
+          : window.GongbangBoardMedia?.isVideoUrl?.(url)
+            ? "video"
+            : "image");
+      if (window.GongbangBoardMedia?.paintWriterThumb) {
+        window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+      } else {
+        card.style.backgroundImage = url ? `url("${url}")` : "";
+      }
       const order = document.createElement("span");
       order.className = "pf-writer-order";
       order.textContent = String(index + 1);
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "pf-writer-remove";
-      remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+      remove.setAttribute("aria-label", `${index + 1}번 미디어 삭제`);
       remove.textContent = "×";
       remove.addEventListener("click", () => {
         const [removed] = writer.details.splice(index, 1);
@@ -752,7 +784,7 @@
       writer.title.textContent = type === "shipping" ? "최종검수 수정" : "공지사항 수정";
       if (writer.submit) writer.submit.textContent = "수정하기";
       if (writer.help) {
-        writer.help.textContent = "이미지를 바꾸지 않으면 기존 이미지가 유지됩니다.";
+        writer.help.textContent = "미디어를 바꾸지 않으면 기존 파일이 유지됩니다. 동영상은 추가 미디어로 올려 주세요.";
       }
       if (titleEl) titleEl.value = editing.title || "";
       if (contentEl) contentEl.value = editing.content || "";
@@ -777,8 +809,8 @@
       if (writer.submit) writer.submit.textContent = "등록하기";
       if (writer.help) {
         writer.help.textContent = type === "shipping"
-          ? "카테고리·게시일을 선택한 뒤 대표 이미지를 올려 주세요."
-          : "대표 이미지를 올려 주세요.";
+          ? "카테고리·게시일을 선택한 뒤 대표 사진과 추가 사진/동영상을 올려 주세요."
+          : "대표 사진은 필수, 추가 동영상은 최대 30초·50MB(mp4/webm)입니다.";
       }
       if (coverInput) coverInput.required = true;
     }
@@ -864,45 +896,46 @@
       }
 
       const submitStartedAt = Date.now();
+      const token = sessionStorage.getItem(TOKEN_KEY) || "";
+      const mediaApi = window.GongbangBoardMedia;
 
-      writer.status.textContent = "압축 중…";
-      const assets = [];
+      writer.status.textContent = "업로드 준비 중…";
+      let cover = writer.cover.path || "";
       const keepImages = [];
-      if (writer.cover.file) {
-        const prepared = await compressImageFile(writer.cover.file);
-        if (prepared.size > 8 * 1024 * 1024) {
-          throw new Error(`${writer.cover.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
-        }
-        assets.push({
-          role: "cover",
-          mime: prepared.type || "image/jpeg",
-          content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
+
+      const uploadOne = async (file, role, label) => {
+        if (!mediaApi?.uploadFiles) throw new Error("미디어 업로더를 불러오지 못했습니다.");
+        writer.status.textContent = `${label} 업로드 중…`;
+        const assets = await mediaApi.uploadFiles(API, token, type, id, [file], {
+          roles: [role],
+          onProgress: (pct) => {
+            writer.status.textContent = `${label} 업로드 ${pct}%`;
+          },
         });
-      } else if (!writer.cover.path) {
+        const url = assets[0]?.url;
+        if (!url) throw new Error(`${label} 업로드에 실패했습니다.`);
+        return url;
+      };
+
+      if (writer.cover.file) {
+        await mediaApi?.assertMediaFile?.(writer.cover.file, { cover: true, allowVideo: false });
+        cover = await uploadOne(writer.cover.file, "cover", "대표 이미지");
+      } else if (!cover) {
         throw new Error("대표 이미지를 선택해 주세요.");
       }
+
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
         if (detail.file) {
-          const prepared = await compressImageFile(detail.file);
-          if (prepared.size > 8 * 1024 * 1024) {
-            throw new Error(`${detail.file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
-          }
-          assets.push({
-            role: "detail",
-            index: index + 1,
-            mime: prepared.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await prepared.arrayBuffer())),
-          });
+          await mediaApi?.assertMediaFile?.(detail.file, { allowVideo: true });
+          const kind = mediaApi?.isVideoFile?.(detail.file) ? "동영상" : "이미지";
+          keepImages.push(await uploadOne(detail.file, "detail", `추가 ${kind} ${index + 1}`));
         } else if (detail.path) {
           keepImages.push(detail.path);
         }
       }
 
       writer.status.textContent = "저장 중…";
-      // #region agent log
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'board contabo publish start',data:{type,id,category,publishedAt,assetCount:assets.length},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       const published = await api(`/admin/boards/${encodeURIComponent(type)}/publish`, {
         method: "PUT",
         body: JSON.stringify({
@@ -911,20 +944,17 @@
             id,
             title,
             content,
-            cover: writer.cover.path || "",
-            images: keepImages.filter((path) => path && path !== writer.cover.path),
+            cover,
+            images: keepImages.filter((path) => path && path !== cover),
             publishedAt,
             category,
             origin: editing?.origin || "admin",
             updatedAt: now,
           },
-          assets,
+          assets: [],
         }),
       });
       const item = published.item;
-      // #region agent log
-      fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'speed-test',hypothesisId:'S',location:'landing-boards.js:submitWriter',message:'board contabo publish ok',data:{type,id:item?.id,cover:item?.cover,liveCount:published?.liveCount,serverMs:published?.ms,totalMs:Date.now()-submitStartedAt,via:published?.via},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
 
       state[type] = [item, ...(state[type] || []).filter((entry) => entry.id !== id)];
       if (boards[type]) boards[type].page = 1;
@@ -1337,19 +1367,37 @@
     if (writer.submit) writer.submit.textContent = "등록하기";
     writer.root.close();
   });
-  writer.form.elements.cover?.addEventListener("change", () => {
+  writer.form.elements.cover?.addEventListener("change", async () => {
     const file = writer.form.elements.cover.files?.[0];
     if (!file) return;
+    try {
+      await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+    } catch (error) {
+      writer.status.textContent = error.message || String(error);
+      writer.form.elements.cover.value = "";
+      return;
+    }
     if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
-    writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file) };
+    writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file), kind: "image" };
     writer.form.elements.cover.value = "";
+    writer.status.textContent = "";
     renderWriterCover();
   });
-  writer.form.elements.images?.addEventListener("change", () => {
+  writer.form.elements.images?.addEventListener("change", async () => {
     const files = [...(writer.form.elements.images.files || [])];
-    files.forEach((file) => {
-      writer.details.push({ path: "", file, preview: URL.createObjectURL(file) });
-    });
+    for (const file of files) {
+      try {
+        const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
+        writer.details.push({
+          path: "",
+          file,
+          preview: URL.createObjectURL(file),
+          kind,
+        });
+      } catch (error) {
+        writer.status.textContent = error.message || String(error);
+      }
+    }
     writer.form.elements.images.value = "";
     renderWriterDetails();
   });

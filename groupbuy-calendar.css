@@ -574,7 +574,8 @@ button.primary,
   min-height: 0;
 }
 
-.gb-cal-sheet__hero img {
+.gb-cal-sheet__hero img,
+.gb-cal-sheet__hero video.board-carousel-video {
   display: block;
   width: 100%;
   height: 100%;
@@ -582,6 +583,7 @@ button.primary,
   max-height: 100%;
   object-fit: contain;
   object-position: center center;
+}
   margin: 0;
 }
 

@@ -1,11 +1,11 @@
-﻿{
-  "build": "20260811-gbcal83",
-  "minInstallBuild": "20260809-gbcal31",
-  "appVersion": "v1.12.51",
-  "deployedAt": "2026-08-12T08:15:00.000Z",
-  "note": "Shipping list shows all posts again (no month-only filter)",
+{
+  "build": "20260820-video3",
+  "minInstallBuild": "20260820-video3",
+  "appVersion": "v1.12.52",
+  "deployedAt": "2026-08-20T14:10:00.000Z",
+  "note": "Board video attach + muted carousel playback",
   "notes": [
-    "최종검수: 기본 전체 게시글 표시 복원",
-    "날짜 선택 시에만 해당일 필터"
+    "게시판 동영상 첨부/무음 스와이프 재생",
+    "board-media.js 추가"
   ]
 }

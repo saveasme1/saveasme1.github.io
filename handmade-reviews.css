@@ -360,7 +360,8 @@
   place-items: center;
   height: 100%;
 }
-.review-carousel-slide img {
+.review-carousel-slide img,
+.review-carousel-slide video.board-carousel-video {
   display: block;
   width: auto;
   height: auto;

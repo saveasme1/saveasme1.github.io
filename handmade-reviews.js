@@ -282,6 +282,7 @@
   }
 
   function updateCarousel() {
+    window.GongbangBoardMedia?.syncPlayback?.(els.viewImages, state.slideIndex);
     const viewport = els.viewImages.querySelector(".review-carousel-viewport");
     const track = els.viewImages.querySelector(".review-carousel-track");
     const counter = els.viewImages.querySelector(".review-carousel-counter");
@@ -313,13 +314,21 @@
     images.forEach((image, index) => {
       const slide = document.createElement("div");
       slide.className = "review-carousel-slide";
-      const img = document.createElement("img");
-      img.src = imageUrl(image.url);
-      img.alt = "";
-      img.loading = index === 0 ? "eager" : "lazy";
-      if (window.GongbangProtectImage) window.GongbangProtectImage(img);
-      img.decoding = "async";
-      slide.append(img);
+      const src = imageUrl(image.url);
+      const media = window.GongbangBoardMedia?.createSlideMedia
+        ? window.GongbangBoardMedia.createSlideMedia(src, { eager: index === 0 })
+        : (() => {
+            const img = document.createElement("img");
+            img.src = src;
+            img.alt = "";
+            img.loading = index === 0 ? "eager" : "lazy";
+            return img;
+          })();
+      if (media.tagName === "IMG") {
+        if (window.GongbangProtectImage) window.GongbangProtectImage(media);
+        media.decoding = "async";
+      }
+      slide.append(media);
       track.append(slide);
     });
     viewport.append(track);
@@ -653,7 +662,7 @@
                   <strong>추가 이미지</strong>
                   <span>클릭하여 이미지 추가</span>
                 </div>
-                <label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+                <label class="pf-writer-file compact">클릭하여 사진·동영상 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple></label>
                 <div class="pf-writer-grid" id="reviewDetailGrid"></div>
               </div>
             </section>

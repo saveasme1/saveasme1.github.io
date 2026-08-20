@@ -194,10 +194,15 @@
   }
 
   async function uploadImage(file, id, role, index = 0) {
-    if (file.size > 8 * 1024 * 1024) {
+    const isVideo = window.GongbangBoardMedia?.isVideoFile?.(file);
+    if (isVideo) {
+      if (file.size > 50 * 1024 * 1024) throw new Error("동영상은 50MB 이하여야 합니다.");
+    } else if (file.size > 8 * 1024 * 1024) {
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
-    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg";
+    const ext = isVideo
+      ? ({ "video/webm": "webm", "video/quicktime": "mov" }[file.type] || "mp4")
+      : ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg");
     const suffix = index ? `-${index}` : "";
     const path = `groupbuy/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     const content = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
@@ -602,7 +607,11 @@
           ? `<button type="button" class="gb-cal-sheet__nav prev" data-prev aria-label="이전 이미지">‹</button>`
           : "") +
         `<div class="gb-cal-sheet__hero-frame">` +
-        (hero ? `<img src="${assetUrl(hero)}" alt="">` : "") +
+        (hero
+          ? (window.GongbangBoardMedia?.isVideoUrl?.(hero)
+              ? `<video class="board-carousel-video" src="${assetUrl(hero)}" muted playsinline loop autoplay></video>`
+              : `<img src="${assetUrl(hero)}" alt="">`)
+          : "") +
         `</div>` +
         (multi
           ? `<button type="button" class="gb-cal-sheet__nav next" data-next aria-label="다음 이미지">›</button>`
@@ -616,7 +625,10 @@
               .map(
                 (src, i) =>
                   `<button type="button" class="${i === active ? "is-on" : ""}" data-i="${i}">` +
-                  `<img src="${assetUrl(src)}" alt=""></button>`
+                  (window.GongbangBoardMedia?.isVideoUrl?.(src)
+                    ? `<span class="pf-writer-video-badge">VIDEO</span>`
+                    : `<img src="${assetUrl(src)}" alt="">`) +
+                  `</button>`
               )
               .join("")}</div>`
           : "") +
@@ -813,7 +825,7 @@
       `</div>` +
       `<div class="pf-writer-block pf-writer-detail-block">` +
       `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>클릭하여 이미지 추가</span></div>` +
-      `<label class="pf-writer-file compact">클릭하여 이미지 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
+      `<label class="pf-writer-file compact">클릭하여 사진·동영상 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov" multiple></label>` +
       `<div class="pf-writer-grid" id="gbCalWriterDetailGrid"></div>` +
       `</div>` +
       `</section>` +
@@ -923,14 +935,25 @@
           const card = document.createElement("div");
           card.className = "pf-writer-thumb";
           const url = detail.preview || (detail.path ? assetUrl(detail.path) : "");
-          card.style.backgroundImage = url ? `url("${url}")` : "";
+          const kind =
+            detail.kind ||
+            (detail.file && window.GongbangBoardMedia?.isVideoFile?.(detail.file)
+              ? "video"
+              : window.GongbangBoardMedia?.isVideoUrl?.(url)
+                ? "video"
+                : "image");
+          if (window.GongbangBoardMedia?.paintWriterThumb) {
+            window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+          } else {
+            card.style.backgroundImage = url ? `url("${url}")` : "";
+          }
           const order = document.createElement("span");
           order.className = "pf-writer-order";
           order.textContent = String(index + 1);
           const remove = document.createElement("button");
           remove.type = "button";
           remove.className = "pf-writer-remove";
-          remove.setAttribute("aria-label", `${index + 1}번 이미지 삭제`);
+          remove.setAttribute("aria-label", `${index + 1}번 미디어 삭제`);
           remove.textContent = "×";
           remove.addEventListener("click", () => {
             const [removed] = mediaState.details.splice(index, 1);
@@ -1002,9 +1025,16 @@
 
     dlg.querySelector("#gbCalWriterCancel").addEventListener("click", () => dlg.close());
 
-    coverInput.addEventListener("change", () => {
+    coverInput.addEventListener("change", async () => {
       const file = coverInput.files?.[0];
       if (!file) return;
+      try {
+        await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+      } catch (error) {
+        status.textContent = error.message || String(error);
+        coverInput.value = "";
+        return;
+      }
       if (mediaState.cover.preview?.startsWith("blob:")) {
         URL.revokeObjectURL(mediaState.cover.preview);
       }
@@ -1012,17 +1042,24 @@
         path: mediaState.cover.path || "",
         file,
         preview: URL.createObjectURL(file),
+        kind: "image",
       };
       coverInput.value = "";
       coverInput.required = false;
+      status.textContent = "";
       renderGallery();
     });
 
-    form.elements.images.addEventListener("change", () => {
+    form.elements.images.addEventListener("change", async () => {
       const files = [...(form.elements.images.files || [])];
-      files.forEach((file) => {
-        mediaState.details.push({ path: "", file, preview: URL.createObjectURL(file) });
-      });
+      for (const file of files) {
+        try {
+          const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
+          mediaState.details.push({ path: "", file, preview: URL.createObjectURL(file), kind });
+        } catch (error) {
+          status.textContent = error.message || String(error);
+        }
+      }
       form.elements.images.value = "";
       renderGallery();
     });
@@ -1043,7 +1080,7 @@
       const startDate = rangeState.start;
       const endDate = rangeState.end || rangeState.start;
       if (mediaState.details.length > 8) {
-        status.textContent = "추가 이미지는 최대 8장까지입니다.";
+        status.textContent = "추가 미디어는 최대 8개까지입니다.";
         return;
       }
       submitBtn.disabled = true;
@@ -1051,28 +1088,32 @@
         const id = editing
           ? mediaState.id
           : `gb-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-        const assets = [];
+        const token = sessionStorage.getItem(TOKEN_KEY) || "";
+        const mediaApi = window.GongbangBoardMedia;
+        const uploadOne = async (file, role, label) => {
+          if (!mediaApi?.uploadFiles) throw new Error("미디어 업로더를 불러오지 못했습니다.");
+          status.textContent = `${label} 업로드 중…`;
+          const uploaded = await mediaApi.uploadFiles(API, token, "groupbuy", id, [file], {
+            roles: [role],
+            onProgress: (pct) => {
+              status.textContent = `${label} 업로드 ${pct}%`;
+            },
+          });
+          const url = uploaded[0]?.url;
+          if (!url) throw new Error(`${label} 업로드에 실패했습니다.`);
+          return url;
+        };
         let cover = mediaState.cover.path;
         if (coverFile) {
-          status.textContent = "대표 이미지 준비 중…";
-          if (coverFile.size > 8 * 1024 * 1024) throw new Error("8MB 이하 이미지만 업로드할 수 있습니다.");
-          assets.push({
-            role: "cover",
-            mime: coverFile.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await coverFile.arrayBuffer())),
-          });
+          await mediaApi?.assertMediaFile?.(coverFile, { cover: true, allowVideo: false });
+          cover = await uploadOne(coverFile, "cover", "대표 이미지");
         }
         const images = mediaState.details.filter((d) => d.path).map((d) => d.path);
         for (let i = 0; i < detailFiles.length; i += 1) {
-          status.textContent = `추가 이미지 준비 중 ${i + 1} / ${detailFiles.length}`;
           const file = detailFiles[i];
-          if (file.size > 8 * 1024 * 1024) throw new Error("8MB 이하 이미지만 업로드할 수 있습니다.");
-          assets.push({
-            role: "detail",
-            index: images.length + i + 1,
-            mime: file.type || "image/jpeg",
-            content: bytesToBase64(new Uint8Array(await file.arrayBuffer())),
-          });
+          await mediaApi?.assertMediaFile?.(file, { allowVideo: true });
+          const kind = mediaApi?.isVideoFile?.(file) ? "동영상" : "이미지";
+          images.push(await uploadOne(file, "detail", `추가 ${kind} ${i + 1}`));
         }
         status.textContent = "저장 중…";
         const now = window.GongbangTime?.nowIso?.() || new Date().toISOString();
@@ -1082,7 +1123,7 @@
           content: form.elements.content.value.trim(),
           cover: cover || "",
           image: cover || "",
-          images,
+          images: images.filter((path) => path && path !== cover),
           startDate,
           endDate,
           publishedAt: editing ? mediaState.publishedAt || now : now,
@@ -1091,9 +1132,9 @@
         };
         const published = await api("/admin/boards/groupbuy/publish", {
           method: "PUT",
-          body: JSON.stringify({ item, assets }),
+          body: JSON.stringify({ item, assets: [] }),
         });
-        const saved = published.item || item;
+                const saved = published.item || item;
         status.textContent = editing ? "수정되었습니다." : "등록되었습니다.";
         form.reset();
         rangeState.start = "";
