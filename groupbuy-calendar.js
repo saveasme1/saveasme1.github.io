@@ -820,7 +820,7 @@
       `<div class="pf-writer-heading"><strong>대표 이미지</strong><span>목록에 가장 먼저 보이는 이미지</span></div>` +
       `<div class="pf-writer-cover-row">` +
       `<div class="pf-writer-cover is-empty" id="gbCalWriterGallery" data-gallery>대표 이미지 없음</div>` +
-      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
+      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"></label>` +
       `</div>` +
       `</div>` +
       `<div class="pf-writer-block pf-writer-detail-block">` +
@@ -1029,7 +1029,7 @@
       const file = coverInput.files?.[0];
       if (!file) return;
       try {
-        await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+        await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
       } catch (error) {
         status.textContent = error.message || String(error);
         coverInput.value = "";
@@ -1104,9 +1104,18 @@
           return url;
         };
         let cover = mediaState.cover.path;
+        let coverPoster = editing ? (mediaState.coverPoster || "") : "";
         if (coverFile) {
-          await mediaApi?.assertMediaFile?.(coverFile, { cover: true, allowVideo: false });
-          cover = await uploadOne(coverFile, "cover", "대표 이미지");
+          await mediaApi?.assertMediaFile?.(coverFile, { allowVideo: true });
+          const isVid = mediaApi?.isVideoFile?.(coverFile);
+          cover = await uploadOne(coverFile, "cover", isVid ? "대표 영상" : "대표 이미지");
+          if (isVid) {
+            status.textContent = "대표 영상 썸네일 생성 중…";
+            const poster = await mediaApi.captureVideoPoster(coverFile);
+            coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
+          } else {
+            coverPoster = "";
+          }
         }
         const images = mediaState.details.filter((d) => d.path).map((d) => d.path);
         for (let i = 0; i < detailFiles.length; i += 1) {
@@ -1123,6 +1132,7 @@
           content: form.elements.content.value.trim(),
           cover: cover || "",
           image: cover || "",
+          coverPoster: coverPoster || "",
           images: images.filter((path) => path && path !== cover),
           startDate,
           endDate,
@@ -1370,7 +1380,7 @@
           let left = cellLeft;
           let width = er.right - sr.left - padX * 2;
           let coverSize = 0;
-          if (seg.roundLeft && seg.item.cover) {
+          if (seg.roundLeft && (seg.item.coverPoster || seg.item.cover)) {
             coverSize = Math.min(thumbSize, 48);
             const peek = Math.min(capPeek, 6);
             left = cellLeft - peek;
@@ -1421,7 +1431,7 @@
           name.dataset.baseWidth = String(nameWidth);
           name.dataset.basePad = "0";
           name.dataset.baseAlign = "center";
-          if (seg.item.cover && coverSize) {
+          if ((seg.item.coverPoster || seg.item.cover) && coverSize) {
             const namePad = Math.min(Math.round(coverSize * 0.45), Math.max(18, width * 0.34));
             name.style.paddingLeft = `${namePad}px`;
             name.style.textAlign = "left";

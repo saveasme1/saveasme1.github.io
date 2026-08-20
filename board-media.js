@@ -27,6 +27,16 @@
     return VIDEO_EXT.test(String(url || "").split("#")[0]);
   }
 
+  /** List/card thumb: prefer captured poster when cover is video. */
+  function thumbUrl(item) {
+    if (!item || typeof item !== "object") return "";
+    const poster = String(item.coverPoster || "").trim();
+    if (poster) return poster;
+    const cover = String(item.cover || item.image || "").trim();
+    if (cover && !isVideoUrl(cover)) return cover;
+    return poster || cover || "";
+  }
+
   function readVideoDuration(file) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -54,11 +64,69 @@
     });
   }
 
-  async function assertMediaFile(file, { allowVideo = true, cover = false } = {}) {
+  /** Capture a JPEG still (~1s or first frame) for list thumbnails. */
+  function captureVideoPoster(file, seekTo = 0.8) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "auto";
+      video.muted = true;
+      video.playsInline = true;
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        video.removeAttribute("src");
+        video.load();
+      };
+      const fail = (err) => {
+        cleanup();
+        reject(err instanceof Error ? err : new Error(String(err || "썸네일 생성 실패")));
+      };
+      video.onerror = () => fail(new Error("영상 썸네일을 만들 수 없습니다."));
+      video.onloadeddata = () => {
+        try {
+          const duration = Number(video.duration) || 0;
+          const target = duration > 1 ? Math.min(seekTo, duration * 0.25) : 0;
+          if (target > 0.05) video.currentTime = target;
+          else snap();
+        } catch (error) {
+          fail(error);
+        }
+      };
+      const snap = () => {
+        try {
+          const w = video.videoWidth || 720;
+          const h = video.videoHeight || 720;
+          if (!w || !h) return fail(new Error("영상 프레임을 읽을 수 없습니다."));
+          const maxSide = 1200;
+          const scale = Math.min(1, maxSide / Math.max(w, h));
+          const cw = Math.max(1, Math.round(w * scale));
+          const ch = Math.max(1, Math.round(h * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = cw;
+          canvas.height = ch;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, cw, ch);
+          canvas.toBlob(
+            (blob) => {
+              cleanup();
+              if (!blob) return reject(new Error("썸네일 인코딩에 실패했습니다."));
+              const base = String(file.name || "cover").replace(/\.[^.]+$/, "") || "cover";
+              resolve(new File([blob], `${base}-poster.jpg`, { type: "image/jpeg" }));
+            },
+            "image/jpeg",
+            0.82
+          );
+        } catch (error) {
+          fail(error);
+        }
+      };
+      video.onseeked = snap;
+      video.src = url;
+    });
+  }
+
+  async function assertMediaFile(file, { allowVideo = true } = {}) {
     if (!file) throw new Error("파일을 선택해 주세요.");
-    if (cover && isVideoFile(file)) {
-      throw new Error("대표(커버)는 이미지만 사용할 수 있습니다. 동영상은 추가 미디어로 올려 주세요.");
-    }
     if (isVideoFile(file)) {
       if (!allowVideo) throw new Error("이 위치에는 동영상을 올릴 수 없습니다.");
       if (file.size > MAX_VIDEO_BYTES) {
@@ -79,12 +147,13 @@
     throw new Error(`${file.name}: jpeg/png/webp 또는 mp4/webm만 지원합니다.`);
   }
 
-  function createSlideMedia(url, { eager = false } = {}) {
+  function createSlideMedia(url, { eager = false, poster = "" } = {}) {
     const src = String(url || "");
     if (isVideoUrl(src)) {
       const video = document.createElement("video");
       video.className = "board-carousel-video";
       video.src = src;
+      if (poster) video.poster = poster;
       video.muted = true;
       video.playsInline = true;
       video.setAttribute("playsinline", "");
@@ -201,7 +270,9 @@
     isVideoFile,
     isImageFile,
     isVideoUrl,
+    thumbUrl,
     readVideoDuration,
+    captureVideoPoster,
     assertMediaFile,
     createSlideMedia,
     pauseAll,

@@ -395,7 +395,7 @@
         tag.textContent = item.category;
         thumb.append(tag);
       }
-      const cover = item.cover || item.image || item.images?.[0];
+      const cover = window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image || item.images?.[0];
       if (cover) {
         const img = document.createElement("img");
         img.src = assetUrl(typeof cover === "string" ? cover : cover.url);

@@ -1,9 +1,9 @@
 {
-  "build": "20260820-video3",
-  "minInstallBuild": "20260820-video3",
-  "appVersion": "v1.12.52",
-  "deployedAt": "2026-08-20T14:10:00.000Z",
-  "note": "Board video attach + muted carousel playback",
+  "build": "20260820-video4",
+  "minInstallBuild": "20260820-video4",
+  "appVersion": "v1.12.53",
+  "deployedAt": "2026-08-20T14:20:00.000Z",
+  "note": "Cover can be video with poster thumbnail",
   "notes": [
     "게시판 동영상 첨부/무음 스와이프 재생",
     "board-media.js 추가"

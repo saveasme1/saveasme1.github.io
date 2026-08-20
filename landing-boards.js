@@ -873,7 +873,7 @@
       return;
     }
     if (!writer.cover.file && !writer.cover.path) {
-      writer.status.textContent = "대표 이미지를 선택해 주세요.";
+      writer.status.textContent = "대표 사진 또는 영상을 선택해 주세요.";
       return;
     }
     writer.submit.disabled = true;
@@ -917,11 +917,22 @@
         return url;
       };
 
+      let coverPoster = editing?.coverPoster || "";
       if (writer.cover.file) {
-        await mediaApi?.assertMediaFile?.(writer.cover.file, { cover: true, allowVideo: false });
-        cover = await uploadOne(writer.cover.file, "cover", "대표 이미지");
+        await mediaApi?.assertMediaFile?.(writer.cover.file, { allowVideo: true });
+        const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
+        cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
+        if (isVid) {
+          writer.status.textContent = "대표 영상 썸네일 생성 중…";
+          const poster = await mediaApi.captureVideoPoster(writer.cover.file);
+          coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
+        } else {
+          coverPoster = "";
+        }
       } else if (!cover) {
-        throw new Error("대표 이미지를 선택해 주세요.");
+        throw new Error("대표 사진 또는 영상을 선택해 주세요.");
+      } else if (!mediaApi?.isVideoUrl?.(cover)) {
+        coverPoster = "";
       }
 
       for (let index = 0; index < writer.details.length; index += 1) {
@@ -945,6 +956,7 @@
             title,
             content,
             cover,
+            coverPoster,
             images: keepImages.filter((path) => path && path !== cover),
             publishedAt,
             category,
@@ -1072,7 +1084,7 @@
         row.className = "review-thumb";
         row.setAttribute("aria-label", `${item.title} 상세 보기`);
         const img = document.createElement("img");
-        img.src = assetUrl(item.cover || item.image);
+        img.src = assetUrl(window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image);
         img.alt = "";
         img.loading = "lazy";
         if (window.GongbangProtectImage) window.GongbangProtectImage(img);
@@ -1371,7 +1383,7 @@
     const file = writer.form.elements.cover.files?.[0];
     if (!file) return;
     try {
-      await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+      await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
     } catch (error) {
       writer.status.textContent = error.message || String(error);
       writer.form.elements.cover.value = "";

@@ -674,7 +674,7 @@
 
               <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
 
-              <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+              <label class="pf-writer-file">대표 사진·동영상 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"></label>
 
             </div>
 
@@ -834,7 +834,7 @@
 
       try {
 
-        await window.GongbangBoardMedia?.assertMediaFile?.(file, { cover: true, allowVideo: false });
+        await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
 
       } catch (error) {
 
@@ -1082,7 +1082,9 @@
 
     const cover = String(item.cover || item.image || "");
 
-    return {
+    const coverPoster = String(item.coverPoster || "").trim();
+
+    const out = {
 
       id: String(item.id || ""),
 
@@ -1091,6 +1093,8 @@
       title: String(item.title || ""),
 
       content: String(item.content || ""),
+
+      cover,
 
       image: cover,
 
@@ -1101,6 +1105,10 @@
       sortAt: item.sortAt || item.uploadedAt || item.createdAt || new Date().toISOString(),
 
     };
+
+    if (coverPoster) out.coverPoster = coverPoster;
+
+    return out;
 
   }
 
@@ -1148,9 +1156,22 @@
         if (!url) throw new Error(`${label} 업로드에 실패했습니다.`);
         return url;
       };
+      let coverPoster = editing?.coverPoster || "";
       if (writer.cover.file) {
-        await mediaApi?.assertMediaFile?.(writer.cover.file, { cover: true, allowVideo: false });
-        cover = await uploadOne(writer.cover.file, "cover", "대표 이미지");
+        await mediaApi?.assertMediaFile?.(writer.cover.file, { allowVideo: true });
+        const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
+        cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
+        if (isVid) {
+          writer.status.textContent = "대표 영상 썸네일 생성 중…";
+          const poster = await mediaApi.captureVideoPoster(writer.cover.file);
+          coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
+        } else {
+          coverPoster = "";
+        }
+      } else if (writer.cover.path) {
+        coverPoster = mediaApi?.isVideoUrl?.(writer.cover.path)
+          ? (editing?.coverPoster || coverPoster || "")
+          : "";
       }
       for (let index = 0; index < writer.details.length; index += 1) {
         const detail = writer.details[index];
@@ -1175,6 +1196,7 @@
         image: cover,
         cover,
         images: keepImages.filter((path) => path && path !== cover),
+        coverPoster,
         uploadedAt: existing?.uploadedAt || now,
         sortAt: now,
         updatedAt: now,
@@ -1816,7 +1838,7 @@
 
       const img = document.createElement("img");
 
-      img.src = assetUrl(item.cover || item.image);
+      img.src = assetUrl(window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image);
 
       img.alt = "";
 
@@ -2064,6 +2086,9 @@
           })();
 
       if (media.tagName === "IMG") bindImgFallback(media);
+      if (media.tagName === "VIDEO" && item.coverPoster && String(path) === String(item.cover || item.image || "")) {
+        media.poster = assetUrl(item.coverPoster);
+      }
 
       slide.append(media);
 
@@ -2300,7 +2325,7 @@
 
         if (!item) return null;
 
-        const cover = item.cover || item.image || (item.images && item.images[0]) || "";
+        const cover = window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image || (item.images && item.images[0]) || "";
 
         const imageAbs = /^https?:\/\//i.test(cover)
 
@@ -2484,7 +2509,7 @@
 
     if (window.GongbangBoardMeta?.renderMetaRow) {
 
-      const cover = item.cover || item.image || (item.images && item.images[0]) || "";
+      const cover = window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image || (item.images && item.images[0]) || "";
 
       const path = String(cover).replace(/^\/+/, "");
 
