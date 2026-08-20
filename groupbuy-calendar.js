@@ -651,6 +651,25 @@
         `</div>`;
       card.querySelector("h2").textContent = item.title;
       card.querySelector(".gb-cal-sheet__content p").textContent = item.content || "";
+      const heroFrame = card.querySelector(".gb-cal-sheet__hero-frame");
+      if (heroFrame && hero && window.GongbangBoardMedia?.isVideoUrl?.(hero)) {
+        const poster =
+          item.coverPoster && String(hero) === String(item.cover || "")
+            ? assetUrl(item.coverPoster)
+            : "";
+        heroFrame.replaceChildren(
+          window.GongbangBoardMedia.createSlideMedia(assetUrl(hero), {
+            eager: true,
+            poster,
+          })
+        );
+        const video = heroFrame.querySelector("video");
+        if (video) {
+          video.muted = true;
+          const play = video.play();
+          if (play && typeof play.catch === "function") play.catch(() => {});
+        }
+      }
       card.querySelector(".gb-cal-sheet__close")?.addEventListener("click", closeSheet);
       card.querySelector("[data-prev]")?.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -699,7 +718,7 @@
         let dragging = false;
         heroEl.addEventListener("pointerdown", (e) => {
           if (e.pointerType === "touch") return;
-          if (e.target.closest("button")) return;
+          if (e.target.closest("button, .board-video-bar, .board-video-seek")) return;
           dragging = true;
           pointerX = e.clientX;
           heroEl.setPointerCapture?.(e.pointerId);
@@ -899,15 +918,34 @@
 
     function renderGallery() {
       const coverUrl =
+        mediaState.cover.displayPreview ||
+        mediaState.cover.posterPreview ||
         mediaState.cover.preview ||
         (mediaState.cover.path ? assetUrl(mediaState.cover.path) : "");
+      const coverKind =
+        mediaState.cover.kind ||
+        (mediaState.cover.file && window.GongbangBoardMedia?.isVideoFile?.(mediaState.cover.file)
+          ? "video"
+          : window.GongbangBoardMedia?.isVideoUrl?.(mediaState.cover.preview || mediaState.cover.path)
+            ? "video"
+            : "image");
       gallery.replaceChildren();
       gallery.classList.toggle("is-empty", !coverUrl);
-      gallery.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : "";
+      gallery.style.backgroundImage = "";
       if (!coverUrl) {
         gallery.textContent = "대표 이미지 없음";
       } else {
         gallery.textContent = "";
+        if (window.GongbangBoardMedia?.paintWriterThumb) {
+          window.GongbangBoardMedia.paintWriterThumb(
+            gallery,
+            coverUrl,
+            coverKind,
+            mediaState.cover.posterPreview || ""
+          );
+        } else {
+          gallery.style.backgroundImage = `url("${coverUrl}")`;
+        }
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "pf-writer-remove";
@@ -916,9 +954,7 @@
         remove.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
-          if (mediaState.cover.preview?.startsWith("blob:")) {
-            URL.revokeObjectURL(mediaState.cover.preview);
-          }
+          window.GongbangBoardMedia?.revokeMediaPreview?.(mediaState.cover);
           mediaState.cover = { path: "", file: null, preview: "" };
           coverInput.required = !mediaState.id;
           coverInput.value = "";
@@ -943,9 +979,14 @@
                 ? "video"
                 : "image");
           if (window.GongbangBoardMedia?.paintWriterThumb) {
-            window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+            window.GongbangBoardMedia.paintWriterThumb(
+              card,
+              detail.displayPreview || detail.posterPreview || url,
+              kind,
+              detail.posterPreview || ""
+            );
           } else {
-            card.style.backgroundImage = url ? `url("${url}")` : "";
+            card.style.backgroundImage = url ? `url("${detail.posterPreview || url}")` : "";
           }
           const order = document.createElement("span");
           order.className = "pf-writer-order";
@@ -957,22 +998,13 @@
           remove.textContent = "×";
           remove.addEventListener("click", () => {
             const [removed] = mediaState.details.splice(index, 1);
-            if (removed?.preview?.startsWith("blob:")) URL.revokeObjectURL(removed.preview);
+            window.GongbangBoardMedia?.revokeMediaPreview?.(removed);
             renderGallery();
           });
           card.append(order, remove);
           detailGrid.append(card);
         });
       }
-
-      // #region agent log
-      requestAnimationFrame(() => {
-        const gr = gallery.getBoundingClientRect();
-        const imgChild = gallery.querySelector("img");
-        const thumbs = detailGrid.querySelectorAll(".pf-writer-thumb").length;
-        fetch('http://127.0.0.1:7719/ingest/981fe459-55aa-4b6a-b93e-29a4ea52759b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'eef336'},body:JSON.stringify({sessionId:'eef336',runId:'img-preview',hypothesisId:'H6',location:'groupbuy-calendar.js:renderGallery',message:'writer media preview metrics',data:{coverUrl:Boolean(coverUrl),coverW:Math.round(gr.width),coverH:Math.round(gr.height),hasImgChild:Boolean(imgChild),imgNaturalW:imgChild?imgChild.naturalWidth:null,detailCount:mediaState.details.length,thumbCount:thumbs,bg:gallery.style.backgroundImage?gallery.style.backgroundImage.slice(0,48):''},timestamp:Date.now()})}).catch(()=>{});
-      });
-      // #endregion
     }
 
     function renderRangeGrid() {
@@ -1029,33 +1061,50 @@
       const file = coverInput.files?.[0];
       if (!file) return;
       try {
-        await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
+        status.textContent = window.GongbangBoardMedia?.isVideoFile?.(file)
+          ? "영상 썸네일 추출 중…"
+          : "";
+        const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+          ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+          : {
+              file,
+              kind: "image",
+              preview: URL.createObjectURL(file),
+              posterFile: null,
+              posterPreview: "",
+              displayPreview: URL.createObjectURL(file),
+            };
+        window.GongbangBoardMedia?.revokeMediaPreview?.(mediaState.cover);
+        mediaState.cover = { path: mediaState.cover.path || "", ...prepared };
+        coverInput.value = "";
+        coverInput.required = false;
+        status.textContent = "";
+        renderGallery();
       } catch (error) {
         status.textContent = error.message || String(error);
         coverInput.value = "";
-        return;
       }
-      if (mediaState.cover.preview?.startsWith("blob:")) {
-        URL.revokeObjectURL(mediaState.cover.preview);
-      }
-      mediaState.cover = {
-        path: mediaState.cover.path || "",
-        file,
-        preview: URL.createObjectURL(file),
-        kind: "image",
-      };
-      coverInput.value = "";
-      coverInput.required = false;
-      status.textContent = "";
-      renderGallery();
     });
 
     form.elements.images.addEventListener("change", async () => {
       const files = [...(form.elements.images.files || [])];
       for (const file of files) {
         try {
-          const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
-          mediaState.details.push({ path: "", file, preview: URL.createObjectURL(file), kind });
+          if (window.GongbangBoardMedia?.isVideoFile?.(file)) {
+            status.textContent = "영상 썸네일 추출 중…";
+          }
+          const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+            ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+            : {
+                file,
+                kind: "image",
+                preview: URL.createObjectURL(file),
+                posterFile: null,
+                posterPreview: "",
+                displayPreview: URL.createObjectURL(file),
+              };
+          mediaState.details.push({ path: "", ...prepared });
+          status.textContent = "";
         } catch (error) {
           status.textContent = error.message || String(error);
         }
@@ -1110,8 +1159,9 @@
           const isVid = mediaApi?.isVideoFile?.(coverFile);
           cover = await uploadOne(coverFile, "cover", isVid ? "대표 영상" : "대표 이미지");
           if (isVid) {
-            status.textContent = "대표 영상 썸네일 생성 중…";
-            const poster = await mediaApi.captureVideoPoster(coverFile);
+            status.textContent = "대표 영상 썸네일 업로드 중…";
+            const poster =
+              mediaState.cover.posterFile || (await mediaApi.captureVideoPoster(coverFile));
             coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
           } else {
             coverPoster = "";

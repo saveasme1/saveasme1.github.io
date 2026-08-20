@@ -480,11 +480,11 @@
 
     const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
 
-    preview.classList.toggle("is-empty", !url);
+    preview.classList.toggle("is-empty", !url && !writer.cover.posterPreview);
 
     preview.classList.add("pf-writer-cover");
 
-    if (!url) {
+    if (!url && !writer.cover.posterPreview) {
 
       preview.textContent = "대표 이미지 없음";
 
@@ -498,13 +498,26 @@
 
     preview.textContent = "";
 
+    const kind =
+      writer.cover.kind ||
+      (writer.cover.file && window.GongbangBoardMedia?.isVideoFile?.(writer.cover.file)
+        ? "video"
+        : window.GongbangBoardMedia?.isVideoUrl?.(url)
+          ? "video"
+          : "image");
+
     if (window.GongbangBoardMedia?.paintWriterThumb) {
 
-      window.GongbangBoardMedia.paintWriterThumb(preview, url, "image");
+      window.GongbangBoardMedia.paintWriterThumb(
+        preview,
+        writer.cover.displayPreview || writer.cover.posterPreview || url,
+        kind,
+        writer.cover.posterPreview || ""
+      );
 
     } else {
 
-      preview.style.backgroundImage = `url("${url}")`;
+      preview.style.backgroundImage = `url("${writer.cover.posterPreview || url}")`;
 
     }
 
@@ -548,11 +561,16 @@
 
       if (window.GongbangBoardMedia?.paintWriterThumb) {
 
-        window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+        window.GongbangBoardMedia.paintWriterThumb(
+          card,
+          detail.displayPreview || detail.posterPreview || url,
+          kind,
+          detail.posterPreview || ""
+        );
 
       } else {
 
-        card.style.backgroundImage = url ? `url("${url}")` : "";
+        card.style.backgroundImage = url ? `url("${detail.posterPreview || url}")` : "";
 
       }
 
@@ -834,7 +852,30 @@
 
       try {
 
-        await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
+        writer.status.textContent = window.GongbangBoardMedia?.isVideoFile?.(file)
+          ? "영상 썸네일 추출 중…"
+          : "";
+
+        const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+          ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+          : {
+              file,
+              kind: "image",
+              preview: URL.createObjectURL(file),
+              posterFile: null,
+              posterPreview: "",
+              displayPreview: URL.createObjectURL(file),
+            };
+
+        window.GongbangBoardMedia?.revokeMediaPreview?.(writer.cover);
+
+        writer.cover = { path: writer.cover.path || "", ...prepared };
+
+        form.elements.cover.value = "";
+
+        writer.status.textContent = "";
+
+        renderWriterCover(writer);
 
       } catch (error) {
 
@@ -842,19 +883,7 @@
 
         form.elements.cover.value = "";
 
-        return;
-
       }
-
-      if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
-
-      writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file), kind: "image" };
-
-      form.elements.cover.value = "";
-
-      writer.status.textContent = "";
-
-      renderWriterCover(writer);
 
     });
 
@@ -864,8 +893,21 @@
 
       for (const file of files) {
         try {
-          const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
-          writer.details.push({ path: "", file, preview: URL.createObjectURL(file), kind });
+          if (window.GongbangBoardMedia?.isVideoFile?.(file)) {
+            writer.status.textContent = "영상 썸네일 추출 중…";
+          }
+          const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+            ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+            : {
+                file,
+                kind: "image",
+                preview: URL.createObjectURL(file),
+                posterFile: null,
+                posterPreview: "",
+                displayPreview: URL.createObjectURL(file),
+              };
+          writer.details.push({ path: "", ...prepared });
+          writer.status.textContent = "";
         } catch (error) {
           writer.status.textContent = error.message || String(error);
         }
@@ -1162,8 +1204,9 @@
         const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
         cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
         if (isVid) {
-          writer.status.textContent = "대표 영상 썸네일 생성 중…";
-          const poster = await mediaApi.captureVideoPoster(writer.cover.file);
+          writer.status.textContent = "대표 영상 썸네일 업로드 중…";
+          const poster =
+            writer.cover.posterFile || (await mediaApi.captureVideoPoster(writer.cover.file));
           coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
         } else {
           coverPoster = "";
@@ -2042,52 +2085,38 @@
       const src = assetUrl(path);
 
       const media = window.GongbangBoardMedia?.createSlideMedia
-
-        ? window.GongbangBoardMedia.createSlideMedia(src, { eager: index === 0 })
-
+        ? window.GongbangBoardMedia.createSlideMedia(src, {
+            eager: index === 0,
+            poster:
+              item.coverPoster && String(path) === String(item.cover || item.image || "")
+                ? assetUrl(item.coverPoster)
+                : "",
+          })
         : (() => {
-
             const isVideo = /\.(mp4|webm|mov)(?:$|\?)/i.test(String(path || src));
-
             if (isVideo) {
-
               const video = document.createElement("video");
-
               video.className = "board-carousel-video";
-
               video.src = src;
-
               video.muted = true;
-
               video.playsInline = true;
-
               video.setAttribute("playsinline", "");
-
               video.loop = true;
-
               video.preload = index === 0 ? "auto" : "metadata";
-
               video.controls = false;
-
               return video;
-
             }
-
             const img = document.createElement("img");
-
             img.src = src;
-
             img.alt = "";
-
             img.loading = index === 0 ? "eager" : "lazy";
-
             return img;
-
           })();
 
       if (media.tagName === "IMG") bindImgFallback(media);
-      if (media.tagName === "VIDEO" && item.coverPoster && String(path) === String(item.cover || item.image || "")) {
-        media.poster = assetUrl(item.coverPoster);
+      else {
+        const imgFallback = media.querySelector?.("img");
+        if (imgFallback) bindImgFallback(imgFallback);
       }
 
       slide.append(media);

@@ -1,0 +1,11 @@
+{
+  "build": "20260820-video8",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-20T14:46:01.163Z",
+  "note": "Video poster on pick + seek bar + home thumb fix",
+  "notes": [
+    "메인 영상글 썸네일(coverPoster) 표시",
+    "작성 시 영상 선택 즉시 썸네일 추출",
+    "상세 영상 재생바·시크"
+  ]
+}

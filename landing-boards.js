@@ -304,17 +304,23 @@
       const stack = document.createElement("div");
       stack.className = "notice-page-stack";
       paths.forEach((path, index) => {
-        const media = window.GongbangBoardMedia?.createSlideMedia
-          ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), { eager: index === 0 })
-          : (() => {
-              const img = document.createElement("img");
-              img.src = assetUrl(path);
-              img.alt = "";
-              img.loading = index === 0 ? "eager" : "lazy";
-              return img;
-            })();
-        if (media.tagName === "IMG" && window.GongbangProtectImage) window.GongbangProtectImage(media);
-        stack.append(media);
+      const media = window.GongbangBoardMedia?.createSlideMedia
+        ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), {
+            eager: index === 0,
+            poster:
+              item.coverPoster && String(path) === String(item.cover || item.image || "")
+                ? assetUrl(item.coverPoster)
+                : "",
+          })
+        : (() => {
+            const img = document.createElement("img");
+            img.src = assetUrl(path);
+            img.alt = "";
+            img.loading = index === 0 ? "eager" : "lazy";
+            return img;
+          })();
+      if (media.tagName === "IMG" && window.GongbangProtectImage) window.GongbangProtectImage(media);
+      stack.append(media);
       });
       dialog.images.append(stack);
       return;
@@ -330,7 +336,13 @@
       const slide = document.createElement("div");
       slide.className = "board-carousel-slide";
       const media = window.GongbangBoardMedia?.createSlideMedia
-        ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), { eager: index === 0 })
+        ? window.GongbangBoardMedia.createSlideMedia(assetUrl(path), {
+            eager: index === 0,
+            poster:
+              item.coverPoster && String(path) === String(item.cover || item.image || "")
+                ? assetUrl(item.coverPoster)
+                : "",
+          })
         : (() => {
             const img = document.createElement("img");
             img.src = assetUrl(path);
@@ -706,19 +718,31 @@
     const preview = writer.coverPreview;
     if (!preview) return;
     const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
-    preview.classList.toggle("is-empty", !url);
+    preview.classList.toggle("is-empty", !url && !writer.cover.posterPreview);
     preview.classList.toggle("pf-writer-cover", true);
-    if (!url) {
+    if (!url && !writer.cover.posterPreview) {
       preview.textContent = "대표 이미지 없음";
       preview.style.backgroundImage = "";
       preview.replaceChildren();
       return;
     }
     preview.textContent = "";
+    const kind =
+      writer.cover.kind ||
+      (writer.cover.file && window.GongbangBoardMedia?.isVideoFile?.(writer.cover.file)
+        ? "video"
+        : window.GongbangBoardMedia?.isVideoUrl?.(url)
+          ? "video"
+          : "image");
     if (window.GongbangBoardMedia?.paintWriterThumb) {
-      window.GongbangBoardMedia.paintWriterThumb(preview, url, "image");
+      window.GongbangBoardMedia.paintWriterThumb(
+        preview,
+        writer.cover.displayPreview || writer.cover.posterPreview || url,
+        kind,
+        writer.cover.posterPreview || ""
+      );
     } else {
-      preview.style.backgroundImage = `url("${url}")`;
+      preview.style.backgroundImage = `url("${writer.cover.posterPreview || url}")`;
     }
   }
 
@@ -741,9 +765,14 @@
             ? "video"
             : "image");
       if (window.GongbangBoardMedia?.paintWriterThumb) {
-        window.GongbangBoardMedia.paintWriterThumb(card, url, kind);
+        window.GongbangBoardMedia.paintWriterThumb(
+          card,
+          detail.displayPreview || detail.posterPreview || url,
+          kind,
+          detail.posterPreview || ""
+        );
       } else {
-        card.style.backgroundImage = url ? `url("${url}")` : "";
+        card.style.backgroundImage = url ? `url("${detail.posterPreview || url}")` : "";
       }
       const order = document.createElement("span");
       order.className = "pf-writer-order";
@@ -923,8 +952,9 @@
         const isVid = mediaApi?.isVideoFile?.(writer.cover.file);
         cover = await uploadOne(writer.cover.file, "cover", isVid ? "대표 영상" : "대표 이미지");
         if (isVid) {
-          writer.status.textContent = "대표 영상 썸네일 생성 중…";
-          const poster = await mediaApi.captureVideoPoster(writer.cover.file);
+          writer.status.textContent = "대표 영상 썸네일 업로드 중…";
+          const poster =
+            writer.cover.posterFile || (await mediaApi.captureVideoPoster(writer.cover.file));
           coverPoster = await uploadOne(poster, "coverPoster", "대표 썸네일");
         } else {
           coverPoster = "";
@@ -1383,29 +1413,48 @@
     const file = writer.form.elements.cover.files?.[0];
     if (!file) return;
     try {
-      await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true });
+      writer.status.textContent = window.GongbangBoardMedia?.isVideoFile?.(file)
+        ? "영상 썸네일 추출 중…"
+        : "";
+      const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+        ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+        : {
+            file,
+            kind: "image",
+            preview: URL.createObjectURL(file),
+            posterFile: null,
+            posterPreview: "",
+            displayPreview: URL.createObjectURL(file),
+          };
+      window.GongbangBoardMedia?.revokeMediaPreview?.(writer.cover);
+      writer.cover = { path: writer.cover.path || "", ...prepared };
+      writer.form.elements.cover.value = "";
+      writer.status.textContent = "";
+      renderWriterCover();
     } catch (error) {
       writer.status.textContent = error.message || String(error);
       writer.form.elements.cover.value = "";
-      return;
     }
-    if (writer.cover.preview?.startsWith("blob:")) URL.revokeObjectURL(writer.cover.preview);
-    writer.cover = { path: writer.cover.path, file, preview: URL.createObjectURL(file), kind: "image" };
-    writer.form.elements.cover.value = "";
-    writer.status.textContent = "";
-    renderWriterCover();
   });
   writer.form.elements.images?.addEventListener("change", async () => {
     const files = [...(writer.form.elements.images.files || [])];
     for (const file of files) {
       try {
-        const kind = (await window.GongbangBoardMedia?.assertMediaFile?.(file, { allowVideo: true })) || "image";
-        writer.details.push({
-          path: "",
-          file,
-          preview: URL.createObjectURL(file),
-          kind,
-        });
+        if (window.GongbangBoardMedia?.isVideoFile?.(file)) {
+          writer.status.textContent = "영상 썸네일 추출 중…";
+        }
+        const prepared = window.GongbangBoardMedia?.prepareLocalMedia
+          ? await window.GongbangBoardMedia.prepareLocalMedia(file, { allowVideo: true })
+          : {
+              file,
+              kind: "image",
+              preview: URL.createObjectURL(file),
+              posterFile: null,
+              posterPreview: "",
+              displayPreview: URL.createObjectURL(file),
+            };
+        writer.details.push({ path: "", ...prepared });
+        writer.status.textContent = "";
       } catch (error) {
         writer.status.textContent = error.message || String(error);
       }

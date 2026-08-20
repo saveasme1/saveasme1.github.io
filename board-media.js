@@ -27,14 +27,19 @@
     return VIDEO_EXT.test(String(url || "").split("#")[0]);
   }
 
-  /** List/card thumb: prefer captured poster when cover is video. */
+  /** List/card thumb: never feed a video URL into <img>. */
   function thumbUrl(item) {
     if (!item || typeof item !== "object") return "";
     const poster = String(item.coverPoster || "").trim();
     if (poster) return poster;
     const cover = String(item.cover || item.image || "").trim();
     if (cover && !isVideoUrl(cover)) return cover;
-    return poster || cover || "";
+    const images = Array.isArray(item.images) ? item.images : [];
+    for (const entry of images) {
+      const path = typeof entry === "string" ? entry : entry?.path || entry?.url || "";
+      if (path && !isVideoUrl(path)) return String(path).trim();
+    }
+    return "";
   }
 
   function readVideoDuration(file) {
@@ -147,6 +152,166 @@
     throw new Error(`${file.name}: jpeg/png/webp 또는 mp4/webm만 지원합니다.`);
   }
 
+  /** Validate + (for video) extract poster immediately on file pick. */
+  async function prepareLocalMedia(file, { allowVideo = true } = {}) {
+    const kind = await assertMediaFile(file, { allowVideo });
+    const preview = URL.createObjectURL(file);
+    if (kind !== "video") {
+      return {
+        file,
+        kind,
+        preview,
+        posterFile: null,
+        posterPreview: "",
+        displayPreview: preview,
+      };
+    }
+    const posterFile = await captureVideoPoster(file);
+    const posterPreview = URL.createObjectURL(posterFile);
+    return {
+      file,
+      kind,
+      preview,
+      posterFile,
+      posterPreview,
+      displayPreview: posterPreview,
+    };
+  }
+
+  function revokeMediaPreview(entry) {
+    if (!entry || typeof entry !== "object") return;
+    if (entry.preview?.startsWith?.("blob:")) {
+      try {
+        URL.revokeObjectURL(entry.preview);
+      } catch (_) {}
+    }
+    if (entry.posterPreview?.startsWith?.("blob:")) {
+      try {
+        URL.revokeObjectURL(entry.posterPreview);
+      } catch (_) {}
+    }
+  }
+
+  function formatClock(sec) {
+    const n = Math.max(0, Math.floor(Number(sec) || 0));
+    const m = Math.floor(n / 60);
+    const s = n % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function attachVideoChrome(video) {
+    const wrap = document.createElement("div");
+    wrap.className = "board-video-wrap";
+
+    const bar = document.createElement("div");
+    bar.className = "board-video-bar";
+    bar.setAttribute("role", "group");
+    bar.setAttribute("aria-label", "영상 재생");
+
+    const seek = document.createElement("div");
+    seek.className = "board-video-seek";
+    seek.setAttribute("role", "slider");
+    seek.setAttribute("aria-valuemin", "0");
+    seek.setAttribute("aria-valuemax", "100");
+    seek.setAttribute("aria-valuenow", "0");
+    seek.tabIndex = 0;
+
+    const fill = document.createElement("div");
+    fill.className = "board-video-seek__fill";
+    const knob = document.createElement("div");
+    knob.className = "board-video-seek__knob";
+    seek.append(fill, knob);
+
+    const time = document.createElement("span");
+    time.className = "board-video-time";
+    time.textContent = "0:00 / 0:00";
+
+    bar.append(seek, time);
+    wrap.append(video, bar);
+
+    let dragging = false;
+
+    const syncUi = () => {
+      const duration = Number(video.duration) || 0;
+      const current = Number(video.currentTime) || 0;
+      const pct = duration > 0 ? Math.min(100, Math.max(0, (current / duration) * 100)) : 0;
+      fill.style.width = `${pct}%`;
+      knob.style.left = `${pct}%`;
+      seek.setAttribute("aria-valuenow", String(Math.round(pct)));
+      time.textContent = `${formatClock(current)} / ${formatClock(duration)}`;
+    };
+
+    const seekFromClientX = (clientX) => {
+      const rect = seek.getBoundingClientRect();
+      if (!rect.width) return;
+      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const duration = Number(video.duration) || 0;
+      if (!(duration > 0)) return;
+      try {
+        video.currentTime = ratio * duration;
+      } catch (_) {}
+      syncUi();
+    };
+
+    video.addEventListener("timeupdate", syncUi);
+    video.addEventListener("loadedmetadata", syncUi);
+    video.addEventListener("durationchange", syncUi);
+    video.addEventListener("seeked", syncUi);
+
+    const onPointerDown = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dragging = true;
+      seek.classList.add("is-dragging");
+      seekFromClientX(event.clientX);
+      try {
+        seek.setPointerCapture(event.pointerId);
+      } catch (_) {}
+    };
+    const onPointerMove = (event) => {
+      if (!dragging) return;
+      event.preventDefault();
+      seekFromClientX(event.clientX);
+    };
+    const onPointerUp = (event) => {
+      if (!dragging) return;
+      dragging = false;
+      seek.classList.remove("is-dragging");
+      seekFromClientX(event.clientX);
+      try {
+        seek.releasePointerCapture(event.pointerId);
+      } catch (_) {}
+    };
+
+    seek.addEventListener("pointerdown", onPointerDown);
+    seek.addEventListener("pointermove", onPointerMove);
+    seek.addEventListener("pointerup", onPointerUp);
+    seek.addEventListener("pointercancel", onPointerUp);
+    seek.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    seek.addEventListener("keydown", (event) => {
+      const duration = Number(video.duration) || 0;
+      if (!(duration > 0)) return;
+      const step = Math.max(0.5, duration * 0.05);
+      if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+        event.preventDefault();
+        video.currentTime = Math.min(duration, (video.currentTime || 0) + step);
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+        event.preventDefault();
+        video.currentTime = Math.max(0, (video.currentTime || 0) - step);
+      }
+    });
+
+    // Don't let carousel swipe steal scrub gestures.
+    bar.addEventListener("pointerdown", (event) => event.stopPropagation());
+    bar.addEventListener("touchstart", (event) => event.stopPropagation(), { passive: true });
+
+    syncUi();
+    return wrap;
+  }
+
   function createSlideMedia(url, { eager = false, poster = "" } = {}) {
     const src = String(url || "");
     if (isVideoUrl(src)) {
@@ -163,7 +328,7 @@
       video.setAttribute("controlslist", "nodownload noplaybackrate");
       video.disablePictureInPicture = true;
       video.controls = false;
-      return video;
+      return attachVideoChrome(video);
     }
     const img = document.createElement("img");
     img.src = src;
@@ -202,21 +367,26 @@
     });
   }
 
-  function paintWriterThumb(el, url, kind) {
+  function paintWriterThumb(el, url, kind, posterUrl = "") {
     if (!el) return;
     el.replaceChildren();
     el.style.backgroundImage = "";
     const isVideo = kind === "video" || isVideoUrl(url);
-    if (!url) return;
+    if (!url && !posterUrl) return;
     if (isVideo) {
       el.classList.add("is-video");
-      const video = document.createElement("video");
-      video.src = url;
-      video.muted = true;
-      video.playsInline = true;
-      video.preload = "metadata";
-      video.setAttribute("playsinline", "");
-      el.append(video);
+      const still = posterUrl || (!isVideoUrl(url) ? url : "");
+      if (still) {
+        el.style.backgroundImage = `url("${still}")`;
+      } else {
+        const video = document.createElement("video");
+        video.src = url;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "metadata";
+        video.setAttribute("playsinline", "");
+        el.append(video);
+      }
       const badge = document.createElement("span");
       badge.className = "pf-writer-video-badge";
       badge.textContent = "VIDEO";
@@ -274,6 +444,8 @@
     readVideoDuration,
     captureVideoPoster,
     assertMediaFile,
+    prepareLocalMedia,
+    revokeMediaPreview,
     createSlideMedia,
     pauseAll,
     syncPlayback,

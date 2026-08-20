@@ -356,6 +356,17 @@
     if (window.GongbangProtectImage && img) window.GongbangProtectImage(img);
   }
 
+  function cardThumbSrc(item) {
+    return (
+      window.GongbangBoardMedia?.thumbUrl?.(item) ||
+      item.coverPoster ||
+      (!/\.(mp4|webm|mov)(?:$|\?)/i.test(String(item.cover || item.image || ""))
+        ? item.cover || item.image
+        : "") ||
+      ""
+    );
+  }
+
   function cardButton(item, compact) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -363,11 +374,11 @@
     const cat = item.category || "";
     const title = String(item.title || "").replace(/^[A-Z&]+\s+/, "");
     const id = item.id || "";
+    const thumb = assetUrl(cardThumbSrc(item));
     if (compact) {
       btn.innerHTML =
-        `<span class="pwa-peek__thumb"><img alt="" loading="lazy" decoding="async" src="${assetUrl(
-          item.cover || item.image
-        )}"></span>` + `<span class="pwa-peek__name">${title || cat || "작품"}</span>`;
+        `<span class="pwa-peek__thumb"><img alt="" loading="lazy" decoding="async" src="${thumb}"></span>` +
+        `<span class="pwa-peek__name">${title || cat || "작품"}</span>`;
     } else {
       btn.innerHTML =
         `<span class="pwa-card__thumb">` +
@@ -375,7 +386,7 @@
         (id
           ? `<span class="pwa-card__wish${isWished(id) ? " is-on" : ""}" data-wish="${id}" aria-label="위시">♥</span>`
           : "") +
-        `<img alt="" loading="lazy" decoding="async" src="${assetUrl(item.cover || item.image)}">` +
+        `<img alt="" loading="lazy" decoding="async" src="${thumb}">` +
         `</span>` +
         `<span class="pwa-card__brand">${cat || "HERITAGE"}</span>` +
         `<span class="pwa-card__name">${title}</span>`;
@@ -913,7 +924,9 @@
       btn.type = "button";
       btn.className = `pwa-hero-slider__slide${i === 0 ? " is-on" : ""}`;
       btn.dataset.slide = String(i);
-      const src = assetUrl(slide.item.cover || slide.item.image) || assetUrl(MEDIA.look[i % MEDIA.look.length].src);
+      const src =
+        assetUrl(cardThumbSrc(slide.item)) ||
+        assetUrl(MEDIA.look[i % MEDIA.look.length].src);
       btn.innerHTML =
         `<div class="pwa-hero__media"><img src="${src}" alt="" decoding="async"><div class="pwa-hero__shade"></div></div>` +
         `<div class="pwa-hero__copy">` +
@@ -1686,7 +1699,7 @@
         }
         row.innerHTML =
           `<span class="pwa-rank__n">${i + 1}</span>` +
-          `<span class="pwa-rank__thumb"><img src="${assetUrl(item.cover || item.image)}" alt="" loading="lazy"></span>` +
+          `<span class="pwa-rank__thumb"><img src="${assetUrl(cardThumbSrc(item))}" alt="" loading="lazy"></span>` +
           `<span class="pwa-rank__meta"><b>${title || "작품"}</b><i>${cat || "PF"}</i></span>` +
           rankDeltaHtml(prevRank, curRank);
         protect(row.querySelector("img"));

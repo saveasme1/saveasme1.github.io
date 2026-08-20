@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260820-video7";
+  const APP_BUILD = "20260820-video8";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "출고 달력에서 월을 고르면 그달 글만 보여요",

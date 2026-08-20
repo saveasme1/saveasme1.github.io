@@ -8,7 +8,7 @@
       try { localStorage.setItem(KEY, "1"); } catch (_) {}
       var done = function () {
         var u = new URL(location.href);
-        u.searchParams.set("_pwa", "20260820-video7");
+        u.searchParams.set("_pwa", "20260820-video8");
         location.replace(u.href);
       };
       var tasks = [];
@@ -28,9 +28,9 @@
       } catch (_) {}
       try {
         localStorage.removeItem("hx.pwa.updateSnooze");
-        try { localStorage.setItem("hx.pwa.installedBuild", "20260820-video7"); } catch (_) {}
-        try { localStorage.setItem("hx.pwa.activatedBuild", "20260820-video7"); } catch (_) {}
-        try { localStorage.setItem("hx.pwa.build", "20260820-video7"); } catch (_) {}
+        try { localStorage.setItem("hx.pwa.installedBuild", "20260820-video8"); } catch (_) {}
+        try { localStorage.setItem("hx.pwa.activatedBuild", "20260820-video8"); } catch (_) {}
+        try { localStorage.setItem("hx.pwa.build", "20260820-video8"); } catch (_) {}
       } catch (_) {}
       Promise.all(tasks).then(done).catch(done);
     })();
@@ -58,12 +58,12 @@
       } catch (e) {}
     })();
   </script>
-  <link rel="manifest" href="manifest.webmanifest?v=20260820-video7">
+  <link rel="manifest" href="manifest.webmanifest?v=20260820-video8">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="stylesheet" href="search.css?v=20260820-video7">
-  <link rel="stylesheet" href="pwa-app.css?v=20260820-video7">
+  <link rel="stylesheet" href="search.css?v=20260820-video8">
+  <link rel="stylesheet" href="pwa-app.css?v=20260820-video8">
   <script>
     (function forcePortrait(){function tryLock(){try{var o=screen.orientation||screen.mozOrientation||screen.msOrientation;if(o&&typeof o.lock==="function"){Promise.resolve(o.lock("portrait-primary")).catch(function(){Promise.resolve(o.lock("portrait")).catch(function(){});});}}catch(e){}try{if(typeof screen.lockOrientation==="function")screen.lockOrientation("portrait-primary");if(typeof screen.mozLockOrientation==="function")screen.mozLockOrientation("portrait-primary");if(typeof screen.msLockOrientation==="function")screen.msLockOrientation("portrait-primary");}catch(e){}}tryLock();window.addEventListener("orientationchange",function(){setTimeout(tryLock,30);setTimeout(tryLock,200);});document.addEventListener("visibilitychange",function(){if(!document.hidden)tryLock();});window.addEventListener("focus",tryLock);document.addEventListener("touchstart",tryLock,{passive:true,capture:true});document.addEventListener("pointerdown",tryLock,{passive:true,capture:true});document.addEventListener("click",tryLock,true);setInterval(tryLock,1500);})();
   </script>
@@ -73,7 +73,7 @@
   <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="yeti" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="NaverBot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-  <script src="seo-guard.js?v=20260820-video7"></script>
+  <script src="seo-guard.js?v=20260820-video8"></script>
 </head>
 <body>
   <header class="js-top">
@@ -132,8 +132,8 @@
     </section>
   </main>
 
-  <script src="search.js?v=20260820-video7"></script>
-  <script src="pwa-analytics.js?v=20260820-video7"></script>
-  <script src="pwa-register.js?v=20260820-video7"></script>
+  <script src="search.js?v=20260820-video8"></script>
+  <script src="pwa-analytics.js?v=20260820-video8"></script>
+  <script src="pwa-register.js?v=20260820-video8"></script>
 </body>
 </html>
