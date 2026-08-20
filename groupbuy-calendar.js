@@ -1488,7 +1488,7 @@
           cover.style.setProperty("--gb-cover-ring", ring.bg);
           cover.style.borderColor = ring.bg;
           const img = document.createElement("img");
-          img.src = assetUrl(it.cover);
+          img.src = assetUrl(it.coverPoster || it.cover);
           img.alt = "";
           img.loading = "lazy";
           cover.append(img);

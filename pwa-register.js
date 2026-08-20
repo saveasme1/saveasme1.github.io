@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260820-video4";
+  const APP_BUILD = "20260820-video5";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "출고 달력에서 월을 고르면 그달 글만 보여요",
@@ -17,7 +17,7 @@
   const UPDATE_SNOOZE_KEY = "hx.pwa.updateSnooze";
   const INSTALLED_BUILD_KEY = "hx.pwa.installedBuild";
   const PROMPTED_BUILD_KEY = "hx.pwa.promptedBuild";
-  const MIN_INSTALL_BUILD = "20260820-video4";
+  const MIN_INSTALL_BUILD = "20260809-gbcal31";
   const REINSTALL_GATE_ID = "pwaReinstallGate";
 
   /** Only true after customer taps 「업데이트」 */
