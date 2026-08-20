@@ -1,1 +1,1 @@
-{"build":"20260820-video6","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-20T14:29:48.427Z","note":"Fix accidental reinstall gate on video bump","notes":["재설치 게이트 오발동 수정","영상 업로드는 일반 업데이트로 적용"]}
+{"build":"20260820-video7","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-20T14:32:58.393Z","note":"Disable PWA reinstall gate permanently","notes":["재설치 안내 완전 해제","캐시 강제 갱신"]}

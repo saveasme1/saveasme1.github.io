@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const APP_BUILD = "20260820-video6";
+  const APP_BUILD = "20260820-video7";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "출고 달력에서 월을 고르면 그달 글만 보여요",
@@ -106,25 +106,22 @@
     return String(a || "").localeCompare(String(b || ""));
   }
 
+  function stampInstalledBuild() {
+    try {
+      const cur = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
+      const next =
+        cur ||
+        localStorage.getItem(ACTIVATED_KEY) ||
+        localStorage.getItem(BUILD_KEY) ||
+        APP_BUILD;
+      localStorage.setItem(INSTALLED_BUILD_KEY, next);
+    } catch (_) {}
+  }
+
+  /** Permanently off — soft deploys must never lock PWA users behind reinstall. */
   function needsReinstallGate() {
-    if (!isPwaMode()) return false;
-    if (/install\.html/i.test(location.pathname)) return false;
-    let installed = localStorage.getItem(INSTALLED_BUILD_KEY) || "";
-    // Soft updates must never raise MIN_INSTALL_BUILD. If key is missing but this
-    // install already activated a build at/above the last forced-reinstall floor,
-    // treat as OK (do not block the whole app).
-    if (!installed) {
-      const activated =
-        localStorage.getItem(ACTIVATED_KEY) || localStorage.getItem(BUILD_KEY) || "";
-      if (activated && compareBuild(activated, MIN_INSTALL_BUILD) >= 0) {
-        try {
-          localStorage.setItem(INSTALLED_BUILD_KEY, activated);
-        } catch (_) {}
-        return false;
-      }
-      return true;
-    }
-    return compareBuild(installed, MIN_INSTALL_BUILD) < 0;
+    stampInstalledBuild();
+    return false;
   }
 
   function ensureReinstallGateStyles() {
@@ -151,33 +148,19 @@
   }
 
   function showReinstallGate() {
-    if (!needsReinstallGate()) return false;
-    document.documentElement.classList.add("is-pwa-reinstall-required");
-    ensureReinstallGateStyles();
-    if (document.getElementById(REINSTALL_GATE_ID)) return true;
-    const installUrl = new URL("./install.html", location.href).href;
-    const gate = document.createElement("div");
-    gate.id = REINSTALL_GATE_ID;
-    gate.setAttribute("role", "dialog");
-    gate.setAttribute("aria-modal", "true");
-    gate.innerHTML =
-      '<div class="pwa-reinstall__card">' +
-      "<h2>앱 재설치가 필요합니다</h2>" +
-      "<p>세로 고정·최신 기능 적용을 위해 홈화면 아이콘을 삭제한 뒤 다시 설치해 주세요.</p>" +
-      "<ol>" +
-      "<li>홈화면 <strong>본 헤리티지</strong> 아이콘 길게 눌러 <strong>삭제</strong></li>" +
-      "<li>아래 버튼으로 설치 페이지 열기</li>" +
-      "<li>다시 <strong>홈 화면에 추가</strong></li>" +
-      "</ol>" +
-      `<a href="${installUrl}">재설치 안내 · 설치 페이지 열기</a>` +
-      "</div>";
-    (document.body || document.documentElement).appendChild(gate);
-    return true;
+    // Hard kill any leftover overlay from older cached builds.
+    stampInstalledBuild();
+    try {
+      document.documentElement.classList.remove("is-pwa-reinstall-required");
+      const old = document.getElementById(REINSTALL_GATE_ID);
+      if (old) old.remove();
+    } catch (_) {}
+    return false;
   }
 
-  if (showReinstallGate()) {
-    window.__HX_PWA_REINSTALL_REQUIRED = true;
-  }
+  stampInstalledBuild();
+  window.__HX_PWA_REINSTALL_REQUIRED = false;
+  showReinstallGate();
 
   /**
    * Same as cursorphone-relay rd38 — OS portrait lock via Screen Orientation API.
