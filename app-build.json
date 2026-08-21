@@ -1,1 +1,10 @@
-﻿{"build":"20260821-novideo2","minInstallBuild":"20260809-gbcal31","deployedAt":"2026-08-20T15:13:37.6622989Z","note":"Reject video on select immediately","notes":["영상 선택 즉시 에러"]}
+﻿{
+  "build": "20260821-share2",
+  "minInstallBuild": "20260809-gbcal31",
+  "deployedAt": "2026-08-21T06:00:00.000Z",
+  "note": "Fix SW offline image ???? placeholders + board media network-first",
+  "notes": [
+    "SW/pwa-register mojibake offline image fallback fixed",
+    "portfolio/shipping/reviews/groupbuy images network-first"
+  ]
+}
