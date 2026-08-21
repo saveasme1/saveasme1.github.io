@@ -1,7 +1,7 @@
 ﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260821-novideo2";
+  const APP_BUILD = "20260821-share2";
   const APP_VERSION = "v1.12.49";
   const RELEASE_NOTES = [
     "異쒓퀬 ?щ젰?먯꽌 ?붿쓣 怨좊Ⅴ硫?洹몃떖 湲留?蹂댁뿬??,
@@ -74,8 +74,8 @@
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
         '<rect width="640" height="640" fill="#2a2724"/>' +
-        '<text x="320" y="292" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="26">?대?吏 以鍮?以?/text>' +
-        '<text x="320" y="340" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="18">??댄뙆?댁뿉???대㈃ ??λ맗?덈떎</text>' +
+        '<text x="320" y="292" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="26">Image unavailable</text>' +
+        '<text x="320" y="340" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="18">Pull to refresh or reopen</text>' +
         "</svg>"
     );
 
@@ -229,9 +229,8 @@
       img.src = IMG_FALLBACK;
     };
     img.addEventListener("error", applyFallback);
-    if (img.complete && img.naturalWidth === 0 && img.getAttribute("src")) {
-      applyFallback();
-    }
+    // Do NOT treat complete+naturalWidth===0 as failed while still loading —
+    // that race replaced valid images with the offline placeholder.
   }
 
   function scanImages(root) {

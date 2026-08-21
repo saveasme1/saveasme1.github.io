@@ -174,7 +174,7 @@
 
         encodeURIComponent(
 
-          '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640"><rect width="640" height="640" fill="#2a2724"/><text x="320" y="320" text-anchor="middle" fill="#c4bdb4" font-size="28" font-family="sans-serif">이미지 준비 중</text></svg>'
+          '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640"><rect width="640" height="640" fill="#2a2724"/><text x="320" y="320" text-anchor="middle" fill="#c4bdb4" font-size="28" font-family="sans-serif">Image unavailable</text></svg>'
 
         );
 

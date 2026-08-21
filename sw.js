@@ -1,6 +1,6 @@
 ﻿/* Heritage PWA ? offline shell + image runtime cache + status events */
-const CACHE_VERSION = "hx-pwa-v20260821-novideo2";
-const RUNTIME_CACHE = "hx-pwa-runtime-images-v3";
+const CACHE_VERSION = "hx-pwa-v20260821-share2";
+const RUNTIME_CACHE = "hx-pwa-runtime-images-v4";
 const OFFLINE_FALLBACK = "./landing.html";
 const MAX_RUNTIME_IMAGES = 640;
 
@@ -233,16 +233,19 @@ function isImageRequest(req, url) {
 }
 
 function offlineImageResponse() {
+  // ASCII-only: SW source encoding must not mojibake Korean into "????".
   const svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">' +
     '<rect width="640" height="640" fill="#2a2724"/>' +
-    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="28">????</text>' +
-    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="20">?? ???? ?? ???</text>' +
+    '<text x="320" y="300" text-anchor="middle" fill="#c4bdb4" font-family="sans-serif" font-size="26">Image unavailable</text>' +
+    '<text x="320" y="348" text-anchor="middle" fill="#8a837b" font-family="sans-serif" font-size="18">Check network and retry</text>' +
     "</svg>";
   return new Response(svg, {
+    status: 200,
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
       "Cache-Control": "no-store",
+      "X-Gongbang-Offline-Image": "1",
     },
   });
 }
@@ -429,6 +432,30 @@ self.addEventListener("fetch", (event) => {
   }
 
   const image = isImageRequest(req, url);
+  // Board media: network-first so deleted/renamed assets (jpg→gif) and stale
+  // runtime cache don't keep serving offline "????" placeholders.
+  const boardMedia =
+    image &&
+    /\/(?:portfolio|shipping|reviews|groupbuy|notices)\/(?:seed|details|uploads)\//i.test(
+      url.pathname
+    );
+
+  if (boardMedia) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            putRuntimeImage(req, res);
+            return res;
+          }
+          return matchIgnoringSearch(req).then((cached) => cached || offlineImageResponse());
+        })
+        .catch(() =>
+          matchIgnoringSearch(req).then((cached) => cached || offlineImageResponse())
+        )
+    );
+    return;
+  }
 
   event.respondWith(
     matchIgnoringSearch(req).then((cached) => {
@@ -444,7 +471,7 @@ self.addEventListener("fetch", (event) => {
             }
             return res;
           }
-          // Avoid serving HTML/404 as an <img> ?????
+          // Avoid serving HTML/404 as an <img>
           if (image) return cached || offlineImageResponse();
           return res;
         })
