@@ -83,6 +83,9 @@
           dateText,
           viewCount: item.viewCount,
           hideViews: true,
+          board: "notices",
+          itemId: item.id,
+          shareTitle: item.title || "",
         });
       } else {
         els.meta.textContent = dateText || "";

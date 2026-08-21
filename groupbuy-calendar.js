@@ -647,11 +647,32 @@
         `</div>` +
         `</div>` +
         `<div class="gb-cal-sheet__foot">` +
+        `<button type="button" class="post-meta-share gb-cal-sheet__share" data-share aria-label="공유하기" title="공유하기"></button>` +
         `<a class="gb-cal-sheet__join" href="${KAKAO_URL}" target="_blank" rel="noopener noreferrer">공동구매 참여하기</a>` +
         `</div>`;
       card.querySelector("h2").textContent = item.title;
       card.querySelector(".gb-cal-sheet__content p").textContent = item.content || "";
-      const heroFrame = card.querySelector(".gb-cal-sheet__hero-frame");
+      const shareBtn = card.querySelector("[data-share]");
+      if (shareBtn && window.GongbangBoardMeta?.createShareButton) {
+        const built = window.GongbangBoardMeta.createShareButton({
+          board: "groupbuy",
+          itemId: item.id,
+          shareTitle: item.title || "",
+        });
+        shareBtn.replaceWith(built);
+        built.classList.add("gb-cal-sheet__share");
+      } else if (shareBtn) {
+        shareBtn.textContent = "공유하기";
+        shareBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const url = `${location.origin}/groupbuy.html?id=${encodeURIComponent(item.id || "")}`;
+          try {
+            if (navigator.share) await navigator.share({ title: item.title || "", url });
+            else if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+          } catch (_) {}
+        });
+      }      const heroFrame = card.querySelector(".gb-cal-sheet__hero-frame");
       if (heroFrame && hero && window.GongbangBoardMedia?.isVideoUrl?.(hero)) {
         const poster =
           item.coverPoster && String(hero) === String(item.cover || "")

@@ -2586,6 +2586,10 @@
 
         board: "portfolio",
 
+        itemId: item.id,
+
+        shareTitle: item.title || "",
+
         tryOn: {
 
           id: item.id,

@@ -496,6 +496,9 @@
       window.GongbangBoardMeta.renderMetaRow(dialog.meta, {
         dateText: formatDate(item.publishedAt),
         viewCount,
+        board: type,
+        itemId: item.id,
+        shareTitle: item.title || "",
       });
     }
     if (window.GongbangHtmlEditor) {

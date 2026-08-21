@@ -492,7 +492,8 @@ body.has-gb-top-brand .landing {
 }
 .detail-copy .post-meta-kakao,
 .detail-copy .post-meta-tryon,
-.detail-copy .post-meta-pricetrend {
+.detail-copy .post-meta-pricetrend,
+.detail-copy .post-meta-share {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -508,6 +509,18 @@ body.has-gb-top-brand .landing {
   white-space: nowrap;
   cursor: pointer;
   font-family: inherit;
+}
+.detail-copy .post-meta-share {
+  gap: 4px;
+  border: 1px solid #d8d4ce;
+  background: #fff;
+  color: #2a2724;
+}
+.detail-copy .post-meta-share:hover { background: #f7f4ef; }
+.detail-copy .post-meta-share.is-copied {
+  border-color: #c8e6c9;
+  background: #eef8ee;
+  color: #1b5e20;
 }
 .detail-copy .post-meta-kakao {
   border: 1px solid #fee500;
@@ -835,9 +848,11 @@ body.has-gb-bottom-nav .toast-stack {
   .post-meta-kakao,
   .post-meta-tryon,
   .post-meta-pricetrend,
+  .post-meta-share,
   .detail-copy .post-meta-kakao,
   .detail-copy .post-meta-tryon,
-  .detail-copy .post-meta-pricetrend { min-height: 26px; padding: 3px 8px; font-size: 10px; }
+  .detail-copy .post-meta-pricetrend,
+  .detail-copy .post-meta-share { min-height: 26px; padding: 3px 8px; font-size: 10px; }
   .board-carousel-nav { width: 40px; height: 40px; font-size: 27px; }
 }
 

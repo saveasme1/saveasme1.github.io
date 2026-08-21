@@ -552,6 +552,9 @@
         window.GongbangBoardMeta.renderMetaRow(els.viewMeta, {
           dateText: formatDate(review.publishedAt),
           viewCount: review.viewCount,
+          board: "reviews",
+          itemId: review.id,
+          shareTitle: review.title || "",
         });
       }
       window.GongbangTime.renderPostTitle(els.viewTitle, review.title, review.publishedAt);
@@ -596,6 +599,9 @@
           window.GongbangBoardMeta.renderMetaRow(els.viewMeta, {
             dateText: formatDate(state.currentReview.publishedAt),
             viewCount: state.currentReview.viewCount,
+            board: "reviews",
+            itemId: state.currentReview.id,
+            shareTitle: state.currentReview.title || "",
           });
         }
         window.GongbangTime.renderPostTitle(

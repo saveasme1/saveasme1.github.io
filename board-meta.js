@@ -96,6 +96,105 @@
     }
   }
 
+  const SHARE_ICON_SVG =
+    '<svg class="post-meta-share-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">' +
+    '<path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/>' +
+    "</svg>";
+
+  function keepAppQuery(url) {
+    try {
+      if (!/[?&]app=1(?:&|$)/.test(location.search)) return url;
+      const u = new URL(url, location.origin);
+      u.searchParams.set("app", "1");
+      return u.toString();
+    } catch (_) {
+      return url;
+    }
+  }
+
+  function buildShareUrl(options = {}) {
+    const explicit = String(options.shareUrl || "").trim();
+    if (explicit) return keepAppQuery(explicit);
+    const id = String(options.itemId || options.id || "").trim();
+    const board = String(options.board || "").trim();
+    const origin = location.origin || "https://hand-made.kr";
+    if (id && board === "portfolio") return keepAppQuery(`${origin}/portfolio.html?id=${encodeURIComponent(id)}`);
+    if (id && board === "shipping") return keepAppQuery(`${origin}/shipping.html?id=${encodeURIComponent(id)}`);
+    if (id && board === "notices") return keepAppQuery(`${origin}/notice-view.html?id=${encodeURIComponent(id)}`);
+    if (id && board === "reviews") return keepAppQuery(`${origin}/reviews.html?id=${encodeURIComponent(id)}`);
+    if (id && board === "groupbuy") return keepAppQuery(`${origin}/groupbuy.html?id=${encodeURIComponent(id)}`);
+    try {
+      const u = new URL(location.href);
+      u.hash = "";
+      return u.toString();
+    } catch (_) {
+      return location.href;
+    }
+  }
+
+  async function sharePost(options = {}) {
+    const url = buildShareUrl(options);
+    const title = String(options.shareTitle || options.title || document.title || "공방171").trim();
+    const text = String(options.shareText || title).trim();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        return { ok: true, via: "share" };
+      }
+    } catch (error) {
+      if (error && (error.name === "AbortError" || error.name === "NotAllowedError")) {
+        return { ok: false, via: "share", aborted: true };
+      }
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        return { ok: true, via: "clipboard" };
+      }
+    } catch (_) {}
+    try {
+      const input = document.createElement("input");
+      input.value = url;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+      return { ok: true, via: "clipboard" };
+    } catch (_) {
+      return { ok: false, via: "none", url };
+    }
+  }
+
+  function createShareButton(options = {}) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "post-meta-share";
+    btn.setAttribute("aria-label", "공유하기");
+    btn.title = "공유하기";
+    btn.innerHTML = `${SHARE_ICON_SVG}<span class="post-meta-share-label">공유하기</span>`;
+    btn.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const result = await sharePost(options);
+      if (result.aborted) return;
+      if (result.ok && result.via === "clipboard") {
+        const prev = btn.innerHTML;
+        btn.classList.add("is-copied");
+        btn.innerHTML = `${SHARE_ICON_SVG}<span class="post-meta-share-label">복사됨</span>`;
+        setTimeout(() => {
+          btn.classList.remove("is-copied");
+          btn.innerHTML = prev;
+        }, 1400);
+      } else if (!result.ok && result.url) {
+        window.prompt("아래 링크를 복사해 공유하세요.", result.url);
+      }
+    });
+    return btn;
+  }
+
   function renderMetaRow(target, options = {}) {
     if (!target) return;
     const dateText = String(options.dateText || "").trim();
@@ -119,13 +218,17 @@
       left.append(sep);
     }
 
-    const views = document.createElement("span");
-    views.className = "post-meta-views";
-    views.textContent = viewsText;
-    left.append(views);
+    if (!options.hideViews) {
+      const views = document.createElement("span");
+      views.className = "post-meta-views";
+      views.textContent = viewsText;
+      left.append(views);
+    }
 
     const actions = document.createElement("div");
     actions.className = "post-meta-actions";
+
+    actions.append(createShareButton(options));
 
     const kakao = document.createElement("a");
     kakao.className = "post-meta-kakao";
@@ -261,6 +364,9 @@
     formatViews,
     fetchViews,
     bumpView,
+    buildShareUrl,
+    sharePost,
+    createShareButton,
     renderMetaRow,
     syncCarouselHeight,
     setupContentClamp,

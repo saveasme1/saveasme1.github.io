@@ -512,7 +512,8 @@
   margin-left: 10px;
 }
 .post-meta-kakao,
-.post-meta-tryon {
+.post-meta-tryon,
+.post-meta-share {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -527,6 +528,20 @@
   text-decoration: none;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
+}
+.post-meta-share {
+  gap: 4px;
+  border: 1px solid #d8d4ce;
+  background: #fff;
+  color: #2a2724;
+  cursor: pointer;
+  font-family: inherit;
+}
+.post-meta-share:hover { background: #f7f4ef; }
+.post-meta-share.is-copied {
+  border-color: #c8e6c9;
+  background: #eef8ee;
+  color: #1b5e20;
 }
 .post-meta-kakao {
   border: 1px solid #fee500;
