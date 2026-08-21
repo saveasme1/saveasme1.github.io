@@ -692,7 +692,7 @@
 
               <div class="pf-writer-cover" id="portfolioCoverPreview">대표 이미지 없음</div>
 
-              <label class="pf-writer-file">대표 사진 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+              <label class="pf-writer-file">대표 사진 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif"></label>
 
             </div>
 
@@ -708,7 +708,7 @@
 
             </div>
 
-            <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif" multiple></label>
 
             <div class="pf-writer-grid" id="portfolioDetailGrid"></div>
 

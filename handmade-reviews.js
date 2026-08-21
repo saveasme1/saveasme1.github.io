@@ -654,7 +654,7 @@
                 </div>
                 <div class="pf-writer-cover-row">
                   <div class="pf-writer-cover is-empty" id="reviewCoverPreview">대표 이미지 없음</div>
-                  <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>
+                  <label class="pf-writer-file">대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif"></label>
                 </div>
               </div>
               <div class="pf-writer-block pf-writer-detail-block">
@@ -662,7 +662,7 @@
                   <strong>추가 이미지</strong>
                   <span>클릭하여 이미지 추가</span>
                 </div>
-                <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+                <label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif" multiple></label>
                 <div class="pf-writer-grid" id="reviewDetailGrid"></div>
               </div>
             </section>

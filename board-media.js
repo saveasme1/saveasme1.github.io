@@ -12,7 +12,7 @@
   const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
   const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
   const MAX_VIDEO_SECONDS = 30;
-  const ACCEPT_IMAGE = "image/jpeg,image/png,image/webp";
+  const ACCEPT_IMAGE = "image/jpeg,image/png,image/webp,image/gif,.gif";
   const ACCEPT_VIDEO = ",video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov";
   const ACCEPT = ACCEPT_IMAGE + (VIDEO_UPLOAD_ENABLED ? ACCEPT_VIDEO : "");
 
@@ -228,9 +228,9 @@
       return "image";
     }
     if (!allowVideo) {
-      throw new Error("지금은 사진만 올릴 수 있습니다. (jpeg/png/webp)");
+      throw new Error("지금은 사진만 올릴 수 있습니다. (jpeg/png/webp/gif)");
     }
-    throw new Error(`${file.name}: jpeg/png/webp 또는 mp4/webm만 지원합니다.`);
+    throw new Error(`${file.name}: jpeg/png/webp/gif 또는 mp4/webm만 지원합니다.`);
   }
 
   /** Validate + (for video) extract poster immediately on file pick. */

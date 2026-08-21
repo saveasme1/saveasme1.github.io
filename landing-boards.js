@@ -600,7 +600,13 @@
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
     const ext =
-      prepared.type === "image/png" ? "png" : prepared.type === "image/webp" ? "webp" : "jpg";
+      prepared.type === "image/png"
+        ? "png"
+        : prepared.type === "image/webp"
+          ? "webp"
+          : prepared.type === "image/gif"
+            ? "gif"
+            : "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     const content = bytesToBase64(new Uint8Array(await prepared.arrayBuffer()));
@@ -612,6 +618,8 @@
 
   async function compressImageFile(file, maxSide = 1200, quality = 0.72) {
     if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    // Animated GIF must stay GIF — canvas encode freezes to a still frame.
+    if (file.type === "image/gif" || /\.gif$/i.test(file.name || "")) return file;
     try {
       const bmp = await createImageBitmap(file);
       const w = bmp.width;
@@ -666,7 +674,13 @@
       throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
     }
     const ext =
-      prepared.type === "image/png" ? "png" : prepared.type === "image/webp" ? "webp" : "jpg";
+      prepared.type === "image/png"
+        ? "png"
+        : prepared.type === "image/webp"
+          ? "webp"
+          : prepared.type === "image/gif"
+            ? "gif"
+            : "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     // #region agent log

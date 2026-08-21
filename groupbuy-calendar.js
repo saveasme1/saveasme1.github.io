@@ -202,7 +202,7 @@
     }
     const ext = isVideo
       ? ({ "video/webm": "webm", "video/quicktime": "mov" }[file.type] || "mp4")
-      : ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg");
+      : ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" }[file.type] || "jpg");
     const suffix = index ? `-${index}` : "";
     const path = `groupbuy/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     const content = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
@@ -839,12 +839,12 @@
       `<div class="pf-writer-heading"><strong>대표 이미지</strong><span>목록에 가장 먼저 보이는 이미지</span></div>` +
       `<div class="pf-writer-cover-row">` +
       `<div class="pf-writer-cover is-empty" id="gbCalWriterGallery" data-gallery>대표 이미지 없음</div>` +
-      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>` +
+      `<label class="pf-writer-file" data-cover-label>대표 이미지 선택<input name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif"></label>` +
       `</div>` +
       `</div>` +
       `<div class="pf-writer-block pf-writer-detail-block">` +
       `<div class="pf-writer-heading"><strong>추가 이미지</strong><span>클릭하여 이미지 추가</span></div>` +
-      `<label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>` +
+      `<label class="pf-writer-file compact">클릭하여 사진 추가<input name="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.gif" multiple></label>` +
       `<div class="pf-writer-grid" id="gbCalWriterDetailGrid"></div>` +
       `</div>` +
       `</section>` +

@@ -238,7 +238,7 @@
   }
   async function upload(file, id, role, index = 0) {
     if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name}: 8MB 이하 이미지만 업로드할 수 있습니다.`);
-    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[file.type] || "jpg";
+    const ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" }[file.type] || "jpg";
     const suffix = index ? `-${index}` : "";
     const path = `${type}/uploads/${id}/${role}${suffix}-${Date.now()}.${ext}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
