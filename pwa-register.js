@@ -1,10 +1,10 @@
 ﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260922-writer2";
-  const APP_VERSION = "v1.12.51";
+  const APP_BUILD = "20260922-writer3";
+  const APP_VERSION = "v1.12.52";
   const RELEASE_NOTES = [
-    "최종검수 글 등록 수정이 제대로 적용되도록 캐시를 갱신했어요"
+    "최종검수 브랜드 카테고리 버튼이 다시 해당 글만 보여요"
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

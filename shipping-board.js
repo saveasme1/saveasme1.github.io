@@ -95,6 +95,43 @@
     .replace(/Gongbang\s*171/gi, "Heritage")
     .replace(/공방\s*171/g, "본 헤리티지");
 
+  // Imported shipping posts often omit `category`; infer from title like the writer does.
+  function resolveItemCategory(item) {
+    const raw = String(item?.category || "").trim();
+    if (raw && DEFAULT_CATEGORIES.includes(raw)) return raw;
+    const title = String(item?.title || "");
+    const content = String(item?.content || "");
+    const code = window.HeritageBrandCodes?.extractPortfolioCode?.(title, raw) || "";
+    if (code === "T&C" || code === "L" || code === "D") return "ETC";
+    if (code && DEFAULT_CATEGORIES.includes(code)) return code;
+    const lead = title.trim().match(/^([A-Za-z0-9&]+)/);
+    if (lead) {
+      const token = lead[1].toUpperCase().replace(/\s+/g, "");
+      const leadMap = {
+        "C&H": "C&H", CH: "C&H", VCA: "VCA", VC: "VCA", BO: "BO", CM: "CM", CL: "CL",
+        BV: "B", "T&C": "ETC", "T&CO": "ETC", TCO: "ETC", FR: "F",
+        C: "C", B: "B", G: "G", H: "H", P: "P", F: "F", L: "ETC", D: "ETC", ETC: "ETC",
+      };
+      if (leadMap[token]) return leadMap[token];
+    }
+    const rules = [
+      [/\bC\s*&\s*H\b|C&H|크롬하츠/i, "C&H"],
+      [/\bVCA\b|반클리프|알함브라/i, "VCA"],
+      [/\bBO\b|부쉐론|Boucheron/i, "BO"],
+      [/\bCM\b|쇼메|쇼매|Chaumet/i, "CM"],
+      [/\bCL\b|샤넬|Chanel/i, "CL"],
+      [/\bT\s*&\s*C(?:O)?\b|T&C|티파니|Tiffany/i, "ETC"],
+      [/\bC\b|까르띠에|Cartier/i, "C"],
+      [/\bB\b|불가리|Bulgari|BVLGARI/i, "B"],
+      [/\bG\b|구찌|Gucci/i, "G"],
+      [/\bH\b|에르메스|Hermes|Hermès/i, "H"],
+      [/\bP\b|프라다|Prada/i, "P"],
+      [/\bF\b|프레드|Fred\b/i, "F"],
+    ];
+    for (const [re, cat] of rules) if (re.test(title) || re.test(content)) return cat;
+    return "ETC";
+  }
+
   function kstParts(date = new Date()) {
     const fmt = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Asia/Seoul",
@@ -213,10 +250,10 @@
     const query = (els.search?.value || "").trim().toLowerCase();
     // Default: show ALL posts. Only narrow when a specific calendar day is selected.
     return state.items.filter((item) => {
-      if (state.category !== "ALL" && item.category !== state.category) return false;
+      if (state.category !== "ALL" && resolveItemCategory(item) !== state.category) return false;
       if (state.selectedDate && dateKeyFromIso(item.publishedAt) !== state.selectedDate) return false;
       if (!query) return true;
-      const hay = `${item.title || ""} ${item.content || ""} ${item.category || ""}`.toLowerCase();
+      const hay = `${item.title || ""} ${item.content || ""} ${resolveItemCategory(item)}`.toLowerCase();
       return hay.includes(query);
     });
   }
@@ -224,7 +261,7 @@
   function postsByDateKey() {
     const map = new Map();
     state.items.forEach((item) => {
-      if (state.category !== "ALL" && item.category !== state.category) return;
+      if (state.category !== "ALL" && resolveItemCategory(item) !== state.category) return;
       const key = dateKeyFromIso(item.publishedAt);
       if (!key) return;
       map.set(key, (map.get(key) || 0) + 1);
@@ -389,10 +426,11 @@
       thumb.type = "button";
       thumb.className = "pf-thumb";
       thumb.setAttribute("aria-label", `${brandText(item.title)} 상세 보기`);
-      if (item.category) {
+      const cat = resolveItemCategory(item);
+      if (cat) {
         const tag = document.createElement("span");
         tag.className = "pf-cat-tag";
-        tag.textContent = item.category;
+        tag.textContent = cat;
         thumb.append(tag);
       }
       const cover = window.GongbangBoardMedia?.thumbUrl?.(item) || item.coverPoster || item.cover || item.image || item.images?.[0];
@@ -731,7 +769,10 @@
       state.items = mergeShippingItems(
         mergeShippingItems(payload.items || [], liveItems),
         (state.items || []).filter((item) => String(item?.id || "").startsWith("admin-") || item?.origin === "admin")
-      );
+      ).map((item) => ({
+        ...item,
+        category: resolveItemCategory(item),
+      }));
       if (window.GongbangBoardMeta?.fetchViews && state.items.length) {
         const views = await window.GongbangBoardMeta.fetchViews(
           BOARD,
@@ -835,7 +876,9 @@
       state.page = 1;
       if (els.search) els.search.value = "";
     }
-    state.items = mergeShippingItems(state.items, [item]);
+    state.items = mergeShippingItems(state.items, [
+      { ...item, category: resolveItemCategory(item) },
+    ]);
     renderCats();
     renderCalendar();
     renderDateStrip();
