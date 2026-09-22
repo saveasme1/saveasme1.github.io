@@ -1,12 +1,10 @@
 ﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260821-share2";
-  const APP_VERSION = "v1.12.49";
+  const APP_BUILD = "20260922-writer1";
+  const APP_VERSION = "v1.12.50";
   const RELEASE_NOTES = [
-    "異쒓퀬 ?щ젰?먯꽌 ?붿쓣 怨좊Ⅴ硫?洹몃떖 湲留?蹂댁뿬??,
-    "寃뚯떆湲 ?섏젙 ???щ┛ ?대?吏媛 洹몃?濡??좎??쇱슂",
-    "?붾㈃ ?쒖떆? ?덉젙??媛쒖꽑"
+    "최종검수·공지 글 등록 버튼이 먹히지 않던 문제를 고쳤어요"
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";

@@ -729,6 +729,16 @@
     });
     writer.cover = { path: "", file: null, preview: "" };
     writer.details = [];
+    syncCoverRequired();
+  }
+
+  // Cover file is mirrored into writer.cover then the <input type=file> is cleared.
+  // Keep required in sync with memory/path, or native validation blocks "등록하기".
+  function syncCoverRequired() {
+    const coverInput =
+      writer.form?.elements?.namedItem?.("cover") || writer.form?.querySelector?.('[name="cover"]');
+    if (!coverInput) return;
+    coverInput.required = !(writer.cover?.file || writer.cover?.path);
   }
 
   function renderWriterCover() {
@@ -737,6 +747,7 @@
     const url = writer.cover.preview || (writer.cover.path ? assetUrl(writer.cover.path) : "");
     preview.classList.toggle("is-empty", !url && !writer.cover.posterPreview);
     preview.classList.toggle("pf-writer-cover", true);
+    syncCoverRequired();
     if (!url && !writer.cover.posterPreview) {
       preview.textContent = "대표 이미지 없음";
       preview.style.backgroundImage = "";
@@ -837,10 +848,8 @@
       if (contentEl) contentEl.value = editing.content || "";
       const coverPath = String(editing.cover || editing.image || "").trim();
       writer.cover = { path: coverPath, file: null, preview: "" };
-      if (coverInput) {
-        coverInput.required = !coverPath;
-        coverInput.value = "";
-      }
+      if (coverInput) coverInput.value = "";
+      syncCoverRequired();
       const rawImages = Array.isArray(editing.images) ? editing.images : [];
       writer.details = rawImages
         .map((entry) => {
@@ -861,7 +870,7 @@
           : (window.GongbangBoardMedia?.writerCopy?.().helpNotice
             || "대표 사진은 필수입니다.");
       }
-      if (coverInput) coverInput.required = true;
+      syncCoverRequired();
     }
 
     const shippingMeta = writer.shippingMeta;
@@ -1463,11 +1472,13 @@
       window.GongbangBoardMedia?.revokeMediaPreview?.(writer.cover);
       writer.cover = { path: writer.cover.path || "", ...prepared };
       writer.form.elements.cover.value = "";
+      syncCoverRequired();
       writer.status.textContent = "";
       renderWriterCover();
     } catch (error) {
       writer.status.textContent = error.message || String(error);
       writer.form.elements.cover.value = "";
+      syncCoverRequired();
     }
   });
   writer.form.elements.images?.addEventListener("change", async () => {
