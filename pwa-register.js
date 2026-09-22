@@ -1,10 +1,10 @@
 ﻿(() => {
   "use strict";
 
-  const APP_BUILD = "20260922-writer1";
-  const APP_VERSION = "v1.12.50";
+  const APP_BUILD = "20260922-writer2";
+  const APP_VERSION = "v1.12.51";
   const RELEASE_NOTES = [
-    "최종검수·공지 글 등록 버튼이 먹히지 않던 문제를 고쳤어요"
+    "최종검수 글 등록 수정이 제대로 적용되도록 캐시를 갱신했어요"
   ];
   const BUILD_KEY = "hx.pwa.build";
   const ACTIVATED_KEY = "hx.pwa.activatedBuild";
